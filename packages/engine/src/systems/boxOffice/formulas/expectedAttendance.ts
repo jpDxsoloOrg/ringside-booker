@@ -3,7 +3,8 @@
  *
  * Popularity in the show's region drives a convex curve (a company twice as popular draws far more
  * than twice the crowd), plus a walk-up crowd every show gets. Marketing, the show's size, recent
- * form, big-show fatigue and hype then each multiply the crowd once, on their own Why? line.
+ * form, the hot streak, big-show fatigue, show heat and hype then each multiply the crowd once, on
+ * their own Why? line.
  * Popularity and hype are separate lines (D-02). The venue's capacity is not part of the forecast;
  * the caller caps the range and the real crowd. Design: docs/design/box-office.md#forecast.
  */
@@ -27,7 +28,11 @@ export interface ExpectedAttendanceInputs {
   readonly marketingLevel: number;
   readonly importance: EventImportance;
   readonly recentForm: Traced<number>;
+  /** Good shows in a row (EVT6-11), from `computeHotStreak`. */
+  readonly hotStreak: Traced<number>;
   readonly bigShowFatigue: Traced<number>;
+  /** The card's linked storyline heat (EVT6-11), from `computeShowHeat`. */
+  readonly showHeat: Traced<number>;
   readonly hype: Traced<number>;
 }
 
@@ -91,7 +96,9 @@ export function computeExpectedAttendance(
     calc.tunable(tunables, IMPORTANCE_KEYS[inputs.importance], 'Show size'),
   );
   calc.multiply('Recent form', inputs.recentForm);
+  calc.multiply('Hot streak', inputs.hotStreak);
   calc.multiply('Big-show fatigue', inputs.bigShowFatigue);
+  calc.multiply('Show heat', inputs.showHeat);
   calc.multiply('Hype', inputs.hype);
   calc.round('round', 'Rounded to whole people');
   calc.max('Never below 0', constantOf('Empty', 0, 'A crowd cannot be smaller than nobody'));

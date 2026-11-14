@@ -1424,6 +1424,9 @@ export type {
   BookingSlotView,
   BookingTitleOption,
   BookingTitleView,
+  PickerStoryline,
+  PickerStorylineMembership,
+  PickerTitle,
   WorkerPickKind,
 } from './systems/booking/index';
 export {
@@ -2912,6 +2915,8 @@ export {
   askingTermsQuery,
   askingTermsWith,
   askingWage,
+  companySizePay,
+  companySizePayLabel,
   CURRENT_DEAL_FLOOR_LABEL,
   CURRENT_FEE_FLOOR_LABEL,
   EXCLUSIVE_ELSEWHERE_REASON_CODE,
@@ -2939,6 +2944,7 @@ export {
   type AskingTermsView,
   type AskingWageInputs,
   type AskingWageRenewal,
+  type FreeAgentPlace,
   type FreeAgentRow,
   type FreeAgentsSituationFilter,
   type MarketValueInputs,
@@ -4032,3 +4038,36 @@ export {
   dealSignedDedupeKey,
 } from './systems/broadcast/index';
 export type { ReachAudience } from './systems/promoPop/index';
+// ECO8-10: deal targets in viewers, the ratings bonus, the Exceeding health and the renewal uplift.
+export {
+  audienceNoun,
+  BONUS_DOC_REF,
+  bonusBaseLabel,
+  dealTargets,
+  EXCEEDING_REASON,
+  ratingsBonusMemo,
+  ratingsBonusShare,
+  renewalValuation,
+} from './systems/broadcast/index';
+export type { DealTarget, DealTargets, RenewalUplift } from './systems/broadcast/index';
+// EVT4-08: the booker sets each segment's time within the show's time budget.
+export { BOOKED_TIMES, BookedTimeSchema } from './model/entities/segment';
+export type { BookedTime } from './model/entities/segment';
+export type { BookingTimeView } from './systems/booking/index';
+export {
+  cardTimeUsed,
+  formatRoles,
+  overTimeMessage,
+  segmentDurationOf,
+  SHOW_TIME_DOC_REF,
+  showTimeBudget,
+  showTimeOf,
+  timeUnitsOf,
+} from './systems/match/showTime';
+export type { SegmentDuration, ShowTime, TimedSlot } from './systems/match/showTime';
+export {
+  OVER_TIME_CODE,
+  SHOW_TIME_CHECK_ID,
+  SHOW_TIME_CHECK_LABEL,
+  showTimeCheck,
+} from './systems/match/showTimeCheck';

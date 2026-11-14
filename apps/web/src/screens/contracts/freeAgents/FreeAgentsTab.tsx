@@ -1,22 +1,36 @@
-import { useCallback, useMemo, useState } from 'react';
-import { STYLE_LABELS } from '@ringside/engine';
-import type { EmploymentRole, FreeAgentRow, PromotionId } from '@ringside/engine';
+import { useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { PUSH_LEVELS, STYLE_LABELS } from '@ringside/engine';
+import type { FreeAgentRow, PromotionId, Push } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
-import { DataTable } from '@/components/DataTable';
+import { DataTable, rowsMatchingText } from '@/components/DataTable';
 import type { ColumnDef } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
 import { formatNumber } from '@/components/format';
 import { ImageSlot } from '@/components/ImageSlot';
-import { Select } from '@/components/Select';
-import type { SelectOption } from '@/components/Select';
 import { Explained, traceQuery } from '@/components/Trace';
 import { WorkerLink } from '@/components/WorkerLink';
-import { EMPLOYMENT_ROLE_LABELS } from '@/screens/promotions/profile/tabs/RosterTab';
+import { NO_VALUE, pushLabel } from '@/screens/roster/labels';
 import { WORKER_ROLE_LABELS } from '@/screens/workers/workerLabels';
 import { useIsMobile } from '@/styles/useMediaQuery';
+import {
+  filterFreeAgents,
+  freeAgentFilterCount,
+  freeAgentFiltersFromSearch,
+  FREE_AGENTS_ONLY,
+  NO_FREE_AGENT_FILTERS,
+  searchWithFreeAgentFilters,
+  searchWithSearchText,
+  shownOfText,
+  SITUATION_PARAM,
+} from '../contractsListParams';
+import type { FreeAgentFilters } from '../contractsListParams';
 import type { NegotiationTarget } from '../contractsParams';
+import { useListUrlState } from '../useListUrlState';
+import { FreeAgentsFilterBar } from './FreeAgentsFilterBar';
+import { FilterPanel } from '@/screens/workers/filterControls';
 import { cooldownReason, situationText, talksStateText } from '../negotiation/negotiationText';
 import { useContractMoney } from '../useContractMoney';
 import type { ContractMoney } from '../useContractMoney';
@@ -25,16 +39,15 @@ import styles from '../ContractsScreen.module.css';
 /** What the tab says when nobody matches. */
 export const NO_FREE_AGENTS_TEXT = 'No free agents match';
 
-const ALL = 'all';
-const ROLE_FILTERS: readonly EmploymentRole[] = [
-  'wrestler',
-  'manager',
-  'presenter',
-  'announcer',
-  'referee',
-  'producer',
-];
+/** What the tab says when its filters or search leave nobody. */
+export const NO_FREE_AGENTS_MATCH_TEXT = 'Nobody matches these filters';
+
 const NO_ROWS: readonly FreeAgentRow[] = [];
+
+/** A card position as a number that grows with the push, so the first click puts the top first. */
+export function pushSortValue(push: Push): number {
+  return PUSH_LEVELS.length - PUSH_LEVELS.indexOf(push);
+}
 
 export interface FreeAgentsTabProps {
   readonly promotionId: PromotionId;
@@ -84,6 +97,30 @@ function AskCell({
             kind: perAppearance ? 'perAppearance' : 'written',
           },
           (ask) => (perAppearance ? ask.perAppearanceFee.trace : ask.monthlyWage.trace),
+        )}
+      />
+    </span>
+  );
+}
+
+function MarketValueCell({
+  row,
+  promotionId,
+  money,
+}: {
+  readonly row: FreeAgentRow;
+  readonly promotionId: PromotionId;
+  readonly money: ContractMoney;
+}) {
+  return (
+    <span className={styles['nowrap']}>
+      <Explained
+        value={`${money(row.marketValue)}/mo`}
+        label={`${row.ringName}'s market value`}
+        traceQuery={traceQuery(
+          'contracts.askingTerms',
+          { promotionId, personId: row.personId },
+          (ask) => ask.marketValue.trace,
         )}
       />
     </span>
@@ -144,16 +181,12 @@ function ActionCell({
 export function FreeAgentsTab({ promotionId, openNegotiation }: FreeAgentsTabProps) {
   const money = useContractMoney();
   const isMobile = useIsMobile();
-  const [role, setRole] = useState<string>(ALL);
-  const [situation, setSituation] = useState<'freeAgent' | 'all'>('all');
-  const pickedRole = ROLE_FILTERS.find((entry) => entry === role);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filters = useMemo(() => freeAgentFiltersFromSearch(searchParams), [searchParams]);
+  const situation = searchParams.get(SITUATION_PARAM) === FREE_AGENTS_ONLY ? 'freeAgent' : 'all';
   const query = useEngineQuery(
     'contracts.freeAgents',
-    {
-      promotionId,
-      situation,
-      ...(pickedRole === undefined ? {} : { role: pickedRole }),
-    },
+    { promotionId, situation },
     { keepPreviousData: true },
   );
   const rows = (query.status === 'success' ? query.data : undefined) ?? NO_ROWS;
@@ -165,15 +198,6 @@ export function FreeAgentsTab({ promotionId, openNegotiation }: FreeAgentsTabPro
     },
     [openNegotiation],
   );
-
-  const roleOptions: readonly SelectOption[] = [
-    { value: ALL, label: 'All roles' },
-    ...ROLE_FILTERS.map((value) => ({ value, label: EMPLOYMENT_ROLE_LABELS[value] })),
-  ];
-  const situationOptions: readonly SelectOption[] = [
-    { value: 'freeAgent', label: 'Free agents' },
-    { value: 'all', label: 'Include ending soon' },
-  ];
 
   const columns = useMemo<readonly ColumnDef<FreeAgentRow>[]>(
     () => [
@@ -273,6 +297,37 @@ export function FreeAgentsTab({ promotionId, openNegotiation }: FreeAgentsTabPro
         card: 'meta',
       },
       {
+        id: 'popularityHere',
+        header: 'Popularity in your regions',
+        cell: (row) => (
+          <span className="tabular">{formatNumber(Math.round(row.popularityHere))}</span>
+        ),
+        sortValue: (row) => row.popularityHere,
+        filterValue: () => null,
+        numeric: true,
+        card: 'hidden',
+      },
+      {
+        id: 'pushExpectation',
+        header: 'Push expectation',
+        cell: (row) => {
+          const label = pushLabel(row.pushExpectation);
+          return label === NO_VALUE ? <span className={styles['none']}>{NO_VALUE}</span> : label;
+        },
+        sortValue: (row) => pushSortValue(row.pushExpectation),
+        filterValue: () => null,
+        card: 'hidden',
+      },
+      {
+        id: 'marketValue',
+        header: 'Market value',
+        cell: (row) => <MarketValueCell row={row} promotionId={promotionId} money={money} />,
+        sortValue: (row) => row.marketValue,
+        filterValue: () => null,
+        numeric: true,
+        card: 'hidden',
+      },
+      {
         id: 'ask',
         header: 'Ask',
         cell: (row) => <AskCell row={row} promotionId={promotionId} money={money} />,
@@ -300,32 +355,95 @@ export function FreeAgentsTab({ promotionId, openNegotiation }: FreeAgentsTabPro
     [promotionId, money, open],
   );
 
+  const list = useListUrlState(columns, null);
+  const changeFilters = useCallback(
+    (next: FreeAgentFilters): void => {
+      setSearchParams((current) => searchWithFreeAgentFilters(current, next), { replace: true });
+    },
+    [setSearchParams],
+  );
+  const changeSituation = useCallback(
+    (next: 'freeAgent' | 'all'): void => {
+      setSearchParams(
+        (current) => {
+          const search = new URLSearchParams(current);
+          if (next === 'freeAgent') search.set(SITUATION_PARAM, FREE_AGENTS_ONLY);
+          else search.delete(SITUATION_PARAM);
+          return search;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+  const clearAll = (): void => {
+    setSearchParams(
+      (current) =>
+        searchWithSearchText(searchWithFreeAgentFilters(current, NO_FREE_AGENT_FILTERS), ''),
+      { replace: true },
+    );
+  };
+
+  const filtered = useMemo(() => filterFreeAgents(rows, filters), [rows, filters]);
+  const shown = rowsMatchingText(filtered, columns, list.searchText);
+  const activeCount = freeAgentFilterCount(filters);
+  const narrowed = activeCount > 0 || list.searchText.trim() !== '';
+
   return (
     <div className={styles['panel']}>
-      <div className={styles['filters']}>
-        <Select label="Role" options={roleOptions} value={role} onValueChange={setRole} />
-        <Select
-          label="Situation"
-          options={situationOptions}
-          value={situation}
-          onValueChange={(value) => {
-            setSituation(value === 'freeAgent' ? 'freeAgent' : 'all');
-          }}
-        />
-      </div>
+      <FilterPanel
+        isMobile={isMobile}
+        activeCount={activeCount}
+        showText={`Show ${shownOfText(shown.length, rows.length, 'free agent', 'free agents')}`}
+      >
+        {(layout) => (
+          <FreeAgentsFilterBar
+            filters={filters}
+            rows={rows}
+            situation={situation}
+            onChange={changeFilters}
+            onSituationChange={changeSituation}
+            layout={layout}
+          />
+        )}
+      </FilterPanel>
+      <p className={styles['shownCount']} role="status">
+        {narrowed && query.status === 'success'
+          ? shownOfText(shown.length, rows.length, 'free agent', 'free agents')
+          : ''}
+      </p>
       <DataTable
         className={styles['table']}
-        rows={rows}
+        rows={filtered}
         columns={columns}
         getRowId={(row) => row.personId}
         getRowLabel={(row) => row.ringName}
         caption="Free agents"
+        sort={list.sort}
+        onSortChange={list.onSortChange}
         filterable
         filterLabel="Find a worker"
+        filter={list.searchText}
+        onFilterChange={list.onSearchTextChange}
         density="compact"
         loading={query.status === 'loading'}
         {...(isMobile ? {} : { onActivate: open })}
-        emptyState={<EmptyState icon="contracts" title={NO_FREE_AGENTS_TEXT} />}
+        emptyState={
+          narrowed ? (
+            <EmptyState
+              icon="contracts"
+              title={NO_FREE_AGENTS_MATCH_TEXT}
+              body="Loosen a filter, or clear them all."
+              action={
+                <Button size="sm" onClick={clearAll}>
+                  Clear filters
+                </Button>
+              }
+            />
+          ) : (
+            <EmptyState icon="contracts" title={NO_FREE_AGENTS_TEXT} />
+          )
+        }
       />
     </div>
   );

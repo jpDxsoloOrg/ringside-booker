@@ -240,6 +240,71 @@ card shows exactly what tomorrow's Wages row posts.
 Cash may go negative; payroll never skips a day for lack of money (ECO9 handles
 distress). Tunables: `finance.payOwnerAndBooker`, `finance.wages.multiplier`.
 
+### Indie wages calibration
+
+ECO4-09 scales pay by company size ([contracts.md](contracts.md#company-size-pay)).
+Owner targets: Hardpan's roster costs about $2,000-3,000 a show (roughly 40%
+of before); run frugally, a small promotion makes a little money in year one
+while its popularity grows; overspending still loses money; the big
+promotions are unchanged; no rival goes broke because of the change.
+
+**Year one, 365 days from 4 January 2027, Hardpan played**, every promotion's
+cash on 3 January 2028 in whole dollars. The stand-in player keeps its roster
+(each contract renews on the same terms when it ends: since ECO5-05 renewals
+are the player's job, and a roster left to expire is empty by autumn) and
+runs every show; rivals book their own cards. Frugal play: Auto-fill cards and
+Hardpan's own modest production.
+
+| Promotion (start cash)  | Shows | Roster a show, before |  **After** | Tickets a show | Production and venue a show | Cash, before | **Cash, after** | Lowest, after |
+| ----------------------- | ----: | --------------------: | ---------: | -------------: | --------------------------: | -----------: | --------------: | ------------: |
+| Altura (40,000,000)     |   122 |                87,308 | **87,308** |        713,379 |                     322,448 |   89,644,399 |  **89,629,435** |    40,616,967 |
+| Tessen (8,000,000)      |    56 |                39,901 | **39,901** |         81,282 |                      55,252 |    3,007,670 |   **2,999,053** |     2,763,758 |
+| Cielo Alto (5,000,000)  |    56 |                39,256 | **39,256** |        351,310 |                     127,767 |   16,200,469 |  **16,147,947** |     4,975,057 |
+| Boreal (1,500,000)      |    55 |                 5,129 |  **3,419** |         67,025 |                      23,652 |    3,320,581 |   **3,415,152** |     1,491,326 |
+| Longleaf (1,200,000)    |    54 |                 5,210 |  **3,121** |         74,294 |                      27,020 |    3,240,338 |   **3,357,628** |     1,197,667 |
+| Ashlar (900,000)        |    54 |                 5,071 |  **3,082** |         31,480 |                      15,907 |      739,526 |     **845,522** |       794,581 |
+| Golden Poppy (750,000)  |    28 |                10,067 |  **5,310** |          8,659 |                       6,923 |       14,871 |      **68,999** |        68,999 |
+| Blast Furnace (650,000) |    28 |                 9,949 |  **5,962** |         15,152 |                       7,409 |      151,025 |     **217,251** |       217,251 |
+| Eisenwerk (400,000)     |    28 |                 9,661 |  **7,000** |         55,251 |                      15,679 |    1,038,258 |   **1,093,457** |       352,623 |
+| Hibari (120,000)        |    24 |                 5,173 |  **2,074** |          3,602 |                       2,948 |        8,734 |      **71,048** |        69,309 |
+| Hardpan (85,000)        |    52 |                 6,033 |  **2,424** |          4,692 |                       2,836 |      −90,435 |      **97,283** |        76,573 |
+| Wattle (40,000)         |    26 |                 5,315 |  **2,363** |          5,511 |                       2,298 |        7,187 |      **80,386** |        31,666 |
+
+Roster a show is wages plus appearance fees over the year ÷ completed shows.
+Altura, Tessen and Cielo Alto pay exactly what they did (their cash moves by
+under 0.5% from rival-to-rival knock-on effects). Every smaller company ends
+better off; none goes below zero. Hibari still loses about $49,000 a year and
+Golden Poppy about $681,000: their costs are not mostly wages.
+
+**Hardpan as the player**, by how it is run:
+
+| Hardpan's year                                 | Average show score | Roster a show, before | **After** | Cash, before | **Cash, after** | Change, after | Reach, start → end |
+| ---------------------------------------------- | -----------------: | --------------------: | --------: | -----------: | --------------: | ------------: | ------------------ |
+| Frugal: Auto-fill, its own modest production   |               46.8 |                 6,033 | **2,424** |      −90,435 |      **97,283** |       +12,283 | 3.6 → 10.8         |
+| Random singles                                 |               45.4 |                 6,100 | **2,440** |      −95,187 |      **95,133** |       +10,133 | 3.6 → 10.8         |
+| Poor: the least popular wrestlers in singles   |               43.4 |                 6,100 | **2,440** |      −96,375 |      **93,945** |        +8,945 | 3.6 → 10.7         |
+| Everyone booked every show (four-ways)         |               45.9 |                 6,100 | **2,440** |      −94,658 |      **95,662** |       +10,662 | 3.6 → 10.8         |
+| Overspending: production raised a level or two |               49.8 |                 6,023 | **2,409** |     −548,751 |    **−360,775** |      −445,775 | 3.6 → 13.0         |
+
+So run frugally Hardpan ends the year about $12,000 (14%) up while its reach
+nearly triples, and overspending on production still sinks it. **Poor shows do
+not yet lose money**: at Hardpan's size the gate hardly moves with show quality
+(tickets a show differ by under $20 between the frugal and the poor year), so
+pay alone cannot separate them. EVT6-11's ticket-sales rework (hot streak, hot
+card, a lower base crowd) is the change that makes poor cards cost money; the
+three balance tickets (ECO4-09, EVT6-11, ECO8-10) are re-measured together
+once all are in. Booking everyone costs no more than Auto-fill here: Hardpan's
+eight wrestlers already fill a card.
+
+**Held by tests.** `test/systems/contracts/companySizePay-default-world.test.ts`:
+every shipped contract is its tier rate × the factor at its promotion's reach;
+Hardpan's roster is $2,000-3,000 a show with everyone booked; Altura, Tessen
+and Cielo Alto pay full rates; each Altura main eventer asks Hardpan at least
+three quarters of Hardpan's whole roster an appearance. With `RB_SLOW_TESTS=1`
+(about 40 seconds) it plays the frugal and overspending years: frugal ends up
+(by under half the start) with reach growing, appearance fees $2,000-3,000 a
+show and no promotion below zero; overspending ends down.
+
 ## Medical
 
 On the 1st of each month (`finance.monthlyMedical`, `money` group, order 20)

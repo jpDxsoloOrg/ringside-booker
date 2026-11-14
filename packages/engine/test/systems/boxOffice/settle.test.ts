@@ -8,6 +8,8 @@ import type { DomainEventMap } from '../../../src/core/events/types';
 import { addDays } from '../../../src/core/date';
 import type { EventInstanceId } from '../../../src/core/ids';
 import { definePhase } from '../../../src/core/pipeline/phase';
+import { isFullTrace } from '../../../src/core/trace/store';
+import { walkTrace } from '../../../src/core/trace';
 import { TABLES, type GameWorld } from '../../../src/model/tables';
 import { documentToWorld } from '../../../src/persistence/world-document';
 import {
@@ -303,5 +305,26 @@ describe("the player's show is settled the moment it runs", () => {
     const money = engine.query('boxOffice.showMoney', { eventInstanceId: human }, HUMAN_VIEWER);
     expect(money.ok).toBe(true);
     expect(settledEvents(engine).map((event) => event.eventInstanceId)).toEqual([human]);
+  });
+
+  it('keeps the hot streak and show heat lines in the stored attendance Why? (EVT6-11)', () => {
+    const built = settleWorld();
+    const human = built.human;
+    if (human === null) throw new Error('No player show');
+    const engine = createEngine({ state: initialEngineState(built.world), systems: SYSTEMS });
+    engine.command('shows.runTonight', { eventInstanceId: human }, HUMAN_VIEWER.controller);
+    const crowd = engine.query('boxOffice.showCrowd', { eventInstanceId: human }, HUMAN_VIEWER);
+    const ref = crowd.ok ? crowd.data.attendanceTraceRef : null;
+    if (ref === null) throw new Error('No attendance Why?');
+    const stored = engine.query('trace.get', { ref }, HUMAN_VIEWER);
+    if (!stored.ok || stored.data === null || !isFullTrace(stored.data)) {
+      throw new Error('No full attendance Why?');
+    }
+    const labels: string[] = [];
+    walkTrace(stored.data.trace, (node) => {
+      labels.push(node.label);
+    });
+    expect(labels).toContain('Hot streak');
+    expect(labels).toContain('Show heat');
   });
 });

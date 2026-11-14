@@ -120,6 +120,7 @@ export {
   type AskingWageRenewal,
 } from './formulas/askingWage';
 export { askingFee, CURRENT_FEE_FLOOR_LABEL, type AskingFeeInputs } from './formulas/askingFee';
+export { companySizePay, companySizePayLabel, FULL_RATES_LABEL } from './formulas/companySizePay';
 export { startPatience, type StartPatienceInputs } from './formulas/startPatience';
 export { contractValue, notEnforcedLine, type ContractValueInputs } from './formulas/contractValue';
 export {
@@ -165,6 +166,7 @@ export {
   NOT_YOUR_CONTRACT_MESSAGE,
   NOT_YOUR_PROMOTION_MESSAGE,
   type AskingTermsView,
+  type FreeAgentPlace,
   type FreeAgentRow,
   type FreeAgentsSituationFilter,
   brandOptionsOf,

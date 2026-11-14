@@ -65,6 +65,18 @@
   inline-size: min(100%, 14rem);
 }
 
+/* "12 of 44 free agents" (ECO5-09): how many rows the filters and search leave. */
+.shownCount {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.shownCount:empty {
+  display: none;
+}
+
 .banner {
   display: flex;
   flex-wrap: wrap;

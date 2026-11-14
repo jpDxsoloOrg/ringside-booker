@@ -24,12 +24,15 @@ import type {
   DurationClass,
   MatchCatalog,
   PersonId,
+  PickerStoryline,
+  PickerStorylineMembership,
+  PickerTitle,
   SegmentDraft,
   SlotRoleRow,
   SlotRolesArgs,
 } from '@ringside/engine';
 import type { RosterPickerPerson, RosterPickerTeam } from '@/components/RosterPicker';
-import { galleryCard } from './booking';
+import { galleryCard, GALLERY_TIME } from './booking';
 
 const SHOW_DATE = parseGameDate('2027-02-04');
 const NO_CREW = { refereeId: null, producerId: null, announcerIds: [] };
@@ -124,6 +127,44 @@ const TEAM_ID = parseId('team', 'tem_0000000101');
 const TAG_TITLE_ID = parseId('title', 'tit_0000000101');
 const WORLD_TITLE_ID = parseId('title', 'tit_0000000102');
 
+/** EVT2-13: the belts the picker marks. Rhea Cortez is champion; The Hale Storm hold tag gold. */
+const CROWN: PickerTitle = { titleId: WORLD_TITLE_ID, name: 'Coastal Crown Championship' };
+const COASTAL_TAG: PickerTitle = {
+  titleId: parseId('title', 'tit_0000000103'),
+  name: 'Coastal Tag Team Championship',
+};
+
+/** EVT2-13: the promotion's current storylines, hottest first, for the picker's filter. */
+export const GALLERY_STORYLINES: readonly PickerStoryline[] = [
+  { storylineId: parseId('storyline', 'sty_0000000101'), name: 'The Crown Chase' },
+  { storylineId: parseId('storyline', 'sty_0000000102'), name: 'Storm Warning' },
+];
+
+function storylineMember(
+  storyline: PickerStoryline | undefined,
+  side: PickerStorylineMembership['side'],
+): PickerStorylineMembership[] {
+  return storyline === undefined ? [] : [{ ...storyline, side }];
+}
+
+const [CROWN_CHASE, STORM_WARNING] = GALLERY_STORYLINES;
+
+/** Titles by worker index. */
+function titlesOf(index: number): PickerTitle[] {
+  if (index === 2) return [CROWN];
+  if (index === 0 || index === 1) return [COASTAL_TAG];
+  return [];
+}
+
+/** Storylines by worker index: the Crown Chase (Rhea v Jo), Storm Warning (the Storm v Sam). */
+function storylinesOf(index: number): PickerStorylineMembership[] {
+  if (index === 2) return storylineMember(CROWN_CHASE, 'face');
+  if (index === 3) return storylineMember(CROWN_CHASE, 'heel');
+  if (index === 0 || index === 1) return storylineMember(STORM_WARNING, 'face');
+  if (index === 7) return storylineMember(STORM_WARNING, 'heel');
+  return [];
+}
+
 /** MTCH5-08: the interviewer and manager a talking segment's picker also lists. */
 export const GALLERY_INTERVIEWER_ID = personId(WORKERS.length);
 export const GALLERY_MANAGER_ID = personId(WORKERS.length + 1);
@@ -155,6 +196,8 @@ function talkerRow(
     style: 'nonWrestler',
     popularity: 30,
     stamina: 20,
+    titles: [],
+    storylines: [],
   };
 }
 
@@ -195,6 +238,8 @@ export function galleryWorkerRows(kind: 'match' | 'angle'): AvailableWorkerRow[]
     style: WORKER_STATS[index]?.style ?? 'allRounder',
     popularity: WORKER_STATS[index]?.popularity ?? 0,
     stamina: WORKER_STATS[index]?.stamina ?? 50,
+    titles: titlesOf(index),
+    storylines: storylinesOf(index),
   }));
   return kind === 'match'
     ? wrestlers
@@ -211,6 +256,7 @@ const TEAM: AvailableTeamRow = {
   kind: 'tag',
   memberIds: [personId(0), personId(1)],
   bookable: true,
+  titles: [COASTAL_TAG],
 };
 
 /** `booking.availableWorkers`, searched by ring name. */
@@ -226,6 +272,7 @@ export function galleryAvailableWorkers(
     region: { regionId: parseId('region', 'reg_0000000101'), name: GALLERY_REGION_NAME },
     people,
     teams: needle === '' || TEAM.name.toLowerCase().includes(needle) ? [TEAM] : [],
+    storylines: [...GALLERY_STORYLINES],
   };
 }
 
@@ -258,6 +305,8 @@ export function galleryPickerPeople(): RosterPickerPerson[] {
       },
       { key: 'stamina', short: 'Stamina', label: 'Stamina', value: Math.round(row.stamina) },
     ],
+    titles: row.titles.map((title) => title.name),
+    storylines: row.storylines,
   }));
 }
 
@@ -271,6 +320,8 @@ export const GALLERY_PICKER_TEAMS: readonly RosterPickerTeam[] = [
     selectable: true,
     reason: null,
     otherBrand: false,
+    titles: [COASTAL_TAG.name],
+    storylineIds: STORM_WARNING === undefined ? [] : [STORM_WARNING.storylineId],
   },
   {
     teamId: parseId('team', 'tem_0000000102'),
@@ -734,4 +785,5 @@ export const GALLERY_EDITOR_CARD: BookingCard = {
     null,
   ]),
   titleOptions: TITLE_OPTIONS,
+  time: GALLERY_TIME,
 };

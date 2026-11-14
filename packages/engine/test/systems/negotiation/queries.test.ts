@@ -307,3 +307,38 @@ describe('contracts.askingTerms', () => {
     expect(!result.ok && result.reasons[0]?.code).toBe(INVALID_ARGS);
   });
 });
+
+describe('contracts.freeAgents sort and filter facts (ECO5-09)', () => {
+  it('gives each row its market value, popularity with your fans, expected push and home place', () => {
+    const setup = negotiationWorld();
+    const engine = negotiationEngine(setup.world);
+    const rows = ask(
+      engine.query('contracts.freeAgents', { promotionId: setup.human }, PLAYER_VIEW),
+    );
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      const terms = ask(
+        engine.query(
+          'contracts.askingTerms',
+          { promotionId: setup.human, personId: row.personId },
+          PLAYER_VIEW,
+        ),
+      );
+      expect(row.marketValue).toBe(terms.marketValue.value);
+      expect(row.popularityHere).toBeGreaterThanOrEqual(0);
+      expect(row.popularityHere).toBeLessThanOrEqual(100);
+      const person = setup.world.tables.people.require(row.personId);
+      const region = setup.world.tables.regions.require(person.basedInRegionId);
+      const country = setup.world.tables.countries.require(region.countryId);
+      expect(row.basedIn).toMatchObject({
+        countryId: country.id,
+        countryName: country.name,
+        continentId: country.continentId,
+      });
+    }
+    // Still listed by market value, highest first.
+    const values = rows.map((row) => row.marketValue);
+    expect(values).toEqual([...values].sort((left, right) => right - left));
+    expectSerialisable(rows);
+  });
+});

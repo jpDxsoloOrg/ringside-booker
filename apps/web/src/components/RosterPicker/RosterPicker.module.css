@@ -113,6 +113,23 @@
   cursor: pointer;
 }
 
+.menuLabel {
+  display: grid;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.menuHint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.menuEmpty {
+  max-inline-size: 16rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
 .menuInput {
   inline-size: 1.125rem;
   block-size: 1.125rem;
@@ -196,6 +213,38 @@
   font-weight: var(--font-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* The name, then a belt when they hold a title (EVT2-13). */
+.rowNameLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.champion {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  color: var(--color-prestige);
+}
+
+.titlesNote {
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* "Test Hot Feud HEEL": a storyline the person is in, and their side of it. */
+.storylineTag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
 }
 
 .rowChips {

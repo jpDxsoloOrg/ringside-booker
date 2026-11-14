@@ -322,6 +322,15 @@ test.describe('Business > Networks', () => {
     await expect(sheet.getByRole('heading', { name: 'Terms' })).toBeVisible();
     await expect(sheet.getByRole('heading', { name: 'Airing history' })).toBeVisible();
     await expect(sheet.getByText('Safe').first()).toBeVisible();
+    // ECO8-10: the three targets in viewers, each with its Why?.
+    await expect(sheet.getByRole('heading', { name: 'Targets' })).toBeVisible();
+    const targets = sheet.getByRole('list', {
+      name: 'What Test Network North expects of the deal',
+    });
+    await expect(targets.getByText(/^Stay above .+ expected\) to stay safe$/)).toBeVisible();
+    await expect(targets.getByText(/^Below .+ they may cancel$/)).toBeVisible();
+    await expect(targets.getByText(/^Beat .+ for a ratings bonus$/)).toBeVisible();
+    await expect(targets.getByRole('button', { name: /^Why is / })).toHaveCount(3);
     await expect(sheet.getByRole('button', { name: 'Renegotiate' })).toBeVisible();
     await expect(sheet.getByRole('button', { name: 'Cancel deal' })).toBeVisible();
     await expect(page).toHaveURL(/\?deal=dea_/);
@@ -409,6 +418,10 @@ test.describe('Business > Networks', () => {
         await expect(row).toContainText(screenDate(deal.endsOn));
         await expect(row.locator('[data-risk="safe"]')).toBeVisible();
         await expect(row.getByText('Safe', { exact: true })).toBeVisible();
+        // ECO8-10: the row's targets, short, each with its Why?.
+        const targets = row.getByRole('list', { name: `What ${network} expects of the deal` });
+        await expect(targets.getByText(/^Bonus above /)).toBeVisible();
+        await expect(targets.getByRole('button', { name: /^Why is / })).toHaveCount(3);
         const expects = row.getByRole('button', {
           name: new RegExp(`^Why is What ${network} expects [\\d,]+\\?$`),
         });
@@ -445,6 +458,14 @@ test.describe('Business > Networks', () => {
         renew.getByRole('button', { name: /^Why is Income per airing after renewing / }),
       ).toBeVisible();
       await expect(renew.getByText(/^Pay-per-view airtime is expensive\./)).toBeVisible();
+      // ECO8-10: what the network will expect of the renewed deal, in buys. No airing yet, so no
+      // uplift for beating expectations.
+      await expect(
+        renew
+          .getByRole('list', { name: 'What Turnstile Pay-Per-View expects of the deal' })
+          .getByText(/^Beat .+ buys \(115%\) for a ratings bonus$/),
+      ).toBeVisible();
+      await expect(renew.getByText(/for beating expectations/)).toHaveCount(0);
       await expectBottomSheetOnPhone(page, renew, phone);
       await expectFits(page);
       await renew.getByRole('button', { name: 'Renew', exact: true }).click();

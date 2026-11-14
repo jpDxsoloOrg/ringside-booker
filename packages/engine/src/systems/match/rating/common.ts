@@ -235,6 +235,7 @@ export function rateTail(ctx: RatingContext, inputs: RatingTailInputs): RatingTa
         roleLabel: SLOT_ROLE_LABELS[ctx.role],
         importance: ctx.input.event.importance,
         televised: ctx.input.event.televised,
+        booked: { steps: ctx.slot.bookedSteps, durationClass: ctx.durationClass },
       },
       { tunables },
     ),

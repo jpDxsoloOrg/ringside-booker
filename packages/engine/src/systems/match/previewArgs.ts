@@ -17,7 +17,7 @@ import { MAX_SIDE } from '../../model/entities/participant';
 import { zContentKey, zId } from '../../model/primitives';
 import type { GameWorldView } from '../../model/tables';
 import type { SegmentKind, SegmentRatingInput } from './rating/types';
-import { SLOT_ROLES, type SlotRole } from './slots';
+import { DURATION_CLASSES, SLOT_ROLES, type DurationClass, type SlotRole } from './slots';
 import { zPreviewExtensionArgs, type PreviewExtensionArgs } from './previewExtensions';
 
 /** The most people one side of a preview may hold. */
@@ -34,6 +34,8 @@ export interface PreviewArgs {
   /** One entry per side; the array index is the stored 0-based side number. */
   sides: PersonId[][];
   slotRole: SlotRole;
+  /** EVT4-08: the time the booker set; left out = the role's usual time. */
+  bookedTime?: DurationClass | undefined;
   importance: EventImportance;
   regionId: RegionId;
   televised: boolean;
@@ -61,6 +63,7 @@ const previewArgsShape = {
     .min(1)
     .max(MAX_SIDE + 1),
   slotRole: z.enum(SLOT_ROLES),
+  bookedTime: z.enum(DURATION_CLASSES).optional(),
   importance: zEventImportance,
   regionId: zId('region'),
   televised: z.boolean(),
@@ -141,6 +144,7 @@ export function previewInputOf(
     typeKey: args.typeKey,
     sides: args.sides.map((personIds, side) => ({ side, personIds: [...personIds] })),
     slot: { role: args.slotRole },
+    ...(args.bookedTime === undefined ? {} : { bookedTime: args.bookedTime }),
     event: {
       importance: args.importance,
       regionId: args.regionId,

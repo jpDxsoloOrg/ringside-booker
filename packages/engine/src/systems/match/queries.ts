@@ -66,6 +66,7 @@ import { previewBatchQuery, previewQuery } from './previewQueries';
 import { simulateQueries } from './simulateQuery';
 import {
   DURATION_CLASS_LABELS,
+  DURATION_CLASSES,
   SLOT_ROLE_LABELS,
   durationClassOf,
   slotRoleOf,
@@ -237,6 +238,8 @@ export interface SlotInfoArgs {
    * `match.angle.setting.<setting>.durationShift`). Left out: in the ring. Ignored for a match.
    */
   setting?: AngleSetting | undefined;
+  /** EVT4-08: the time the booker set; left out = the role's usual time. */
+  bookedTime?: DurationClass | undefined;
 }
 
 /** `match.slotInfo`: what one slot role gives a segment, with the rules that decided it. */
@@ -489,6 +492,8 @@ const slotInfoArgs = z.strictObject({
   kind: z.enum(['match', 'angle']),
   typeKey: zContentKey.optional(),
   setting: z.enum(ANGLE_SETTINGS).optional(),
+  /** EVT4-08: the time the booker set; left out = the role's usual time. */
+  bookedTime: z.enum(DURATION_CLASSES).optional(),
 });
 
 /**
@@ -521,7 +526,10 @@ export const slotInfoQuery: QueryDefinition<'match.slotInfo'> = defineQuery('mat
       args.kind === 'angle' && args.setting !== undefined
         ? settingDurationShifter(args.setting, ctx.tunables)
         : matchType;
-    const duration = durationClassOf({ role: args.slotRole, matchType: shifter }, deps);
+    const duration = durationClassOf(
+      { role: args.slotRole, matchType: shifter, booked: args.bookedTime ?? null },
+      deps,
+    );
     const weight = slotWeightOf({ role: args.slotRole }, deps);
     return {
       role: args.slotRole,

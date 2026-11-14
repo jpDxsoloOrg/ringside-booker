@@ -23,7 +23,7 @@ import { cents } from '../../core/money';
 import type { StepContext } from '../../core/pipeline/context';
 import { definePhase, type PhaseDefinition } from '../../core/pipeline/phase';
 import { rollChance } from '../../core/rng/rolls';
-import { startDecision } from '../../core/trace';
+import { startCalc, startDecision } from '../../core/trace';
 import type { Airing } from '../../model/entities/airing';
 import type { Deal, DealEndReason, DealStatus } from '../../model/entities/deal';
 import type { Network } from '../../model/entities/network';
@@ -32,9 +32,15 @@ import type { GameWorldView } from '../../model/tables';
 import type { EngineTunables } from '../tunables';
 import { dealCoversShow, dealInForce, networkOnAir } from './coverage';
 import { dealHealth, HEALTH_DOC_REF, type DealHealth } from './formulas/dealHealth';
+import { BONUS_DOC_REF } from './formulas/ratingsBonus';
 import { BROADCAST_HEALTH_STREAM } from './streams';
 import { dealHealthTraceRef, isHumanControlled } from './traces';
-import { dealValuation, type DealValuation } from './valuation';
+import {
+  dealValuation,
+  incomePerAiring,
+  type DealValuation,
+  type DealValuationRequest,
+} from './valuation';
 
 export const DEAL_HEALTH_PHASE_ID = 'broadcast.dealHealth';
 
@@ -143,6 +149,45 @@ export function applyRenegotiation(
   return endsOn;
 }
 
+/**
+ * A renewal's valuation (ECO8-10): what the network would pay today for `request`, plus
+ * `broadcast.bonus.renewalUplift` on the fee (the per-buy rate on pay-per-view) when it is the
+ * deal's own network and the deal is Exceeding. The player's renewal preview, `broadcast.renegotiate`
+ * and the rivals' renewal all come through here, so the preview is what the renewal signs.
+ */
+export function renewalValuation(
+  read: GameWorldView,
+  tunables: EngineTunables,
+  deal: Deal,
+  request: DealValuationRequest,
+): DealValuation {
+  const valuation = dealValuation(read, tunables, { ...request, excludeDealId: deal.id });
+  const network = read.tables.networks.get(deal.networkId);
+  const uplift = tunables.get('broadcast.bonus.renewalUplift');
+  if (network === undefined || request.networkId !== deal.networkId || uplift <= 0) {
+    return valuation;
+  }
+  if (dealHealthOf(read, tunables, deal, network).value !== 'exceeding') {
+    return valuation;
+  }
+  const term = network.kind === 'ppv' ? 'perThousandViewers' : 'feePerShow';
+  const termName = network.kind === 'ppv' ? 'per-buy rate' : 'fee';
+  const reason = `Beating ${network.name}'s expectations: renewed ${termName} up ${String(Math.round(uplift * 100))}%`;
+  const calc = startCalc(`Renewed ${termName}`, valuation.terms[term], {
+    unit: 'money',
+    docRef: BONUS_DOC_REF,
+  });
+  const share = calc.tunable(tunables, 'broadcast.bonus.renewalUplift');
+  calc.multiply(reason, 1 + share).round('floor', 'Rounded down to whole cents');
+  const terms = { ...valuation.terms, [term]: calc.done() };
+  return {
+    ...valuation,
+    terms,
+    incomePerAiring: incomePerAiring(network.kind, valuation.projectedViewers, terms),
+    renewalUplift: { share, term, reason },
+  };
+}
+
 /** The deal valued again for the same network, show, timeslot and live (renegotiation). */
 export function revalueDeal(
   read: GameWorldView,
@@ -150,14 +195,13 @@ export function revalueDeal(
   deal: Deal,
   months: number,
 ): DealValuation {
-  return dealValuation(read, tunables, {
+  return renewalValuation(read, tunables, deal, {
     promotionId: deal.promotionId,
     networkId: deal.networkId,
     eventDefinitionId: deal.eventDefinitionId,
     timeslot: deal.timeslot,
     live: deal.live,
     months,
-    excludeDealId: deal.id,
   });
 }
 

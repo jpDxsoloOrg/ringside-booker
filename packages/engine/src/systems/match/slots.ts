@@ -53,6 +53,12 @@ export interface DurationClassInputs {
   role: SlotRole;
   /** The segment's match type, or null for a talking segment (no shift). */
   matchType: Pick<MatchTypeDef, 'name' | 'durationShift'> | null;
+  /**
+   * EVT4-08: the time the booker set for the segment (Short, Standard or Long), which replaces the
+   * role's class before the match type shifts it. Null or left out: the role's own class. The main
+   * event cannot be booked shorter than long.
+   */
+  booked?: DurationClass | null;
 }
 
 /** What `slotWeightOf` needs. */
@@ -147,15 +153,46 @@ export function slotRoleOf(position: SlotPosition, deps: SlotDeps): Traced<SlotR
   return decision.choose('midcard', 'Between the opener and the top of the card');
 }
 
+/** How many steps `durationClass` is above (positive) or below (negative) `from`. */
+export function durationStepsBetween(from: DurationClass, durationClass: DurationClass): number {
+  return DURATION_CLASSES.indexOf(durationClass) - DURATION_CLASSES.indexOf(from);
+}
+
+/** The usual class and the steps a booked time moves it, for a role and shifter. */
+export function bookedSteps(
+  inputs: DurationClassInputs,
+  duration: DurationClass,
+  tunables: EngineTunables,
+): { usual: DurationClass; steps: number } {
+  const usual = durationClassOf({ role: inputs.role, matchType: inputs.matchType }, { tunables });
+  return { usual: usual.value, steps: durationStepsBetween(usual.value, duration) };
+}
+
 function classAt(index: number): DurationClass {
   const clamped = Math.min(Math.max(index, 0), DURATION_CLASSES.length - 1);
   return DURATION_CLASSES[clamped] ?? 'standard';
 }
 
+/** The class `booked` sets in place of the role's `base`, or `base` when it is ignored. */
+function bookedBase(
+  role: SlotRole,
+  base: DurationClass,
+  booked: DurationClass | null,
+): DurationClass {
+  if (booked === null || booked === base) {
+    return base;
+  }
+  if (role === 'mainEvent') {
+    return base;
+  }
+  return booked;
+}
+
 /**
- * The duration class a role implies, moved one step by the match type. The main event is always
- * long (D-10), so a downward shift there is ignored. A talking segment (no match type) is never
- * shifted. The shift never goes past short or long.
+ * The duration class a role implies, or the one the booker set (EVT4-08), moved one step by the
+ * match type. The main event is always long (D-10), so booking it shorter and a downward shift are
+ * both ignored. A talking segment (no match type) is never shifted. The shift never goes past short
+ * or long.
  */
 export function durationClassOf(
   inputs: DurationClassInputs,
@@ -173,6 +210,16 @@ export function durationClassOf(
     const key = DURATION_CLASS_KEYS[role];
     base = deps.tunables.get(key);
     decision.tunable(deps.tunables, key, `${roleLabel}'s duration class`);
+  }
+  const booked = inputs.booked ?? null;
+  const chosen = bookedBase(role, base, booked);
+  if (booked !== null && booked !== base) {
+    decision.note(
+      chosen === base
+        ? `Booked ${DURATION_CLASS_LABELS[booked]}, but the main event stays long`
+        : `Booked ${DURATION_CLASS_LABELS[booked]} (${roleLabel} is usually ${DURATION_CLASS_LABELS[base]})`,
+    );
+    base = chosen;
   }
 
   if (matchType === null) {

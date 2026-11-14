@@ -23,9 +23,12 @@ import type {
   BrandId,
   EventInstanceId,
   PersonId,
+  PromotionId,
   RegionId,
   SegmentId,
+  StorylineId,
   TeamId,
+  TitleId,
 } from '../../core/ids';
 import { matchTypesOf } from '../../model/catalogs';
 import type { EventImportance } from '../../model/entities/event-definition';
@@ -37,11 +40,13 @@ import {
 } from '../../model/entities/employment';
 import type { EventInstance, EventInstanceStatus } from '../../model/entities/event-instance';
 import type { Gender, PersonRole, RingStyle } from '../../model/entities/person';
+import type { StorylineSide } from '../../model/entities/storyline';
 import type { TeamKind } from '../../model/entities/team';
 import { zId } from '../../model/primitives';
 import { compareIds } from '../../model/table';
 import type { DeepReadonly } from '../../model/world';
 import { viewerControlsShow } from '../calendar/control';
+import { currentReign } from '../titles/helpers/holders';
 import { cardSegments } from './card';
 import { canReadCard } from './control';
 import type { BookingValidation } from './validate/types';
@@ -99,6 +104,25 @@ export interface BookingShowsView {
   unavailableReason: string | null;
 }
 
+/** A title someone (or a team) holds today, for the picker's champion marker (EVT2-13). */
+export interface PickerTitle {
+  titleId: TitleId;
+  name: string;
+}
+
+/** An active storyline someone is in, and their side of it (EVT2-13). */
+export interface PickerStorylineMembership {
+  storylineId: StorylineId;
+  name: string;
+  side: StorylineSide;
+}
+
+/** One active storyline of the show's promotion, for the picker's Storylines filter (EVT2-13). */
+export interface PickerStoryline {
+  storylineId: StorylineId;
+  name: string;
+}
+
 /** One person `booking.availableWorkers` lists. */
 export interface AvailableWorkerRow {
   personId: PersonId;
@@ -136,6 +160,13 @@ export interface AvailableWorkerRow {
   popularity: number;
   /** The in-ring `stamina` attribute (0-100), not rounded. Fatigue (WRK6) is not on the row yet. */
   stamina: number;
+  /**
+   * EVT2-13: the show's promotion's titles they hold today (open reigns), in ID order; `[]` when
+   * they hold none. Another promotion's belts are left out.
+   */
+  titles: PickerTitle[];
+  /** EVT2-13: the active storylines of the show's promotion they are in, hottest first. */
+  storylines: PickerStorylineMembership[];
 }
 
 /** One team `booking.availableWorkers` lists. */
@@ -146,6 +177,11 @@ export interface AvailableTeamRow {
   memberIds: PersonId[];
   /** True when every member is bookable for the kind of segment. */
   bookable: boolean;
+  /**
+   * EVT2-13: the show's promotion's titles the team holds today: reigns won as this team, or held
+   * by exactly its members. `[]` when it holds none.
+   */
+  titles: PickerTitle[];
 }
 
 /** `booking.availableWorkers`. */
@@ -154,6 +190,11 @@ export interface AvailableWorkersView {
   region: { regionId: RegionId; name: string };
   people: AvailableWorkerRow[];
   teams: AvailableTeamRow[];
+  /**
+   * EVT2-13: the promotion's active storylines, hottest first then by name, whatever the search.
+   * The picker's Storylines filter lists these.
+   */
+  storylines: PickerStoryline[];
 }
 
 declare module '../../core/api/maps' {
@@ -278,6 +319,85 @@ function compareText(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 
+/** The promotion's titles held today, by holder and by holding team (EVT2-13). */
+interface HeldTitles {
+  readonly byPerson: ReadonlyMap<PersonId, PickerTitle[]>;
+  readonly reigns: readonly {
+    readonly title: PickerTitle;
+    readonly teamId: TeamId | null;
+    readonly holderIds: readonly PersonId[];
+  }[];
+}
+
+function heldTitlesOf(ctx: QueryContext, promotionId: PromotionId): HeldTitles {
+  const byPerson = new Map<PersonId, PickerTitle[]>();
+  const reigns: HeldTitles['reigns'][number][] = [];
+  const titles = [...ctx.read.tables.titles.lookup('byPromotion', promotionId)].sort(
+    (left, right) => compareIds(left.id, right.id),
+  );
+  for (const title of titles) {
+    const reign = title.status === 'retired' ? null : currentReign(ctx.read, title.id);
+    if (reign === null) {
+      continue;
+    }
+    const held: PickerTitle = { titleId: title.id, name: title.name };
+    reigns.push({ title: held, teamId: reign.teamId, holderIds: reign.holderIds });
+    for (const holderId of reign.holderIds) {
+      const list = byPerson.get(holderId) ?? [];
+      list.push(held);
+      byPerson.set(holderId, list);
+    }
+  }
+  return { byPerson, reigns };
+}
+
+/** A team holds a title it won as a team, or one held by exactly its members. */
+function teamTitles(
+  held: HeldTitles,
+  teamId: TeamId,
+  memberIds: readonly PersonId[],
+): PickerTitle[] {
+  return held.reigns
+    .filter(
+      (reign) =>
+        reign.teamId === teamId ||
+        (reign.holderIds.length === memberIds.length &&
+          reign.holderIds.every((holderId) => memberIds.includes(holderId))),
+    )
+    .map((reign) => reign.title);
+}
+
+/** The promotion's active storylines, hottest first then by name, and who is in each. */
+function activeStorylinesOf(
+  ctx: QueryContext,
+  promotionId: PromotionId,
+): {
+  readonly list: PickerStoryline[];
+  readonly byPerson: ReadonlyMap<PersonId, PickerStorylineMembership[]>;
+} {
+  const active = ctx.read.tables.storylines
+    .lookup('byPromotion', promotionId)
+    .filter((storyline) => storyline.status === 'active')
+    .sort(
+      (left, right) =>
+        right.heat - left.heat ||
+        compareText(left.name, right.name) ||
+        compareIds(left.id, right.id),
+    );
+  const byPerson = new Map<PersonId, PickerStorylineMembership[]>();
+  for (const storyline of active) {
+    for (const member of storyline.members) {
+      const list = byPerson.get(member.personId) ?? [];
+      list.push({ storylineId: storyline.id, name: storyline.name, side: member.side });
+      byPerson.set(member.personId, list);
+    }
+  }
+  return {
+    list: active.map((storyline) => ({ storylineId: storyline.id, name: storyline.name })),
+    byPerson,
+  };
+}
+
 export const availableWorkersQuery: QueryDefinition<'booking.availableWorkers'> = defineQuery(
   'booking.availableWorkers',
   {
@@ -302,6 +422,9 @@ export const availableWorkersQuery: QueryDefinition<'booking.availableWorkers'> 
           onCard.set(participant.personId, list);
         }
       }
+
+      const held = heldTitlesOf(ctx, instance.promotionId);
+      const storylines = activeStorylinesOf(ctx, instance.promotionId);
 
       const bookableOf = (personId: PersonId): boolean => {
         const availability = people.availability(personId);
@@ -353,6 +476,8 @@ export const availableWorkersQuery: QueryDefinition<'booking.availableWorkers'> 
           style: person.style,
           popularity: person.regionalPop[instance.regionId] ?? 0,
           stamina: person.attributes.stamina,
+          titles: held.byPerson.get(person.id) ?? [],
+          storylines: storylines.byPerson.get(person.id) ?? [],
         });
       }
       rows.sort(
@@ -387,6 +512,7 @@ export const availableWorkersQuery: QueryDefinition<'booking.availableWorkers'> 
             kind: team.kind,
             memberIds: [...team.memberIds],
             bookable: team.memberIds.every(bookableOf),
+            titles: teamTitles(held, team.id, team.memberIds),
           });
         }
       }
@@ -401,6 +527,7 @@ export const availableWorkersQuery: QueryDefinition<'booking.availableWorkers'> 
         region: { regionId: instance.regionId, name: region?.name ?? instance.regionId },
         people: rows,
         teams: teamRows,
+        storylines: storylines.list,
       };
     },
   },

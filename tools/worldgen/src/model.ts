@@ -47,6 +47,11 @@ export interface RosterPromotion {
   readonly homeRegionKey: string;
   /** Region key → the promotion's popularity there. */
   readonly regionalPop: Readonly<Record<string, number>>;
+  /**
+   * What its contracts pay against the spec's tier table (ECO4-09): the engine's company size pay
+   * factor at the promotion's reach on the start date, so a small company pays indie wages.
+   */
+  readonly payFactor: number;
 }
 
 /** A title as the build sees it. */

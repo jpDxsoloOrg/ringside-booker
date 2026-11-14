@@ -26,6 +26,7 @@ import { benchmarkFor, projectedAudience } from './audienceInputs';
 import { networkOnAir, promotionMarketRegionIds } from './coverage';
 import { dealTerms, VALUATION_DOC_REF } from './formulas/dealTerms';
 import { dealVerdict, type DealRefusal, type DealVerdictValue } from './formulas/dealVerdict';
+import { audienceNoun, dealTargets, type DealTargets } from './formulas/ratingsBonus';
 
 /** What is being valued: a show (or every show) of a promotion on a network, in a slot. */
 export interface DealValuationRequest {
@@ -66,6 +67,24 @@ export interface DealValuation {
   /** The show is not televised yet: signing makes it a TV show (ECO8-05). */
   readonly becomesTelevised: boolean;
   readonly verdictTrace: TraceNode;
+  /**
+   * The extra a network offers when renewing a deal that is beating its expectations (ECO8-10),
+   * already in `terms`: the share added to the fee (the per-buy rate on pay-per-view) and why.
+   * Null for a new deal or a renewal without it.
+   */
+  readonly renewalUplift: RenewalUplift | null;
+  /** The lines the deal will be judged by, in viewers (ECO8-10). */
+  readonly targets: DealTargets;
+}
+
+/** A renewal's uplift for beating the network's expectations (ECO8-10). */
+export interface RenewalUplift {
+  /** The share added, e.g. 0.1. */
+  readonly share: number;
+  /** Which term it went on. */
+  readonly term: 'feePerShow' | 'perThousandViewers';
+  /** "Beating NSN's expectations: renewed fee up 10%". */
+  readonly reason: string;
 }
 
 /** The name a promotion-wide deal goes by. */
@@ -279,7 +298,7 @@ function conflicts(
   return { alreadyOnNetwork, overlapNetworkName, slotTakenBy };
 }
 
-function incomePerAiring(
+export function incomePerAiring(
   kind: Network['kind'],
   projected: Traced<number>,
   terms: DealValuationTerms,
@@ -439,5 +458,11 @@ export function dealValuation(
     endsOn: addMonths(today, Math.max(1, Math.trunc(request.months))),
     becomesTelevised: definition !== null && !definition.televised,
     verdictTrace: verdict.trace,
+    renewalUplift: null,
+    targets: dealTargets(
+      benchmark,
+      { networkName: network.name, noun: audienceNoun(network.kind) },
+      { tunables },
+    ),
   };
 }

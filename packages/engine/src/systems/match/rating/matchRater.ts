@@ -60,13 +60,22 @@ export function matchRater(ctx: RatingContext): SegmentRatingResult {
   const inRing = new Map<PersonId, Traced<number>>();
   const entertainment = new Map<PersonId, Traced<number>>();
   const stamina = new Map<PersonId, WorkerStaminaLine>();
+  // EVT4-08: in a match booked longer than usual, a tired worker has less stamina to give.
+  const extended = Math.max(0, ctx.slot.bookedSteps);
+  const fatigueShare =
+    extended > 0 ? tunables.get('match.workRate.extendedFatigueShare') * extended : 0;
+  const tirednessOf = (worker: GatheredWorker): number => worker.person.fatigue * fatigueShare;
   for (const worker of workers) {
     inRing.set(worker.personId, performanceOf(worker, 'inRing'));
     entertainment.set(worker.personId, performanceOf(worker, 'entertainment'));
     stamina.set(
       worker.personId,
       staminaCheckOf(
-        { name: worker.name, stamina: worker.person.attributes.stamina },
+        {
+          name: worker.name,
+          stamina: worker.person.attributes.stamina,
+          tiredness: tirednessOf(worker),
+        },
         { durationClass: ctx.durationClass, workerCount: workers.length },
         tunables,
       ),
@@ -97,6 +106,7 @@ export function matchRater(ctx: RatingContext): SegmentRatingResult {
           name: worker.name,
           performance: required(inRing, worker),
           stamina: worker.person.attributes.stamina,
+          tiredness: tirednessOf(worker),
         })),
       })),
       workerCount: workers.length,

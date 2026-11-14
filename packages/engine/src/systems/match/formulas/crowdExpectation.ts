@@ -11,7 +11,7 @@
 
 import { inputOf, startCalc, type Traced } from '../../../core/trace';
 import type { EventImportance } from '../../../model/entities/event-definition';
-import type { SlotRole } from '../slots';
+import { DURATION_CLASS_LABELS, type DurationClass, type SlotRole } from '../slots';
 import type { EngineTunables, NumberTunableKey } from '../../tunables';
 import { formatNumber } from '../../world/people/labels';
 import { signedNumber, summaryOf } from './shared';
@@ -40,6 +40,11 @@ export interface CrowdExpectationInputs {
   roleLabel: string;
   importance: EventImportance;
   televised: boolean;
+  /**
+   * EVT4-08: steps the booker set the segment longer (positive) or shorter (negative) than its
+   * usual class, and the class it runs at. Left out or 0: no line, as before.
+   */
+  booked?: { readonly steps: number; readonly durationClass: DurationClass };
 }
 
 const SLOT_KEYS = {
@@ -131,6 +136,20 @@ export function crowdExpectation(
     calc.add(`On TV ${signedNumber(televised)}`, televised);
   } else {
     calc.add(NOT_TELEVISED_LABEL, 0);
+  }
+
+  const booked = inputs.booked;
+  if (booked !== undefined && booked.steps !== 0) {
+    const perStep = calc.tunable(
+      tunables,
+      'match.expectation.timeStep',
+      'Expectation per step of booked time',
+    );
+    const change = perStep * booked.steps;
+    calc.add(
+      `Booked ${DURATION_CLASS_LABELS[booked.durationClass].toLowerCase()}: crowd expects ${signedNumber(change)}`,
+      change,
+    );
   }
 
   return calc.clamp(EXPECTATION_MIN, EXPECTATION_MAX).done();

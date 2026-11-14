@@ -1,5 +1,6 @@
 import type {
   ContentKey,
+  DurationClass,
   EventImportance,
   LabOptions,
   MatchCatalog,
@@ -7,7 +8,12 @@ import type {
   SegmentKind,
   SlotRole,
 } from '@ringside/engine';
-import { SLOT_ROLE_LABELS, SLOT_ROLES } from '@ringside/engine';
+import {
+  DURATION_CLASS_LABELS,
+  DURATION_CLASSES,
+  SLOT_ROLE_LABELS,
+  SLOT_ROLES,
+} from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { Badge } from '@/components/Badge';
 import { Panel } from '@/components/Panel';
@@ -40,6 +46,20 @@ const SLOT_ROLE_OPTIONS: readonly SelectOption[] = SLOT_ROLES.map((role) => ({
   label: SLOT_ROLE_LABELS[role],
 }));
 
+/** EVT4-08: the match's time, the slot's usual one first. */
+const USUAL_TIME = 'usual';
+const TIME_OPTIONS: readonly SelectOption[] = [
+  { value: USUAL_TIME, label: "The slot's usual" },
+  ...DURATION_CLASSES.map((durationClass) => ({
+    value: durationClass,
+    label: DURATION_CLASS_LABELS[durationClass],
+  })),
+];
+
+function timeChoiceOf(value: string): DurationClass | null {
+  return DURATION_CLASSES.find((durationClass) => durationClass === value) ?? null;
+}
+
 function isSlotRole(value: string): value is SlotRole {
   return SLOT_ROLES.some((role) => role === value);
 }
@@ -59,14 +79,20 @@ interface SlotChipsProps {
   readonly slotRole: SlotRole;
   readonly kind: SegmentKind;
   readonly typeKey: ContentKey | null;
+  readonly bookedTime: DurationClass | null;
 }
 
 /** The duration class and weight the slot role gives, each with its Why?, before any Run. */
-function SlotChips({ slotRole, kind, typeKey }: SlotChipsProps) {
+function SlotChips({ slotRole, kind, typeKey, bookedTime }: SlotChipsProps) {
   const ready = kind === 'angle' || typeKey !== null;
   const info = useEngineQuery(
     'match.slotInfo',
-    typeKey === null ? { slotRole, kind } : { slotRole, kind, typeKey },
+    {
+      slotRole,
+      kind,
+      ...(typeKey === null ? {} : { typeKey }),
+      ...(bookedTime === null ? {} : { bookedTime }),
+    },
     { enabled: ready },
   );
   const data = info.data;
@@ -131,6 +157,7 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
   const setup = useLabStore((state) => state.setup);
   const setType = useLabStore((state) => state.setType);
   const setSlotRole = useLabStore((state) => state.setSlotRole);
+  const setBookedTime = useLabStore((state) => state.setBookedTime);
   const setImportance = useLabStore((state) => state.setImportance);
   const setRegion = useLabStore((state) => state.setRegion);
   const setTelevised = useLabStore((state) => state.setTelevised);
@@ -200,7 +227,22 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
               if (isSlotRole(value)) setSlotRole(value);
             }}
           />
-          <SlotChips slotRole={setup.slotRole} kind={setup.kind} typeKey={setup.typeKey} />
+          {!isAngle && (
+            <Select
+              label="Time"
+              options={TIME_OPTIONS}
+              value={setup.bookedTime ?? USUAL_TIME}
+              onValueChange={(value) => {
+                setBookedTime(timeChoiceOf(value));
+              }}
+            />
+          )}
+          <SlotChips
+            slotRole={setup.slotRole}
+            kind={setup.kind}
+            typeKey={setup.typeKey}
+            bookedTime={isAngle ? null : (setup.bookedTime ?? null)}
+          />
         </div>
         <Select
           label="Event size"

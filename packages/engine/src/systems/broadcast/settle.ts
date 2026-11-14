@@ -21,6 +21,7 @@ import type { StepContext } from '../../core/pipeline/context';
 import { constantOf, inputOf, startCalc, type Traced, type TraceNode } from '../../core/trace';
 import { compactTrace } from '../../core/trace/compact';
 import type { Airing, AiringMissReason, AiringQuality } from '../../model/entities/airing';
+import type { LedgerRefs } from '../../model/entities/ledger-entry';
 import { AIRING_SHOW_NAME_MAX } from '../../model/entities/airing';
 import type { EventImportance } from '../../model/entities/event-definition';
 import type { NetworkKind } from '../../model/entities/network';
@@ -33,6 +34,13 @@ import { formatNumber } from '../world/people/labels';
 import { audienceInputsFor, benchmarkFor } from './audienceInputs';
 import { AIRTIME_COST_CATEGORY, incomeCategoryFor, type DueAiring } from './coverage';
 import { audience, formatViewers } from './formulas/audience';
+import {
+  BONUS_DOC_REF,
+  bonusBaseLabel,
+  ratingsBonusMemo,
+  ratingsBonusShare,
+} from './formulas/ratingsBonus';
+import { dealHealthOf } from './health';
 import { BROADCAST_VIEWERS_STREAM } from './streams';
 import { airingTraceRef, isHumanControlled } from './traces';
 
@@ -231,6 +239,61 @@ function withFact(traced: Traced<number>, index: number, fact: TraceNode): Trace
   };
 }
 
+/** What `payRatingsBonus` needs from the airing being settled. */
+interface BonusInputs {
+  readonly due: DueAiring;
+  readonly human: boolean;
+  /** Tonight's per-thousand (per-buy) money, in cents: what a pay-per-view bonus is paid on. */
+  readonly perThousand: number;
+  readonly refs: LedgerRefs;
+}
+
+/**
+ * The ratings bonus (ECO8-10): when the deal's recent viewers, tonight's included, reach the bonus
+ * line, the network pays a share of the fee (of tonight's per-buy money on pay-per-view) on top, as
+ * its own ledger row "Ratings bonus: <network>". The workers' broadcast shares are of the fee and
+ * per-thousand money only. Returns the bonus with its Why?, or null when none is paid.
+ */
+function payRatingsBonus(ctx: StepContext, inputs: BonusInputs): Traced<number> | null {
+  const { read, tunables } = ctx;
+  const { deal, network } = inputs.due;
+  const health = dealHealthOf(read, tunables, deal, network, ctx.date);
+  if (health.ratio === null) {
+    return null;
+  }
+  const share = ratingsBonusShare(health.ratio, { networkName: network.name }, { tunables });
+  if (share === null) {
+    return null;
+  }
+  const dealRef = { kind: 'deal', id: deal.id } as const;
+  const base =
+    network.kind === 'ppv'
+      ? inputOf(bonusBaseLabel(network.kind), inputs.perThousand, dealRef, 'money')
+      : inputOf(bonusBaseLabel(network.kind), deal.terms.feePerShow, dealRef, 'money');
+  const bonus = startCalc(ratingsBonusMemo(network.name), base, {
+    unit: 'money',
+    docRef: BONUS_DOC_REF,
+  })
+    .multiply(
+      `Viewers are ${String(Math.round(health.ratio.value * 100))}% of what ${network.name} expects`,
+      share,
+    )
+    .round('floor', 'Rounded down to whole cents')
+    .done();
+  if (bonus.value <= 0) {
+    return null;
+  }
+  postMoney(ctx, {
+    promotionId: deal.promotionId,
+    category: incomeCategoryFor(network.kind),
+    amount: cents(bonus.value),
+    memo: clip(ratingsBonusMemo(network.name), 120),
+    refs: inputs.refs,
+    ...(inputs.human ? { trace: bonus } : {}),
+  });
+  return bonus;
+}
+
 /**
  * Settles one due airing on `ctx.date`: writes the airing row, posts its money and records its
  * Why?. Returns null (and logs) when the deal already has a row for this show today.
@@ -320,9 +383,11 @@ export function settleAiring(ctx: StepContext, due: DueAiring): Airing | null {
     `${incomeLabel} for ${showName}`,
     inputOf('Fee per show', deal.terms.feePerShow, dealRef, 'money'),
     { unit: 'money', docRef: SETTLEMENT_DOC_REF },
-  ).add(
+  );
+  const perThousand = perThousandIncome(keptViewers, deal.terms.perThousandViewers, noun);
+  grossCalc.add(
     `Per 1,000 ${noun} × ${formatNumber(Math.floor(viewers.value / 100) / 10)} thousand`,
-    perThousandIncome(keptViewers, deal.terms.perThousandViewers, noun),
+    perThousand,
   );
   const gross = grossCalc.current;
   const { shares, note: sharesNote } = sharesOf(read, tunables, due, gross);
@@ -372,28 +437,8 @@ export function settleAiring(ctx: StepContext, due: DueAiring): Airing | null {
     });
   }
 
-  // (4) The airing's own Why?: income less airtime, with what the network expected beside it.
-  const airingCalc = startCalc(`${showName} on ${network.name}`, incomeLine, {
-    unit: 'money',
-    docRef: SETTLEMENT_DOC_REF,
-  }).subtract(
-    'Airtime',
-    inputOf(`Airtime on ${network.name}`, cost, dealRef, 'money'),
-    'What the network charges for each show, from the deal',
-  );
-  if (net < 0) {
-    airingCalc.note(AIRING_LOSS_NOTE);
-  }
-  const benchmark = compactTrace(expected, BENCHMARK_DEPTH);
-  const airingTrace = withFact(airingCalc.done(), 0, {
-    kind: 'input',
-    label: `${network.name} expected ${formatViewers(expected.value)} ${noun}; ${formatViewers(viewers.value)} watched`,
-    value: expected.value,
-    unit: 'count',
-    children: [benchmark.trace],
-  });
-
-  const airing = ctx.tx.insert('airings', {
+  // (4) The airing row, then the ratings bonus: deal health reads tonight's viewers from it.
+  let airing = ctx.tx.insert('airings', {
     id: airingId,
     dealId: deal.id,
     networkId: network.id,
@@ -412,9 +457,44 @@ export function settleAiring(ctx: StepContext, due: DueAiring): Airing | null {
     cost: cents(cost),
     traceRef,
   });
+  const bonus = payRatingsBonus(ctx, {
+    due,
+    human,
+    perThousand: perThousand.value,
+    refs,
+  });
+  if (bonus !== null) {
+    airing = ctx.tx.update('airings', airingId, { income: cents(gross + bonus.value) });
+  }
+
+  // (5) The airing's own Why?: income (and any ratings bonus) less airtime, with what the network expected beside it.
+  const airingCalc = startCalc(`${showName} on ${network.name}`, incomeLine, {
+    unit: 'money',
+    docRef: SETTLEMENT_DOC_REF,
+  });
+  if (bonus !== null) {
+    airingCalc.add(ratingsBonusMemo(network.name), bonus);
+  }
+  airingCalc.subtract(
+    'Airtime',
+    inputOf(`Airtime on ${network.name}`, cost, dealRef, 'money'),
+    'What the network charges for each show, from the deal',
+  );
+  if (net + (bonus?.value ?? 0) < 0) {
+    airingCalc.note(AIRING_LOSS_NOTE);
+  }
+  const benchmark = compactTrace(expected, BENCHMARK_DEPTH);
+  const airingTrace = withFact(airingCalc.done(), 0, {
+    kind: 'input',
+    label: `${network.name} expected ${formatViewers(expected.value)} ${noun}; ${formatViewers(viewers.value)} watched`,
+    value: expected.value,
+    unit: 'count',
+    children: [benchmark.trace],
+  });
+
   ctx.recordTrace(traceRef, ctx.date, airingTrace);
 
-  // (5) The show's own viewers: several deals on one show add up. Only EVT3 creates a result.
+  // (6) The show's own viewers: several deals on one show add up. Only EVT3 creates a result.
   if (due.source === 'instance' && due.instance.status === 'completed') {
     ctx.tx.update('eventInstances', due.instance.id, (previous) =>
       previous.result === null

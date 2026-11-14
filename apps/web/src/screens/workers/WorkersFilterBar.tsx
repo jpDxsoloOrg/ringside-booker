@@ -1,21 +1,30 @@
-import { useId, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   ATTRIBUTE_KEYS,
   ATTRIBUTE_LABELS,
   AVAILABILITY_STATUSES,
-  GENDER_LABELS,
   GENDERS,
   PERSON_ROLES,
   RING_STYLES,
-  STYLE_LABELS,
 } from '@ringside/engine';
 import type { WorkerListFacets } from '@ringside/engine';
 import { AVAILABILITY_LABELS } from '@/components/AvailabilityChip';
-import { Button } from '@/components/Button';
-import { classNames } from '@/components/classNames';
 import { Select } from '@/components/Select';
-import type { SelectOption } from '@/components/Select';
-import { FREE_AGENT_LABEL, WORKER_ROLE_LABELS } from './workerLabels';
+import {
+  ANY,
+  chosen,
+  FilterBarFrame,
+  GENDER_OPTIONS,
+  labelled,
+  NumberFilter,
+  PlaceFilters,
+  RangeFilter,
+  ROLE_OPTIONS,
+  shownValue,
+  STYLE_OPTIONS,
+  withAny,
+} from './filterControls';
+import { FREE_AGENT_LABEL } from './workerLabels';
 import {
   activeFilterCount,
   AGE_LIMIT,
@@ -26,71 +35,14 @@ import {
 import type { WorkersFilterState } from './workersListParams';
 import styles from './WorkersScreen.module.css';
 
-/** The option every select starts on: no filter. Radix Select has no empty value. */
-const ANY = 'any';
-
 /** No employers or places to offer yet: what the bar shows before the first answer. */
 export const NO_WORKER_FACETS: WorkerListFacets = { promotions: [], continents: [], countries: [] };
 
-function withAny(anyLabel: string, options: readonly SelectOption[]): readonly SelectOption[] {
-  return [{ value: ANY, label: anyLabel }, ...options];
-}
-
-function labelled<Value extends string>(
-  values: readonly Value[],
-  labels: Readonly<Record<Value, string>>,
-): SelectOption[] {
-  return values.map((value) => ({ value, label: labels[value] }));
-}
-
-/** The value among `allowed` that a select reported, or null for "any" (or anything unknown). */
-function chosen<Value extends string>(allowed: readonly Value[], value: string): Value | null {
-  return allowed.find((candidate) => candidate === value) ?? null;
-}
-
-const ROLE_OPTIONS = withAny('Any role', labelled(PERSON_ROLES, WORKER_ROLE_LABELS));
 const AVAILABILITY_OPTIONS = withAny(
   'Any availability',
   labelled(AVAILABILITY_STATUSES, AVAILABILITY_LABELS),
 );
-const GENDER_OPTIONS = withAny('Any gender', labelled(GENDERS, GENDER_LABELS));
-const STYLE_OPTIONS = withAny('Any style', labelled(RING_STYLES, STYLE_LABELS));
 const ATTRIBUTE_OPTIONS = withAny('No attribute', labelled(ATTRIBUTE_KEYS, ATTRIBUTE_LABELS));
-
-interface NumberFilterProps {
-  readonly label: string;
-  readonly value: number | null;
-  readonly max: number;
-  readonly disabled?: boolean;
-  readonly onChange: (value: number | null) => void;
-}
-
-/** A whole number from 0 to `max`; empty means no limit. Anything above `max` becomes `max`. */
-function NumberFilter({ label, value, max, disabled = false, onChange }: NumberFilterProps) {
-  const inputId = useId();
-  return (
-    <div className={styles['field']}>
-      <label htmlFor={inputId} className={styles['fieldLabel']}>
-        {label}
-      </label>
-      <input
-        id={inputId}
-        type="number"
-        inputMode="numeric"
-        className={classNames(styles['numberInput'], 'tabular')}
-        min={0}
-        max={max}
-        step={1}
-        disabled={disabled}
-        value={value === null ? '' : String(value)}
-        onChange={(event) => {
-          const digits = event.target.value.replace(/\D/g, '');
-          onChange(digits === '' ? null : Math.min(max, Number(digits)));
-        }}
-      />
-    </div>
-  );
-}
 
 export interface WorkersFilterBarProps {
   readonly filters: WorkersFilterState;
@@ -123,42 +75,22 @@ export function WorkersFilterBar({
       ]),
     [facets.promotions],
   );
-  const continentOptions = useMemo(
-    () =>
-      withAny(
-        'Any continent',
-        facets.continents.map((continent) => ({
-          value: continent.continentId,
-          label: continent.name,
-        })),
-      ),
-    [facets.continents],
-  );
-  const countryOptions = useMemo(
-    () =>
-      withAny(
-        'Any country',
-        facets.countries
-          .filter(
-            (country) =>
-              filters.continentId === null || country.continentId === filters.continentId,
-          )
-          .map((country) => ({ value: country.countryId, label: country.name })),
-      ),
-    [facets.countries, filters.continentId],
-  );
-
   const change = (changes: Partial<WorkersFilterState>): void => {
     onChange({ ...filters, ...changes });
   };
 
-  // A value the options do not hold yet (the first answer is still on its way, or the URL names a
-  // promotion this world lacks) shows as "any" instead of an empty box.
-  const shown = (options: readonly SelectOption[], value: string | null): string =>
-    value !== null && options.some((option) => option.value === value) ? value : ANY;
-
   return (
-    <div className={classNames(styles['filters'], styles[`filters-${layout}`])}>
+    <FilterBarFrame
+      layout={layout}
+      clearDisabled={
+        activeFilterCount(filters) === 0 &&
+        filters.attribute === null &&
+        filters.attributeMin === null
+      }
+      onClear={() => {
+        onChange(NO_WORKERS_FILTERS);
+      }}
+    >
       <Select
         label="Role"
         options={ROLE_OPTIONS}
@@ -170,7 +102,7 @@ export function WorkersFilterBar({
       <Select
         label="Employer"
         options={employerOptions}
-        value={shown(employerOptions, filters.employer)}
+        value={shownValue(employerOptions, filters.employer)}
         onValueChange={(value) => {
           const promotion = facets.promotions.find((option) => option.promotionId === value);
           change({
@@ -202,47 +134,21 @@ export function WorkersFilterBar({
           change({ style: chosen(RING_STYLES, value) });
         }}
       />
-      <Select
-        label="Based in"
-        options={continentOptions}
-        value={shown(continentOptions, filters.continentId)}
-        onValueChange={(value) => {
-          const continent = facets.continents.find((option) => option.continentId === value);
-          const continentId = continent?.continentId ?? null;
-          const country = facets.countries.find((option) => option.countryId === filters.countryId);
-          // A country outside the new continent would leave the list empty for no visible reason.
-          const keepsCountry =
-            continentId === null || country === undefined || country.continentId === continentId;
-          change({ continentId, countryId: keepsCountry ? filters.countryId : null });
+      <PlaceFilters
+        value={{ continentId: filters.continentId, countryId: filters.countryId }}
+        facets={facets}
+        onChange={change}
+      />
+      <RangeFilter
+        fromLabel="Age from"
+        toLabel="Age to"
+        from={filters.ageMin}
+        to={filters.ageMax}
+        max={AGE_LIMIT}
+        onChange={({ from, to }) => {
+          change({ ageMin: from, ageMax: to });
         }}
       />
-      <Select
-        label="Country"
-        options={countryOptions}
-        value={shown(countryOptions, filters.countryId)}
-        onValueChange={(value) => {
-          const country = facets.countries.find((option) => option.countryId === value);
-          change({ countryId: country?.countryId ?? null });
-        }}
-      />
-      <div className={styles['pair']}>
-        <NumberFilter
-          label="Age from"
-          value={filters.ageMin}
-          max={AGE_LIMIT}
-          onChange={(ageMin) => {
-            change({ ageMin });
-          }}
-        />
-        <NumberFilter
-          label="Age to"
-          value={filters.ageMax}
-          max={AGE_LIMIT}
-          onChange={(ageMax) => {
-            change({ ageMax });
-          }}
-        />
-      </div>
       <div className={styles['pair']}>
         <Select
           label="Attribute"
@@ -263,23 +169,6 @@ export function WorkersFilterBar({
           }}
         />
       </div>
-      <div className={styles['clear']}>
-        <Button
-          size="sm"
-          variant="ghost"
-          iconStart="close"
-          disabled={
-            activeFilterCount(filters) === 0 &&
-            filters.attribute === null &&
-            filters.attributeMin === null
-          }
-          onClick={() => {
-            onChange(NO_WORKERS_FILTERS);
-          }}
-        >
-          Clear filters
-        </Button>
-      </div>
-    </div>
+    </FilterBarFrame>
   );
 }

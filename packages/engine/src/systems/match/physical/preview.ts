@@ -150,7 +150,10 @@ export function labSegmentSpec(
     promotionId: ctx.promotionId,
     importance: draft.importance,
     kind: draft.kind,
-    durationClass: durationClassOf({ role: draft.slotRole, matchType }, { tunables }).value,
+    durationClass: durationClassOf(
+      { role: draft.slotRole, matchType, booked: draft.bookedTime ?? null },
+      { tunables },
+    ).value,
     sides,
     crew: { producerId },
     keepItSafe: false,

@@ -336,6 +336,20 @@ The slot numbers of D-10, in `systems/match/tunables.ts`, category
 | `match.slot.durationClass.semiMain` | enum    | standard | short/standard/long | choice     | Duration class of the semi-main before its match type shifts it      |
 | `match.slot.semiMainFromSlots`      | integer | 4        | 3–12                | count      | Smallest main card that has a semi-main                              |
 
+EVT4-08's show time, category `Match: show time`. See
+[match-rating.md](match-rating.md#show-time).
+
+| Key                         | Kind    | Default | Range | Unit  | What it does                                            |
+| --------------------------- | ------- | ------- | ----- | ----- | ------------------------------------------------------- |
+| `match.time.units.short`    | integer | 1       | 0–10  | count | Show time a short segment takes                         |
+| `match.time.units.standard` | integer | 2       | 0–10  | count | Show time a standard segment takes                      |
+| `match.time.units.long`     | integer | 3       | 0–10  | count | Show time a long segment takes                          |
+| `match.time.room.house`     | integer | 0       | 0–30  | count | A house show's extra time beyond its card's usual time  |
+| `match.time.room.minor`     | integer | 1       | 0–30  | count | A minor show's extra time beyond its card's usual time  |
+| `match.time.room.regular`   | integer | 1       | 0–30  | count | A weekly show's extra time beyond its card's usual time |
+| `match.time.room.major`     | integer | 3       | 0–30  | count | A major show's extra time beyond its card's usual time  |
+| `match.time.room.flagship`  | integer | 6       | 0–30  | count | A flagship show's extra time beyond its usual time      |
+
 These are the first `enum` tunables in the engine. A table of keys a formula
 reads as numbers is typed `NumberTunableKey` (from `systems/tunables.ts`)
 rather than `TunableKey`, which also covers enum and boolean keys.
@@ -367,6 +381,7 @@ side decays, `Match: work rate` for the work rate checks. See
 | `match.workRate.staminaNeed.long`          | number | 65      | 0–100 | points     | Stamina a long singles match asks of each worker            |
 | `match.workRate.sharedLoadExponent`        | number | 0.5     | 0–2   | ratio      | How much bigger matches share the load; 0 means no sharing  |
 | `match.workRate.staminaPenaltyPerPoint`    | number | 0.4     | 0–2   | ratio      | Performance lost per point of stamina short                 |
+| `match.workRate.extendedFatigueShare`      | number | 0.25    | 0–2   | ratio      | Stamina short per point of fatigue, per step booked longer  |
 | `match.workRate.psychologyNeed.short`      | number | 20      | 0–100 | points     | Psychology the leader of a short match needs                |
 | `match.workRate.psychologyNeed.standard`   | number | 45      | 0–100 | points     | Psychology the leader of a standard match needs             |
 | `match.workRate.psychologyNeed.long`       | number | 70      | 0–100 | points     | Psychology the leader of a long match needs                 |
@@ -402,6 +417,7 @@ and `Match: talking segments` for the simple talk score. See
 | `match.expectation.importance.major`      | number | 4       | −30–30 | points | Expectation change at a major event                           |
 | `match.expectation.importance.flagship`   | number | 8       | −30–30 | points | Expectation change at a flagship event                        |
 | `match.expectation.televised`             | number | 2       | −30–30 | points | Expectation change when the show is on TV                     |
+| `match.expectation.timeStep`              | number | 4       | −30–30 | points | Expectation change per step a segment is booked longer        |
 | `match.crowd.performanceWeight`           | number | 0.55    | 0–1    | ratio  | Weight of work rate (or talk) in what was delivered           |
 | `match.crowd.entertainmentWeight`         | number | 0.25    | 0–1    | ratio  | Weight of entertainment in what was delivered                 |
 | `match.crowd.starWeight`                  | number | 0.2     | 0–1    | ratio  | Weight of star power in what was delivered                    |
@@ -699,28 +715,37 @@ The crowd forecast (EVT6-01) and the show-day money (EVT6-04), in
 [box-office.md](box-office.md#forecast). Every one is 0-means-0, and money is
 in whole cents.
 
-| Key                                    | Kind    | Default | Range     | Unit       | Meaning                                                                                             |
-| -------------------------------------- | ------- | ------- | --------- | ---------- | --------------------------------------------------------------------------------------------------- |
-| `boxOffice.draw.atFullPopularity`      | integer | 30,000  | 0–200,000 | count      | Crowd a show draws at popularity 100, before the other lines                                        |
-| `boxOffice.draw.curve`                 | number  | 3       | 1–6       | ratio      | How sharply crowds grow with popularity; higher means small companies draw less                     |
-| `boxOffice.draw.walkUp`                | integer | 80      | 0–5,000   | count      | People who turn up to any show, however unknown the company                                         |
-| `boxOffice.marketing.perLevel`         | number  | 0.04    | 0–0.5     | ratio      | Crowd added per marketing level (×(1 + level × this))                                               |
-| `boxOffice.importance.house`           | number  | 0.35    | 0–5       | multiplier | Crowd × this for a house show                                                                       |
-| `boxOffice.importance.minor`           | number  | 0.7     | 0–5       | multiplier | Same, minor show                                                                                    |
-| `boxOffice.importance.regular`         | number  | 1       | 0–5       | multiplier | Same, regular show                                                                                  |
-| `boxOffice.importance.major`           | number  | 1.5     | 0–5       | multiplier | Same, major show                                                                                    |
-| `boxOffice.importance.flagship`        | number  | 2.2     | 0–5       | multiplier | Same, flagship show                                                                                 |
-| `boxOffice.recentForm.windowDays`      | integer | 120     | 0–730     | days       | How far back recent form looks for completed shows ([recent form](box-office.md#recent-form))       |
-| `boxOffice.recentForm.minShows`        | integer | 3       | 0–20      | count      | Recent shows needed before recent form moves the crowd                                              |
-| `boxOffice.recentForm.par`             | number  | 50      | 0–100     | points     | A show score that neither helps nor hurts the draw                                                  |
-| `boxOffice.recentForm.fullSwingPoints` | number  | 25      | 1–100     | points     | Average score above or below par that gives the full swing                                          |
-| `boxOffice.recentForm.maxSwing`        | number  | 0.15    | 0–0.5     | ratio      | Most recent form can add to or take from the crowd (0 = recent form off)                            |
-| `boxOffice.recentForm.countHouseShows` | boolean | false   |           | flag       | Count house shows in recent form                                                                    |
-| `boxOffice.fatigue.windowDays`         | integer | 28      | 0–365     | days       | How far back big-show fatigue looks for other big shows ([fatigue](box-office.md#big-show-fatigue)) |
-| `boxOffice.fatigue.freeShows`          | integer | 1       | 0–10      | count      | Other big shows in the window that cost nothing                                                     |
-| `boxOffice.fatigue.perExtraShow`       | number  | 0.2     | 0–1       | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                            |
-| `boxOffice.fatigue.floor`              | number  | 0.25    | 0–1       | multiplier | The least of the crowd fatigue can leave                                                            |
-| `boxOffice.crowd.spread`               | number  | 0.1     | 0–0.5     | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range |
+| Key                                    | Kind    | Default | Range     | Unit       | Meaning                                                                                                                     |
+| -------------------------------------- | ------- | ------- | --------- | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `boxOffice.draw.atFullPopularity`      | integer | 25,500  | 0–200,000 | count      | Crowd a show draws at popularity 100, before the other lines                                                                |
+| `boxOffice.draw.curve`                 | number  | 3       | 1–6       | ratio      | How sharply crowds grow with popularity; higher means small companies draw less                                             |
+| `boxOffice.draw.walkUp`                | integer | 150     | 0–5,000   | count      | People who turn up to any show, however unknown the company                                                                 |
+| `boxOffice.marketing.perLevel`         | number  | 0.04    | 0–0.5     | ratio      | Crowd added per marketing level (×(1 + level × this))                                                                       |
+| `boxOffice.importance.house`           | number  | 0.35    | 0–5       | multiplier | Crowd × this for a house show                                                                                               |
+| `boxOffice.importance.minor`           | number  | 0.7     | 0–5       | multiplier | Same, minor show                                                                                                            |
+| `boxOffice.importance.regular`         | number  | 1       | 0–5       | multiplier | Same, regular show                                                                                                          |
+| `boxOffice.importance.major`           | number  | 1.5     | 0–5       | multiplier | Same, major show                                                                                                            |
+| `boxOffice.importance.flagship`        | number  | 2.2     | 0–5       | multiplier | Same, flagship show                                                                                                         |
+| `boxOffice.recentForm.windowDays`      | integer | 120     | 0–730     | days       | How far back recent form looks for completed shows ([recent form](box-office.md#recent-form))                               |
+| `boxOffice.recentForm.minShows`        | integer | 3       | 0–20      | count      | Recent shows needed before recent form moves the crowd                                                                      |
+| `boxOffice.recentForm.par`             | number  | 50      | 0–100     | points     | A show score that neither helps nor hurts the draw                                                                          |
+| `boxOffice.recentForm.fullSwingPoints` | number  | 25      | 1–100     | points     | Average score above or below par that gives the full swing                                                                  |
+| `boxOffice.recentForm.maxSwing`        | number  | 0.1     | 0–0.5     | ratio      | Most recent form can add to or take from the crowd (0 = recent form off)                                                    |
+| `boxOffice.recentForm.countHouseShows` | boolean | false   |           | flag       | Count house shows in recent form                                                                                            |
+| `boxOffice.fatigue.windowDays`         | integer | 28      | 0–365     | days       | How far back big-show fatigue looks for other big shows ([fatigue](box-office.md#big-show-fatigue))                         |
+| `boxOffice.fatigue.freeShows`          | integer | 1       | 0–10      | count      | Other big shows in the window that cost nothing                                                                             |
+| `boxOffice.fatigue.perExtraShow`       | number  | 0.2     | 0–1       | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                                                    |
+| `boxOffice.fatigue.floor`              | number  | 0.25    | 0–1       | multiplier | The least of the crowd fatigue can leave                                                                                    |
+| `boxOffice.streak.goodScore`           | number  | 60      | 0–100     | points     | A show scoring this or better keeps a hot streak going; below it breaks the streak ([hot streak](box-office.md#hot-streak)) |
+| `boxOffice.streak.perShow`             | number  | 0.025   | 0–0.5     | ratio      | Crowd added for each good show in a row (0 = hot streaks off)                                                               |
+| `boxOffice.streak.cap`                 | number  | 0.125   | 0–1       | ratio      | Most a hot streak can add to the crowd                                                                                      |
+| `boxOffice.streak.fadePerShow`         | number  | 0.05    | 0–1       | ratio      | Streak bonus lost for each show below the good score after the streak breaks                                                |
+| `boxOffice.heat.from`                  | number  | 40      | 0–99      | points     | Storyline heat at which a linked storyline starts to sell tickets ([show heat](box-office.md#show-heat))                    |
+| `boxOffice.heat.maxBonus`              | number  | 0.15    | 0–1       | ratio      | Crowd a linked storyline at heat 100 adds (0 = show heat off)                                                               |
+| `boxOffice.heat.finaleFactor`          | number  | 1.5     | 0–5       | multiplier | A storyline's heat bonus × this when its finale is on the card                                                              |
+| `boxOffice.heat.otherShare`            | number  | 0.25    | 0–1       | ratio      | Share of its bonus each linked storyline after the hottest adds                                                             |
+| `boxOffice.heat.cap`                   | number  | 0.3     | 0–2       | ratio      | Most show heat can add to the crowd                                                                                         |
+| `boxOffice.crowd.spread`               | number  | 0.1     | 0–0.5     | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range                         |
 
 ## Office tunables
 
@@ -796,90 +821,108 @@ playing field.
 | `ai.skipWorkerRequests`       | boolean | true    |                 | flag   | Rival workers make no requests of their bosses                                                                                                                                        |
 | `ai.contracts.simpleRenewals` | boolean | true    |                 | flag   | Rival promotions renew contracts by a simple rule until the rival labour market exists (ECO4-05 moved it here from Contracts; the rule: [contracts.md](contracts.md#simple-renewals)) |
 
-| Key                                    | Kind    | Default | Range        | Unit       | Meaning                                                                                             |
-| -------------------------------------- | ------- | ------- | ------------ | ---------- | --------------------------------------------------------------------------------------------------- |
-| `boxOffice.draw.atFullPopularity`      | integer | 30,000  | 0–200,000    | count      | Crowd a show draws at popularity 100, before the other lines                                        |
-| `boxOffice.draw.curve`                 | number  | 3       | 1–6          | ratio      | How sharply crowds grow with popularity; higher means small companies draw less                     |
-| `boxOffice.draw.walkUp`                | integer | 80      | 0–5,000      | count      | People who turn up to any show, however unknown the company                                         |
-| `boxOffice.marketing.perLevel`         | number  | 0.04    | 0–0.5        | ratio      | Crowd added per marketing level (×(1 + level × this))                                               |
-| `boxOffice.importance.house`           | number  | 0.35    | 0–5          | multiplier | Crowd × this for a house show                                                                       |
-| `boxOffice.importance.minor`           | number  | 0.7     | 0–5          | multiplier | Same, minor show                                                                                    |
-| `boxOffice.importance.regular`         | number  | 1       | 0–5          | multiplier | Same, regular show                                                                                  |
-| `boxOffice.importance.major`           | number  | 1.5     | 0–5          | multiplier | Same, major show                                                                                    |
-| `boxOffice.importance.flagship`        | number  | 2.2     | 0–5          | multiplier | Same, flagship show                                                                                 |
-| `boxOffice.recentForm.windowDays`      | integer | 120     | 0–730        | days       | How far back recent form looks for completed shows ([recent form](box-office.md#recent-form))       |
-| `boxOffice.recentForm.minShows`        | integer | 3       | 0–20         | count      | Recent shows needed before recent form moves the crowd                                              |
-| `boxOffice.recentForm.par`             | number  | 50      | 0–100        | points     | A show score that neither helps nor hurts the draw                                                  |
-| `boxOffice.recentForm.fullSwingPoints` | number  | 25      | 1–100        | points     | Average score above or below par that gives the full swing                                          |
-| `boxOffice.recentForm.maxSwing`        | number  | 0.15    | 0–0.5        | ratio      | Most recent form can add to or take from the crowd (0 = recent form off)                            |
-| `boxOffice.recentForm.countHouseShows` | boolean | false   |              | flag       | Count house shows in recent form                                                                    |
-| `boxOffice.fatigue.windowDays`         | integer | 28      | 0–365        | days       | How far back big-show fatigue looks for other big shows ([fatigue](box-office.md#big-show-fatigue)) |
-| `boxOffice.fatigue.freeShows`          | integer | 1       | 0–10         | count      | Other big shows in the window that cost nothing                                                     |
-| `boxOffice.fatigue.perExtraShow`       | number  | 0.2     | 0–1          | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                            |
-| `boxOffice.fatigue.floor`              | number  | 0.25    | 0–1          | multiplier | The least of the crowd fatigue can leave                                                            |
-| `boxOffice.crowd.spread`               | number  | 0.1     | 0–0.5        | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range |
-| `boxOffice.ticket.base`                | integer | 1,000   | 0–100,000    | money      | Ticket price every show starts from, $10 ([ticket price](box-office.md#ticket-price))               |
-| `boxOffice.ticket.perReachPoint`       | integer | 60      | 0–10,000     | money      | Ticket price added per point of the company's reach                                                 |
-| `boxOffice.ticket.importance.house`    | number  | 0.8     | 0–5          | multiplier | Ticket price × this for a house show                                                                |
-| `boxOffice.ticket.importance.minor`    | number  | 0.9     | 0–5          | multiplier | Same, minor show                                                                                    |
-| `boxOffice.ticket.importance.regular`  | number  | 1       | 0–5          | multiplier | Same, regular show                                                                                  |
-| `boxOffice.ticket.importance.major`    | number  | 1.5     | 0–5          | multiplier | Same, major show                                                                                    |
-| `boxOffice.ticket.importance.flagship` | number  | 2       | 0–5          | multiplier | Same, flagship show                                                                                 |
-| `boxOffice.rent.base`                  | integer | 25,000  | 0–10,000,000 | money      | Rent every venue charges for a show, $250 ([venue rent](box-office.md#venue-rent))                  |
-| `boxOffice.rent.perSeat`               | integer | 350     | 0–100,000    | money      | Rent per seat of capacity, sold or not                                                              |
-| `boxOffice.rent.kind.hall`             | number  | 1       | 0–5          | multiplier | Seat rent × this in a hall                                                                          |
-| `boxOffice.rent.kind.theatre`          | number  | 1.1     | 0–5          | multiplier | Same, theatre                                                                                       |
-| `boxOffice.rent.kind.arena`            | number  | 1.25    | 0–5          | multiplier | Same, arena                                                                                         |
-| `boxOffice.rent.kind.stadium`          | number  | 3.5     | 0–5          | multiplier | Same, stadium                                                                                       |
-| `boxOffice.rent.kind.studio`           | number  | 0.6     | 0–5          | multiplier | Same, studio                                                                                        |
-| `boxOffice.rent.kind.outdoor`          | number  | 1.2     | 0–5          | multiplier | Same, outdoor venue                                                                                 |
-| `boxOffice.rent.ownVenueFactor`        | number  | 0.25    | 0–1          | ratio      | Share of the rent paid in a venue that belongs to the company                                       |
-| `boxOffice.merch.perHead`              | integer | 500     | 0–100,000    | money      | Merch each fan buys at an average show, $5 ([live merch](box-office.md#live-merch))                 |
-| `boxOffice.merch.qualityLow`           | number  | 0.8     | 0–3          | multiplier | Merch × this after a show scoring 0                                                                 |
-| `boxOffice.merch.qualityHigh`          | number  | 1.2     | 0–3          | multiplier | Merch × this after a show scoring 100                                                               |
-| `boxOffice.merch.spread`               | number  | 0.05    | 0–0.5        | ratio      | How far merch sales can swing on the night, either way                                              |
-| `boxOffice.gate.workerShareCap`        | number  | 0.5     | 0–1          | ratio      | Most of the ticket money worker shares can take ([worker shares](box-office.md#worker-shares))      |
-| `boxOffice.merch.workerShareCap`       | number  | 0.5     | 0–1          | ratio      | Most of the merch money worker shares can take                                                      |
+| Key                                    | Kind    | Default | Range        | Unit       | Meaning                                                                                                                     |
+| -------------------------------------- | ------- | ------- | ------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `boxOffice.draw.atFullPopularity`      | integer | 25,500  | 0–200,000    | count      | Crowd a show draws at popularity 100, before the other lines                                                                |
+| `boxOffice.draw.curve`                 | number  | 3       | 1–6          | ratio      | How sharply crowds grow with popularity; higher means small companies draw less                                             |
+| `boxOffice.draw.walkUp`                | integer | 150     | 0–5,000      | count      | People who turn up to any show, however unknown the company                                                                 |
+| `boxOffice.marketing.perLevel`         | number  | 0.04    | 0–0.5        | ratio      | Crowd added per marketing level (×(1 + level × this))                                                                       |
+| `boxOffice.importance.house`           | number  | 0.35    | 0–5          | multiplier | Crowd × this for a house show                                                                                               |
+| `boxOffice.importance.minor`           | number  | 0.7     | 0–5          | multiplier | Same, minor show                                                                                                            |
+| `boxOffice.importance.regular`         | number  | 1       | 0–5          | multiplier | Same, regular show                                                                                                          |
+| `boxOffice.importance.major`           | number  | 1.5     | 0–5          | multiplier | Same, major show                                                                                                            |
+| `boxOffice.importance.flagship`        | number  | 2.2     | 0–5          | multiplier | Same, flagship show                                                                                                         |
+| `boxOffice.recentForm.windowDays`      | integer | 120     | 0–730        | days       | How far back recent form looks for completed shows ([recent form](box-office.md#recent-form))                               |
+| `boxOffice.recentForm.minShows`        | integer | 3       | 0–20         | count      | Recent shows needed before recent form moves the crowd                                                                      |
+| `boxOffice.recentForm.par`             | number  | 50      | 0–100        | points     | A show score that neither helps nor hurts the draw                                                                          |
+| `boxOffice.recentForm.fullSwingPoints` | number  | 25      | 1–100        | points     | Average score above or below par that gives the full swing                                                                  |
+| `boxOffice.recentForm.maxSwing`        | number  | 0.1     | 0–0.5        | ratio      | Most recent form can add to or take from the crowd (0 = recent form off)                                                    |
+| `boxOffice.recentForm.countHouseShows` | boolean | false   |              | flag       | Count house shows in recent form                                                                                            |
+| `boxOffice.fatigue.windowDays`         | integer | 28      | 0–365        | days       | How far back big-show fatigue looks for other big shows ([fatigue](box-office.md#big-show-fatigue))                         |
+| `boxOffice.fatigue.freeShows`          | integer | 1       | 0–10         | count      | Other big shows in the window that cost nothing                                                                             |
+| `boxOffice.fatigue.perExtraShow`       | number  | 0.2     | 0–1          | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                                                    |
+| `boxOffice.fatigue.floor`              | number  | 0.25    | 0–1          | multiplier | The least of the crowd fatigue can leave                                                                                    |
+| `boxOffice.streak.goodScore`           | number  | 60      | 0–100        | points     | A show scoring this or better keeps a hot streak going; below it breaks the streak ([hot streak](box-office.md#hot-streak)) |
+| `boxOffice.streak.perShow`             | number  | 0.025   | 0–0.5        | ratio      | Crowd added for each good show in a row (0 = hot streaks off)                                                               |
+| `boxOffice.streak.cap`                 | number  | 0.125   | 0–1          | ratio      | Most a hot streak can add to the crowd                                                                                      |
+| `boxOffice.streak.fadePerShow`         | number  | 0.05    | 0–1          | ratio      | Streak bonus lost for each show below the good score after the streak breaks                                                |
+| `boxOffice.heat.from`                  | number  | 40      | 0–99         | points     | Storyline heat at which a linked storyline starts to sell tickets ([show heat](box-office.md#show-heat))                    |
+| `boxOffice.heat.maxBonus`              | number  | 0.15    | 0–1          | ratio      | Crowd a linked storyline at heat 100 adds (0 = show heat off)                                                               |
+| `boxOffice.heat.finaleFactor`          | number  | 1.5     | 0–5          | multiplier | A storyline's heat bonus × this when its finale is on the card                                                              |
+| `boxOffice.heat.otherShare`            | number  | 0.25    | 0–1          | ratio      | Share of its bonus each linked storyline after the hottest adds                                                             |
+| `boxOffice.heat.cap`                   | number  | 0.3     | 0–2          | ratio      | Most show heat can add to the crowd                                                                                         |
+| `boxOffice.crowd.spread`               | number  | 0.1     | 0–0.5        | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range                         |
+| `boxOffice.ticket.base`                | integer | 1,000   | 0–100,000    | money      | Ticket price every show starts from, $10 ([ticket price](box-office.md#ticket-price))                                       |
+| `boxOffice.ticket.perReachPoint`       | integer | 60      | 0–10,000     | money      | Ticket price added per point of the company's reach                                                                         |
+| `boxOffice.ticket.importance.house`    | number  | 0.8     | 0–5          | multiplier | Ticket price × this for a house show                                                                                        |
+| `boxOffice.ticket.importance.minor`    | number  | 0.9     | 0–5          | multiplier | Same, minor show                                                                                                            |
+| `boxOffice.ticket.importance.regular`  | number  | 1       | 0–5          | multiplier | Same, regular show                                                                                                          |
+| `boxOffice.ticket.importance.major`    | number  | 1.5     | 0–5          | multiplier | Same, major show                                                                                                            |
+| `boxOffice.ticket.importance.flagship` | number  | 2       | 0–5          | multiplier | Same, flagship show                                                                                                         |
+| `boxOffice.rent.base`                  | integer | 25,000  | 0–10,000,000 | money      | Rent every venue charges for a show, $250 ([venue rent](box-office.md#venue-rent))                                          |
+| `boxOffice.rent.perSeat`               | integer | 350     | 0–100,000    | money      | Rent per seat of capacity, sold or not                                                                                      |
+| `boxOffice.rent.kind.hall`             | number  | 1       | 0–5          | multiplier | Seat rent × this in a hall                                                                                                  |
+| `boxOffice.rent.kind.theatre`          | number  | 1.1     | 0–5          | multiplier | Same, theatre                                                                                                               |
+| `boxOffice.rent.kind.arena`            | number  | 1.25    | 0–5          | multiplier | Same, arena                                                                                                                 |
+| `boxOffice.rent.kind.stadium`          | number  | 3.5     | 0–5          | multiplier | Same, stadium                                                                                                               |
+| `boxOffice.rent.kind.studio`           | number  | 0.6     | 0–5          | multiplier | Same, studio                                                                                                                |
+| `boxOffice.rent.kind.outdoor`          | number  | 1.2     | 0–5          | multiplier | Same, outdoor venue                                                                                                         |
+| `boxOffice.rent.ownVenueFactor`        | number  | 0.25    | 0–1          | ratio      | Share of the rent paid in a venue that belongs to the company                                                               |
+| `boxOffice.merch.perHead`              | integer | 500     | 0–100,000    | money      | Merch each fan buys at an average show, $5 ([live merch](box-office.md#live-merch))                                         |
+| `boxOffice.merch.qualityLow`           | number  | 0.8     | 0–3          | multiplier | Merch × this after a show scoring 0                                                                                         |
+| `boxOffice.merch.qualityHigh`          | number  | 1.2     | 0–3          | multiplier | Merch × this after a show scoring 100                                                                                       |
+| `boxOffice.merch.spread`               | number  | 0.05    | 0–0.5        | ratio      | How far merch sales can swing on the night, either way                                                                      |
+| `boxOffice.gate.workerShareCap`        | number  | 0.5     | 0–1          | ratio      | Most of the ticket money worker shares can take ([worker shares](box-office.md#worker-shares))                              |
+| `boxOffice.merch.workerShareCap`       | number  | 0.5     | 0–1          | ratio      | Most of the merch money worker shares can take                                                                              |
 
 The crowd forecast (EVT6-01), in `systems/boxOffice/tunables.ts`, category
 `Box office`. See [box-office.md](box-office.md#forecast). Every one is
 0-means-0. The venue numbers (EVT6-02) are in
 `systems/boxOffice/venueTunables.ts`, spread into the same set.
 
-| Key                                     | Kind    | Default | Range     | Unit       | Meaning                                                                                                        |
-| --------------------------------------- | ------- | ------- | --------- | ---------- | -------------------------------------------------------------------------------------------------------------- |
-| `boxOffice.draw.atFullPopularity`       | integer | 30,000  | 0–200,000 | count      | Crowd a show draws at popularity 100, before the other lines                                                   |
-| `boxOffice.draw.curve`                  | number  | 3       | 1–6       | ratio      | How sharply crowds grow with popularity; higher means small companies draw less                                |
-| `boxOffice.draw.walkUp`                 | integer | 80      | 0–5,000   | count      | People who turn up to any show, however unknown the company                                                    |
-| `boxOffice.marketing.perLevel`          | number  | 0.04    | 0–0.5     | ratio      | Crowd added per marketing level (×(1 + level × this))                                                          |
-| `boxOffice.importance.house`            | number  | 0.35    | 0–5       | multiplier | Crowd × this for a house show                                                                                  |
-| `boxOffice.importance.minor`            | number  | 0.7     | 0–5       | multiplier | Same, minor show                                                                                               |
-| `boxOffice.importance.regular`          | number  | 1       | 0–5       | multiplier | Same, regular show                                                                                             |
-| `boxOffice.importance.major`            | number  | 1.5     | 0–5       | multiplier | Same, major show                                                                                               |
-| `boxOffice.importance.flagship`         | number  | 2.2     | 0–5       | multiplier | Same, flagship show                                                                                            |
-| `boxOffice.recentForm.windowDays`       | integer | 120     | 0–730     | days       | How far back recent form looks for completed shows ([recent form](box-office.md#recent-form))                  |
-| `boxOffice.recentForm.minShows`         | integer | 3       | 0–20      | count      | Recent shows needed before recent form moves the crowd                                                         |
-| `boxOffice.recentForm.par`              | number  | 50      | 0–100     | points     | A show score that neither helps nor hurts the draw                                                             |
-| `boxOffice.recentForm.fullSwingPoints`  | number  | 25      | 1–100     | points     | Average score above or below par that gives the full swing                                                     |
-| `boxOffice.recentForm.maxSwing`         | number  | 0.15    | 0–0.5     | ratio      | Most recent form can add to or take from the crowd (0 = recent form off)                                       |
-| `boxOffice.recentForm.countHouseShows`  | boolean | false   |           | flag       | Count house shows in recent form                                                                               |
-| `boxOffice.fatigue.windowDays`          | integer | 28      | 0–365     | days       | How far back big-show fatigue looks for other big shows ([fatigue](box-office.md#big-show-fatigue))            |
-| `boxOffice.fatigue.freeShows`           | integer | 1       | 0–10      | count      | Other big shows in the window that cost nothing                                                                |
-| `boxOffice.fatigue.perExtraShow`        | number  | 0.2     | 0–1       | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                                       |
-| `boxOffice.fatigue.floor`               | number  | 0.25    | 0–1       | multiplier | The least of the crowd fatigue can leave                                                                       |
-| `boxOffice.crowd.spread`                | number  | 0.1     | 0–0.5     | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range            |
-| `boxOffice.generic.room.capacity`       | integer | 150     | 1–200,000 | count      | People a local room holds ([generic venues](box-office.md#generic-venues))                                     |
-| `boxOffice.generic.smallHall.capacity`  | integer | 500     | 1–200,000 | count      | People a local small hall holds                                                                                |
-| `boxOffice.generic.hall.capacity`       | integer | 1,200   | 1–200,000 | count      | People a local hall holds                                                                                      |
-| `boxOffice.generic.largeHall.capacity`  | integer | 3,000   | 1–200,000 | count      | People a local large hall holds                                                                                |
-| `boxOffice.generic.smallArena.capacity` | integer | 6,000   | 1–200,000 | count      | People a local small arena holds                                                                               |
-| `boxOffice.generic.arena.capacity`      | integer | 12,000  | 1–200,000 | count      | People a local arena holds                                                                                     |
-| `boxOffice.generic.largeArena.capacity` | integer | 20,000  | 1–200,000 | count      | People a local large arena holds                                                                               |
-| `boxOffice.generic.stadium.capacity`    | integer | 45,000  | 1–200,000 | count      | People a local stadium holds                                                                                   |
-| `boxOffice.fit.sellOutAt`               | number  | 1       | 0.5–1.5   | ratio      | Expected crowd, as a share of capacity, at which a venue is a likely sell-out ([venues](box-office.md#venues)) |
-| `boxOffice.fit.emptyAt`                 | number  | 3       | 1–10      | multiplier | Capacity, as a multiple of the expected crowd, at which a venue will look empty                                |
-| `boxOffice.pick.headroom`               | number  | 1.1     | 1–3       | multiplier | Room left for a good night when sizing a venue ([pick](box-office.md#pick))                                    |
-| `boxOffice.rivalVenueLeadDays`          | integer | 14      | 0–90      | days       | How far ahead rival shows are given a venue ([automatic picks](box-office.md#automatic-picks))                 |
+| Key                                     | Kind    | Default | Range     | Unit       | Meaning                                                                                                                     |
+| --------------------------------------- | ------- | ------- | --------- | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `boxOffice.draw.atFullPopularity`       | integer | 25,500  | 0–200,000 | count      | Crowd a show draws at popularity 100, before the other lines                                                                |
+| `boxOffice.draw.curve`                  | number  | 3       | 1–6       | ratio      | How sharply crowds grow with popularity; higher means small companies draw less                                             |
+| `boxOffice.draw.walkUp`                 | integer | 150     | 0–5,000   | count      | People who turn up to any show, however unknown the company                                                                 |
+| `boxOffice.marketing.perLevel`          | number  | 0.04    | 0–0.5     | ratio      | Crowd added per marketing level (×(1 + level × this))                                                                       |
+| `boxOffice.importance.house`            | number  | 0.35    | 0–5       | multiplier | Crowd × this for a house show                                                                                               |
+| `boxOffice.importance.minor`            | number  | 0.7     | 0–5       | multiplier | Same, minor show                                                                                                            |
+| `boxOffice.importance.regular`          | number  | 1       | 0–5       | multiplier | Same, regular show                                                                                                          |
+| `boxOffice.importance.major`            | number  | 1.5     | 0–5       | multiplier | Same, major show                                                                                                            |
+| `boxOffice.importance.flagship`         | number  | 2.2     | 0–5       | multiplier | Same, flagship show                                                                                                         |
+| `boxOffice.recentForm.windowDays`       | integer | 120     | 0–730     | days       | How far back recent form looks for completed shows ([recent form](box-office.md#recent-form))                               |
+| `boxOffice.recentForm.minShows`         | integer | 3       | 0–20      | count      | Recent shows needed before recent form moves the crowd                                                                      |
+| `boxOffice.recentForm.par`              | number  | 50      | 0–100     | points     | A show score that neither helps nor hurts the draw                                                                          |
+| `boxOffice.recentForm.fullSwingPoints`  | number  | 25      | 1–100     | points     | Average score above or below par that gives the full swing                                                                  |
+| `boxOffice.recentForm.maxSwing`         | number  | 0.1     | 0–0.5     | ratio      | Most recent form can add to or take from the crowd (0 = recent form off)                                                    |
+| `boxOffice.recentForm.countHouseShows`  | boolean | false   |           | flag       | Count house shows in recent form                                                                                            |
+| `boxOffice.fatigue.windowDays`          | integer | 28      | 0–365     | days       | How far back big-show fatigue looks for other big shows ([fatigue](box-office.md#big-show-fatigue))                         |
+| `boxOffice.fatigue.freeShows`           | integer | 1       | 0–10      | count      | Other big shows in the window that cost nothing                                                                             |
+| `boxOffice.fatigue.perExtraShow`        | number  | 0.2     | 0–1       | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                                                    |
+| `boxOffice.fatigue.floor`               | number  | 0.25    | 0–1       | multiplier | The least of the crowd fatigue can leave                                                                                    |
+| `boxOffice.streak.goodScore`            | number  | 60      | 0–100     | points     | A show scoring this or better keeps a hot streak going; below it breaks the streak ([hot streak](box-office.md#hot-streak)) |
+| `boxOffice.streak.perShow`              | number  | 0.025   | 0–0.5     | ratio      | Crowd added for each good show in a row (0 = hot streaks off)                                                               |
+| `boxOffice.streak.cap`                  | number  | 0.125   | 0–1       | ratio      | Most a hot streak can add to the crowd                                                                                      |
+| `boxOffice.streak.fadePerShow`          | number  | 0.05    | 0–1       | ratio      | Streak bonus lost for each show below the good score after the streak breaks                                                |
+| `boxOffice.heat.from`                   | number  | 40      | 0–99      | points     | Storyline heat at which a linked storyline starts to sell tickets ([show heat](box-office.md#show-heat))                    |
+| `boxOffice.heat.maxBonus`               | number  | 0.15    | 0–1       | ratio      | Crowd a linked storyline at heat 100 adds (0 = show heat off)                                                               |
+| `boxOffice.heat.finaleFactor`           | number  | 1.5     | 0–5       | multiplier | A storyline's heat bonus × this when its finale is on the card                                                              |
+| `boxOffice.heat.otherShare`             | number  | 0.25    | 0–1       | ratio      | Share of its bonus each linked storyline after the hottest adds                                                             |
+| `boxOffice.heat.cap`                    | number  | 0.3     | 0–2       | ratio      | Most show heat can add to the crowd                                                                                         |
+| `boxOffice.crowd.spread`                | number  | 0.1     | 0–0.5     | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range                         |
+| `boxOffice.generic.room.capacity`       | integer | 150     | 1–200,000 | count      | People a local room holds ([generic venues](box-office.md#generic-venues))                                                  |
+| `boxOffice.generic.smallHall.capacity`  | integer | 500     | 1–200,000 | count      | People a local small hall holds                                                                                             |
+| `boxOffice.generic.hall.capacity`       | integer | 1,200   | 1–200,000 | count      | People a local hall holds                                                                                                   |
+| `boxOffice.generic.largeHall.capacity`  | integer | 3,000   | 1–200,000 | count      | People a local large hall holds                                                                                             |
+| `boxOffice.generic.smallArena.capacity` | integer | 6,000   | 1–200,000 | count      | People a local small arena holds                                                                                            |
+| `boxOffice.generic.arena.capacity`      | integer | 12,000  | 1–200,000 | count      | People a local arena holds                                                                                                  |
+| `boxOffice.generic.largeArena.capacity` | integer | 20,000  | 1–200,000 | count      | People a local large arena holds                                                                                            |
+| `boxOffice.generic.stadium.capacity`    | integer | 45,000  | 1–200,000 | count      | People a local stadium holds                                                                                                |
+| `boxOffice.fit.sellOutAt`               | number  | 1       | 0.5–1.5   | ratio      | Expected crowd, as a share of capacity, at which a venue is a likely sell-out ([venues](box-office.md#venues))              |
+| `boxOffice.fit.emptyAt`                 | number  | 3       | 1–10      | multiplier | Capacity, as a multiple of the expected crowd, at which a venue will look empty                                             |
+| `boxOffice.pick.headroom`               | number  | 1.1     | 1–3       | multiplier | Room left for a good night when sizing a venue ([pick](box-office.md#pick))                                                 |
+| `boxOffice.rivalVenueLeadDays`          | integer | 14      | 0–90      | days       | How far ahead rival shows are given a venue ([automatic picks](box-office.md#automatic-picks))                              |
 
 | Key                               | Kind    | Default       | Range                                                 | Unit   | Meaning                                                                                                                       |
 | --------------------------------- | ------- | ------------- | ----------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
@@ -1124,92 +1167,94 @@ contract value, the worker's reaction and counter-offers
 ([negotiation.md#contract-value](negotiation.md#contract-value)). Money is in
 whole cents (shown here in dollars); 0 means 0.
 
-| Key                                        | Kind    | Default  | Range          | Unit        | Meaning                                                                                       |
-| ------------------------------------------ | ------- | -------- | -------------- | ----------- | --------------------------------------------------------------------------------------------- |
-| `contracts.review.delayDays`               | integer | 2        | 0–30           | days        | Days a worker takes to decide once an offer is good enough (0 = the same day)                 |
-| `contracts.walkAway.cooldownDays`          | integer | 30       | 0–365          | days        | Days a worker who walked away refuses to talk to that promotion again (0 = no wait)           |
-| `contracts.counter.expiryDays`             | integer | 7        | 1–60           | days        | Days a worker's counter-offer stays open before it lapses                                     |
-| `contracts.counter.stopSkip`               | boolean | true     |                | flag        | Skips stop when a worker's counter-offer is waiting for you (answer it on the sheet)          |
-| `contracts.answer.stopSkip`                | boolean | true     |                | flag        | Skips stop when a worker signs, turns down or walks away from your offer (ECO5-10)            |
-| `contracts.offer.maxLengthMonths`          | integer | 60       | 1–120          | months      | Longest contract an offer may run                                                             |
-| `contracts.offer.approachWindowDays`       | integer | 30       | 0–365          | days        | How close to the end of an exclusive deal elsewhere a worker will talk to you                 |
-| `contracts.renewal.windowDays`             | integer | 180      | 0–730          | days        | How early before a contract ends a renewal can be offered                                     |
-| `contracts.kind.writtenMinReach`           | integer | 35       | 0–100          | points      | Reach a promotion needs to offer written contracts (0 = anyone)                               |
-| `contracts.kind.exclusiveMinReach`         | integer | 35       | 0–100          | points      | Reach a promotion needs to offer exclusive contracts (0 = anyone)                             |
-| `contracts.history.closedKeepDays`         | integer | 365      | 0–3650         | days        | Days a closed negotiation is kept, past its cooldown, before it is cleared away               |
-| `contracts.value.breadthWeight`            | number  | 0.3      | 0–1            | ratio       | How much world-wide popularity counts against the best country in market value                |
-| `contracts.value.popScale`                 | integer | $300,000 | $0–$10,000,000 | money/month | Monthly value of a worker with 100 popularity everywhere (before the curve)                   |
-| `contracts.value.popExponent`              | number  | 2        | 0–6            | multiplier  | How steeply market value rises with popularity (1 = a straight line)                          |
-| `contracts.value.skillScale`               | integer | $15,000  | $0–$10,000,000 | money/month | Monthly value of a worker rated 100 in their role (before the curve)                          |
-| `contracts.value.skillExponent`            | number  | 2        | 0–6            | multiplier  | How steeply market value rises with skill (1 = a straight line)                               |
-| `contracts.value.merchShare`               | number  | 0.25     | 0–1            | ratio       | Share of a star's monthly merchandise sales added to their market value                       |
-| `contracts.value.floor`                    | integer | $1,000   | $0–$1,000,000  | money/month | Base monthly value every worker has                                                           |
-| `contracts.value.roleFactor.wrestler`      | number  | 1        | 0–5            | multiplier  | Market value of a wrestler                                                                    |
-| `contracts.value.roleFactor.booker`        | number  | 0.8      | 0–5            | multiplier  | Market value of a booker                                                                      |
-| `contracts.value.roleFactor.manager`       | number  | 0.6      | 0–5            | multiplier  | Market value of a manager                                                                     |
-| `contracts.value.roleFactor.presenter`     | number  | 0.6      | 0–5            | multiplier  | Market value of a presenter                                                                   |
-| `contracts.value.roleFactor.announcer`     | number  | 0.5      | 0–5            | multiplier  | Market value of an announcer                                                                  |
-| `contracts.value.roleFactor.producer`      | number  | 0.5      | 0–5            | multiplier  | Market value of a producer                                                                    |
-| `contracts.value.roleFactor.referee`       | number  | 0.35     | 0–5            | multiplier  | Market value of a referee                                                                     |
-| `contracts.ask.reachFloor`                 | number  | 0.25     | 0–1            | ratio       | Share of their value a worker asks from a promotion nobody has heard of (reach 0)             |
-| `contracts.ask.prestigeDiscount`           | number  | 0.15     | 0–1            | ratio       | How much less a worker asks to join a promotion with a public image of 100                    |
-| `contracts.ask.legacyPrestigeMultiplier`   | number  | 2        | 0–5            | multiplier  | How much more the public image discount counts for a worker who cares about their legacy      |
-| `contracts.ask.egotistPremium`             | number  | 0.1      | 0–2            | ratio       | Extra an egotist asks for                                                                     |
-| `contracts.ask.moneyPremium`               | number  | 0.1      | 0–2            | ratio       | Extra a worker who is in it for the money asks for                                            |
-| `contracts.ask.starPresence`               | integer | 80       | 0–100          | attribute   | Charisma or presence from which a worker knows they are a star and asks more                  |
-| `contracts.ask.starPremium`                | number  | 0.1      | 0–2            | ratio       | Extra a worker with star presence asks for                                                    |
-| `contracts.ask.selflessDiscount`           | number  | 0.05     | 0–1            | ratio       | How much less a selfless worker asks for                                                      |
-| `contracts.ask.premiumCap`                 | number  | 0.3      | 0–2            | ratio       | Most the ego premiums can add together (0 = no ego premiums)                                  |
-| `contracts.ask.exclusivePremium`           | number  | 0.1      | 0–2            | ratio       | Extra a worker asks for an exclusive contract                                                 |
-| `contracts.ask.underContractPremium`       | number  | 0.1      | 0–2            | ratio       | Extra a worker asks while they still have a contract elsewhere                                |
-| `contracts.ask.loyalRenewalDiscount`       | number  | 0.1      | 0–1            | ratio       | How much less a loyal worker asks to stay                                                     |
-| `contracts.ask.cap.wrestler`               | integer | $400,000 | $0–$10,000,000 | money/month | Most a wrestler asks for a month                                                              |
-| `contracts.ask.cap.booker`                 | integer | $80,000  | $0–$10,000,000 | money/month | Most a booker asks for a month                                                                |
-| `contracts.ask.cap.manager`                | integer | $60,000  | $0–$10,000,000 | money/month | Most a manager asks for a month                                                               |
-| `contracts.ask.cap.presenter`              | integer | $60,000  | $0–$10,000,000 | money/month | Most a presenter asks for a month                                                             |
-| `contracts.ask.cap.announcer`              | integer | $60,000  | $0–$10,000,000 | money/month | Most an announcer asks for a month                                                            |
-| `contracts.ask.cap.producer`               | integer | $40,000  | $0–$10,000,000 | money/month | Most a producer asks for a month                                                              |
-| `contracts.ask.cap.referee`                | integer | $20,000  | $0–$10,000,000 | money/month | Most a referee asks for a month                                                               |
-| `contracts.ask.perAppearanceShare`         | number  | 0.3      | 0–2            | ratio       | Share of a worker's monthly ask they want for each appearance on a per-appearance deal        |
-| `contracts.ask.minFee`                     | integer | $50      | $0–$1,000,000  | money       | Least a worker asks for an appearance                                                         |
-| `contracts.ask.maxFee`                     | integer | $20,000  | $0–$1,000,000  | money       | Most a worker asks for an appearance                                                          |
-| `contracts.ask.signingBonusMonths`         | number  | 1        | 0–12           | months      | Signing bonus a worker asks for a written contract, in months of their wage                   |
-| `contracts.ask.noHouseShowsAge`            | integer | 45       | 0–100          | years       | Age from which a worker asks not to work house shows (when the game honours it)               |
-| `contracts.ask.veteranAge`                 | integer | 45       | 0–100          | years       | Age from which a popular veteran asks for a cap on appearances                                |
-| `contracts.ask.veteranPeakPop`             | integer | 80       | 0–100          | points      | Popularity (best country) from which a veteran asks for a cap on appearances                  |
-| `contracts.ask.veteranAppearanceCap`       | integer | 24       | 0–365          | count       | Most appearances a year a popular veteran agrees to (0 = no cap asked)                        |
-| `contracts.ask.lengthMonths`               | integer | 24       | 1–120          | months      | Contract length most workers prefer                                                           |
-| `contracts.ask.lengthMonths.journeyman`    | integer | 12       | 1–120          | months      | Contract length a journeyman prefers                                                          |
-| `contracts.ask.lengthMonths.loyal`         | integer | 36       | 1–120          | months      | Contract length a loyal worker prefers                                                        |
-| `contracts.renewal.unhappyMorale`          | integer | -20      | -100–100       | points      | Below this morale a worker asks more to stay (and has less patience)                          |
-| `contracts.renewal.unhappyPremiumPerPoint` | number  | 0.01     | 0–0.1          | ratio       | Extra a worker asks to stay for each morale point below the unhappy line                      |
-| `contracts.renewal.refuseMorale`           | integer | -60      | -100–100       | points      | At or below this morale a worker will not renew at all                                        |
-| `contracts.patience.base`                  | integer | 3        | 0–10           | count       | Offers a worker sits through that do not please them                                          |
-| `contracts.patience.egotist`               | integer | 1        | 0–10           | count       | Patience an egotist lacks                                                                     |
-| `contracts.patience.professional`          | integer | 1        | 0–10           | count       | Extra patience a professional has                                                             |
-| `contracts.patience.unhappyPenalty`        | integer | 1        | 0–10           | count       | Patience an unhappy worker lacks when renewing                                                |
-| `contracts.patience.max`                   | integer | 5        | 0–10           | count       | Most patience any worker starts with                                                          |
-| `contracts.value.appearancesPerMonth`      | number  | 4        | 0–31           | count       | Appearances a month a per-appearance fee is counted for in contract value                     |
-| `contracts.value.perk.ironClad`            | number  | 0.2      | 0–2            | ratio       | What an iron-clad contract adds to contract value (counted only while the game honours it)    |
-| `contracts.value.perk.travelCovered`       | number  | 0.03     | 0–2            | ratio       | What covered travel adds to contract value (counted only while the game honours it)           |
-| `contracts.value.perk.noHouseShows`        | number  | 0.05     | 0–2            | ratio       | What a no-house-shows clause adds to contract value (counted only while the game honours it)  |
-| `contracts.value.perk.creativeControl`     | number  | 0.1      | 0–2            | ratio       | What creative control adds to contract value (counted only while the game honours it)         |
-| `contracts.value.sharePerPercent`          | number  | 0.02     | 0–1            | ratio       | What each percent of a revenue share the game pays adds to contract value                     |
-| `contracts.value.pushBelowPerStep`         | number  | 0.1      | 0–1            | ratio       | Contract value lost for each step below the card position a worker expects                    |
-| `contracts.value.pushAbovePerStep`         | number  | 0.03     | 0–1            | ratio       | Contract value gained for each step above the card position a worker expects                  |
-| `contracts.value.lengthFitMin`             | number  | 0.85     | 0–1            | multiplier  | Least a contract of the wrong length counts for (1 = length never matters)                    |
-| `contracts.value.lengthMismatchPerMonth`   | number  | 0.005    | 0–0.1          | ratio       | Contract value lost for each month away from the length a worker prefers                      |
-| `contracts.react.acceptRatio`              | number  | 0.95     | 0–2            | ratio       | Share of their ask an offer must be worth for the worker to accept it                         |
-| `contracts.react.counterRatio`             | number  | 0.55     | 0–2            | ratio       | Share of their ask an offer must be worth for the worker to counter it (else they reject)     |
-| `contracts.react.walkAwayRatio`            | number  | 0.45     | 0–2            | ratio       | Below this share of their ask the worker walks away instead of rejecting                      |
-| `contracts.react.refuseCrewRoleRating`     | integer | 50       | 0–100          | points      | Wrestler rating from which a wrestler refuses a job outside the ring                          |
-| `contracts.patience.rejectCost`            | integer | 1        | 0–10           | count       | Patience a rejected offer costs; with no more than this left they walk away                   |
-| `contracts.counter.concession`             | number  | 0.3      | 0–1            | ratio       | Share of the gap to their ask a worker gives up in a first counter-offer                      |
-| `contracts.counter.concessionSpread`       | number  | 0.15     | 0–1            | ratio       | Most a counter-offer may give up on top of the usual share, rolled each time                  |
-| `contracts.counter.roundDecay`             | number  | 0.25     | 0–1            | ratio       | How much less a worker gives up with each later round (1 = only the first round)              |
-| `contracts.counter.lengthTolerance`        | integer | 12       | 0–120          | months      | Months off their preferred length a counter-offer lets stand                                  |
-| `contracts.review.tieEpsilon`              | number  | 0.01     | 0–0.5          | ratio       | How close two offers must score (share of each ask) to count as a tie, broken by a roll       |
-| `contracts.ai.acceptCounterUpTo`           | number  | 1        | 0–3            | multiplier  | A computer promotion accepts a counter-offer whose pay is at most this times the worker's ask |
+| Key                                        | Kind    | Default  | Range          | Unit        | Meaning                                                                                                    |
+| ------------------------------------------ | ------- | -------- | -------------- | ----------- | ---------------------------------------------------------------------------------------------------------- |
+| `contracts.review.delayDays`               | integer | 2        | 0–30           | days        | Days a worker takes to decide once an offer is good enough (0 = the same day)                              |
+| `contracts.walkAway.cooldownDays`          | integer | 30       | 0–365          | days        | Days a worker who walked away refuses to talk to that promotion again (0 = no wait)                        |
+| `contracts.counter.expiryDays`             | integer | 7        | 1–60           | days        | Days a worker's counter-offer stays open before it lapses                                                  |
+| `contracts.counter.stopSkip`               | boolean | true     |                | flag        | Skips stop when a worker's counter-offer is waiting for you (answer it on the sheet)                       |
+| `contracts.answer.stopSkip`                | boolean | true     |                | flag        | Skips stop when a worker signs, turns down or walks away from your offer (ECO5-10)                         |
+| `contracts.offer.maxLengthMonths`          | integer | 60       | 1–120          | months      | Longest contract an offer may run                                                                          |
+| `contracts.offer.approachWindowDays`       | integer | 30       | 0–365          | days        | How close to the end of an exclusive deal elsewhere a worker will talk to you                              |
+| `contracts.renewal.windowDays`             | integer | 180      | 0–730          | days        | How early before a contract ends a renewal can be offered                                                  |
+| `contracts.kind.writtenMinReach`           | integer | 35       | 0–100          | points      | Reach a promotion needs to offer written contracts (0 = anyone)                                            |
+| `contracts.kind.exclusiveMinReach`         | integer | 35       | 0–100          | points      | Reach a promotion needs to offer exclusive contracts (0 = anyone)                                          |
+| `contracts.history.closedKeepDays`         | integer | 365      | 0–3650         | days        | Days a closed negotiation is kept, past its cooldown, before it is cleared away                            |
+| `contracts.value.breadthWeight`            | number  | 0.3      | 0–1            | ratio       | How much world-wide popularity counts against the best country in market value                             |
+| `contracts.value.popScale`                 | integer | $300,000 | $0–$10,000,000 | money/month | Monthly value of a worker with 100 popularity everywhere (before the curve)                                |
+| `contracts.value.popExponent`              | number  | 2        | 0–6            | multiplier  | How steeply market value rises with popularity (1 = a straight line)                                       |
+| `contracts.value.skillScale`               | integer | $15,000  | $0–$10,000,000 | money/month | Monthly value of a worker rated 100 in their role (before the curve)                                       |
+| `contracts.value.skillExponent`            | number  | 2        | 0–6            | multiplier  | How steeply market value rises with skill (1 = a straight line)                                            |
+| `contracts.value.merchShare`               | number  | 0.25     | 0–1            | ratio       | Share of a star's monthly merchandise sales added to their market value                                    |
+| `contracts.value.floor`                    | integer | $1,000   | $0–$1,000,000  | money/month | Base monthly value every worker has                                                                        |
+| `contracts.value.roleFactor.wrestler`      | number  | 1        | 0–5            | multiplier  | Market value of a wrestler                                                                                 |
+| `contracts.value.roleFactor.booker`        | number  | 0.8      | 0–5            | multiplier  | Market value of a booker                                                                                   |
+| `contracts.value.roleFactor.manager`       | number  | 0.6      | 0–5            | multiplier  | Market value of a manager                                                                                  |
+| `contracts.value.roleFactor.presenter`     | number  | 0.6      | 0–5            | multiplier  | Market value of a presenter                                                                                |
+| `contracts.value.roleFactor.announcer`     | number  | 0.5      | 0–5            | multiplier  | Market value of an announcer                                                                               |
+| `contracts.value.roleFactor.producer`      | number  | 0.5      | 0–5            | multiplier  | Market value of a producer                                                                                 |
+| `contracts.value.roleFactor.referee`       | number  | 0.35     | 0–5            | multiplier  | Market value of a referee                                                                                  |
+| `contracts.ask.reachFloor`                 | number  | 0.25     | 0–1            | ratio       | Share of their value a worker asks from a promotion nobody has heard of (reach 0)                          |
+| `contracts.ask.sizeFloor`                  | number  | 0.32     | 0–1            | ratio       | Share of their usual pay a worker asks from the smallest company (reach 0): indie wages                    |
+| `contracts.ask.sizeFullReach`              | integer | 30       | 0–100          | points      | Reach from which a company pays full rates; smaller companies pay less (0 = every company pays full rates) |
+| `contracts.ask.prestigeDiscount`           | number  | 0.15     | 0–1            | ratio       | How much less a worker asks to join a promotion with a public image of 100                                 |
+| `contracts.ask.legacyPrestigeMultiplier`   | number  | 2        | 0–5            | multiplier  | How much more the public image discount counts for a worker who cares about their legacy                   |
+| `contracts.ask.egotistPremium`             | number  | 0.1      | 0–2            | ratio       | Extra an egotist asks for                                                                                  |
+| `contracts.ask.moneyPremium`               | number  | 0.1      | 0–2            | ratio       | Extra a worker who is in it for the money asks for                                                         |
+| `contracts.ask.starPresence`               | integer | 80       | 0–100          | attribute   | Charisma or presence from which a worker knows they are a star and asks more                               |
+| `contracts.ask.starPremium`                | number  | 0.1      | 0–2            | ratio       | Extra a worker with star presence asks for                                                                 |
+| `contracts.ask.selflessDiscount`           | number  | 0.05     | 0–1            | ratio       | How much less a selfless worker asks for                                                                   |
+| `contracts.ask.premiumCap`                 | number  | 0.3      | 0–2            | ratio       | Most the ego premiums can add together (0 = no ego premiums)                                               |
+| `contracts.ask.exclusivePremium`           | number  | 0.1      | 0–2            | ratio       | Extra a worker asks for an exclusive contract                                                              |
+| `contracts.ask.underContractPremium`       | number  | 0.1      | 0–2            | ratio       | Extra a worker asks while they still have a contract elsewhere                                             |
+| `contracts.ask.loyalRenewalDiscount`       | number  | 0.1      | 0–1            | ratio       | How much less a loyal worker asks to stay                                                                  |
+| `contracts.ask.cap.wrestler`               | integer | $400,000 | $0–$10,000,000 | money/month | Most a wrestler asks for a month                                                                           |
+| `contracts.ask.cap.booker`                 | integer | $80,000  | $0–$10,000,000 | money/month | Most a booker asks for a month                                                                             |
+| `contracts.ask.cap.manager`                | integer | $60,000  | $0–$10,000,000 | money/month | Most a manager asks for a month                                                                            |
+| `contracts.ask.cap.presenter`              | integer | $60,000  | $0–$10,000,000 | money/month | Most a presenter asks for a month                                                                          |
+| `contracts.ask.cap.announcer`              | integer | $60,000  | $0–$10,000,000 | money/month | Most an announcer asks for a month                                                                         |
+| `contracts.ask.cap.producer`               | integer | $40,000  | $0–$10,000,000 | money/month | Most a producer asks for a month                                                                           |
+| `contracts.ask.cap.referee`                | integer | $20,000  | $0–$10,000,000 | money/month | Most a referee asks for a month                                                                            |
+| `contracts.ask.perAppearanceShare`         | number  | 0.3      | 0–2            | ratio       | Share of a worker's monthly ask they want for each appearance on a per-appearance deal                     |
+| `contracts.ask.minFee`                     | integer | $50      | $0–$1,000,000  | money       | Least a worker asks for an appearance                                                                      |
+| `contracts.ask.maxFee`                     | integer | $20,000  | $0–$1,000,000  | money       | Most a worker asks for an appearance                                                                       |
+| `contracts.ask.signingBonusMonths`         | number  | 1        | 0–12           | months      | Signing bonus a worker asks for a written contract, in months of their wage                                |
+| `contracts.ask.noHouseShowsAge`            | integer | 45       | 0–100          | years       | Age from which a worker asks not to work house shows (when the game honours it)                            |
+| `contracts.ask.veteranAge`                 | integer | 45       | 0–100          | years       | Age from which a popular veteran asks for a cap on appearances                                             |
+| `contracts.ask.veteranPeakPop`             | integer | 80       | 0–100          | points      | Popularity (best country) from which a veteran asks for a cap on appearances                               |
+| `contracts.ask.veteranAppearanceCap`       | integer | 24       | 0–365          | count       | Most appearances a year a popular veteran agrees to (0 = no cap asked)                                     |
+| `contracts.ask.lengthMonths`               | integer | 24       | 1–120          | months      | Contract length most workers prefer                                                                        |
+| `contracts.ask.lengthMonths.journeyman`    | integer | 12       | 1–120          | months      | Contract length a journeyman prefers                                                                       |
+| `contracts.ask.lengthMonths.loyal`         | integer | 36       | 1–120          | months      | Contract length a loyal worker prefers                                                                     |
+| `contracts.renewal.unhappyMorale`          | integer | -20      | -100–100       | points      | Below this morale a worker asks more to stay (and has less patience)                                       |
+| `contracts.renewal.unhappyPremiumPerPoint` | number  | 0.01     | 0–0.1          | ratio       | Extra a worker asks to stay for each morale point below the unhappy line                                   |
+| `contracts.renewal.refuseMorale`           | integer | -60      | -100–100       | points      | At or below this morale a worker will not renew at all                                                     |
+| `contracts.patience.base`                  | integer | 3        | 0–10           | count       | Offers a worker sits through that do not please them                                                       |
+| `contracts.patience.egotist`               | integer | 1        | 0–10           | count       | Patience an egotist lacks                                                                                  |
+| `contracts.patience.professional`          | integer | 1        | 0–10           | count       | Extra patience a professional has                                                                          |
+| `contracts.patience.unhappyPenalty`        | integer | 1        | 0–10           | count       | Patience an unhappy worker lacks when renewing                                                             |
+| `contracts.patience.max`                   | integer | 5        | 0–10           | count       | Most patience any worker starts with                                                                       |
+| `contracts.value.appearancesPerMonth`      | number  | 4        | 0–31           | count       | Appearances a month a per-appearance fee is counted for in contract value                                  |
+| `contracts.value.perk.ironClad`            | number  | 0.2      | 0–2            | ratio       | What an iron-clad contract adds to contract value (counted only while the game honours it)                 |
+| `contracts.value.perk.travelCovered`       | number  | 0.03     | 0–2            | ratio       | What covered travel adds to contract value (counted only while the game honours it)                        |
+| `contracts.value.perk.noHouseShows`        | number  | 0.05     | 0–2            | ratio       | What a no-house-shows clause adds to contract value (counted only while the game honours it)               |
+| `contracts.value.perk.creativeControl`     | number  | 0.1      | 0–2            | ratio       | What creative control adds to contract value (counted only while the game honours it)                      |
+| `contracts.value.sharePerPercent`          | number  | 0.02     | 0–1            | ratio       | What each percent of a revenue share the game pays adds to contract value                                  |
+| `contracts.value.pushBelowPerStep`         | number  | 0.1      | 0–1            | ratio       | Contract value lost for each step below the card position a worker expects                                 |
+| `contracts.value.pushAbovePerStep`         | number  | 0.03     | 0–1            | ratio       | Contract value gained for each step above the card position a worker expects                               |
+| `contracts.value.lengthFitMin`             | number  | 0.85     | 0–1            | multiplier  | Least a contract of the wrong length counts for (1 = length never matters)                                 |
+| `contracts.value.lengthMismatchPerMonth`   | number  | 0.005    | 0–0.1          | ratio       | Contract value lost for each month away from the length a worker prefers                                   |
+| `contracts.react.acceptRatio`              | number  | 0.95     | 0–2            | ratio       | Share of their ask an offer must be worth for the worker to accept it                                      |
+| `contracts.react.counterRatio`             | number  | 0.55     | 0–2            | ratio       | Share of their ask an offer must be worth for the worker to counter it (else they reject)                  |
+| `contracts.react.walkAwayRatio`            | number  | 0.45     | 0–2            | ratio       | Below this share of their ask the worker walks away instead of rejecting                                   |
+| `contracts.react.refuseCrewRoleRating`     | integer | 50       | 0–100          | points      | Wrestler rating from which a wrestler refuses a job outside the ring                                       |
+| `contracts.patience.rejectCost`            | integer | 1        | 0–10           | count       | Patience a rejected offer costs; with no more than this left they walk away                                |
+| `contracts.counter.concession`             | number  | 0.3      | 0–1            | ratio       | Share of the gap to their ask a worker gives up in a first counter-offer                                   |
+| `contracts.counter.concessionSpread`       | number  | 0.15     | 0–1            | ratio       | Most a counter-offer may give up on top of the usual share, rolled each time                               |
+| `contracts.counter.roundDecay`             | number  | 0.25     | 0–1            | ratio       | How much less a worker gives up with each later round (1 = only the first round)                           |
+| `contracts.counter.lengthTolerance`        | integer | 12       | 0–120          | months      | Months off their preferred length a counter-offer lets stand                                               |
+| `contracts.review.tieEpsilon`              | number  | 0.01     | 0–0.5          | ratio       | How close two offers must score (share of each ask) to count as a tie, broken by a roll                    |
+| `contracts.ai.acceptCounterUpTo`           | number  | 1        | 0–3            | multiplier  | A computer promotion accepts a counter-offer whose pay is at most this times the worker's ask              |
 
 ## Titles tunables
 
@@ -1411,3 +1456,8 @@ numbers under the same `Broadcast` category.
 | `broadcast.deal.expiryWarningDays`       | integer | 30      | 0–3650      | days        | Days before a deal ends that the player is warned; 0 means no warning                                                                                                          |
 | `broadcast.deal.exitFeeShows`            | integer | 4       | 0–52        | count       | Shows' worth of the network's pay owed on an early exit; 0 means no exit fee                                                                                                   |
 | `broadcast.rivals.autoRenew`             | boolean | true    |             | flag        | Computer promotions renew deals on their end date when the network would still sign (ECO10 switches it off)                                                                    |
+| `broadcast.bonus.above`                  | number  | 1.15    | 0–5         | ratio       | Share of what the network expects recent viewers must reach for a ratings bonus and the Exceeding health (ECO8-10); 0 means always                                             |
+| `broadcast.bonus.atLine`                 | number  | 0.1     | 0–1         | ratio       | Ratings bonus at the bonus line, as a share of the fee (per-buy money on pay-per-view)                                                                                         |
+| `broadcast.bonus.max`                    | number  | 0.25    | 0–1         | ratio       | Cap on the ratings bonus, as a share of the fee (per-buy money on pay-per-view); 0 means no bonus                                                                              |
+| `broadcast.bonus.fullAt`                 | number  | 1.4     | 0–5         | ratio       | Share of what the network expects at which the bonus reaches its cap                                                                                                           |
+| `broadcast.bonus.renewalUplift`          | number  | 0.1     | 0–1         | ratio       | Extra fee (per-buy rate on pay-per-view) when renewing an Exceeding deal; 0 means none                                                                                         |

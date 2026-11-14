@@ -267,7 +267,10 @@ export function segmentSpecFromWorld(
     promotionId: instance.promotionId,
     importance: instance.importance,
     kind: 'match',
-    durationClass: durationClassOf({ role, matchType }, slotDeps).value,
+    durationClass: durationClassOf(
+      { role, matchType, booked: segment.bookedTime ?? null },
+      slotDeps,
+    ).value,
     sides,
     crew: { producerId: segment.crew.producerId },
     keepItSafe: false,

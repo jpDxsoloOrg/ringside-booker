@@ -200,7 +200,7 @@ function durationClassOfSegment(
   const slotDeps = { tunables: deps.tunables };
   const role = slotRoleOf(slotRoleInput(segment, show.format), slotDeps).value;
   const matchType = matchTypeOf(deps.read, segment.match.matchTypeKey) ?? null;
-  return durationClassOf({ role, matchType }, slotDeps).value;
+  return durationClassOf({ role, matchType, booked: segment.bookedTime ?? null }, slotDeps).value;
 }
 
 /** Decides how a match on show night ends, with MTCH2's finishes, auto-winner and title rule. */

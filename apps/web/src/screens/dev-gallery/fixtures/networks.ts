@@ -11,6 +11,7 @@ import type {
   BroadcastIncomeSummary,
   DealRecentAiring,
   DealRow,
+  DealTargets,
   DealValuation,
   GameDate,
   StoredTraceEntry,
@@ -45,6 +46,24 @@ function note(label: string, lines: readonly string[]): TraceNode {
   return calc.done().trace;
 }
 
+/** A deal's three lines at the shipped shares (75%, 55%, 115%), as the engine words them. */
+function targets(expected: number): DealTargets {
+  const line = (label: string, share: number) => ({
+    viewers: counted(
+      label,
+      Math.ceil((expected * Math.round(share * 100)) / 100),
+      `${String(Math.round(share * 100))}% of what the network expects`,
+    ),
+    share,
+  });
+  return {
+    expected,
+    safe: line('Stay above this to stay safe', 0.75),
+    cancel: line('Below this the network may cancel', 0.55),
+    bonus: line('Beat this for a ratings bonus', 1.15),
+  };
+}
+
 const TV_DEAL = parseId('deal', 'dea_0000000101');
 const PPV_DEAL = parseId('deal', 'dea_0000000102');
 const ENDED_DEAL = parseId('deal', 'dea_0000000103');
@@ -59,7 +78,7 @@ function recent(viewers: readonly number[], expected: number): DealRecentAiring[
   }));
 }
 
-/** Mainstage on a national TV network, safe; a weekly PPV deal at risk; a deal the network ended. */
+/** Mainstage on a national TV network, beating its expectations; a weekly PPV deal at risk; a deal the network ended. */
 export const galleryDealRows: readonly DealRow[] = [
   {
     dealId: TV_DEAL,
@@ -94,8 +113,11 @@ export const galleryDealRows: readonly DealRow[] = [
       'A typical promotion in prime time',
     ),
     recent: recent([2_210_000, 2_350_500, 2_298_000, 2_412_300], 1_903_000),
-    risk: 'safe',
-    riskReasons: ['Viewers are 127% of what National Sports Network expects'],
+    targets: targets(1_903_000),
+    risk: 'exceeding',
+    riskReasons: [
+      "Beating the network's expectations: viewers are 127% of what National Sports Network expects",
+    ],
     healthTraceRef: dealHealthTraceRef(TV_DEAL),
     upcomingMissed: [],
   },
@@ -122,6 +144,7 @@ export const galleryDealRows: readonly DealRow[] = [
     endedReason: null,
     lastAiring: null,
     expectedViewers: counted('What Turnstile PPV expects', 150_000, 'A typical major show'),
+    targets: targets(150_000),
     recent: [],
     risk: 'atRisk',
     riskReasons: [
@@ -154,6 +177,7 @@ export const galleryDealRows: readonly DealRow[] = [
     endedReason: 'lowViewers',
     lastAiring: null,
     expectedViewers: null,
+    targets: null,
     recent: [],
     risk: null,
     riskReasons: [],
@@ -176,9 +200,9 @@ export function galleryNetworkTraces(): StoredTraceEntry[] {
       ref: dealHealthTraceRef(TV_DEAL),
       date: parseGameDate('2027-01-04'),
       seq: 2,
-      value: 'safe',
+      value: 'exceeding',
       trace: note('National Sports Network’s view of the deal', [
-        'Viewers are 127% of what National Sports Network expects',
+        "Beating the network's expectations: viewers are 127% of what National Sports Network expects",
         'No missed airings',
       ]),
     },
@@ -232,6 +256,8 @@ function valuation(
     startsOn: GALLERY_NETWORKS_TODAY,
     endsOn: parseGameDate('2029-01-08'),
     becomesTelevised: false,
+    renewalUplift: null,
+    targets: targets(options.benchmark),
     verdictTrace: note(verdict === 'accept' ? 'Would accept' : 'Would refuse', [
       ...refusals.map((refusal) => refusal.message),
       verdict === 'accept' ? 'Every check passes' : 'The network says no',

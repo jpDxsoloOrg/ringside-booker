@@ -1,8 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
-import type { OfferRow, PromotionId } from '@ringside/engine';
+import { useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { NEGOTIATION_STATUSES } from '@ringside/engine';
+import type { NegotiationStatus, OfferRow, PromotionId } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { Badge } from '@/components/Badge';
-import { DataTable } from '@/components/DataTable';
+import { DataTable, rowsMatchingText } from '@/components/DataTable';
 import type { ColumnDef } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
 import { formatNumber } from '@/components/format';
@@ -10,7 +12,9 @@ import { ImageSlot } from '@/components/ImageSlot';
 import { Switch } from '@/components/Switch';
 import { WhyButton } from '@/components/Trace';
 import { useIsMobile } from '@/styles/useMediaQuery';
+import { CLOSED_PARAM, shownOfText } from '../contractsListParams';
 import type { NegotiationTarget } from '../contractsParams';
+import { useListUrlState } from '../useListUrlState';
 import { offerDueText, offerStatusText, offerSummaryText } from '../negotiation/negotiationText';
 import { useContractMoney } from '../useContractMoney';
 import type { ContractMoney } from '../useContractMoney';
@@ -37,6 +41,34 @@ export function onTheTableText(
   return offerSummaryText({ ...row.offerSummary, terms: row.offerSummary }, money);
 }
 
+/** Talks waiting on you first (their counter), then by how far along they are. */
+export function offerStatusRank(status: NegotiationStatus): number {
+  return status === 'countered' ? -1 : NEGOTIATION_STATUSES.indexOf(status);
+}
+
+/**
+ * What is on the table as one monthly number, for sorting: the wage plus four appearances' fees,
+ * of their counter while it waits for your answer, else of your offer.
+ */
+export function onTheTableValue(
+  row: Pick<OfferRow, 'status' | 'offerSummary' | 'counterSummary'>,
+): number {
+  const terms =
+    row.status === 'countered' && row.counterSummary !== null
+      ? row.counterSummary
+      : row.offerSummary;
+  return terms.monthlyWage + terms.perAppearanceFee * 4;
+}
+
+/** The day something happens next (they decide, or your answer is due), or null. */
+export function nextDateOf(
+  row: Pick<OfferRow, 'status' | 'reviewOn' | 'counterExpiresOn'>,
+): string | null {
+  if (row.status === 'awaitingReview') return row.reviewOn;
+  if (row.status === 'countered') return row.counterExpiresOn;
+  return null;
+}
+
 /** "Open offers" / "Closed offers": the empty state of each list. */
 export const NO_OPEN_OFFERS_TEXT = 'No open offers. Make one from Free agents or Renew.';
 export const NO_CLOSED_OFFERS_TEXT = 'No closed talks yet';
@@ -50,7 +82,22 @@ export const NO_CLOSED_OFFERS_TEXT = 'No closed talks yet';
 export function OffersTab({ promotionId, openNegotiation }: OffersTabProps) {
   const money = useContractMoney();
   const isMobile = useIsMobile();
-  const [closed, setClosed] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const closed = searchParams.get(CLOSED_PARAM) === '1';
+  const setClosed = useCallback(
+    (on: boolean): void => {
+      setSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          if (on) next.set(CLOSED_PARAM, '1');
+          else next.delete(CLOSED_PARAM);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
   const query = useEngineQuery(
     'contracts.offers',
     { promotionId, status: closed ? 'closed' : 'open' },
@@ -139,6 +186,7 @@ export function OffersTab({ promotionId, openNegotiation }: OffersTabProps) {
             )}
           </span>
         ),
+        sortValue: (row) => offerStatusRank(row.status),
         filterValue: (row) => offerStatusText(row),
         card: 'subtitle',
       },
@@ -146,6 +194,7 @@ export function OffersTab({ promotionId, openNegotiation }: OffersTabProps) {
         id: 'terms',
         header: 'On the table',
         cell: (row) => onTheTableText(row, money),
+        sortValue: onTheTableValue,
         filterValue: () => null,
         card: 'stat',
       },
@@ -153,12 +202,15 @@ export function OffersTab({ promotionId, openNegotiation }: OffersTabProps) {
         id: 'due',
         header: 'Next',
         cell: (row) => offerDueText(row) ?? <span className={styles['none']}>—</span>,
+        sortValue: nextDateOf,
         filterValue: () => null,
         card: 'meta',
       },
     ],
     [money, open],
   );
+  const list = useListUrlState(columns, null);
+  const shown = rowsMatchingText(rows, columns, list.searchText);
 
   return (
     <div className={styles['panel']}>
@@ -166,6 +218,11 @@ export function OffersTab({ promotionId, openNegotiation }: OffersTabProps) {
       <div className={styles['filters']}>
         <Switch label="Closed talks" checked={closed} onCheckedChange={setClosed} />
       </div>
+      <p className={styles['shownCount']} role="status">
+        {list.searchText.trim() !== '' && query.status === 'success'
+          ? shownOfText(shown.length, rows.length, 'talk', 'talks')
+          : ''}
+      </p>
       <DataTable
         className={styles['table']}
         rows={rows}
@@ -173,8 +230,12 @@ export function OffersTab({ promotionId, openNegotiation }: OffersTabProps) {
         getRowId={(row) => row.negotiationId}
         getRowLabel={(row) => row.ringName}
         caption={closed ? 'Closed offers' : 'Open offers'}
+        sort={list.sort}
+        onSortChange={list.onSortChange}
         filterable
         filterLabel="Find talks"
+        filter={list.searchText}
+        onFilterChange={list.onSearchTextChange}
         density="compact"
         loading={query.status === 'loading'}
         {...(isMobile ? {} : { onActivate: open })}

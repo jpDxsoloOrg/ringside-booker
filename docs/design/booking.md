@@ -344,7 +344,7 @@ stipulationKeys, draft }`:
 ### `booking.availableWorkers`
 
 `{ eventInstanceId, kind: 'match' | 'angle', search?: string (≤ 60) }` →
-`{ region, people, teams }`, where `region` is the show's region
+`{ region, people, teams, storylines }`, where `region` is the show's region
 (`{ regionId, name }`).
 
 `people` holds every active contract of the show's promotion (read through the
@@ -370,6 +370,23 @@ Fatigue and body condition belong to WRK6, which is not built yet, so no row
 carries them and nothing stands in for them. When WRK6 lands it adds a
 `fatigue` field here and one more stat on the picker row (see the segment
 editor below).
+
+EVT2-13 adds what the picker needs for its champion belts and Storylines
+filter, read from the show's promotion only:
+
+- each person's `titles` (`{ titleId, name }`): that promotion's titles they
+  hold today (open reigns, CRTV1's holders), and `storylines`
+  (`{ storylineId, name, side }`): its active storylines they are in;
+- each team's `titles`: reigns won as that team, or held by exactly its
+  members;
+- a top-level `storylines` list (`{ storylineId, name }`): the promotion's
+  active storylines, hottest first then by name, whatever the search.
+
+The picker shows a belt beside a champion's name (named "Champion: <titles>"
+for screen readers and on hover, with the titles in words under the name) and
+a Storylines menu (Everyone, Any storyline, then each storyline, the segment's
+linked ones first) that only narrows the list, like the other filters. A team
+passes a storyline when any member is in it.
 
 `bookable` follows WRK1 on the show's date: for a match the person must be
 `available`; for an angle they must be able to work talking segments, so an
@@ -483,6 +500,13 @@ slot is named by number ("Slot 3", "Pre-show slot 1").
 | `angle.clientNotInSegment`                                | `booking.talk`     | MTCH5-08: a manager is booked for a client who is not in the segment                     | "Victor Crane is here for Lena Park, who isn't in this segment"                                |
 | `workingTwice`                                            | `booking.cardWide` | a competitor in a second or later match, within `booking.maxMatchesPerPersonPerShow`     | "Kai Moreno is also in the Opener: working twice tires them more and raises their injury risk" |
 | `checkFailed`                                             | the failing check  | a registered check threw                                                                 | "A booking check (<id>) failed; the show can still run"                                        |
+
+**Show time (EVT4-08).** `match.showTime` (order 225) gives `showTime.over`,
+"Over the show's time by 2: shorten a match or drop a segment.", when the card's
+segments take more of the show's time than it has
+([match-rating.md](match-rating.md#show-time)). It is an error once the booker
+set any segment longer than usual, and a warning otherwise, so a card at its
+usual times is never blocked.
 
 The first three are given once per person, on the first segment they are in.
 `workingTwice` is given on each later match, naming the earlier ones ("is also

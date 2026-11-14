@@ -21,13 +21,22 @@ import { viewerPromotionIds } from '../../core/api/controller';
 import { defineQuery, type QueryContext } from '../../core/api/query';
 import { INVALID_ARGS, refuseQuery } from '../../core/api/result';
 import { ageInYears, compareDates, type GameDate } from '../../core/date';
-import type { BrandId, EmploymentId, NegotiationId, PersonId, PromotionId } from '../../core/ids';
+import type {
+  BrandId,
+  ContinentId,
+  CountryId,
+  EmploymentId,
+  NegotiationId,
+  PersonId,
+  PromotionId,
+} from '../../core/ids';
 import type { GameWorldView } from '../../model/tables';
 import {
   ContractKindSchema,
   EmploymentRoleSchema,
   type ContractKind,
   type EmploymentRole,
+  type Push,
 } from '../../model/entities/employment';
 import { isOpenNegotiationStatus, personPromotionKey } from '../../model/entities/negotiation';
 import {
@@ -42,6 +51,8 @@ import type { ImageRef } from '../../model/primitives';
 import { zId } from '../../model/primitives';
 import { compareIds } from '../../model/table';
 import { gradeOf, type Grade } from '../workers/formulas/grade';
+import { expectedPush } from '../workers/formulas/expectedPush';
+import { footprintPopularityValue } from '../workers/formulas/footprintPopularity';
 import { overallOf } from '../workers/formulas/roleRating';
 import { primaryEmploymentOf } from '../workers/helpers/employment';
 import { ratingRoleOfPersonRole } from '../workers/helpers/roles';
@@ -107,6 +118,22 @@ export interface FreeAgentRow {
   readonly openNegotiationId: NegotiationId | null;
   /** Other promotions talking to them now, by name only (never their terms). */
   readonly competingBidders: string[];
+  /** Their market value, cents a month (the list's order; its Why? is `contracts.askingTerms`). */
+  readonly marketValue: number;
+  /** Their popularity among your promotion's fans, 0-100 (ECO5-09). */
+  readonly popularityHere: number;
+  /** The card position they would expect with you (ECO5-09); `none` for crew. */
+  readonly pushExpectation: Push;
+  /** Where they are based (ECO5-09), for the region filter. */
+  readonly basedIn: FreeAgentPlace;
+}
+
+/** Where a free agent is based: their home region's country and continent. */
+export interface FreeAgentPlace {
+  readonly countryId: CountryId;
+  readonly countryName: string;
+  readonly continentId: ContinentId;
+  readonly continentName: string;
 }
 
 export type FreeAgentsSituationFilter = 'freeAgent' | 'all';
@@ -420,6 +447,22 @@ export const freeAgentsQuery = defineQuery('contracts.freeAgents', {
     const context = askingContext(read, tunables, args.promotionId, date);
     const situations: readonly NegotiationSituation[] =
       args.situation === 'freeAgent' ? ['freeAgent'] : OPEN_TO_OFFERS;
+    const { geography, promotion } = context;
+    const places = new Map<string, FreeAgentPlace>();
+    const placeOf = (regionId: Person['basedInRegionId']): FreeAgentPlace => {
+      let place = places.get(regionId);
+      if (place === undefined) {
+        const country = geography.countryOf(regionId);
+        place = {
+          countryId: country.id,
+          countryName: country.name,
+          continentId: country.continentId,
+          continentName: geography.continent(country.continentId).name,
+        };
+        places.set(regionId, place);
+      }
+      return place;
+    };
 
     const rows: { row: FreeAgentRow; value: number }[] = [];
     for (const person of read.tables.people.values()) {
@@ -497,6 +540,27 @@ export const freeAgentsQuery = defineQuery('contracts.freeAgents', {
           openNegotiationId:
             mine.find((negotiation) => isOpenNegotiationStatus(negotiation.status))?.id ?? null,
           competingBidders: competingBidders(read, person.id, args.promotionId),
+          marketValue: basis.marketValue.value,
+          popularityHere: footprintPopularityValue(
+            {
+              subjectPop: person.regionalPop,
+              promotionPop: promotion.regionalPop,
+              promotionName: promotion.name,
+              regions: geography.regions,
+            },
+            { tunables },
+          ),
+          pushExpectation: expectedPush(
+            {
+              employmentRole: basis.role,
+              workerPop: person.regionalPop,
+              promotionPop: promotion.regionalPop,
+              promotionName: promotion.name,
+              regions: geography.regions,
+            },
+            { tunables },
+          ).value,
+          basedIn: placeOf(person.basedInRegionId),
         },
       });
     }

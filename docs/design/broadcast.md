@@ -478,7 +478,9 @@ Wattle at −4,908, as before.
 
 **Hardpan as the player** (no deal): ends the year at −19,842 with Auto-fill
 and −20,940 with random cards, exactly as before. Its one offer, Bluebonnet
-Cable 7, still loses about 388 an airing.
+Cable 7, still loses about 388 an airing. (Those year-one figures predate ECO4-09's
+indie wages and let the roster's contracts run out; see
+[finances.md](finances.md#indie-wages-calibration) for the current ones.)
 
 **Held by tests.** `test/systems/broadcast/calibration-default-world.test.ts`:
 in the default run, a year of Altura's shipped deals projected at a neutral
@@ -607,8 +609,9 @@ see the ECO8-04 row in [save-format.md](save-format.md#size-budget).
 ## Deal health
 
 ECO8-05 (`formulas/dealHealth.ts`, `health.ts`). After every airing a network
-looks at how the deal is doing and gives it a **risk**: Safe, Watch, At risk
-or Cancelling (`DEAL_RISKS`), with the reasons the player reads and a Why?
+looks at how the deal is doing and gives it a **risk**: Exceeding (ECO8-10),
+Safe, Watch, At risk or Cancelling (`DEAL_RISKS`, best first; Exceeding was
+added in front and the older codes are unchanged), with the reasons the player reads and a Why?
 (`startDecision`, stored at `dealHealthTraceRef(dealId)`, one trace per deal,
 replaced each time).
 
@@ -619,15 +622,16 @@ reads the deal's newest airings (newest first) and the cancelled shows it is
 still due to air. No randomness: the roll happens in the phase. Rules, worst
 first; the worst decides the risk and every one that applies is listed:
 
-| Rule                                                                   | Risk       | Reason the player reads                                                        |
-| ---------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
-| missed ≥ `missedToCancel` in the last `missedWindow` scheduled airings | Cancelling | "3 missed airings: Local TV is pulling the deal"                               |
-| missed = `missedToCancel` − 1                                          | At risk    | "One more missed airing and Local TV cancels"                                  |
-| missed + cancelled shows still to come ≥ `missedToCancel`              | At risk    | "Cancelled shows coming up would make 3 missed airings: Local TV cancels at 3" |
-| ratio < `cancelBelow`                                                  | Cancelling | "Viewers are 48% of what Local TV expects; each airing it may cancel (30%)"    |
-| ratio < `warnBelow`                                                    | At risk    | "Viewers are 62% of what Local TV expects; below 55% it may cancel"            |
-| any missed airing, past or coming                                      | Watch      | "Missed airing: Mon 18 Jan", "Missed airing coming: Mon 25 Jan"                |
-| none of these                                                          | Safe       | "Viewers are 105% of what Local TV expects"                                    |
+| Rule                                                                   | Risk       | Reason the player reads                                                         |
+| ---------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------- |
+| missed ≥ `missedToCancel` in the last `missedWindow` scheduled airings | Cancelling | "3 missed airings: Local TV is pulling the deal"                                |
+| missed = `missedToCancel` − 1                                          | At risk    | "One more missed airing and Local TV cancels"                                   |
+| missed + cancelled shows still to come ≥ `missedToCancel`              | At risk    | "Cancelled shows coming up would make 3 missed airings: Local TV cancels at 3"  |
+| ratio < `cancelBelow`                                                  | Cancelling | "Viewers are 48% of what Local TV expects; each airing it may cancel (30%)"     |
+| ratio < `warnBelow`                                                    | At risk    | "Viewers are 62% of what Local TV expects; below 55% it may cancel"             |
+| any missed airing, past or coming                                      | Watch      | "Missed airing: Mon 18 Jan", "Missed airing coming: Mon 25 Jan"                 |
+| none of these, ratio ≥ `broadcast.bonus.above` (ECO8-10)               | Exceeding  | "Beating the network's expectations: viewers are 128% of what Local TV expects" |
+| none of these                                                          | Safe       | "Viewers are 105% of what Local TV expects"                                     |
 
 - **ratio** = Σ viewers ÷ Σ expected viewers over the last `window` airings
   that aired (the Why? keeps it as a calculation).
@@ -690,6 +694,91 @@ at today's valuation (fee, per-thousand rate and airtime all from the formula,
 not its shipped terms; the deal stays signed). The half-year soak test
 (`dealHealth-default-world.test.ts`, slow suite) pins that no shipped deal is
 cancelled for low viewers or missed airings.
+
+## Ratings bonus
+
+ECO8-10 (`formulas/ratingsBonus.ts`, `settle.ts`, `health.ts`). Owner idea: a
+TV deal comes with targets the player must hit, and a bonus for beating the
+network's expectations. Money stays a challenge: the bonus is capped and
+scaled.
+
+### Targets
+
+Every deal is judged by three lines, shown in viewers (buys on
+pay-per-view) on the deal sheet, the Your deals row, Propose and renewal, each
+with a Why? (`dealTargets(expected, { networkName, noun }, { tunables })`,
+on `DealValuation.targets` and `DealRow.targets`). Each is what the network
+expects × a share, rounded up to a whole viewer (the screens round up to the
+shown step too, so reaching the number on screen is always enough):
+
+| Line   | Share                          | The player reads                                      |
+| ------ | ------------------------------ | ----------------------------------------------------- |
+| Safe   | `broadcast.health.warnBelow`   | "Stay above 2.1M (75% of 2.8M expected) to stay safe" |
+| Cancel | `broadcast.health.cancelBelow` | "Below 1.6M (55%) they may cancel"                    |
+| Bonus  | `broadcast.bonus.above`        | "Beat 3.3M (115%) for a ratings bonus"                |
+
+The targets are part of the deal the player signs: the same tunables judge it
+after every airing (deal health's ratio over the last `window` airings).
+
+### The bonus
+
+Settled with each airing (`payRatingsBonus` in `settle.ts`), after the airing
+row is written so deal health reads tonight's viewers with the rest of the
+window. When the deal's ratio (grace rules as in deal health) is at least
+`broadcast.bonus.above`:
+
+share = `atLine` + (`max` − `atLine`) × min(1, (ratio − `above`) ÷ (`fullAt` − `above`)),
+capped at `max`
+
+| Ratio  | Share of the fee (defaults) |
+| ------ | --------------------------- |
+| 114%   | none                        |
+| 115%   | 10%                         |
+| 127.5% | 17.5%                       |
+| 140%+  | 25% (the cap)               |
+
+The bonus is the share × the deal's fee per show, or × tonight's per-buy money
+on pay-per-view (which has no fee), rounded down to whole cents. It is posted
+through `postMoney` as its own ledger row, memo "Ratings bonus: <network>", in
+the airing's income category (TV rights, Pay-per-view or Streaming), with
+`refs.dealId` and, for the player, a traced Why? (the fee × the share, the
+share's own climb from the line to the cap). The airing row's `income` and its
+Why? include it, so the airing's net and `broadcast.incomeSummary` count it.
+Workers' broadcast shares are of the fee and per-thousand money only. Every
+promotion is paid the same way, rivals included. `broadcast.bonus.max` 0 turns
+the bonus off.
+
+### Renewal uplift
+
+A deal that is Exceeding when it is renewed gets
+`broadcast.bonus.renewalUplift` (10%) more on its fee (its per-buy rate on
+pay-per-view), on top of today's valuation (`renewalValuation`; the term's Why?
+has the step "Beating <network>'s expectations: renewed fee up 10%").
+`broadcast.valuation` with a `dealId` on the deal's own network,
+`broadcast.renegotiate` and the rivals' automatic renewal all come through it,
+so the renewal sheet shows exactly what is signed: a "+10% for beating
+expectations" chip on the raised term and the reason in words
+(`DealValuation.renewalUplift`).
+
+### Calibration
+
+Altura (pro-flagship), year one from the default start, 365 days, the ECO8-09
+harness (poor = least popular singles, decent = random singles cards, good =
+Auto-fill), cash change over the year:
+
+| Shows           | Before ECO8-10 | After   | Ratings bonus |
+| --------------- | -------------- | ------- | ------------- |
+| Poor (score 38) | −32.75M        | −32.06M | 0.69M         |
+| Decent (51.5)   | +5.30M         | +7.56M  | 2.26M         |
+| Good (62.6)     | +44.24M        | +47.29M | 3.05M         |
+
+Altura's shipped deals beat what their networks expect even with poor shows
+(Overclock draws about ten times its benchmark), so some bonus is always paid;
+it stays a small capped part of its TV money. Rival bonuses are small
+(Cielo Alto about 0.19M, Tessen 0.07M a year) and no rival goes broke from it.
+`calibration-default-world.test.ts` (ECO8-09) includes the projected bonus in
+its band and, in the slow year runs, checks the bonus is paid and stays under
+a fifth of Altura's TV money.
 
 ## Commands
 

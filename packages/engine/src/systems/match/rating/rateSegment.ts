@@ -28,9 +28,11 @@ import {
   SLOT_ROLES,
   SLOT_ROLE_LABELS,
   SLOTS_DOC_REF,
+  bookedSteps,
   durationClassOf,
   slotRoleOf,
   slotWeightOf,
+  type DurationClass,
   type SlotRole,
 } from '../slots';
 import './builtins';
@@ -192,16 +194,20 @@ function slotDerivation(
   matchType: MatchTypeDef | undefined,
   tunables: EngineTunables,
   setting: AngleSetting | undefined,
+  booked: DurationClass | null,
 ): SlotDerivation {
   const role = roleTrace.value;
   // MTCH5-08: a backstage or pre-taped talking segment shifts by its setting instead.
   const shifter =
     matchType ?? (setting === undefined ? null : settingDurationShifter(setting, tunables));
-  const durationTrace = durationClassOf({ role, matchType: shifter }, { tunables });
+  const inputs = { role, matchType: shifter, booked };
+  const durationTrace = durationClassOf(inputs, { tunables });
+  // EVT4-08: the slot's weight never depends on its time; only the class and expectation do.
   const weightTrace = slotWeightOf({ role }, { tunables });
   return {
     role,
     durationClass: durationTrace.value,
+    bookedSteps: bookedSteps(inputs, durationTrace.value, tunables).steps,
     weight: weightTrace.value,
     roleTrace,
     durationTrace,
@@ -244,6 +250,7 @@ export function rateSegment(
     resolved.matchType,
     tunables,
     input.kind === 'angle' ? input.angle?.setting : undefined,
+    input.bookedTime ?? null,
   );
   const ctx: RatingContext = {
     mode: options.mode ?? 'preview',

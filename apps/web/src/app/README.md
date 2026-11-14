@@ -608,7 +608,13 @@ under "New answers" whichever talks it shows, and flags their rows "New answer".
 
 The worker profile has an action row under its header: `registerProfileAction({ id, order, render })`
 (`screens/workers/profile/profileActions.ts`, same registry rules). Contracts registers `contract`
-(order 10): Offer contract, Open talks, Renew contract, or a disabled button with the reason.
+(order 10): Offer contract, Open talks, Renew contract, or a disabled button with the reason. Each
+opens the Negotiation Sheet over the profile (ECO5-09) from the same URL parameters, replacing the
+entry and keeping the location state that Back to Workers reads.
+
+The Contracts lists keep their sort (`sort=`), search (`q=`) and filters in the URL
+(`screens/contracts/contractsListParams.ts`, ECO5-09), dropped on a tab change; the filter
+controls are the Workers list's, shared from `screens/workers/filterControls.tsx`.
 
 The Next Day summary adds up to three lines about your talks from `contracts.offerUpdatesSince`,
 in the engine's words (each update's `line`, the same as the "Offer answered" stop; signings

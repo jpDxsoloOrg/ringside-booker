@@ -495,3 +495,42 @@
   font-size: var(--font-size-sm);
   overflow-wrap: anywhere;
 }
+
+/* EVT4-08: the Time used bar above the card. */
+.timeUsed {
+  display: grid;
+  gap: var(--space-1);
+  margin-block-end: var(--space-4);
+}
+
+.timeUsedRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.timeUsedBar {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+}
+
+.timeUsedValue {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.timeUsedNote {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.timeUsedNote[data-over='error'] {
+  color: var(--color-negative);
+  font-weight: 600;
+}
+
+.timeUsedNote[data-over='warning'] {
+  color: var(--color-prestige);
+}

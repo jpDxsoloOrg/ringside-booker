@@ -237,7 +237,11 @@ function prepareSimulation(ctx: QueryContext, args: SimulateArgs): PreparedSimul
   });
   const randomWinnersMode = args.winner === 'auto' && viewerRandomWinners(read, ctx.viewer);
   const durationClass = durationClassOf(
-    { role: args.slotRole, matchType: matchTypeOf(read, args.typeKey) ?? null },
+    {
+      role: args.slotRole,
+      matchType: matchTypeOf(read, args.typeKey) ?? null,
+      booked: args.bookedTime ?? null,
+    },
     { tunables: ctx.tunables },
   ).value;
   const extensions = checkPreviewExtensions(args.extensions);

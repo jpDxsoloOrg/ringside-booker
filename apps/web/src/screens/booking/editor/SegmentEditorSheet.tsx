@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { ANGLE_SETTING_LABELS, parseContentKey } from '@ringside/engine';
+import { ANGLE_SETTING_LABELS, DURATION_CLASS_LABELS, parseContentKey } from '@ringside/engine';
 import type {
   AvailableTeamRow,
   AvailableWorkerRow,
@@ -41,6 +41,7 @@ import type { SegmentEditorKind, SegmentEditorRequest } from './editorStore';
 import { PlannedResultField } from './PlannedResultField';
 import styles from './SegmentEditor.module.css';
 import { SideBuilder } from './SideBuilder';
+import { TimeField } from './TimeField';
 import { TitlesField } from './TitlesField';
 import { TypeField } from './TypeField';
 import { useRosterIndex } from './useRoster';
@@ -328,6 +329,15 @@ function EditorBody({
           }}
         />
       )}
+      <TimeField
+        slot={slot}
+        value={draft.bookedTime}
+        disabled={disabled}
+        onChange={(length) => {
+          controls.setBookedTime(length, slot.usualTime);
+          announce(`Time: ${DURATION_CLASS_LABELS[length]}`);
+        }}
+      />
       <SideBuilder
         draft={draft}
         sideCount={sideCount}

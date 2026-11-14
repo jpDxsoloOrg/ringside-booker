@@ -1,6 +1,7 @@
 // The crowd forecast on the shipped default world falls in the documented bands.
 // Design: docs/design/box-office.md#calibration
 import { describe, expect, it } from 'vitest';
+import { createEngine } from '../../../src/core/api';
 import { compareDates } from '../../../src/core/date';
 import { RngRegistry } from '../../../src/core/rng/registry';
 import { TABLES } from '../../../src/model/tables';
@@ -16,8 +17,12 @@ import {
   computeWorkerShare,
   forecastAttendance,
 } from '../../../src/systems/boxOffice';
+import { defaultSystems } from '../../../src/systems';
 import { reachOf } from '../../../src/systems/finance/reach';
 import { createEngineTunables } from '../../../src/systems/tunables';
+import { withMyShowsRun } from '../../support';
+import { playerCardsSystems, type PlayerCards } from '../../support/player-cards';
+import { SLOW_TESTS } from '../../support/slow';
 import { startDefaultGame } from '../calendar/default-game';
 
 /** The documented band for each show: the forecast for its first scheduled date. */
@@ -151,4 +156,61 @@ describe('show-day money calibration on the default world', () => {
     expect(net).toBeGreaterThan(0);
     expect(net).toBeLessThan(500_000);
   });
+});
+
+/**
+ * A year as Altura (EVT6-11, owner targets): decent shows roughly break even, good shows profit
+ * (by less than the +45.7M before the base crowd was lowered) and poor shows lose money. About a
+ * minute per year; box-office.md#year-one-calibration records the whole table.
+ */
+describe.runIf(SLOW_TESTS)('a year of box office as Altura (slow)', () => {
+  const TIMEOUT_MS = 600_000;
+
+  async function yearChange(cards: PlayerCards): Promise<{ start: number; change: number }> {
+    const state = startDefaultGame();
+    const startWorld = documentToWorld({ state: { world: state.world } }, TABLES);
+    const altura = startWorld.tables.promotions
+      .values()
+      .find((promotion) => promotion.name.startsWith('Altura'));
+    if (altura === undefined) throw new Error('No Altura');
+    const engine = createEngine({
+      state,
+      systems: withMyShowsRun([...defaultSystems, ...playerCardsSystems(cards)]),
+    });
+    const advanced = await engine.advanceDays({ maxDays: 365 });
+    expect(advanced.failures).toEqual([]);
+    const end = documentToWorld({ state: { world: engine.exportState().world } }, TABLES);
+    return {
+      start: altura.cash,
+      change: end.tables.promotions.require(altura.id).cash - altura.cash,
+    };
+  }
+
+  it(
+    'decent shows roughly break even: within 5% of the starting cash',
+    async () => {
+      const { start, change } = await yearChange('decent');
+      expect(Math.abs(change)).toBeLessThanOrEqual(0.05 * start);
+    },
+    TIMEOUT_MS,
+  );
+
+  it(
+    'good shows profit, by less than before the base crowd was lowered',
+    async () => {
+      const { change } = await yearChange('good');
+      expect(change).toBeGreaterThan(0);
+      expect(change).toBeLessThan(4_570_000_000);
+    },
+    TIMEOUT_MS,
+  );
+
+  it(
+    'poor shows lose money',
+    async () => {
+      const { change } = await yearChange('poor');
+      expect(change).toBeLessThan(0);
+    },
+    TIMEOUT_MS,
+  );
 });

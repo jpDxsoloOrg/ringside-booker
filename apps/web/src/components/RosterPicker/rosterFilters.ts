@@ -1,5 +1,5 @@
 import { GENDER_LABELS, GENDERS, PUSH_LABELS, PUSH_LEVELS } from '@ringside/engine';
-import type { Gender, Push } from '@ringside/engine';
+import type { Gender, PickerStoryline, Push, StorylineId } from '@ringside/engine';
 
 /** The gender filter: everyone, or one gender. */
 export type GenderChoice = 'all' | Gender;
@@ -89,4 +89,65 @@ export function teamMatchesPush(
 /** Every push: the push filter's starting state, which narrows nothing. */
 export function allPushes(): ReadonlySet<Push> {
   return new Set(PUSH_LEVELS);
+}
+
+/**
+ * The Storylines filter (EVT2-13): everyone, anyone in a current storyline, or the members of one
+ * storyline (both sides).
+ */
+export type StorylineChoice =
+  | { readonly kind: 'all' }
+  | { readonly kind: 'any' }
+  | { readonly kind: 'one'; readonly storylineId: StorylineId };
+
+export const EVERY_STORYLINE: StorylineChoice = { kind: 'all' };
+
+/** The longest storyline name the chip shows before it shortens it with an ellipsis. */
+const CHIP_NAME_MAX = 24;
+
+/** The storylines chip: "Storylines", "Storyline: any", or "Storyline: <name>". */
+export function storylineChipLabel(
+  choice: StorylineChoice,
+  options: readonly PickerStoryline[],
+): string {
+  if (choice.kind === 'all') return 'Storylines';
+  if (choice.kind === 'any') return 'Storyline: any';
+  const name = options.find((option) => option.storylineId === choice.storylineId)?.name;
+  if (name === undefined) return 'Storylines';
+  const shown = name.length > CHIP_NAME_MAX ? `${name.slice(0, CHIP_NAME_MAX - 1)}…` : name;
+  return `Storyline: ${shown}`;
+}
+
+/** True when the choice keeps someone in these storylines. */
+export function matchesStoryline(
+  storylineIds: readonly StorylineId[],
+  choice: StorylineChoice,
+): boolean {
+  if (choice.kind === 'all') return true;
+  if (choice.kind === 'any') return storylineIds.length > 0;
+  return storylineIds.includes(choice.storylineId);
+}
+
+/**
+ * The choice that applies: a storyline that is no longer offered (it ended) falls back to
+ * everyone, so the list never empties for a filter the menu can't show.
+ */
+export function effectiveStorylineChoice(
+  choice: StorylineChoice,
+  options: readonly PickerStoryline[],
+): StorylineChoice {
+  if (choice.kind !== 'one') return choice;
+  return options.some((option) => option.storylineId === choice.storylineId)
+    ? choice
+    : EVERY_STORYLINE;
+}
+
+/** The storylines in the menu: those the segment already links first, then the rest in order. */
+export function orderStorylines(
+  options: readonly PickerStoryline[],
+  linkedIds: readonly StorylineId[],
+): readonly PickerStoryline[] {
+  const linked = options.filter((option) => linkedIds.includes(option.storylineId));
+  const others = options.filter((option) => !linkedIds.includes(option.storylineId));
+  return [...linked, ...others];
 }

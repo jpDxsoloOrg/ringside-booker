@@ -85,6 +85,19 @@ describe('NetworksScreen', () => {
     ).toBeInTheDocument();
     expect(within(row).getByText('Safe')).toBeInTheDocument();
     expect(within(row).queryByText('No airing yet')).toBeNull();
+    // ECO8-10: the three targets in viewers, each with its Why?.
+    const targets = within(row).getByRole('list', {
+      name: 'What Test Network North expects of the deal',
+    });
+    expect(
+      within(targets)
+        .getAllByRole('listitem')
+        .map((item) => item.getAttribute('data-target')),
+    ).toEqual(['safe', 'cancel', 'bonus']);
+    expect(within(targets).getByText(/^Bonus above /)).toBeInTheDocument();
+    expect(
+      within(targets).getByRole('button', { name: /^Why is The ratings bonus line/ }),
+    ).toBeInTheDocument();
 
     // Ended deals come in with the toggle, with why they ended. The rival's deal never shows.
     await user.click(screen.getByRole('switch', { name: 'Show ended deals' }));
@@ -310,6 +323,11 @@ describe('registerNetworksTab', () => {
 
 describe('DealHealthBadge', () => {
   it.each([
+    [
+      'exceeding',
+      ["Beating the network's expectations: viewers are 130% of what NSN expects"],
+      'Exceeding',
+    ],
     ['safe', ['Nothing wrong so far'], 'Safe'],
     ['watch', ['Viewers are a little under what the network wants'], 'Watch'],
     ['atRisk', ['Viewers are well under'], 'At risk'],

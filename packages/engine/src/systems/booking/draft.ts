@@ -16,6 +16,7 @@ import { compareIds } from '../../model/table';
 import { MAX_SIDE, PARTICIPANT_ROLES, ParticipantSchema } from '../../model/entities/participant';
 import {
   AngleDetailsSchema,
+  BookedTimeSchema,
   MatchDetailsSchema,
   MatchOutcomeSchema,
   MatchSegmentSchema,
@@ -51,6 +52,8 @@ const draftBaseShape = {
   storylineIds: MatchSegmentSchema.shape.storylineIds.default([]),
   crew: SegmentCrewSchema.default(emptyCrew),
   participants: z.array(ParticipantDraftSchema),
+  /** EVT4-08: the time the booker set; left out = the slot role's usual time. */
+  bookedTime: BookedTimeSchema.optional(),
 };
 
 /** A match's details with the parts later editor sections own defaulted. */
@@ -156,6 +159,7 @@ export function draftFromSegment(read: GameWorldView, segmentId: SegmentId): Seg
     storylineIds: [...segment.storylineIds],
     crew: { ...segment.crew, announcerIds: [...segment.crew.announcerIds] },
     participants,
+    ...(segment.bookedTime === undefined ? {} : { bookedTime: segment.bookedTime }),
   };
   if (segment.kind === 'match') {
     return {

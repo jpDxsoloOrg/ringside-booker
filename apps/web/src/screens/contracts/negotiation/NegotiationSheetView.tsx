@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import type {
   AskingTerms,
   EmploymentRole,
@@ -8,6 +8,7 @@ import type {
   PersonRole,
   TraceNode,
 } from '@ringside/engine';
+import { workerLinkState } from '@/app/entityLinks';
 import { Button } from '@/components/Button';
 import { formatNumber } from '@/components/format';
 import { ImageSlot } from '@/components/ImageSlot';
@@ -103,6 +104,8 @@ function rolesText(roles: readonly PersonRole[]): string {
  * the gallery fills it from samples.
  */
 export function NegotiationSheetView(props: NegotiationSheetViewProps) {
+  // The profile link keeps the way back to the Workers list (the sheet may be over a profile).
+  const location = useLocation();
   const {
     open,
     onClose,
@@ -254,7 +257,10 @@ export function NegotiationSheetView(props: NegotiationSheetViewProps) {
           <div className={styles['signed']}>
             <p>{`Contract: ${signed.contract}`}</p>
             <p>
-              <Link to={signed.profileHref}>{`Open ${signed.ringName}'s profile`}</Link>
+              <Link
+                to={signed.profileHref}
+                state={workerLinkState(location)}
+              >{`Open ${signed.ringName}'s profile`}</Link>
             </p>
           </div>
         )}

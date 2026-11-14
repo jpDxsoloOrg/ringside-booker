@@ -145,22 +145,23 @@ number with its Why?. The Negotiation Sheet shows it through
 
 **Monthly wage** (`formulas/askingWage.ts`), from the market value, in order:
 
-| Step                        | Factor or limit                                                                                                                                                                                                                                                                                                                                  |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Your reach 82               | × `contracts.ask.reachFloor` (0.25) + (1 − 0.25) × reach ÷ 100: a promotion nobody has heard of gets a quarter                                                                                                                                                                                                                                   |
-| Your public image           | × 1 − `contracts.ask.prestigeDiscount` (0.15) × prestige ÷ 100; the discount × `contracts.ask.legacyPrestigeMultiplier` (2) for a worker who cares about their legacy; never below 0                                                                                                                                                             |
-| Ego premium                 | × (1 + premium): egotist `contracts.ask.egotistPremium` 0.10, in it for the money `contracts.ask.moneyPremium` 0.10, star presence (charisma or presence ≥ `contracts.ask.starPresence` 80) `contracts.ask.starPremium` 0.10, selfless − `contracts.ask.selflessDiscount` 0.05; at most `contracts.ask.premiumCap` 0.30 (0 removes the premiums) |
-| Exclusive contract          | × (1 + `contracts.ask.exclusivePremium` 0.10)                                                                                                                                                                                                                                                                                                    |
-| Under contract elsewhere    | × (1 + `contracts.ask.underContractPremium` 0.10): a rival's wage is private, so this stands in for it                                                                                                                                                                                                                                           |
-| Renewals                    | see [Renewals](#renewals)                                                                                                                                                                                                                                                                                                                        |
-| Modifiers                   | × each registered ask modifier, then the offer kind's `askMultiplier`                                                                                                                                                                                                                                                                            |
-| Most a wrestler asks for    | at most `contracts.ask.cap.<role>`: wrestler $400,000, booker $80,000, manager, presenter and announcer $60,000, producer $40,000, referee $20,000                                                                                                                                                                                               |
-| Asks are quoted in hundreds | rounded to the nearest $100                                                                                                                                                                                                                                                                                                                      |
-| Current deal                | at least their current monthly wage **with this promotion** ("Won't take less than their current deal with you"), after the rounding so it holds to the cent. Never a rival's: that would leak a private term through the Why?                                                                                                                   |
+| Step                          | Factor or limit                                                                                                                                                                                                                                                                                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Your reach 82                 | × `contracts.ask.reachFloor` (0.25) + (1 − 0.25) × reach ÷ 100: a promotion nobody has heard of gets a quarter                                                                                                                                                                                                                                   |
+| Company size: Local (reach 4) | × `contracts.ask.sizeFloor` (0.32) + (1 − 0.32) × min(1, reach ÷ `contracts.ask.sizeFullReach` (30)): a small company pays indie wages, a reach of 30 or more the full rate (ECO4-09, [contracts.md](contracts.md#company-size-pay))                                                                                                             |
+| Your public image             | × 1 − `contracts.ask.prestigeDiscount` (0.15) × prestige ÷ 100; the discount × `contracts.ask.legacyPrestigeMultiplier` (2) for a worker who cares about their legacy; never below 0                                                                                                                                                             |
+| Ego premium                   | × (1 + premium): egotist `contracts.ask.egotistPremium` 0.10, in it for the money `contracts.ask.moneyPremium` 0.10, star presence (charisma or presence ≥ `contracts.ask.starPresence` 80) `contracts.ask.starPremium` 0.10, selfless − `contracts.ask.selflessDiscount` 0.05; at most `contracts.ask.premiumCap` 0.30 (0 removes the premiums) |
+| Exclusive contract            | × (1 + `contracts.ask.exclusivePremium` 0.10)                                                                                                                                                                                                                                                                                                    |
+| Under contract elsewhere      | × (1 + `contracts.ask.underContractPremium` 0.10): a rival's wage is private, so this stands in for it                                                                                                                                                                                                                                           |
+| Renewals                      | see [Renewals](#renewals)                                                                                                                                                                                                                                                                                                                        |
+| Modifiers                     | × each registered ask modifier, then the offer kind's `askMultiplier`                                                                                                                                                                                                                                                                            |
+| Most a wrestler asks for      | at most `contracts.ask.cap.<role>`: wrestler $400,000, booker $80,000, manager, presenter and announcer $60,000, producer $40,000, referee $20,000                                                                                                                                                                                               |
+| Asks are quoted in hundreds   | rounded to the nearest $100                                                                                                                                                                                                                                                                                                                      |
+| Current deal                  | at least their current monthly wage **with this promotion** ("Won't take less than their current deal with you"), after the rounding so it holds to the cent. Never a rival's: that would leak a private term through the Why?                                                                                                                   |
 
 Worked example: the $114,858.70 wrestler above, at a promotion with reach 82
-and public image 60, no ego, asks $114,858.70 × 0.865 × 0.91 = **$90,400** a
-month; **$99,500** for an exclusive contract.
+and public image 60, no ego, asks $114,858.70 × 0.865 × 1 (company size: full
+rates) × 0.91 = **$90,400** a month; **$99,500** for an exclusive contract.
 
 **Fee per appearance** (`formulas/askingFee.ts`): the monthly ask ×
 `contracts.ask.perAppearanceShare` (0.3), at least `contracts.ask.minFee`
@@ -223,7 +224,11 @@ facts (ring name, roles, age, style, best-country popularity, rating and
 grade, the other promotion's name and end date), the ask as plain numbers
 (`askMonthly` when written deals are allowed, `askPerAppearance`), `bestKind`,
 the walk-away `cooldownUntil`, your `openNegotiationId` and the names of other
-promotions talking to them now (never their terms). Sorted by market value,
+promotions talking to them now (never their terms). For sorting and filtering
+(ECO5-09) each row also has its `marketValue`, `popularityHere` (popularity
+among the promotion's fans, the footprint popularity of `workers.expectedPush`),
+`pushExpectation` (the card position they would expect with you) and `basedIn`
+(country and continent of their home region). Sorted by market value,
 highest first. The Why? of one row comes from `contracts.askingTerms`, which
 gives the same numbers (tested). Offer kinds whose answer is the same for
 every worker (`samePerWorker`) are asked once per list: about 15 ms for the
@@ -682,6 +687,26 @@ counter: $26,300 a month, $30,400 to sign, 24 months, exclusive"), with
 "Answer by" a week from the day they weighed your offer; any other row shows
 your offer. Every amount on both tabs and in the sheet follows the money style
 in Settings.
+
+Sorting and filters (ECO5-09): every number column sorts on every Contracts
+tab (Free agents adds Market value with its Why?, Popularity in your regions
+and Push expectation; Offers sorts by Status, On the table and Next; Active,
+Expiring and Ended add Popularity, and the first two Morale, from
+`contracts.list`'s `popularity` and `morale`). Free agents filters with the
+Workers list's controls (`screens/workers/filterControls.tsx`): situation,
+role, gender, push expectation, style, age range, a lowest popularity in your
+regions and where they are based; Active and Expiring filter by role, gender
+and push. Sort (`sort=`), search (`q=`) and filters live in the URL, keeping
+the Workers parameter names where both lists have the filter, are dropped on a
+tab change, and show "N of M" with Clear filters. On a phone the filters open
+in a bottom sheet and sorting is the table's "Sort by". Workers' **Find free
+agents** opens Free agents with the filters both lists have.
+
+The worker profile's **Offer contract**, **Renew contract** and **Open talks**
+open the Negotiation Sheet over the profile (ECO5-09), from the same
+`?person=` / `?renew=` / `?negotiation=` parameters, so a reload keeps it open;
+every change keeps the location state, so the profile's Back to Workers returns
+to the filtered list.
 
 Renewals start from **Renew** on an expiring (or active) contract, or **Renew
 contract** on your worker's profile; outside `contracts.renewal.windowDays`

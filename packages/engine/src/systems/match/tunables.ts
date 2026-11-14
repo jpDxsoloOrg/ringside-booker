@@ -53,6 +53,35 @@ function durationClass(defaultClass: (typeof DURATION_CLASSES)[number], descript
   } as const;
 }
 
+const TIME_CATEGORY = 'Match: show time';
+const TIME_DOC = 'match-rating.md#show-time';
+
+function timeUnits(defaultUnits: number, description: string) {
+  return {
+    kind: 'integer',
+    default: defaultUnits,
+    min: 0,
+    max: 10,
+    unit: 'count',
+    category: TIME_CATEGORY,
+    description,
+    docRef: TIME_DOC,
+  } as const;
+}
+
+function timeRoom(defaultRoom: number, description: string) {
+  return {
+    kind: 'integer',
+    default: defaultRoom,
+    min: 0,
+    max: 30,
+    unit: 'count',
+    category: TIME_CATEGORY,
+    description,
+    docRef: TIME_DOC,
+  } as const;
+}
+
 const PERFORMANCE_CATEGORY = 'Match: performance';
 const PERFORMANCE_DOC = 'match-rating.md#worker-performance';
 const SIDES_DOC = 'match-rating.md#sides';
@@ -276,6 +305,21 @@ export const matchTunables = defineTunables({
     description: 'Smallest main card that has a semi-main; smaller cards have only midcard slots',
     docRef: SLOTS_DOC,
   },
+  // Show time (EVT4-08). See docs/design/match-rating.md#show-time.
+  'match.time.units.short': timeUnits(1, 'Show time a short segment takes'),
+  'match.time.units.standard': timeUnits(2, 'Show time a standard segment takes'),
+  'match.time.units.long': timeUnits(3, 'Show time a long segment takes'),
+  'match.time.room.house': timeRoom(0, "A house show's extra time beyond its card's usual time"),
+  'match.time.room.minor': timeRoom(1, "A minor show's extra time beyond its card's usual time"),
+  'match.time.room.regular': timeRoom(
+    1,
+    "A regular (weekly) show's extra time beyond its card's usual time",
+  ),
+  'match.time.room.major': timeRoom(3, "A major show's extra time beyond its card's usual time"),
+  'match.time.room.flagship': timeRoom(
+    6,
+    "A flagship show's extra time beyond its card's usual time",
+  ),
   // Worker performance, sides and work rate (MTCH1-03). See docs/design/match-rating.md.
   'match.perf.inRing.ringwork': perfWeight(
     0.5,
@@ -356,6 +400,12 @@ export const matchTunables = defineTunables({
     PER_POINT_RANGE,
     'ratio',
     'Performance lost per point of stamina below the need; 0 turns the check off',
+  ),
+  'match.workRate.extendedFatigueShare': workRateNumber(
+    0.25,
+    PER_POINT_RANGE,
+    'ratio',
+    'Stamina a worker is short per point of fatigue, per step a booker set the match longer than usual',
   ),
   'match.workRate.psychologyNeed.short': workRateNumber(
     20,
@@ -460,6 +510,10 @@ export const matchTunables = defineTunables({
     'Expectation change at a flagship event',
   ),
   'match.expectation.televised': expectationOffset(2, 'Expectation change when the show is on TV'),
+  'match.expectation.timeStep': expectationOffset(
+    4,
+    'Expectation change per step a booker sets a segment longer than usual (negative per step shorter)',
+  ),
   'match.crowd.performanceWeight': share(
     0.55,
     CROWD_CATEGORY,

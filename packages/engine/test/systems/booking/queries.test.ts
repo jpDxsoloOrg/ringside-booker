@@ -460,6 +460,7 @@ describe('booking.availableWorkers', () => {
         kind: 'tag',
         memberIds: [person(built, 0), person(built, 1)],
         bookable: true,
+        titles: [],
       },
     ]);
     const searched = ask(engine, 'booking.availableWorkers', {
