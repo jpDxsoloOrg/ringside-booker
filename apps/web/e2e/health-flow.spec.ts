@@ -21,7 +21,7 @@ import type { Locator, Page, TestInfo } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import { cancelTonightsShow, skipDaysOnce } from './helpers/booking';
-import { clearExpiringContracts, expectDayBarStopped } from './helpers/contracts';
+import { clearExpiringContracts } from './helpers/contracts';
 import { HEALTH_E2E_SEED, startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { navigateInApp } from './helpers/shell';
@@ -92,7 +92,8 @@ async function skipDays(
     } else {
       const moved = await skipDaysOnce(page, left, phone);
       left -= moved;
-      if (left > 0) await expectDayBarStopped(page);
+      // A skip that stopped short stopped for something: wait for the day button to say what.
+      if (left > 0) await expect(dayButton(page, 'Next day')).toBeHidden();
     }
   }
 }
