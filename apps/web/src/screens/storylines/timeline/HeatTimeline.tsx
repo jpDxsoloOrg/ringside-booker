@@ -91,6 +91,12 @@ export function heatTimelineEntries(
   const counted = new Set(steps.map((step) => step.segmentId));
   for (const entry of storyline.timeline) {
     if (counted.has(entry.segmentId)) continue;
+    // The storyline page carries each linked segment's heat step too (CRTV4-06), so a counted row
+    // still reads "Heat 42 → 51" while `storylines.timeline` is loading.
+    const step =
+      entry.heatBefore === null || entry.heatAfter === null
+        ? null
+        : { before: entry.heatBefore, after: entry.heatAfter, traceRef: entry.heatTraceRef };
     const booked = entry.stars === null && (today === null || entry.date >= today);
     entries.push({
       segmentId: entry.segmentId,
@@ -103,8 +109,8 @@ export function heatTimelineEntries(
       finale: entry.isFinale,
       stars: entry.stars,
       ratingTraceRef: entry.ratingTraceId === null ? null : traceRefFromKey(entry.ratingTraceId),
-      heat: null,
-      state: booked ? 'booked' : 'notCounted',
+      heat: step,
+      state: step !== null ? 'counted' : booked ? 'booked' : 'notCounted',
     });
   }
   return entries.sort(compareNewestFirst);

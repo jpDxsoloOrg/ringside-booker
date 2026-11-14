@@ -25,6 +25,9 @@ import {
   NOT_COUNTED_ENDED,
   NOT_COUNTED_NO_MEMBER,
   STORYLINE_HEAT_STEP_TRACE_KIND,
+  storylineHeatStepTraceRef,
+  storylineHeatTraceRef,
+  storylinePayoffTraceRef,
   storylinesSystem,
   type StorylineShowProgress,
   type StorylineTimeline,
@@ -500,5 +503,78 @@ describe('storylines.timeline', () => {
     const engine = await runShowNight(built);
     const result = timelineOf(engine, built.storylines.rival);
     expect(result.kind === 'unavailable' && result.reason.code).toBe('storylines.notYours');
+  });
+});
+
+// CRTV4-06 (the subtask moved from CRTV3-05): CRTV3's storyline page and ending read what CRTV4
+// writes. A linked, rated segment moves the heat (recorded at `storylineHeatTraceRef`), restarts
+// cooling, shows "heat before → after" with its Why? on the page's timeline, and an ending with
+// enough counted segments reads `paid` with the payoff's Why?.
+describe('storylines.detail after a linked show', () => {
+  function detailOf(engine: Engine, storylineId: StorylineId) {
+    const result = engine.query('storylines.detail', { storylineId }, controllerViewer(PLAYER_ONE));
+    if (!result.ok) throw new Error(JSON.stringify(result.reasons));
+    expectSerialisable(result.data);
+    return result.data;
+  }
+
+  it('carries each counted segment’s heat before and after with its Why?, and restarts cooling', async () => {
+    const built = heatWorld();
+    const engine = await runShowNight(built);
+    const feud = storylineIn(engine.exportState(), built.storylines.feud);
+    const detail = detailOf(engine, built.storylines.feud);
+    const match = detail.timeline.find((entry) => entry.segmentId === built.segments.feudMatch);
+    const step = required(feud.progress[0], 'first progress row');
+
+    expect(match).toMatchObject({
+      heatBefore: 50,
+      heatAfter: step.heatAfter,
+      heatTraceRef: storylineHeatStepTraceRef(built.storylines.feud, built.segments.feudMatch),
+    });
+    expect(detail.heatTraceRef).toEqual(storylineHeatTraceRef(built.storylines.feud));
+    expect(detail.heat).toBeCloseTo(feud.heat, 10);
+    expect(feud.lastProgressOn).toBe(TODAY);
+    expect(detail.cooling).toMatchObject({ daysSinceProgress: 1, coolingNow: false });
+  });
+
+  it('leaves the heat empty on a linked segment that did not count', async () => {
+    const built = heatWorld();
+    const engine = await runShowNight(built);
+    const detail = detailOf(engine, built.storylines.absent);
+    expect(detail.timeline).toHaveLength(1);
+    expect(detail.timeline[0]).toMatchObject({
+      segmentId: built.segments.mainEvent,
+      heatBefore: null,
+      heatAfter: null,
+      heatTraceRef: null,
+    });
+  });
+
+  it('ends as paid with the payoff’s Why? once enough segments have counted', async () => {
+    const built = heatWorld();
+    const seeded = built.world.transact('storylines', (tx) => {
+      tx.update('storylines', built.storylines.feud, {
+        progressTotals: { segments: 2, matches: 2, angles: 0, heatGained: 0, heatLost: 0 },
+      });
+    });
+    if (!seeded.ok) throw seeded.error;
+    const engine = await runShowNight(built);
+    expect(storylineIn(engine.exportState(), built.storylines.feud).progressTotals.segments).toBe(
+      4,
+    );
+    const ended = engine.command(
+      'storylines.end',
+      { storylineId: built.storylines.feud },
+      PLAYER_ONE,
+    );
+    if (!ended.ok) throw new Error(JSON.stringify(ended.reasons));
+    expect(ended.data.payoff).toBe('pays');
+
+    const detail = detailOf(engine, built.storylines.feud);
+    expect(detail.ending).toMatchObject({
+      linkedSegments: 4,
+      payoff: 'paid',
+      payoffTraceRef: storylinePayoffTraceRef(built.storylines.feud),
+    });
   });
 });
