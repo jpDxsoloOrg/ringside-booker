@@ -14,6 +14,70 @@ export const BROADCAST_DOC = 'broadcast.md';
 const AUDIENCE_DOC_REF = `${BROADCAST_DOC}#audience`;
 const BENCHMARK_DOC_REF = `${BROADCAST_DOC}#benchmark`;
 const VALUATION_DOC_REF = `${BROADCAST_DOC}#valuation`;
+const SETTLEMENT_DOC_REF = `${BROADCAST_DOC}#settlement`;
+const HEALTH_DOC_REF = `${BROADCAST_DOC}#deal-health`;
+
+/**
+ * The most airings deal health may look back over: `broadcast.airing.keepPerDeal`'s default, so the
+ * window is always kept (ECO8-04's retention keeps each deal's newest 12 airings).
+ */
+export const HEALTH_MAX_WINDOW = 12;
+
+/** A count deal health reads (ECO8-05). */
+function healthCount(defaultValue: number, min: number, max: number, description: string) {
+  return {
+    kind: 'integer',
+    default: defaultValue,
+    min,
+    max,
+    unit: 'count',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description,
+    docRef: HEALTH_DOC_REF,
+  } as const;
+}
+
+/** A share of what the network expects, below which deal health reacts (ECO8-05). */
+function healthRatio(defaultValue: number, description: string) {
+  return {
+    kind: 'number',
+    default: defaultValue,
+    min: 0,
+    max: 2,
+    unit: 'ratio',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description,
+    docRef: HEALTH_DOC_REF,
+  } as const;
+}
+
+/** A probability per airing (ECO8-05). */
+function healthChance(defaultValue: number, description: string) {
+  return {
+    kind: 'number',
+    default: defaultValue,
+    min: 0,
+    max: 1,
+    unit: 'probability',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description,
+    docRef: HEALTH_DOC_REF,
+  } as const;
+}
+
+/** A number of days deal health or the deal commands read (ECO8-05). */
+function healthDays(defaultValue: number, description: string) {
+  return {
+    kind: 'integer',
+    default: defaultValue,
+    min: 0,
+    max: 3650,
+    unit: 'days',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description,
+    docRef: HEALTH_DOC_REF,
+  } as const;
+}
 
 /** A factor of the audience formula: a plain ratio where 0 means nobody watches. */
 function audienceRatio(defaultValue: number, max: number, description: string) {
@@ -258,13 +322,15 @@ export const broadcastTunables = defineTunables({
     docRef: BENCHMARK_DOC_REF,
   },
   // ECO8-03: what a network pays and what it accepts.
+  // ECO8-09: TV and streaming rates and airtime are an eighth of ECO8-03's, so TV covers about a
+  // big promotion's monthly overhead rather than all of its costs; pay-per-view is unchanged.
   'broadcast.value.tvPerThousand': valuationMoney(
-    40_000,
+    5_000,
     100_000_000,
     'What a TV channel pays for each thousand viewers it values',
   ),
   'broadcast.value.streamingPerThousand': valuationMoney(
-    25_000,
+    3_125,
     100_000_000,
     'What a streaming service pays for each thousand viewers it values',
   ),
@@ -306,9 +372,14 @@ export const broadcastTunables = defineTunables({
     docRef: VALUATION_DOC_REF,
   },
   'broadcast.value.airtimePerMillion': valuationMoney(
+    1_875,
+    100_000_000,
+    'Airtime a TV channel or streaming service charges for each million people it covers, for each reach tier step',
+  ),
+  'broadcast.value.ppvAirtimePerMillion': valuationMoney(
     15_000,
     100_000_000,
-    'Airtime charged for each million people a network covers, for each reach tier step',
+    'Airtime a pay-per-view provider charges for each million people it covers, for each reach tier step',
   ),
   'broadcast.value.streamingAirtimeFactor': {
     kind: 'number',
@@ -358,4 +429,111 @@ export const broadcastTunables = defineTunables({
   'broadcast.deal.minMonths': dealMonths(6, 'Shortest deal a network will sign'),
   'broadcast.deal.maxMonths': dealMonths(48, 'Longest deal a network will sign'),
   'broadcast.deal.defaultMonths': dealMonths(24, 'Deal length offered when the player picks none'),
+  // ECO8-04: settling airings.
+  'broadcast.shares.maxTotal': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 1,
+    unit: 'ratio',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description:
+      "Most of an airing's income that workers' broadcast shares can take in total; 0 means workers get no share",
+    docRef: SETTLEMENT_DOC_REF,
+  },
+  'broadcast.airing.historyDays': {
+    kind: 'integer',
+    default: 400,
+    min: 30,
+    max: 3650,
+    unit: 'days',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description:
+      "How long the player's airings are kept; older ones are deleted (the money stays in the ledger)",
+    docRef: SETTLEMENT_DOC_REF,
+  },
+  'broadcast.airing.keepPerDeal': {
+    kind: 'integer',
+    default: 12,
+    min: 1,
+    max: 100,
+    unit: 'count',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description:
+      "Newest airings of each deal kept whatever their age, so deal health always has its window; must be at least deal health's window",
+    docRef: SETTLEMENT_DOC_REF,
+  },
+  // ECO8-05: deal health, warnings, early exit and rival renewal.
+  'broadcast.health.window': healthCount(
+    6,
+    1,
+    HEALTH_MAX_WINDOW,
+    'Recent airings whose viewers deal health adds up against what the network expects; at most the airings kept per deal',
+  ),
+  'broadcast.health.minAirings': healthCount(
+    3,
+    0,
+    HEALTH_MAX_WINDOW,
+    'Airings a deal needs before low viewers can count against it; 0 means from the first airing',
+  ),
+  'broadcast.health.graceDays': healthDays(
+    56,
+    'Days after a deal starts during which low viewers do not count against it; 0 means no grace',
+  ),
+  'broadcast.health.warnBelow': healthRatio(
+    0.75,
+    'Share of what the network expects below which a deal is at risk; 0 means never at risk for viewers',
+  ),
+  'broadcast.health.cancelBelow': healthRatio(
+    0.55,
+    'Share of what the network expects below which the network may cancel at each airing; 0 means never',
+  ),
+  'broadcast.health.cancelChance': healthChance(
+    0.2,
+    'Chance per airing a network cancels a deal whose viewers are below the cancel line; 0 means it never does',
+  ),
+  'broadcast.health.cancelChancePerTier': healthChance(
+    0.05,
+    'Extra cancel chance per airing for each step of the network reach tier; 0 means the same for every network',
+  ),
+  'broadcast.health.missedWindow': healthCount(
+    8,
+    1,
+    HEALTH_MAX_WINDOW,
+    'Recent scheduled airings deal health looks at for missed ones; at most the airings kept per deal',
+  ),
+  'broadcast.health.missedToCancel': healthCount(
+    3,
+    0,
+    HEALTH_MAX_WINDOW,
+    'Missed airings in the window that make a network pull a deal; 0 means missed airings never cancel',
+  ),
+  'broadcast.health.warnEveryDays': healthDays(
+    30,
+    'Days before the player is warned again about the same deal; 0 means a warning after every airing',
+  ),
+  'broadcast.deal.expiryWarningDays': healthDays(
+    30,
+    'Days before a deal ends that the player is warned it is ending; 0 means no warning',
+  ),
+  'broadcast.deal.exitFeeShows': {
+    kind: 'integer',
+    default: 4,
+    min: 0,
+    max: 52,
+    unit: 'count',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description:
+      "Shows' worth of the network's pay owed when a promotion walks away from a deal early; 0 means no exit fee",
+    docRef: HEALTH_DOC_REF,
+  },
+  'broadcast.rivals.autoRenew': {
+    kind: 'boolean',
+    default: true,
+    unit: 'flag',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description:
+      'Computer promotions renew a deal on its end date when the network would still sign it (switched off once rivals make their own deals)',
+    docRef: HEALTH_DOC_REF,
+  },
 });

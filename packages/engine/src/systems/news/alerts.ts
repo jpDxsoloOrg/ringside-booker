@@ -70,11 +70,12 @@ export const NEWS_ACTION_HINT = 'news';
 export const MATCH_ALERTS_SUBSCRIPTION_ID = 'news.matchAlerts';
 
 /**
- * Whether a pending alert stops a skip for a player who never set `stopSkip`. Off until the News
- * screen can open and clear an alert (DAY1-05 turns it on): a stop the player has no screen to
- * clear would block Next Day. A player can still turn it on with `news.setAlertRules`.
+ * Whether a pending alert stops a skip for a player who never set `stopSkip`. On since DAY1-05:
+ * the day button's "Open news" opens the story on the News screen, which clears the alert
+ * (`news.ackAlerts`), so the stop can always be cleared from where it sends the player. A player
+ * can turn it off with `news.setAlertRules`.
  */
-export const NEWS_ALERT_STOP_SKIP_DEFAULT = false;
+export const NEWS_ALERT_STOP_SKIP_DEFAULT = true;
 
 /** The prefix of every news alert key in `settings.extra`. */
 export const NEWS_ALERTS_SETTINGS_PREFIX = 'news.alerts.';
@@ -418,6 +419,10 @@ export const matchAlertsSubscription = defineSubscription({
  * `news.alert`: stops a skip before the next day while a player has a pending alert whose story
  * still exists and their `stopSkip` is on. One lookup per player.
  *
+ * A listed player who runs no promotion (their promotion closed, or they were never given one) is
+ * passed over: the web plays such a world as an observer seat, which cannot clear the alert, and a
+ * stop nobody can clear would block the day for good.
+ *
  * TODO(MP): a gate has no viewer, so this reports the first player in `meta.players` with a
  * pending alert. Right for one local player; multiplayer can narrow it to the advancing seat.
  */
@@ -431,7 +436,7 @@ export const newsAlertGate: GateSpec = {
       }
       const pending = pendingAlertOf(view.meta, player.playerId);
       const news = pending === null ? undefined : view.tables.news.get(pending);
-      if (news === undefined) {
+      if (news === undefined || promotionsOfPlayer(view, player.playerId).length === 0) {
         continue;
       }
       return {

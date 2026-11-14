@@ -1,0 +1,73 @@
+/* One story in a sheet: meta line, the story, who it is about, then its numbers. */
+.story {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.body {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.section {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.fact {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.fact dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.fact dd {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.archive,
+.notice {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

@@ -130,6 +130,21 @@ The `periodic` group's weekly phases so far, all on Mondays:
 | `health.pruneInjuryDetail` | 44    | The traces of injuries older than `history.keepDetailDays` become summaries; the rows stay ([health.md](health.md#returns)).                                                                 |
 | `storylines.pruneDetail`   | 46    | Traces of storylines ended over `history.keepDetailDays` ago become summaries ([storylines.md](storylines.md#heat-decay)).                                                                   |
 
+The broadcast system ([broadcast.md](broadcast.md#settlement)) adds
+`broadcast.airings` (`settlement`, order 40, daily): every airing due today is
+settled, for every promotion, after `boxOffice.settleShows` (10) and before
+`calendar.closePastShows` (90), so a show still scheduled on its air date is
+seen before the calendar closes it. The player's own shows are settled as they
+complete, by the `broadcast.settleOnShowNight` reaction to `show.completed`;
+the phase skips what already has a row. `broadcast.pruneAirings` (`periodic`,
+order 47, monthly on the 1st) deletes the player's airings older than
+`broadcast.airing.historyDays`; rivals' older airings go in `history.rollUp`.
+`broadcast.dealHealth` (`settlement`, order 45, daily, ECO8-05) judges every
+deal that aired or missed an airing today, ends deals the network pulls or
+that reach their end date (rivals' renew when the network would still sign),
+and warns the player about deals at risk or ending soon
+([broadcast.md](broadcast.md#deal-health)).
+
 The `growth` group's storyline phase:
 
 | Phase                    | Order | Cadence | What it does                                                                                                                                                |
@@ -427,7 +442,7 @@ registered ones:
 | `contracts.expiringSoon`     | contracts   | One of the player's contracts ends soon and its notice is unseen (ECO4-02, [contracts.md](contracts.md#expiring-soon))                                                                                                                             | "Contract expiring soon: Big Joe (ends Mar 14, 2031)" (+ " and 2 more")                               | `contracts` |
 | `contracts.releaseRequested` | contracts   | One of the player's workers has an open release request that stops the skip (ECO4-03, [contracts.md](contracts.md#unhappy-workers))                                                                                                                | "Big Joe wants to leave" (+ " and 2 others")                                                          | `contracts` |
 | `contracts.counterWaiting`   | negotiation | A worker's counter-offer to a player's promotion waits for an answer and `contracts.counter.stopSkip` was on when it was made (ECO5-05; on by default since ECO5-06, subject the negotiation, [negotiation.md](negotiation.md#counter-offer-stop)) | "Counter-offer from Big Joe is waiting for your answer"                                               | `contracts` |
-| `news.alert`                 | news        | A player has a pending news alert whose story still exists and their `news.alerts.<playerId>.stopSkip` is on (off by default until the News screen can clear it; DAY1-03, [news.md](news.md#alerts))                                               | "News: Title change – Big Joe and Fast Eddie" (+ " and 2 more"), or "News: a front-page season story" | `news`      |
+| `news.alert`                 | news        | A player has a pending news alert whose story still exists and their `news.alerts.<playerId>.stopSkip` is on (on by default; the player runs a promotion; DAY1-03, DAY1-05, [news.md](news.md#alerts))                                             | "News: Title change – Big Joe and Fast Eddie" (+ " and 2 more"), or "News: a front-page season story" | `news`      |
 
 The hints a gate can carry are the web shell's route keys: `showNight` (the
 show screen), `inbox`, `booking`, `roster` (the roster; WRK6-06 lands it on

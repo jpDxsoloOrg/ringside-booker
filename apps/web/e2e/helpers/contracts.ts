@@ -2,6 +2,7 @@ import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import {
   cancelTonightsShow,
+  clearNewsStop,
   dayBarButtons,
   gameDate,
   SHOW_STOP,
@@ -68,7 +69,7 @@ export function addIsoDays(date: string, days: number): string {
 }
 
 /** The day bar's buttons when the day stops (or doesn't). */
-const DAY_BUTTONS = dayBarButtons('Contracts', 'Roster');
+const DAY_BUTTONS = dayBarButtons('Contracts', 'Roster', 'Open news');
 
 /** The screens the own-injury stop opens (`injuryGateDestination`); each marks injuries seen. */
 const INJURY_VIEW =
@@ -94,8 +95,9 @@ export interface StopHandlers {
 
 /**
  * Clears whatever stops the day the way a player who isn't booking would: the player's show
- * tonight is cancelled from the Calendar, an injury stop is opened from Roster, and expiry
- * notices are marked seen. Returns false when nothing stops the day.
+ * tonight is cancelled from the Calendar, an injury stop is opened from Roster, expiry notices
+ * are marked seen, and a news alert is read from Open news (it ranks last, so it is cleared only
+ * when nothing else waits). Returns false when nothing stops the day.
  */
 export async function clearDayStop(page: Page, handlers: StopHandlers = {}): Promise<boolean> {
   await waitForDayBarSettled(page);
@@ -117,7 +119,7 @@ export async function clearDayStop(page: Page, handlers: StopHandlers = {}): Pro
     await expect(show).toBeHidden();
     return true;
   }
-  return false;
+  return clearNewsStop(page);
 }
 
 /**

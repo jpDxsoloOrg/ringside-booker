@@ -111,7 +111,9 @@ test.describe('shell identity', () => {
     page,
   }, testInfo) => {
     test.skip(!isPhone(testInfo), 'Phone layout only');
-    await settleOffice(page);
+    // The in-game crawl is the real news (DAY1-04): the sample save has two stories.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await enterGameFromSampleSave(page);
 
     const ticker = page.getByTestId('ticker-slot');
     const tabBar = page.getByRole('navigation', { name: 'Primary' });
@@ -127,7 +129,8 @@ test.describe('shell identity', () => {
       return content === null ? 0 : content.getBoundingClientRect().bottom;
     });
     const tickerTop = (await boxOf(ticker)).y;
-    expect(contentBottom).toBeLessThanOrEqual(Math.ceil(tickerTop));
+    // The real office's content can end on a fraction of a pixel that scrolling cannot reach.
+    expect(contentBottom).toBeLessThanOrEqual(Math.ceil(tickerTop) + 1);
   });
 
   test("the office shows the seat's real figures", async ({ page }, testInfo) => {

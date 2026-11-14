@@ -177,10 +177,14 @@ describe('saves written before the airings table', () => {
 });
 
 describe('the broadcast bundle', () => {
-  it('is registered once, with nothing to run yet', () => {
+  it('is registered once, settling airings, judging deals and pruning airings (ECO8-04/05)', () => {
     expect(defaultSystems.filter((system) => system.id === 'broadcast')).toEqual([broadcastSystem]);
     expect(new Set(defaultSystems.map((system) => system.id)).size).toBe(defaultSystems.length);
-    expect(broadcastSystem.phases).toEqual([]);
+    expect(broadcastSystem.phases.map((phase) => phase.id)).toEqual([
+      'broadcast.airings',
+      'broadcast.dealHealth',
+      'broadcast.pruneAirings',
+    ]);
   });
 
   it('defines its tunable in the Broadcast category', () => {

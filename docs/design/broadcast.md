@@ -304,8 +304,8 @@ null`) is valued as `major` on pay-per-view ("All major shows") and, on TV
 | Pay-per-view | none: "Pay-per-view pays per buy, not a flat fee"                                                        | `ppvPerThousandBuys` × shortfall, per thousand buys           |
 
 **Airtime** (cost per show) = people covered ÷ 1,000,000 ×
-`airtimePerMillion` × (reach tier + 1), × `streamingAirtimeFactor` on
-streaming, rounded down to a whole amount (the odd cents are dropped, a line
+`airtimePerMillion` (`ppvAirtimePerMillion` on pay-per-view) × (reach tier +
+1), × `streamingAirtimeFactor` on streaming, rounded down to a whole amount (the odd cents are dropped, a line
 of its own in the Why?). Every other amount is rounded down to the cent.
 
 **Income per airing** = fee + per thousand × projected ÷ 1,000 − airtime. It
@@ -355,29 +355,32 @@ shipped deals, valued in their own slot (each leaving itself out), to
 of the shipped terms. With the ticket's starting cap of 1.5 Overclock valued at
 0.19 × its shipped fee: Kestrel Sports is a tier-2 network whose benchmark
 (ECO8-02's tier-2 reference popularity, 16) is small next to Altura's draw, so
-`valuedViewersCap` is **5**. Every other rate is the ticket's.
+`valuedViewersCap` is **5**. ECO8-09 then cut the TV and streaming rates and
+airtime to an eighth and set the shipped deals to the offers
+([TV pay calibration](#tv-pay-calibration)); the table has today's numbers.
 
-| Deal (default world, 4 Jan 2027)                       | Projected / expected           | Offered                                    | Shipped                  | Airtime | Income per airing |
-| ------------------------------------------------------ | ------------------------------ | ------------------------------------------ | ------------------------ | ------- | ----------------- |
-| Altura Mainstage, National Signal Network, prime, live | 2,781,776 / 1,800,807 (1.54 ×) | fee 1,101,583.29 (0.92 ×), 44.00 per 1,000 | 1,200,000, 150 per 1,000 | 255,075 | 968,906.43        |
-| Altura Overclock, Kestrel Sports, prime, live          | 1,529,977 / 143,505 (10.7 ×)   | fee 284,139.90 (0.63 ×), 44.00 per 1,000   | 450,000, 90 per 1,000    | 153,045 | 198,413.88        |
-| All major shows, Turnstile Pay-Per-View                | 152,280 / 78,455 buys (1.94 ×) | 1,800 per 1,000 buys (1.0 ×)               | 1,800 per 1,000 buys     | 228,960 | 45,144.00         |
+| Deal (default world, 4 Jan 2027)                       | Projected / expected           | Offered                                | Shipped              | Airtime | Income per airing |
+| ------------------------------------------------------ | ------------------------------ | -------------------------------------- | -------------------- | ------- | ----------------- |
+| Altura Mainstage, National Signal Network, prime, live | 2,781,776 / 1,800,807 (1.54 ×) | fee 137,697.91 (1.0 ×), 5.50 per 1,000 | 137,700, 5 per 1,000 | 31,884  | 121,113.67        |
+| Altura Overclock, Kestrel Sports, prime, live          | 1,529,977 / 143,505 (10.7 ×)   | fee 35,517.48 (1.0 ×), 5.50 per 1,000  | 35,500, 5 per 1,000  | 19,130  | 24,802.35         |
+| All major shows, Turnstile Pay-Per-View                | 152,280 / 78,455 buys (1.94 ×) | 1,800 per 1,000 buys (1.0 ×)           | 1,800 per 1,000 buys | 228,960 | 45,144.00         |
 
 **Altura Mainstage** worked through: valued viewers = min(2,781,776,
-1,800,807 × 5) = 2,781,776. Fee = 2,781.776 × 400.00 × 1.1 (live) × 0.9 (the
-flat part) × 1 (no shortfall) = 1,101,583.29. Per thousand = 400.00 × 1.1 ×
-0.1 = 44.00. Airtime = about 340.1 million people × 150.00 × 5 (tier 4 + 1) =
-255,075. Income per airing = 1,101,583.29 + 44.00 × 2,781.776 − 255,075 =
-968,906.43. Altura's reach is 54 (prime time needs 25) and its camera 8 (the
-network needs 4): `accept`.
+1,800,807 × 5) = 2,781,776. Fee = 2,781.776 × 50.00 × 1.1 (live) × 0.9 (the
+flat part) × 1 (no shortfall) = 137,697.91. Per thousand = 50.00 × 1.1 × 0.1
+= 5.50. Airtime = about 340.1 million people × 18.75 × 5 (tier 4 + 1) =
+31,884. Income per airing = 137,697.91 + 5.50 × 2,781.776 − 31,884 =
+121,113.67. Altura's reach is 54 (prime time needs 25) and its camera 8 (the
+network needs 4): `accept`. The shipped deal charges no airtime, so a new
+Mainstage deal pays Altura about 30,000 a show less than the one it has.
 
 **Hardpan Friday on Bluebonnet Cable 7**, evening, taped, 12 months: 3,962
-viewers against 1,616 expected (2.45 ×). Fee = 3.962 × 400.00 × 0.9 =
-1,426.32; per thousand 40.00 (158.48 on 3,962 viewers); airtime = 31.3
-million × 150.00 × 1 (tier 0) = 4,695. Income per airing = −3,110.20: the
-channel would sign (`accept`, `becomesTelevised: true`, weekday Friday, ends
-4 Jan 2028), but every airing costs Hardpan more in airtime than it earns, and
-the Why? says so.
+viewers against 1,616 expected (2.45 ×). Fee = 3.962 × 50.00 × 0.9 = 178.29;
+per thousand 5.00 (19.81 on 3,962 viewers); airtime = 31.3 million × 18.75 ×
+1 (tier 0) = 586 (586.87, odd cents dropped). Income per airing = −387.90:
+the channel would sign (`accept`, `becomesTelevised: true`, weekday Friday,
+ends 4 Jan 2028), but every airing costs Hardpan more in airtime than it
+earns, and the Why? says so.
 
 **Hardpan Friday on National Signal Network**, prime time: refused for
 `timeslotNotAllowed` ("Prime time needs a reach of 25.0; yours is 3.6"),
@@ -389,19 +392,333 @@ Country Sports** (the Southwest tier-1 channel), evening: refused for
 also covers the Southwest and the Plains, so a regional deal can still be too
 big.
 
+### TV pay calibration
+
+ECO8-09, the owner's decision after ECO8-04 made deals pay every show: **scale
+TV pay down so money stays a challenge.** The target: TV covers part of a big
+promotion's costs, roughly its monthly overhead, not all of it; Altura loses
+money over a year with poor shows and roughly breaks even to a modest profit
+with decent ones; small promotions without deals still struggle; no rival
+goes broke from the change. New pay-per-view deals keep their airtime (owner
+decision: renegotiating pay-per-view is a real trade-off), and production
+costs are not lowered (owner rule).
+
+**What changed:**
+
+| Value                                       | Before                          | After                             | Why                                                                                             |
+| ------------------------------------------- | ------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `broadcast.value.tvPerThousand`             | 40,000 (400.00)                 | 5,000 (50.00)                     | An eighth: Altura's TV then pays about its 1.21M monthly production overhead                    |
+| `broadcast.value.streamingPerThousand`      | 25,000 (250.00)                 | 3,125 (31.25)                     | The same eighth, so streaming keeps its place against TV                                        |
+| `broadcast.value.airtimePerMillion`         | 15,000 (150.00), every kind     | 1,875 (18.75), TV and streaming   | The same eighth, so every offer keeps the sign of its income (Hardpan's local deal still loses) |
+| `broadcast.value.ppvAirtimePerMillion`      | (new)                           | 15,000 (150.00), pay-per-view     | Keeps new pay-per-view airtime at 228,960 a show on Turnstile                                   |
+| Mainstage on National Signal Network        | 1,200,000 + 150 per 1,000, none | 137,700 + 5 per 1,000, no airtime | The offer, rounded to whole dollars                                                             |
+| Overclock on Kestrel Sports                 | 450,000 + 90 per 1,000, none    | 35,500 + 5 per 1,000, no airtime  | The offer (it was 1.6 × the offer)                                                              |
+| Tessen Iron Hour on Kazamidori Television   | 90,000 + 30 per 1,000, 5,000    | 5,900 + 5 per 1,000, 625          | The offer; the deal's own airtime an eighth                                                     |
+| Viernes de Cielo on Televisora Altiplano    | 60,000 + 25 per 1,000, 4,000    | 22,800 + 5 per 1,000, 500         | The offer (it was a third of it); airtime an eighth                                             |
+| Longleaf Saturday Night on Tallgrass Stream | 4,000 + 20 per 1,000, 500       | 825, 60                           | The offer (streaming pays a flat fee only); airtime an eighth                                   |
+| Ashlar Thursday on Larkspur Stream          | 3,000 + 15 per 1,000, 400       | 140, 50                           | The offer; airtime an eighth                                                                    |
+| Altura's pay-per-view on Turnstile          | 1,800 per 1,000 buys, 25,000    | unchanged                         | Owner decision                                                                                  |
+
+The shipped deals keep their own airtime (none on Altura's TV deals) rather
+than the offer's: they are deals signed years ago, and the offer's airtime
+would make Tessen's, Longleaf's and Ashlar's lose money every week. A deal
+renegotiated today pays the offer, airtime and all.
+
+**Year one, every promotion's cash on 3 January 2028** (365 days from 4 January
+2027, default world, Altura played; rivals book their own cards). Decent
+shows: every player card filled with random singles (average show score 51.5);
+good: Auto-fill (62.8); poor: the least popular wrestlers in singles (37.5).
+In whole dollars:
+
+| Promotion (start cash)  | Without TV, decent | Before, decent | **After, decent** | Before, good | **After, good** | Before, poor | **After, poor** |
+| ----------------------- | ------------------ | -------------- | ----------------- | ------------ | --------------- | ------------ | --------------- |
+| Altura (40,000,000)     | 32,929,732         | 146,522,820    | **45,765,911**    | 194,209,255  | **85,707,511**  | 96,886,974   | **6,364,524**   |
+| Tessen (8,000,000)      | 2,427,308          | 6,368,836      | **2,645,867**     | 6,882,388    | **3,083,455**   | 6,235,663    | 2,666,278       |
+| Cielo Alto (5,000,000)  | 15,279,419         | 16,672,466     | **15,828,349**    | 16,378,673   | **15,441,600**  | 16,248,116   | 15,312,282      |
+| Longleaf (1,200,000)    | 3,197,439          | 3,411,717      | **3,234,159**     | 3,438,539    | **3,244,899**   | 3,433,230    | 3,239,973       |
+| Ashlar (900,000)        | 755,701            | 897,298        | **760,381**       | 900,449      | **763,498**     | 895,513      | 758,589         |
+| Boreal (1,500,000)      | 3,198,593          | 3,198,593      | 3,198,593         | 3,173,234    | 3,173,234       | 3,202,188    | 3,202,188       |
+| Eisenwerk (400,000)     | 1,055,835          | 1,055,835      | 1,055,835         | 1,056,519    | 1,056,519       | 1,067,665    | 1,067,665       |
+| Blast Furnace (650,000) | 152,576            | 152,576        | 152,576           | 157,800      | 157,800         | 160,508      | 160,508         |
+| Golden Poppy (750,000)  | 16,211             | 16,211         | 16,211            | 19,321       | 19,321          | 16,226       | 16,226          |
+| Hibari (120,000)        | 8,109              | 8,109          | 8,109             | 7,321        | 7,321           | 8,677        | 8,677           |
+| Hardpan (85,000)        | 1,231              | 1,231          | 1,231             | 4,346        | 4,346           | 557          | 557             |
+| Wattle (40,000)         | −4,908             | −4,908         | −4,908            | −2,927       | −2,927          | −2,618       | −2,618          |
+
+Altura's year in money: TV rights 9.92M and pay-per-view 3.09M with decent
+shows (before: 109.3M and 3.09M), 13.0M in all, or 1.08M a month against a
+monthly production overhead of 1.21M (0.89 ×). With poor shows TV pays 11.3M
+(fewer viewers, fewer buys); with good ones 14.2M. Its whole year:
+
+| Altura, year one  | Poor shows | Decent shows | Good shows |
+| ----------------- | ---------- | ------------ | ---------- |
+| Without TV        | −44.8M     | −7.1M        | +31.6M     |
+| Before ECO8-09    | +56.9M     | +106.5M      | +154.2M    |
+| **After ECO8-09** | **−33.6M** | **+5.8M**    | **+45.7M** |
+
+So TV now covers about the overhead: poor shows still lose a lot (Altura is
+down to 6.4M after a year), decent ones make a modest profit (+14% on its
+starting cash) and good ones a healthy one. Good shows were already very
+profitable without TV (tickets 82.4M against 47.9M on decent cards): that is
+the box office, not TV.
+
+**Rivals.** None goes into debt: every promotion with a deal ends the year
+above where it would without TV, and its lowest cash in the year stays
+positive. Tessen is the one to watch: it loses about 5.4M a year with or
+without TV (it ends at 2.65M from 8M), so at that pace it runs out of cash in
+year two; TV is not the cause (it now adds about 0.22M a year), and the rival
+production budget ([production.md](production.md#rival-production-budget))
+cuts its levels when cash runs short. Promotions without deals are unchanged
+by the change: Hardpan ends a year as the player at −20,940 (decent) and
+Wattle at −4,908, as before.
+
+**Hardpan as the player** (no deal): ends the year at −19,842 with Auto-fill
+and −20,940 with random cards, exactly as before. Its one offer, Bluebonnet
+Cable 7, still loses about 388 an airing.
+
+**Held by tests.** `test/systems/broadcast/calibration-default-world.test.ts`:
+in the default run, a year of Altura's shipped deals projected at a neutral
+show must pay 0.6–1.3 × its monthly production overhead (0.93 today; about 8
+before), and every shipped TV and streaming fee must sit within 5% of its
+offer. With `RB_SLOW_TESTS=1` (about 30 seconds) it plays the year twice:
+decent shows keep TV within the same band (0.89) and Altura between −5% and
++25% of its starting cash, with no promotion that has a deal going below zero;
+poor shows end the year below the starting cash.
+
 ## Settlement
 
-ECO8-04: the daily `broadcast.airings` phase writes an airing row per due
-airing and posts the money through `postMoney`.
+ECO8-04 (`systems/broadcast/settle.ts`, `phases.ts`). This is where TV pays.
+Every show a deal airs today (`airingsDueOn`) is **settled once**, for every
+promotion under the same rules: the player's, and every rival's.
+
+**When.** Two ways in, one function (`settleAiring`):
+
+- **`broadcast.airings`** (daily, `settlement` order 40) settles every due
+  airing that has no row yet. It runs after the box office
+  (`boxOffice.settleShows`, settlement 10), so a show's crowd is settled
+  first, and before `calendar.closePastShows` (settlement 90), so a show still
+  scheduled on its air date is seen as it stands before the calendar closes
+  it. Rival shows run in the `shows` group earlier the same day.
+- **`broadcast.settleOnShowNight`** (a reaction to `show.completed`): the
+  player runs a show before that day's phases (Run the show, or segment by
+  segment on the live show screen, EVT10), so its airings are settled the
+  moment the last segment completes and its results page shows its viewers at
+  once. A taped show completes on its taping day and is left for the phase on
+  its **air date**: the money lands on the day it airs.
+
+Both skip a due airing that already has a row for the same deal and show on
+that date, so a re-run or the phase after the reaction never pays twice.
+
+**What the show's state means** (`airingOutcomeOf`, one rule so the ledger
+memo, the airing row and the calendar line agree):
+
+| Show on its air date                         | Airing                                                |
+| -------------------------------------------- | ----------------------------------------------------- |
+| Completed                                    | Aired, with the show's score as its quality           |
+| Cancelled                                    | Missed (`showCancelled`): no money, viewers 0         |
+| Scheduled or booked (never run)              | Aired, neutral quality, "Aired without a show result" |
+| A definition date (a world with no calendar) | Aired, neutral quality, "Aired without a show result" |
+
+ECO8-07 turns "scheduled or booked on its air date" into a missed `notRun`
+airing.
+
+**Aired.** The viewers are the [audience](#audience) with the show's quality
+and the night-to-night swing (`broadcast.viewers`); the expected viewers are
+the [benchmark](#benchmark). The money is worked out on the deal's **stored
+terms** (what the deal would be worth today only matters when it is signed or
+renegotiated), in cents:
+
+- gross = fee per show + per-1,000 rate × viewers ÷ 1,000 (rounded down);
+- workers' shares (below) come off the gross;
+- the income row is gross − shares, under the network kind's category: **TV
+  rights** (`broadcast`), **Pay-per-view** (`ppv`) or **Streaming**
+  (`streaming`); memo "Broadcast: Altura Mainstage on National Signal
+  Network", plus " (aired without a show result)" on the neutral path;
+- the airtime row is the deal's cost per show under **Production**; memo
+  "Airtime: National Signal Network".
+
+Both go through `postMoney` with `refs: { eventInstanceId, dealId }`; a line
+that comes to 0 is not posted. The reference game nets the two into one
+posting; we post two labelled rows so the Finances ledger shows both, and each
+row's Why? explains its own amount (the income row's Why? holds the viewers
+working). Rivals' rows keep only a summary, as for all their money (POL4-06).
+
+**Losing money is allowed.** A deal whose airtime costs more than it pays
+loses money every airing (the owner's rule: money stays a real challenge).
+Nothing caps it; the airing's Why? ends with "This deal costs more in airtime
+than the network pays for a show", and `broadcast.airings` rows carry the same
+note and a negative `net`.
+
+**Workers' shares.** Each worker on the card (anyone in a segment except a
+person only talked about, `cardWorkersOf`) whose contract with the promotion
+has `terms.shares.broadcastBp` gets that many basis points of the gross: one
+line each ("Rook 2% of TV rights"), capped in total at
+`broadcast.shares.maxTotal` (0.5) of the gross, rounded down. It is the box
+office's `computeWorkerShare` with the labels "TV rights", "Pay-per-view" and
+"Streaming". A definition-date airing has no card ("No card on file: nobody to
+pay a share"); a card where nobody has a share says so.
+
+**The airing row** stores the gross as `income`, the shares as `sharesPaid`
+and the airtime as `cost`, with the quality and its source. Its Why?
+(`broadcast.airing` for the player, `broadcast.rivalAiring` for rivals) is
+income less airtime, with "National Signal Network expected 1,800,807
+viewers; 1,870,729 watched" and the benchmark beside it. The audience inside
+it is kept to 8 levels for the player (about 160 nodes, 23 KB on the default
+world) and 3 for rivals (about 45 nodes, 6 KB).
+
+**Viewers on the show.** When the show completed (EVT3), each airing adds its
+viewers to `result.viewers` (several deals on one show add up). Settlement
+never creates a result.
+
+**Missed.** A row with `status: 'missed'`, the reason, zeros, no quality and
+the expected viewers; a one-line Why? ("Show cancelled: nothing aired"); no
+money; `broadcast.missed` is published. Deal health (ECO8-05) counts them.
+
+### Retention
+
+`systems/broadcast/retention.ts`. An airing row is already a summary, but
+every promotion writes one per televised show, so it follows the owner's
+history rule:
+
+- **Rivals:** step 7 of the weekly `history.rollUp` deletes computer-run
+  promotions' airings dated before the `history.keepDetailDays` window. What
+  they said lives on as totals: the money in the ledger's monthly totals, the
+  viewers on each completed show's `result.viewers`.
+- **The player:** `broadcast.pruneAirings` (`periodic` order 47, monthly on
+  the 1st) deletes airings older than `broadcast.airing.historyDays` (400), so
+  the deal screens list over a year of the player's own airings.
+- Either way, each deal's newest `broadcast.airing.keepPerDeal` (12) airings
+  stay whatever their age, so deal health (`broadcast.health.window`,
+  `missedWindow`) and rivals' deal making always read a full window.
+
+**Ledger rows, not airings, are the permanent money record.**
+
+Save size (365 days, default world, `yearSaveBudget` with every show carded):
+see the ECO8-04 row in [save-format.md](save-format.md#size-budget).
 
 ## Deal health
 
-ECO8-05: the risk of each deal, warnings, network cancellations, expiry and
-renewal.
+ECO8-05 (`formulas/dealHealth.ts`, `health.ts`). After every airing a network
+looks at how the deal is doing and gives it a **risk**: Safe, Watch, At risk
+or Cancelling (`DEAL_RISKS`), with the reasons the player reads and a Why?
+(`startDecision`, stored at `dealHealthTraceRef(dealId)`, one trace per deal,
+replaced each time).
+
+### The formula
+
+`dealHealth({ networkName, reachTier, daysSinceStart, recent, upcomingMissed })`
+reads the deal's newest airings (newest first) and the cancelled shows it is
+still due to air. No randomness: the roll happens in the phase. Rules, worst
+first; the worst decides the risk and every one that applies is listed:
+
+| Rule                                                                   | Risk       | Reason the player reads                                                        |
+| ---------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
+| missed ≥ `missedToCancel` in the last `missedWindow` scheduled airings | Cancelling | "3 missed airings: Local TV is pulling the deal"                               |
+| missed = `missedToCancel` − 1                                          | At risk    | "One more missed airing and Local TV cancels"                                  |
+| missed + cancelled shows still to come ≥ `missedToCancel`              | At risk    | "Cancelled shows coming up would make 3 missed airings: Local TV cancels at 3" |
+| ratio < `cancelBelow`                                                  | Cancelling | "Viewers are 48% of what Local TV expects; each airing it may cancel (30%)"    |
+| ratio < `warnBelow`                                                    | At risk    | "Viewers are 62% of what Local TV expects; below 55% it may cancel"            |
+| any missed airing, past or coming                                      | Watch      | "Missed airing: Mon 18 Jan", "Missed airing coming: Mon 25 Jan"                |
+| none of these                                                          | Safe       | "Viewers are 105% of what Local TV expects"                                    |
+
+- **ratio** = Σ viewers ÷ Σ expected viewers over the last `window` airings
+  that aired (the Why? keeps it as a calculation).
+- **Grace:** fewer than `graceDays` since `startsOn`, or fewer than
+  `minAirings` aired, and viewers are not judged (the Why? says so). Missed
+  airings count from the first.
+- `missedToCancel` 0 turns the missed-airing rules off (0 means 0).
+- `window` and `missedWindow` are at most 12 (`HEALTH_MAX_WINDOW`), the
+  default of `broadcast.airing.keepPerDeal`, so retention always keeps them.
+
+### Cancellation
+
+- **Missed airings** cancel with no roll: the player caused them and the rule
+  is easy to explain. The deal ends `cancelled` / `missedAirings`.
+- **Low viewers:** each airing day the deal is Cancelling for viewers, the
+  network rolls its patience on the `broadcast.health` stream:
+  chance = min(1, `cancelChance` + reach tier × `cancelChancePerTier`) (20% on
+  a tier-0 network, 30% on tier 2). A hit ends the deal `cancelled` /
+  `lowViewers`. The stored Why? is then "Does Local TV cancel?" with the
+  health verdict and the roll inside. The roll happens only on airing days, so
+  a long skip with no shows never cancels a deal for low viewers.
+
+### Phase `broadcast.dealHealth`
+
+Daily, `settlement` 45 (after `broadcast.airings` at 40):
+
+1. Every deal with an airing row dated today (`airings.byAirDate`), aired or
+   missed, gets a fresh verdict; cancellations as above.
+2. Every `active` deal: a network that is off the air ends it `cancelled` /
+   `networkClosed`; on or after `endsOn` it expires (below).
+3. **Warnings:** for a human-controlled promotion's deal that is At risk or
+   Cancelling today, or ends within `broadcast.deal.expiryWarningDays`, and
+   whose `warnedOn` is null or at least `warnEveryDays` old: set `warnedOn`
+   and publish `broadcast.dealWarned { dealId, promotionId, risk }`. The
+   warning never stops the day (no gate); the Networks screen (ECO8-06) shows
+   the risk badge and ECO8-07 turns the event into mail when the inbox is on
+   main.
+
+Ending a deal always sets `status`, `endedOn` and `endedReason` and publishes
+`broadcast.dealEnded` (`endDeal`).
+
+### Expiry and rival renewal
+
+On `endsOn` a human promotion's deal becomes `expired` / `expired`; the
+player is warned `expiryWarningDays` ahead and can renew with
+`broadcast.renegotiate` before then.
+
+A computer promotion's deal, while `broadcast.rivals.autoRenew` is on, is
+valued again (`dealValuation` with `excludeDealId`) for the same network,
+show, timeslot and live, for `broadcast.deal.defaultMonths`. If the network
+would sign and the deal's health today is not Cancelling, it is renegotiated
+in place (new terms at today's valuation, `endsOn` = today + months,
+`renegotiatedOn`, `broadcast.dealRenegotiated`); otherwise it expires. The
+same valuation the player gets, applied automatically, so rivals do not lose
+all TV before ECO10's deal-making exists. **ECO10 switches `autoRenew` off**
+when its rivals make their own deals.
+
+On the default world Cielo Alto's shipped deal ends on 5 Jul 2027 and renews
+at today's valuation (fee, per-thousand rate and airtime all from the formula,
+not its shipped terms; the deal stays signed). The half-year soak test
+(`dealHealth-default-world.test.ts`, slow suite) pins that no shipped deal is
+cancelled for low viewers or missed airings.
 
 ## Commands
 
-ECO8-05: propose, renegotiate and cancel.
+ECO8-05 (`commands/`). Every command runs the one controller rule
+(`controlsPromotion`): a person acts only for their own promotion, the
+computer only for computer-run ones (`notYourPromotion` otherwise). The
+network's refusals come back as reasons with the `DealRefusalCode` as `code`,
+its message, and the network as `subject`; nothing changes.
+
+- **`broadcast.proposeDeal { promotionId, networkId, eventDefinitionId | null,
+timeslot, live, months }`** → `{ dealId }`. Refuses `unknownPromotion`,
+  `notYourPromotion`, `unknownNetwork` (no such network, or another
+  promotion's own service), `unknownShow`, `notYourShow`, then every refusal
+  of `dealValuation` (`networkClosed` … `badLength`). Applies the same
+  valuation again in the transaction (identical by construction; a mismatch is
+  an engine bug and rolls back), creates the deal (`active`, `offeredOn` =
+  `startsOn` = today, `endsOn` = today + months, the valuation's weekday and
+  terms in cents), makes the show televised when `becomesTelevised`, records
+  the network's "Would it sign?" verdict at `dealHealthTraceRef` as the
+  opening note, and publishes `broadcast.dealSigned`. What it signs is exactly
+  what `broadcast.valuation` previewed, including a pay-per-view deal's high
+  airtime at today's rates.
+- **`broadcast.renegotiate { dealId, months }`** → `{ endsOn }`. Own `active`
+  deal only (`unknownDeal`, `notYourPromotion`, `dealNotActive`); the
+  valuation for the same network, show, timeslot and live with
+  `excludeDealId`, refusals as above. Writes the new terms and weekday,
+  `endsOn` = max(`endsOn`, today) + months, `renegotiatedOn` = today,
+  `warnedOn` = null, and publishes `broadcast.dealRenegotiated`. Terms can go
+  down as well as up.
+- **`broadcast.cancelDeal { dealId }`** → `{ exitFee }`. Own `active` deal
+  only. The exit fee (`formulas/exitFee.ts`) is `exitFeeShows` × (fee per
+  show + per-thousand rate × the last aired airing's viewers ÷ 1,000), using
+  the projected viewers when nothing has aired yet, rounded down to the cent.
+  Posted with `postMoney` as `otherCost`, memo "Early exit: <network>", ref
+  the deal (nothing posted when it is 0). The deal ends `cancelled` /
+  `byPromotion` (`broadcast.dealEnded`). `broadcast.cancelPreview` shows the
+  same fee and Why? for the confirm dialog.
 
 ## Queries and visibility
 
@@ -446,7 +763,49 @@ timeslot, live, months, dealId? }`**: own promotions only. The
   `startsOn`, `endsOn`. No fees, no viewers expected; the rows are listed
   field by field so a money field added to deals can never leak through.
 
-ECO8-04 and ECO8-05 add the airings and deals queries.
+ECO8-04 adds three airing queries (`systems/broadcast/queries/airings.ts`).
+Viewers are public for any promotion (ratings are news); money, `net` and the
+Why? ref are `null` for a promotion the viewer does not run:
+
+- **`broadcast.airings { promotionId, dealId?, from?, to?, limit? }`** (limit
+  1–200, default 50): newest first, each row `airingId`, `airDate`,
+  `showName`, `eventInstanceId`, `dealId`, `networkName`, `status`,
+  `missReason`, `qualitySource`, `viewers`, `expectedViewers`, `income`,
+  `sharesPaid`, `cost`, `net`, `traceRef` and a plain `note` ("Show
+  cancelled: nothing aired", "Aired without a show result", or the airtime
+  loss note).
+- **`broadcast.showAiring { eventInstanceId }`**: for the calendar sheet and
+  the results page: the deals that air (or aired) the show, the airing added
+  up over its deals (`status`, `viewers`, `income`, `note`) or null, and
+  `upcoming` while a deal is still to air it.
+- **`broadcast.incomeSummary { promotionId, days? }`** (own only, days 1–365,
+  default 30): the period's broadcast, pay-per-view, streaming and airtime
+  ledger rows added up by deal, as `total` and an inline `trace`, and the
+  latest airing. A period reaching past the detail window says so ("Details
+  are kept for the last 4 weeks. Older money is counted in the monthly
+  totals.").
+
+ECO8-05 adds the deals queries (`systems/broadcast/queries/deals.ts`):
+
+- **`broadcast.deals { promotionId, include: 'active' | 'all' }`**: own
+  promotions only (`notYourPromotion`). One row per deal: `dealId`,
+  `networkId`, `networkName`, `kind`, `logoRef`, `showName` ("All major
+  shows" for a promotion-wide pay-per-view deal), `eventDefinitionId`,
+  `weekday`, `timeslot`, `live`, `terms` (cents), `startsOn`, `endsOn`,
+  `daysLeft`, `status`, `endedReason`, `lastAiring` (`airDate`, `viewers`,
+  `expectedViewers`, `traceRef`) or null, `expectedViewers` (today's
+  benchmark as an inline `Traced`, null for a house show or an ended deal),
+  `recent` (the last `window` airings, oldest first, for a Sparkline), `risk`
+  and `riskReasons` (worked out from the stored airings, so they are current
+  between airings; null and empty once the deal has ended), `healthTraceRef`
+  (the stored verdict or signing note, or null) and `upcomingMissed`.
+- **`broadcast.deal { dealId }`**: for the deal's own promotion,
+  `{ visibility: 'own', deal }` with the same row plus its full airing
+  history (`airings`, newest first, at most 200, as `broadcast.airings` rows).
+  For anyone else, `{ visibility: 'public', deal }` with only the
+  `broadcast.publicDeals` fields.
+- **`broadcast.cancelPreview { dealId }`**: own active deals only; the exit
+  fee in cents and its Why?.
 
 ## Seams
 

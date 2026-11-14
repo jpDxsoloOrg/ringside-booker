@@ -165,6 +165,11 @@ export const galleryEntry: GalleryEntry = {
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.
 
+Sentences the engine stores as a content key and params (news stories, the rival desk's decisions)
+are not components: they are written by the shared templated-text renderer in `text/`
+(`renderTemplatedText`, `templatedTextToString`, `registerTextCatalog`; see `text/README.md`). A
+screen hands it the query's `names` and `useEntityLinkRenderer()`, so names link in the game.
+
 Some screens keep components of their own that still get gallery entries: the Match lab's
 `MatchResultBlock` (a simulated match: headline with a Why? on the winner, method and finish, then
 the lab's score bug), `FinishSelect` (Auto or a finish, with the reset message in a live region)

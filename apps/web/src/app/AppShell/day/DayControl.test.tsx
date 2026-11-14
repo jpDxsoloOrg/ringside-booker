@@ -124,6 +124,15 @@ async function skip(user: ReturnType<typeof userEvent.setup>, quickChoice: strin
   await user.click(within(sheet).getByRole('button', { name: 'Start' }));
 }
 
+/** Skips a typed number of days (a length with no quick choice of its own, such as 365). */
+async function skipTyped(user: ReturnType<typeof userEvent.setup>, days: string): Promise<void> {
+  const sheet = await openSkipSheet(user);
+  const length = within(sheet).getByLabelText('Days to skip');
+  await user.clear(length);
+  await user.type(length, days);
+  await user.click(within(sheet).getByRole('button', { name: 'Start' }));
+}
+
 /**
  * A 30-day skip moves the fake engine a day at a time through the real shell, which takes over a
  * second under coverage on a CI runner: longer than the default wait for an element.
@@ -227,7 +236,7 @@ describe('DayControl: skipping days', () => {
     const { user } = renderGame();
     await expectDateChip(FAKE_START_DATE);
 
-    await skip(user, '365 days');
+    await skipTyped(user, '365');
 
     const overlay = screen.getByTestId('advance-overlay');
     await waitFor(() => {
@@ -395,7 +404,7 @@ describe('DayControl: autosave', () => {
   it('never autosaves a game that has no save slot', async () => {
     const { user, autosaveSpy } = renderGame({ saveSlotId: null });
     await expectDateChip(FAKE_START_DATE);
-    await skip(user, '14 days');
+    await skipTyped(user, '14');
     await summary();
     expect(autosaveSpy).not.toHaveBeenCalled();
   });

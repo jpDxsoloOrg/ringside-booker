@@ -18,6 +18,7 @@ import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import {
   autoFillCard,
   cancelTonightsShow,
+  clearNewsStop,
   dayBarButtons,
   openBookingForTonight,
   pickWinnersAndRunShow,
@@ -225,7 +226,8 @@ async function skipToDateThroughShows(
   for (let stops = 0; stops < 12; stops += 1) {
     await skipToDate(page, date, phone);
     if ((await summary.textContent())?.includes(`to ${reached}`) === true) return ran;
-    // Stopped short: for a show night or an injury.
+    // Stopped short: for a news alert (DAY1-05), a show night or an injury.
+    if (await clearNewsStop(page)) continue;
     await expect(show.or(roster)).toBeVisible({ timeout: 15_000 });
     if (await roster.isVisible()) {
       await roster.click();

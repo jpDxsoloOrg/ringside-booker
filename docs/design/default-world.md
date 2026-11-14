@@ -196,11 +196,15 @@ The pay-per-view deal names no show. A promotion-wide pay-per-view deal airs
 only the promotion's major and flagship shows, never the weekly TV
 ([broadcast.md](broadcast.md#which-deal-airs-which-show)).
 
-**Every money value in `deals.json` is a placeholder, to be rebalanced by ECO.**
-The fees, per-thousand-viewer rates and costs only need the right order of
-magnitude for now: Altura's free-to-air show earns 1.2M a show, a regional
-streaming show a few thousand. The same goes for promotions' `cash`. Nobody
-should read any of these as balanced.
+**The TV and streaming money in `deals.json` is calibrated (ECO8-09)**: each
+deal's fee and per-thousand rate is what its network would offer today
+([valuation](broadcast.md#valuation)), rounded to whole dollars, so Altura's TV
+covers about its monthly overhead rather than all of its costs: Mainstage earns
+137,700 a show plus 5 per thousand viewers, a regional streaming show a few
+hundred. Each deal's own airtime is an eighth of what it was; the Turnstile
+pay-per-view deal is unchanged. See
+[broadcast.md](broadcast.md#tv-pay-calibration). Promotions' `cash` is still a
+placeholder.
 
 ## Event definitions
 
