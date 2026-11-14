@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { EmploymentId, PersonId, PromotionId } from '@ringside/engine';
+import type { EmploymentId, OfferRow, PersonId, PromotionId } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { routes } from '@/app/routes';
 import { Button } from '@/components/Button';
@@ -7,7 +8,9 @@ import type { ProfileTabContext } from '@/screens/workers/profile/profileTabs';
 import { contractsSearch } from '../contractsParams';
 import type { NegotiationTarget } from '../contractsParams';
 import { useContractRules } from '../useContractRules';
+import { offerStatusText } from './negotiationText';
 import { renewalWindowText } from './RenewAction';
+import { useMarkOffersSeen } from './useMarkOffersSeen';
 import styles from '../ContractsScreen.module.css';
 
 /** The situations in which a new offer may be made (the engine's `OPEN_TO_OFFERS`). */
@@ -68,15 +71,51 @@ export function ProfileContractAction({ context }: { readonly context: ProfileTa
       contract.promotionId === viewerPromotionId &&
       (contract.status === 'active' || contract.status === 'signed'),
   );
-  return own === undefined ? (
-    <OfferAction promotionId={viewerPromotionId} personId={personId} />
-  ) : (
-    <RenewProfileAction
-      promotionId={viewerPromotionId}
-      personId={personId}
-      employmentId={own.employmentId}
-      endsOn={own.endsOn}
-    />
+  return (
+    <>
+      <AnsweredOffers promotionId={viewerPromotionId} personId={personId} />
+      {own === undefined ? (
+        <OfferAction promotionId={viewerPromotionId} personId={personId} />
+      ) : (
+        <RenewProfileAction
+          promotionId={viewerPromotionId}
+          personId={personId}
+          employmentId={own.employmentId}
+          endsOn={own.endsOn}
+        />
+      )}
+    </>
+  );
+}
+
+/**
+ * Their answer to your offer that you have not opened yet (ECO5-10): "Your offer: Signed",
+ * "Your offer: Walked away from the talks". Showing it here reads it, so it is marked as seen,
+ * which clears the day bar's "Offer answered" stop; the line stays until the profile closes.
+ */
+function AnsweredOffers({
+  promotionId,
+  personId,
+}: {
+  readonly promotionId: PromotionId;
+  readonly personId: PersonId;
+}) {
+  const offers = useEngineQuery('contracts.offers', { promotionId, status: 'closed' });
+  const unseen = (offers.data ?? []).filter((row) => row.personId === personId && row.answerUnseen);
+  // Kept once shown, so marking them seen does not take the line away while the player reads it.
+  const [shown, setShown] = useState<readonly OfferRow[]>([]);
+  const fresh = unseen.filter(
+    (row) => !shown.some((kept) => kept.negotiationId === row.negotiationId),
+  );
+  if (fresh.length > 0) setShown([...shown, ...fresh]);
+  useMarkOffersSeen(unseen.map((row) => row.negotiationId));
+  if (shown.length === 0) return null;
+  return (
+    <ul className={styles['answeredOffers']}>
+      {shown.map((row) => (
+        <li key={row.negotiationId}>{`Your offer: ${offerStatusText(row)}`}</li>
+      ))}
+    </ul>
   );
 }
 

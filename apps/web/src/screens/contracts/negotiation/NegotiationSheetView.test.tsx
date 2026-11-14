@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom';
 import { act, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { EngineProvider } from '@/app/engine/EngineProvider';
@@ -169,5 +170,35 @@ describe('NegotiationSheetView', () => {
     );
     expect(screen.getByText('Signed with Crown Pro instead')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Withdraw|Submit|Accept/u })).toBeNull();
+  });
+
+  it('confirms a signing with the contract and a link to their profile (ECO5-10)', () => {
+    render(
+      <MemoryRouter>
+        <NegotiationSheetView
+          {...props({
+            phase: 'closed',
+            draft: null,
+            ask: anAsk(),
+            notice: 'Rhea Cortez has signed. They look forward to working with you.',
+            outcome: { text: 'Signed', trace: null },
+            signed: {
+              ringName: 'Rhea Cortez',
+              contract: '$34,200 a month, 24 months',
+              profileHref: '/game/workers/per_0000000001',
+            },
+          })}
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Rhea Cortez has signed. They look forward to working with you.',
+    );
+    expect(screen.getByText('Contract: $34,200 a month, 24 months')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: "Open Rhea Cortez's profile" })).toHaveAttribute(
+      'href',
+      '/game/workers/per_0000000001',
+    );
+    expect(screen.queryByText(/^Your offer:/u)).toBeNull();
   });
 });

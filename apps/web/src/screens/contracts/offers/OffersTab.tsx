@@ -127,6 +127,7 @@ export function OffersTab({ promotionId, openNegotiation }: OffersTabProps) {
         header: 'Status',
         cell: (row) => (
           <span className={styles['badges']}>
+            {row.answerUnseen && <Badge tone="action">New answer</Badge>}
             {offerStatusText(row)}
             {row.reviewTrace !== null && (
               <WhyButton
@@ -161,6 +162,7 @@ export function OffersTab({ promotionId, openNegotiation }: OffersTabProps) {
 
   return (
     <div className={styles['panel']}>
+      <NewAnswers promotionId={promotionId} open={open} />
       <div className={styles['filters']}>
         <Switch label="Closed talks" checked={closed} onCheckedChange={setClosed} />
       </div>
@@ -184,5 +186,45 @@ export function OffersTab({ promotionId, openNegotiation }: OffersTabProps) {
         }
       />
     </div>
+  );
+}
+
+/**
+ * Answers you have not opened yet (ECO5-10), above the list whichever talks it shows: "Rhea Cortez:
+ * Signed". Each opens the talks, which marks the answer as seen and clears the day bar's "Offer
+ * answered" stop.
+ */
+function NewAnswers({
+  promotionId,
+  open,
+}: {
+  readonly promotionId: PromotionId;
+  readonly open: (row: OfferRow) => void;
+}) {
+  const query = useEngineQuery('contracts.offers', { promotionId, status: 'closed' });
+  const unseen = (query.data ?? NO_ROWS).filter((row) => row.answerUnseen);
+  if (unseen.length === 0) return null;
+  return (
+    <section className={styles['newAnswers']} aria-labelledby="offers-new-answers">
+      <h3 id="offers-new-answers" className={styles['newAnswersHeading']}>
+        New answers
+      </h3>
+      <ul className={styles['newAnswersList']}>
+        {unseen.map((row) => (
+          <li key={row.negotiationId}>
+            <button
+              type="button"
+              className={styles['nameButton']}
+              aria-haspopup="dialog"
+              onClick={() => {
+                open(row);
+              }}
+            >
+              {`${row.ringName}: ${offerStatusText(row)}`}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

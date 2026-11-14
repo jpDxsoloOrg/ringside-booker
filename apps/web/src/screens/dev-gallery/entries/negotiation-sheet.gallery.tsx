@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { EngineProvider } from '@/app/engine/EngineProvider';
+import { routes } from '@/app/routes';
 import type { EngineTransport } from '@/app/engine/transport';
 import { Button } from '@/components/Button';
 import { Stack } from '@/components/layout';
@@ -15,6 +16,7 @@ import {
   NEGOTIATION_ID,
   NEGOTIATION_PERSON,
 } from '@/screens/contracts/negotiation/negotiationFixtures';
+import { signedText } from '@/screens/contracts/negotiation/negotiationText';
 import { useContractMoney } from '@/screens/contracts/useContractMoney';
 import type { GalleryEntry } from '../galleryEntry';
 import { createTraceFixtureTransport } from '../fixtures/traceEngine';
@@ -83,10 +85,17 @@ function variantProps(
         statusText: null,
         draft: null,
         ask: anAsk(),
-        offerOnTable: '$34,200 a month, 24 months',
+        offerOnTable: null,
         patience: null,
         history: { negotiationId: NEGOTIATION_ID, entries: aHistory() },
         outcome: { text: 'Signed', trace: null },
+        // ECO5-10: the confirmation, the contract and a link to their profile.
+        notice: signedText('Rhea Vance'),
+        signed: {
+          ringName: 'Rhea Vance',
+          contract: '$34,200 a month, 24 months',
+          profileHref: routes.game.worker(NEGOTIATION_PERSON),
+        },
       };
   }
 }

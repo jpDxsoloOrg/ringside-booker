@@ -8,9 +8,13 @@
  * 2. Make offer on a free agent with a monthly ask: Use their ask reads "Likely to accept", 60% of
  *    the wage reads "Will counter". Submit offer, Next day: the day bar stops on the counter and
  *    Offers shows "Countered" with their terms and "Answer by" a week away.
- * 3. Contracts on the day bar opens the talks; Accept counter ("They'll decide on <date>"). Day by
- *    day until then: "Signed", the worker is on Active, and Finances › Ledger has
+ * 3. Contracts on the day bar opens the talks; Accept counter signs at once (ECO5-10): "<name> has
+ *    signed. They look forward to working with you.", the contract and a link to the profile.
+ *    Offers shows "Signed", the worker is on Active, and Finances › Ledger has
  *    "Signing bonus: <name>" for exactly the bonus they countered with.
+ *
+ * A worker's answer during the days (a walk-away, a signed renewal) stops the day bar on "Offer
+ * answered" (ECO5-10); opening it shows the talks, which clears the stop.
  * 4. Another free agent gets 40% of their ask, Next day: "Walked away"; their Make offer is
  *    disabled and the reason beside it names the cooldown date.
  * 5. Expiring › Renew on the first row: the sheet shows the current deal; their ask goes in; once
@@ -105,12 +109,30 @@ async function dollarsIn(field: Locator): Promise<number> {
 }
 
 /**
- * Moves one day on, clearing a show-day stop by cancelling the show and a hurt-worker stop by
- * visiting the roster. A Contracts stop (a counter-offer, expiry notices) is left for the caller.
+ * Clears an "Offer answered" stop (ECO5-10) the way a player does: the button opens the answered
+ * talks on Contracts › Offers, which marks the answer as seen; the sheet then closes.
+ */
+async function clearOfferAnsweredStop(page: Page): Promise<void> {
+  await dayButton(page, 'Offer answered').click();
+  await expect(page).toHaveURL(/\/game\/contracts\?tab=offers&negotiation=neg_\w+$/);
+  const talks = page.getByRole('dialog');
+  await expect(talks).toBeVisible({ timeout: 20_000 });
+  await talks.getByRole('button', { name: 'Close' }).click();
+  await expect(talks).toBeHidden();
+  await waitForDayBarSettled(page);
+}
+
+/**
+ * Moves one day on, clearing a show-day stop by cancelling the show, a hurt-worker stop by
+ * visiting the roster and an answered offer by opening it. A Contracts stop (a counter-offer,
+ * expiry notices) is left for the caller.
  */
 async function nextDay(page: Page): Promise<void> {
   for (let tries = 0; tries < 6; tries += 1) {
-    const button = dayButton(page, dayBarButtons('Contracts', 'Roster', 'Open news'));
+    const button = dayButton(
+      page,
+      dayBarButtons('Contracts', 'Roster', 'Open news', 'Offer answered'),
+    );
     await expect(button).toBeVisible({ timeout: 20_000 });
     // A phone shows a short label and keeps the full one in the accessible name.
     const name = (await button.getAttribute('aria-label')) ?? (await button.textContent()) ?? '';
@@ -123,6 +145,10 @@ async function nextDay(page: Page): Promise<void> {
       continue;
     }
     if (name.includes('Contracts')) return;
+    if (name === 'Offer answered') {
+      await clearOfferAnsweredStop(page);
+      continue;
+    }
     // A news alert (on by default, DAY1-05) ranks below every other stop: reading it clears it.
     if (name === 'Open news') {
       await clearNewsStop(page);
@@ -361,11 +387,21 @@ test.describe('contract negotiation', () => {
         timeout: 20_000,
       });
       await talks.getByRole('button', { name: 'Accept counter' }).click();
-      await expect(talks.getByText(/They'll decide on /)).toBeVisible({ timeout: 20_000 });
+      // Their own terms: they sign at once (ECO5-10), never "They'll decide on <date>".
+      await expect(
+        talks.getByText(`${signed} has signed. They look forward to working with you.`),
+      ).toBeVisible({ timeout: 20_000 });
+      await expect(talks.getByText(/^Contract: \$[\d,]+ a month/)).toBeVisible();
+      await expect(talks.getByRole('link', { name: `Open ${signed}'s profile` })).toBeVisible();
       await talks.getByRole('button', { name: 'Close' }).click();
       await expect(dayButton(page, 'Next day')).toBeVisible({ timeout: 15_000 });
 
-      await advanceUntil(page, `${signed} signed`, () => closedTalksShow(page, signed, /Signed/));
+      await expect
+        .poll(() => closedTalksShow(page, signed, /Signed/), {
+          message: `${signed} signed`,
+          timeout: 20_000,
+        })
+        .toBe(true);
       await expectNoHorizontalScroll(page);
       await shot(page, 'offers-signed', testInfo);
 
