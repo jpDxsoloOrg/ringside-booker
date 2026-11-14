@@ -3,6 +3,7 @@ import type { ComponentType } from 'react';
 import type { IconName } from '@/components/Icon';
 import { BookingScreen } from '@/screens/booking';
 import { CalendarScreen } from '@/screens/calendar/CalendarScreen';
+import { ContractsScreen } from '@/screens/contracts/ContractsScreen';
 import { FinancesScreen } from '@/screens/finances/FinancesScreen';
 import { MatchLabScreen } from '@/screens/match-lab/MatchLabScreen';
 import { OfficeScreen } from '@/screens/office/OfficeScreen';
@@ -25,7 +26,7 @@ import { routes } from './routes';
 export type MobileSlot = 1 | 2 | 3 | 4;
 
 /** Counts a nav item can show in a badge. `useNavBadges` supplies them. */
-export type NavBadgeKey = 'unreadMail' | 'pendingDecisions';
+export type NavBadgeKey = 'unreadMail' | 'pendingDecisions' | 'wantsToLeave';
 
 interface NavItemBase {
   /** Stable id, unique across every section. */
@@ -237,7 +238,9 @@ export const navigationSections: readonly NavSection[] = [
         label: 'Contracts',
         icon: 'contracts',
         to: routes.game.contracts(),
-        status: 'placeholder',
+        status: 'live',
+        screen: ContractsScreen,
+        badgeKey: 'wantsToLeave',
       },
       {
         id: 'networks',

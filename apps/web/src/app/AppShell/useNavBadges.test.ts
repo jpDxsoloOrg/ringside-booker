@@ -8,7 +8,9 @@ describe('countBehindMore', () => {
     const primaries = mobilePrimaryItems(sections);
 
     // Inbox sits behind More; Dashboard (pending decisions) is a tab with its own badge.
-    expect(countBehindMore(sections, primaries, { unreadMail: 3, pendingDecisions: 2 })).toBe(3);
+    expect(
+      countBehindMore(sections, primaries, { unreadMail: 3, pendingDecisions: 2, wantsToLeave: 0 }),
+    ).toBe(3);
   });
 
   it('is 0 when every badged item has a tab', () => {
@@ -17,6 +19,8 @@ describe('countBehindMore', () => {
 
     // Unemployed, Inbox falls back into the tab bar.
     expect(primaries.map((item) => item.id)).toContain('inbox');
-    expect(countBehindMore(sections, primaries, { unreadMail: 5, pendingDecisions: 1 })).toBe(0);
+    expect(
+      countBehindMore(sections, primaries, { unreadMail: 5, pendingDecisions: 1, wantsToLeave: 0 }),
+    ).toBe(0);
   });
 });

@@ -1,21 +1,32 @@
+import { useMemo } from 'react';
+import { useEngineQuery } from '../engine/useEngineQuery';
 import type { NavBadgeKey, NavItem, NavSection } from '../navigation';
+import { useHasPromotion } from '../session/sessionStore';
 
 export type NavBadgeCounts = Readonly<Record<NavBadgeKey, number>>;
 
-const NO_BADGES: NavBadgeCounts = { unreadMail: 0, pendingDecisions: 0 };
-
 /**
- * The counts nav items show in their badges. All zero until there is mail and decisions to count;
- * the inbox epic replaces the body with engine queries and nothing else in the shell changes.
+ * The counts nav items show in their badges. Mail and decisions are zero until the inbox epic
+ * replaces them with engine queries; `wantsToLeave` (Contracts) counts your workers with an open
+ * release request (ECO4-04, `contracts.counts`).
  */
 export function useNavBadges(): NavBadgeCounts {
-  return NO_BADGES;
+  const hasPromotion = useHasPromotion();
+  const contracts = useEngineQuery(
+    'contracts.counts',
+    {},
+    { enabled: hasPromotion, keepPreviousData: true },
+  );
+  const wantsToLeave =
+    hasPromotion && contracts.status === 'success' ? (contracts.data?.wantsToLeave ?? 0) : 0;
+  return useMemo(() => ({ unreadMail: 0, pendingDecisions: 0, wantsToLeave }), [wantsToLeave]);
 }
 
 /** What a screen reader hears for a badge, such as "3 unread". */
 export const NAV_BADGE_LABELS: Readonly<Record<NavBadgeKey, (count: number) => string>> = {
   unreadMail: (count) => `${String(count)} unread`,
   pendingDecisions: (count) => `${String(count)} waiting`,
+  wantsToLeave: (count) => `${String(count)} ${count === 1 ? 'wants' : 'want'} to leave`,
 };
 
 /**
