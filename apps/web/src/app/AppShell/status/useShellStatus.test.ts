@@ -1,6 +1,6 @@
 import { createElement } from 'react';
 import type { ReactNode } from 'react';
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { initialEngineState } from '@ringside/engine';
 import type { EngineState } from '@ringside/engine';
@@ -12,7 +12,7 @@ import {
   fakeEngineState,
 } from '@/test/fakeEngine';
 import type { FakeEngineOptions } from '@/test/fakeEngine';
-import { EngineProvider } from '../../engine/EngineProvider';
+import { EngineProvider, useEngineClient } from '../../engine/EngineProvider';
 import { createInProcessTransport } from '../../engine/transport';
 import { useShellStatus } from './useShellStatus';
 
@@ -89,5 +89,41 @@ describe('useShellStatus', () => {
     const calls = querySpy.mock.calls.filter(([name]) => name.startsWith('sim.'));
     expect(calls.map(([name]) => name).sort()).toEqual(['sim.pendingGates', 'sim.status']);
     for (const [, args] of calls) expect(args).toEqual({});
+  });
+
+  it('is settled only once both answers are current and no command is on its way', async () => {
+    const { transport, wrapper } = setup(fakeEngineState());
+    const { result } = renderHook(() => ({ shell: useShellStatus(), client: useEngineClient() }), {
+      wrapper,
+    });
+    await waitFor(() => {
+      expect(result.current.shell.settled).toBe(true);
+    });
+
+    // Hold the command in the engine: until it answers, the world may have moved without the
+    // answers on screen looking stale, so the bar is not settled.
+    const runCommand = transport.host.command.bind(transport.host);
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    vi.spyOn(transport.host, 'command').mockImplementation(async (name, args) => {
+      await held;
+      return runCommand(name, args);
+    });
+    let sent: Promise<unknown> = Promise.resolve();
+    act(() => {
+      sent = result.current.client.command('counter.increment', { amount: 1 });
+    });
+    expect(result.current.shell.settled).toBe(false);
+    expect(result.current.shell.refreshing).toBe(false);
+
+    await act(async () => {
+      release();
+      await sent;
+    });
+    await waitFor(() => {
+      expect(result.current.shell.settled).toBe(true);
+    });
   });
 });

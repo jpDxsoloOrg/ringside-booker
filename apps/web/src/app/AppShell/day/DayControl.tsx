@@ -24,10 +24,11 @@ export interface DayControlProps {
   /** Opens the Skip days sheet. */
   readonly onOpenSkip: () => void;
   /**
-   * The gates shown are from before the world last moved and new ones are on their way: the
-   * control is marked busy (`aria-busy`) until they arrive. False by default.
+   * The gates shown are current and the engine has nothing on its way (`useShellStatus`). Exposed
+   * as `data-settled` so end-to-end tests read the button only once it says what today holds.
+   * True by default.
    */
-  readonly refreshing?: boolean;
+  readonly settled?: boolean;
 }
 
 /**
@@ -40,7 +41,7 @@ export function DayControl({
   gates,
   compact = false,
   onOpenSkip,
-  refreshing = false,
+  settled = true,
 }: DayControlProps) {
   const advance = useDayAdvance();
   const navigate = useNavigate();
@@ -73,7 +74,7 @@ export function DayControl({
     <div
       className={styles['dayControl']}
       data-testid="day-control"
-      aria-busy={refreshing || undefined}
+      data-settled={settled && !busy}
     >
       <LiveBugButton
         className={styles['primary']}
