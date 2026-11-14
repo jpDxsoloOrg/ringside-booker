@@ -26,6 +26,21 @@ function ChampionCardDemo() {
           </ChampionCardList>
         </div>
       </section>
+      <section className={styles['example']}>
+        <h3 className={styles['subheading']}>Stacked on a phone, as on the Titles screen</h3>
+        <div className={office['stage']}>
+          <ChampionCardList label="Stacked champions" phoneLayout="stack">
+            {galleryChampionships.slice(0, 2).map((championship) => (
+              <ChampionCard
+                key={championship.title.id}
+                title={championship.title}
+                reign={championship.reign}
+                prestige={championship.prestige}
+              />
+            ))}
+          </ChampionCardList>
+        </div>
+      </section>
       {featured === undefined ? null : (
         <section className={styles['example']}>
           <h3 className={styles['subheading']}>With a footer and a Why? chip, in a side column</h3>
@@ -53,6 +68,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'ChampionCard',
   group: 'Office',
   notes:
-    'Belt art in gold (unless the title has its own tier), the champion with their picture, reign length, defences and prestige as a number and stars. ChampionCardList is a grid on desktop and a horizontal swipe row on a phone.',
+    'Belt art in gold (unless the title has its own tier), the champion with their picture, reign length, defences and prestige as a number and stars. ChampionCardList is a grid on desktop and, on a phone, a horizontal swipe row (the default, as on the Office) or one card per row with phoneLayout="stack" (the Titles screen).',
   render: () => <ChampionCardDemo />,
 };

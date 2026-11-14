@@ -2,6 +2,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { parseId } from '@ringside/engine';
 import type { EngineState } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
@@ -176,7 +177,8 @@ describe('TitleDetailScreen', () => {
   });
 
   it('shows a friendly empty state for a title that does not exist', async () => {
-    renderAt(routes.game.title(titleIdOf(HEAVYWEIGHT).replace(/.$/, 'z') as never));
+    // A well-formed title id that no title in the tiny world has.
+    renderAt(routes.game.title(parseId('title', 'tit_zzzzzzzzzz')));
     expect(
       await screen.findByRole(
         'heading',

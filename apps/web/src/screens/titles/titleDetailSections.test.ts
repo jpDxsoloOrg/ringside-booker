@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { parseGameDate, parseId } from '@ringside/engine';
 import type { TitleDetail } from '@ringside/engine';
 import {
   registerTitleDetailSection,
@@ -7,7 +8,41 @@ import {
 } from './titleDetailSections';
 import type { TitleDetailSection } from './titleDetailSections';
 
-const DETAIL = { reigns: [] } as unknown as TitleDetail;
+/** A vacant title with no reigns: the sections under test never read it. */
+const DETAIL: TitleDetail = {
+  title: {
+    titleId: parseId('title', 'tit_0000000001'),
+    name: 'Test Title',
+    promotionId: parseId('promotion', 'pro_0000000001'),
+    promotionName: 'Test Promotion',
+    brandId: null,
+    brandName: null,
+    holderCount: 1,
+    division: { gender: 'open', minWeightKg: null, maxWeightKg: null },
+    divisionLabel: 'Open',
+    prestige: 50,
+    prestigeTraceRef: null,
+    prestigeTrace: { kind: 'input', label: 'Prestige', value: 50 },
+    status: 'active',
+    introducedOn: parseGameDate('2027-01-04'),
+    retiredOn: null,
+    imageRef: null,
+    color: '#c9a227',
+    editable: false,
+    champion: null,
+  },
+  reigns: [],
+  records: {
+    longestReign: null,
+    shortestReign: null,
+    mostDefences: null,
+    mostReigns: null,
+    mostCombinedDays: null,
+    oldestChampion: null,
+    youngestChampion: null,
+  },
+  stats: { totalReigns: 0, distinctChampions: 0, daysVacant: 0 },
+};
 
 function section(
   id: string,

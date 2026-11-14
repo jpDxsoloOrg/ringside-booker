@@ -82,6 +82,8 @@ export interface TitleRecordsPanelProps {
   readonly stats: TitleStats;
   /** The lineage, newest first: the names of the record holders come from it. */
   readonly reigns: readonly ReignRow[];
+  /** The panel heading's level: 2 on the title page, 3 inside the gallery. */
+  readonly headingLevel?: 2 | 3;
 }
 
 /**
@@ -90,11 +92,16 @@ export interface TitleRecordsPanelProps {
  * youngest champion, each name linking to the worker's profile. "No records yet" until a reign has
  * ended.
  */
-export function TitleRecordsPanel({ records, stats, reigns }: TitleRecordsPanelProps) {
+export function TitleRecordsPanel({
+  records,
+  stats,
+  reigns,
+  headingLevel = 2,
+}: TitleRecordsPanelProps) {
   const names = namesFromLineage(reigns);
   const anyFinished = reigns.some((reign) => reign.lostOn !== null);
   return (
-    <Panel title="Records" headingLevel={2}>
+    <Panel title="Records" headingLevel={headingLevel}>
       <dl className={styles['facts']}>
         <div className={styles['fact']}>
           <dt className={styles['factLabel']}>Total reigns</dt>
@@ -130,7 +137,7 @@ export function TitleRecordsPanel({ records, stats, reigns }: TitleRecordsPanelP
       ) : (
         <EmptyState
           icon="titles"
-          headingLevel={3}
+          headingLevel={headingLevel === 2 ? 3 : 4}
           title={NO_RECORDS_TEXT}
           body="Records start once a reign has ended."
         />
