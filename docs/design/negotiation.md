@@ -28,6 +28,10 @@ bundle has its own id so ECO4's files are not edited.
 | Formulas    | `formulas/marketValue.ts` …     | market value, asking wage, fee and starting patience (ECO5-02)                             |
 | Composer    | `asking.ts`, `eligibility.ts`   | `askingTermsFor` and `negotiationEligibility` (ECO5-02)                                    |
 | Queries     | `queries.ts`                    | `contracts.askingTerms`, `contracts.freeAgents` (ECO5-02)                                  |
+| Rules       | `validate.ts`                   | `validateOffer` / `checkOffer`: the reasons an offer may not be made (ECO5-04)             |
+| Actions     | `submit.ts`, `bidders.ts`       | `submitOffer`, `answerCounter`, `withdrawNegotiation`, `competingBidders` (ECO5-04)        |
+| Commands    | `commands.ts`                   | `contracts.makeOffer`, `.offerRenewal`, `.respondToCounter`, `.withdrawOffer` (ECO5-04)    |
+| Queries     | `offersQueries.ts`              | `contracts.offers`, `contracts.negotiation` (ECO5-04)                                      |
 
 ## Why negotiations live beside employments
 
@@ -281,7 +285,7 @@ purpose: a perk never makes a low offer attractive.
 
 How the worker answers an offer (`formulas/offerReaction.ts`, a decision):
 `accept`, `counter`, `reject`, `walkAway` or `refuse`; recorded at
-`contracts.reaction` / `<negotiationId>:<round>` by the commands (ECO5-04).
+`contracts.reaction` / `<negotiationId>:<round>` when the day runs (ECO5-05).
 The first rule that matches decides:
 
 | Rule                                                                                                | Reaction                                               |
@@ -307,7 +311,8 @@ job is not a role people hold, so anyone may be offered it.
 Patience is the negotiation's (or the worker's [starting patience](#patience)
 before talks open). Each offer that does not please them uses up some: a
 counter one, a rejection `contracts.patience.rejectCost`, a walk-away or
-refusal all of it (`patienceLeft`). So `contracts.patience.base` 0 turns every
+refusal all of it (`patienceLeft`). A revision sent after a counter-offer
+uses one more first ([Rounds](#rounds)). So `contracts.patience.base` 0 turns every
 non-acceptance into a walk-away, and `counterRatio` equal to `acceptRatio`
 removes the counter band.
 
@@ -362,6 +367,112 @@ what they countered (or more money on the same terms) is accepted. The
 `contracts.counter.stopSkip` gate (a skip stopping while a counter waits for
 the player) is not built yet: whoever adds it must default it off until the
 Negotiation Sheet (ECO5-06) can answer a counter from the day bar.
+
+## Rounds
+
+A negotiation goes back and forth in rounds. Round 1 is the first offer; each
+offer the promotion sends after that (a revision, or accepting their counter)
+starts the next round. The worker answers each offer when the day runs
+(ECO5-05), so pressing Next Day is part of every negotiation.
+
+- **One offer per reply.** While the worker has not answered (`submitted`) or
+  is thinking it over (`awaitingReview`) the promotion cannot change the offer:
+  `contracts.makeOffer` on a worker you are already talking to is refused with
+  `contracts.alreadyNegotiating` ("You are already talking to them: open those
+  talks to see where they stand"). After a counter-offer the promotion answers
+  with `contracts.respondToCounter`; it can always take an open offer back
+  with `contracts.withdrawOffer`.
+- **A revision uses a point of patience.** Sending a new offer in reply to a
+  counter-offer costs one point of patience before the worker reacts to it
+  (and the reaction then costs what [Reaction](#reaction) says). So a worker
+  starting with 3 patience hears about two revisions before they lose
+  interest. `evaluateOffer` counts that point for a countered negotiation
+  (`roundPatience`), so the preview of a revision shows exactly what the review
+  will weigh. Paying their counter-offer (or more money on the same terms)
+  uses no patience and counts as accepting it.
+- **Accepting their counter-offer** makes it the offer and sets
+  `awaitingReview`: they decide on `reviewOn` = today +
+  `contracts.review.delayDays` (2), so a rival's later bid can still win
+  (ECO6). The sheet says "They'll decide on <date>".
+- **Ending the talks** closes them as `withdrawn` (outcome `talksEnded`) with
+  no cooldown: you can make a fresh offer straight away. Withdrawing is the
+  same with outcome `withdrawn`.
+- **History** keeps at most 12 rounds (`NEGOTIATION_HISTORY_MAX`); the
+  promotion's oldest offers go first, so the worker's counter-offers stay.
+
+## Commands
+
+Everything a promotion does in a negotiation is a command, validated against
+the world and logged with the controller that issued it (D-07). The work is in
+plain functions that take the issuing controller, so a rival's hiring (ECO6)
+and a second human's sealed intents (MP6) use exactly the same path as the
+player; the commands add only validation and the command log.
+
+| Command                      | Args                                  | Does                                                                                                               |
+| ---------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `contracts.makeOffer`        | `{ promotionId, personId, offer }`    | `submitOffer`: opens talks; returns `{ negotiationId, preview }`                                                   |
+| `contracts.offerRenewal`     | `{ employmentId, offer }`             | `submitOffer` with `renewalOf`: renewal talks on the live contract; same result                                    |
+| `contracts.respondToCounter` | `{ negotiationId, response, offer? }` | `answerCounter`: `accept`, `revise` (needs `offer`) or `end`; returns `{ negotiationId, status, preview \| null }` |
+| `contracts.withdrawOffer`    | `{ negotiationId }`                   | `withdrawNegotiation`: any open talks of yours become `withdrawn`; publishes `negotiation.closed`                  |
+
+`preview` is `contracts.offerPreview`'s band and numbers for the offer as it
+was recorded (`offerValue`, `askValue`, `ratio`, `reaction`, `band`, `label`,
+`patienceLeft`), from the same `evaluateOffer` call, so the sheet can confirm
+without another query and the numbers agree to the cent.
+
+**Opening talks** (`submitOffer`). For a signing it creates the `offered`
+employment the talks point at: `startsOn` = the offer's start (today when
+null), never before [eligibility](#eligibility)'s `earliestStart`; `endsOn` =
+`startsOn` + the length in months; role, push, brand (null when shared) and
+terms from the offer; the person's default ring name, no gimmick, alignment
+heel for a natural heel else face, morale 0. For a renewal only the
+negotiation is created, pointing at the live contract. Both record the ask
+(`contracts.ask` / `<negotiationId>:1`; a summary for a computer promotion)
+and publish `negotiation.opened`. Every later offer (a revision or an accepted
+counter) records the ask for its round and is mirrored on a signing's
+`offered` employment (terms, dates, role, push, brand) in the same
+transaction, so contract queries see the current offer. Ending or withdrawing
+moves that employment `offered → withdrawn` with `endedOn` today. The
+functions re-check the offer and throw `InvalidArgumentError` when the rules
+refuse it, so a caller that resolves later (MP6) cannot record an offer the
+rules refuse.
+
+**The rules** (`validateOffer(read, tunables, input, issuedBy) → Reason[]`),
+each a player-facing reason:
+
+| Code                                                                          | When                                                                                                                                                                                                                                                   |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `contracts.notYourPromotion`                                                  | the issuer does not run the promotion (a human for their own, the computer for computer promotions: `controlsPromotion`)                                                                                                                               |
+| `contracts.unavailable`                                                       | [eligibility](#eligibility)'s reasons ("Retired", "Under an exclusive contract with Crown Pro until …; talks can start on …"), "Already under contract with you: offer a renewal instead"                                                              |
+| `contracts.cooldown`                                                          | "Walked away from talks: try again after <date>", from the latest running `cooldownUntil`                                                                                                                                                              |
+| `contracts.alreadyNegotiating`                                                | open talks for the pair; the reason's subject is those talks                                                                                                                                                                                           |
+| `contracts.kindNotAllowed`, `.exclusiveNotAllowed`                            | the reach reasons from the ask's `allowedKinds` and `exclusiveReasons` ("Written contracts need a reach of 35; yours is 12")                                                                                                                           |
+| `contracts.badTerms` (with `field`)                                           | a monthly wage on a per-appearance deal, money below zero, longer than `contracts.offer.maxLengthMonths`, a start that has passed (unless it is the start already on the table), a cap of 0, a share the game does not pay                             |
+| `contracts.badBrand`                                                          | a brand of another promotion, or one that is not running                                                                                                                                                                                               |
+| `contracts.refusesRole` / `contracts.badRole`                                 | `roleMismatch`: "Wants to wrestle" / "Has never worked as a referee"                                                                                                                                                                                   |
+| `contracts.badKindExtra`                                                      | the kind's `extraSchema` fails, or extra fields on a kind without one                                                                                                                                                                                  |
+| `contracts.refusesRenewal`                                                    | "Won't renew while unhappy here" (the ask's `refusal`)                                                                                                                                                                                                 |
+| `contracts.unknownContract`, `.notRenewable`, `.renewalNotOpen`               | renewals: the contract must be a signed or active one of yours, and talks open `contracts.renewal.windowDays` (180) before it ends ("Talks open 180 days before the contract ends (from May 4, 2027)"); an open-ended contract can be renewed any time |
+| `contracts.notCountered`, `.offerRequired`, `.notOpen`, `.unknownNegotiation` | answering: only a `countered` negotiation, a revision needs an offer, closed talks cannot be withdrawn                                                                                                                                                 |
+
+A refused command changes nothing and is logged as `rejected` with its codes.
+
+**Queries.** `contracts.offers { promotionId, status?: 'open' | 'closed' |
+'all' }` (default all; open first, then newest) → rows `{ negotiationId,
+kind, personId, ringName, imageRef, status, round, patienceLeft,
+startPatience, offerSummary { kind, exclusive, monthlyWage, perAppearanceFee,
+signingBonus, lengthMonths }, counterSummary | null, counterExpiresOn,
+reviewOn, closedOn, outcome { code, message, otherPromotionName } | null,
+cooldownUntil, competingBidders, reactionTraceRef | null, reviewTraceRef |
+null }`. `contracts.negotiation { negotiationId }` → the same row plus
+`offer`, `lastCounter`, `history` (each round with a one-line `summary`, "$9,000
+a month, 12 months, exclusive", and a `reactionLabel`) and `ask` (what they
+ask now for the kind on the table, every number with its Why?). Both answer
+only for the viewer's own promotions (`invalidArgs` otherwise).
+`competingBidders(read, personId, exceptPromotionId)` gives the names of the
+other promotions with open talks for the worker, sorted, and nothing else:
+never their terms, rounds or amounts. With no rival hiring yet (ECO6) it only
+ever names another human's promotion.
 
 ## Review
 
@@ -464,7 +575,8 @@ apply in order, then by id. SOC4's rapport is the first user.
 | `negotiation.closed`     | `negotiationId`, `personId`, `promotionId`, `status`, `outcomeCode`              |
 | `contract.signed`        | `employmentId`, `personId`, `promotionId`, `brandId`, `renewal`, `negotiationId` |
 
-Nothing publishes them in ECO5-01. See also
+ECO5-04's actions publish `negotiation.opened` (opening talks) and
+`negotiation.closed` (withdrawing or ending them). See also
 [day-pipeline.md](day-pipeline.md#domain-events).
 
 ## Tunables

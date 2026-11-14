@@ -293,11 +293,15 @@ entries (0 keeps none, though `seq` still counts) and is saved as the
 
 Commands other systems add:
 
-| Command               | Args                                    | Does                                                                                                                                                                            |
-| --------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `calendar.cancelShow` | `{ eventInstanceId }`                   | Calls off a show the issuer controls and publishes `show.cancelled` ([calendar.md](calendar.md#lifecycle))                                                                      |
-| `roster.setPush`      | `{ employmentIds, push }`               | Moves one or many of the issuer's wrestlers to one card position, all or nothing, through the push door ([roster.md](roster.md#set-push))                                       |
-| `aip.autoFillCard`    | `{ eventInstanceId, keepFilledSlots? }` | Fills the open slots of the issuer's own card (or rebuilds it) with the rival booker; never plans a winner or cancels the show ([rival-booking.md](rival-booking.md#auto-fill)) |
+| Command                      | Args                                    | Does                                                                                                                                                                            |
+| ---------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `calendar.cancelShow`        | `{ eventInstanceId }`                   | Calls off a show the issuer controls and publishes `show.cancelled` ([calendar.md](calendar.md#lifecycle))                                                                      |
+| `roster.setPush`             | `{ employmentIds, push }`               | Moves one or many of the issuer's wrestlers to one card position, all or nothing, through the push door ([roster.md](roster.md#set-push))                                       |
+| `aip.autoFillCard`           | `{ eventInstanceId, keepFilledSlots? }` | Fills the open slots of the issuer's own card (or rebuilds it) with the rival booker; never plans a winner or cancels the show ([rival-booking.md](rival-booking.md#auto-fill)) |
+| `contracts.makeOffer`        | `{ promotionId, personId, offer }`      | Opens talks with a worker open to offers; returns the talks and the preview ([negotiation.md](negotiation.md#commands))                                                         |
+| `contracts.offerRenewal`     | `{ employmentId, offer }`               | Opens renewal talks on one of the issuer's contracts inside its renewal window ([negotiation.md](negotiation.md#commands))                                                      |
+| `contracts.respondToCounter` | `{ negotiationId, response, offer? }`   | Accepts a counter-offer, sends a revised offer or ends the talks ([negotiation.md](negotiation.md#rounds))                                                                      |
+| `contracts.withdrawOffer`    | `{ negotiationId }`                     | Takes an open offer back ([negotiation.md](negotiation.md#commands))                                                                                                            |
 
 Queries other systems add:
 
@@ -327,6 +331,8 @@ Queries other systems add:
 | `aip.segmentDecision`    | `{ segmentId }`                                                                                  | What a computer booker planned for one match: winner, method, reason, title plans and outcome; refused `notRevealed` until the show airs ([rival-booking.md](rival-booking.md#reading-the-results))                                 |
 | `aip.showDecisions`      | `{ eventInstanceId }`                                                                            | Every match a computer booker decided on one show, in running order, as `aip.segmentDecision` views; empty for your own shows; refused `notRevealed` until the show airs ([rival-booking.md](rival-booking.md#reading-the-results)) |
 | `aip.recentTitleChanges` | `{ promotionId, limit? }` (1–20, 5)                                                              | The promotion's latest title changes, newest first, with the rival booker's reason when there is one ([rival-booking.md](rival-booking.md#reading-the-results))                                                                     |
+| `contracts.offers`       | `{ promotionId, status? }`                                                                       | The promotion's talks, open first; other promotions only as names in `competingBidders` ([negotiation.md](negotiation.md#commands))                                                                                                 |
+| `contracts.negotiation`  | `{ negotiationId }`                                                                              | One of the viewer's talks with its rounds and the current ask ([negotiation.md](negotiation.md#commands))                                                                                                                           |
 
 The calendar queries share one row, `CalendarShow`. `scope` is `mine` or
 `world`; a window may cover at most 366 days and is refused with

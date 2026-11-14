@@ -326,6 +326,13 @@ Career tab):
 - `contracts.releasePreview` refuses a rival's contract with only
   `notYourWorker`, so a refusal tells nothing private.
 - Rival renewal and severance traces are stored as summaries only.
+- Offers that never became contracts (ECO5-04: an `offered` employment, a
+  `declined` one, or one `withdrawn` before it was signed; `isUnsignedOffer`)
+  are talks, not contracts: `contracts.list`'s Ended tab and
+  `contracts.changesSince` leave them out (the talks are on
+  `contracts.offers`), and `contracts.detail` answers `null` for another
+  promotion's offer, so not even its kind or dates leak
+  ([negotiation.md](negotiation.md#commands)).
 
 `contracts.list { tab }` rows: `{ employmentId, personId, promotionId,
 ringName, role, push, brandId, status, kind, monthlyWage, perAppearanceFee,
