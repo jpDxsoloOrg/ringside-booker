@@ -5,9 +5,11 @@ import { PlaceholderScreen } from '@/screens/placeholder/PlaceholderScreen';
 import { SaveSlotsScreen } from '@/screens/saves/SaveSlotsScreen';
 import { SettingsScreen } from '@/screens/settings/SettingsScreen';
 import { TitleScreen } from '@/screens/title/TitleScreen';
+import { useNewsTicker } from '@/screens/news/NewsTicker';
 import { LiveAnnouncer } from './a11y/LiveAnnouncer';
 import { RouteFocus } from './a11y/RouteFocus';
 import { AppShell } from './AppShell/AppShell';
+import { useOptionalEngineClient } from './engine/EngineProvider';
 import { devRoutesEnabled, EnterShellRoute } from './dev/EnterShellRoute';
 import type { DevRouteFlags } from './dev/EnterShellRoute';
 import { OutOfGameLayout } from './layouts/OutOfGameLayout';
@@ -167,11 +169,24 @@ export const gameDetailRoutes: RouteObject[] = [
   },
 ];
 
+/** The in-game shell with the live news crawl from `news.top` (DAY1-04). */
+function NewsShell() {
+  return <AppShell ticker={useNewsTicker()} />;
+}
+
+/**
+ * The in-game shell. Its bottom strip is the real news, or no strip at all when there is no world,
+ * no engine or no story: the sample crawl is only for the shell's own tests and the gallery.
+ */
+function GameShell() {
+  return useOptionalEngineClient() === null ? <AppShell ticker={null} /> : <NewsShell />;
+}
+
 const gameRoute: RouteObject = {
   path: routes.game.root(),
   element: (
     <RequireWorld>
-      <AppShell />
+      <GameShell />
     </RequireWorld>
   ),
   children: [

@@ -1,0 +1,34 @@
+/*
+ * The ticker's kind tag (components/Ticker): a slanted block in the kind's tone with the word in
+ * inverse text. The word is skewed back so it reads upright.
+ */
+.tag {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  color: var(--color-text-inverse);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-normal);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: skewX(var(--skew-broadcast));
+}
+
+.text {
+  display: inline-block;
+  transform: skewX(calc(-1 * var(--skew-broadcast)));
+}
+
+.tone-action {
+  background: var(--color-action-bright);
+}
+
+.tone-data {
+  background: var(--color-data);
+}
+
+.tone-prestige {
+  background: var(--color-prestige);
+}

@@ -115,14 +115,23 @@ describe('shell chrome on desktop', () => {
     expect(within(status).queryByText('Popularity')).toBeNull();
   });
 
-  it('shows the ticker after the content, labelled as sample news', async () => {
-    loadWorld({ employed: true });
-    renderApp(routes.game.office());
+  it('shows its own sample ticker after the content when given none', async () => {
+    renderShell({});
 
     const ticker = await screen.findByRole('region', { name: 'News ticker' });
     expect(ticker).toHaveTextContent('Sample news');
     const main = screen.getByRole('main');
     expect(main.compareDocumentPosition(ticker) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('draws no ticker in the game while no world answers, never the sample', async () => {
+    loadWorld({ employed: true });
+    renderApp(routes.game.office());
+
+    await screen.findByRole('group', { name: 'Status (sample figures)' });
+    expect(screen.queryByRole('region', { name: 'News ticker' })).toBeNull();
+    expect(screen.queryByTestId('ticker-slot')).toBeNull();
+    expect(screen.queryByText('Sample news')).toBeNull();
   });
 });
 
@@ -142,8 +151,7 @@ describe('shell chrome on a phone', () => {
 
   it('puts the ticker between the content and the tab bar', async () => {
     usePhoneLayout();
-    loadWorld({ employed: true });
-    renderApp(routes.game.office());
+    renderShell({});
 
     const ticker = await screen.findByRole('region', { name: 'News ticker' });
     const tabBar = screen.getByRole('navigation', { name: 'Primary' });
