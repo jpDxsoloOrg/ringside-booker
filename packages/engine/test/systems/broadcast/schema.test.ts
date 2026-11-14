@@ -147,13 +147,10 @@ describe('deal lifecycle fields', () => {
   });
 
   it('default to null for a deal written before them', () => {
-    const {
-      endedOn: _endedOn,
-      endedReason: _endedReason,
-      renegotiatedOn: _renegotiatedOn,
-      warnedOn: _warnedOn,
-      ...older
-    } = aDeal();
+    const older: Record<string, unknown> = { ...aDeal() };
+    for (const field of ['endedOn', 'endedReason', 'renegotiatedOn', 'warnedOn']) {
+      Reflect.deleteProperty(older, field);
+    }
     expect(DealSchema.parse(older)).toMatchObject({
       endedOn: null,
       endedReason: null,
