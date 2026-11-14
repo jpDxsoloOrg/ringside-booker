@@ -45,7 +45,7 @@ import { isPhone } from './helpers/viewport';
 const ALTURA = 'Altura Wrestling Entertainment';
 
 /** Building the world, booking six segments, running the show and two payoffs take a while. */
-const GAME_TIMEOUT_MS = 900_000;
+const GAME_TIMEOUT_MS = 420_000;
 
 /** "Ashfall Rivalry 54 → 62": a heat chip's numbers. */
 const HEAT_NUMBERS = /(\d+)\s*→\s*(?:to)?\s*(\d+)/;
@@ -211,6 +211,7 @@ test('storylines on the card: link, heat on the results, timeline and both payof
 
   // The storyline's page: four counted steps, the finale's numbers and the finale hint.
   await openStoryline(page, hot.name);
+  const hotUrl = new URL(page.url()).pathname;
   const timeline = page.getByRole('list', { name: 'Linked segments, newest first' });
   const counted = timeline
     .getByRole('listitem')
@@ -288,7 +289,9 @@ test('storylines on the card: link, heat on the results, timeline and both payof
     await navigateInApp(page, resultsUrl);
     await expect(page.getByRole('region', { name: 'Storylines', exact: true })).toBeVisible();
     await expectNoHorizontalScroll(page);
-    await openStoryline(page, hot.name);
+    // It has ended, so the desk lists it under Ended: open its page directly.
+    await navigateInApp(page, hotUrl);
+    await expect(page.getByRole('heading', { level: 1, name: hot.name })).toBeVisible();
     await expect(page.getByRole('list', { name: 'Linked segments, newest first' })).toBeVisible();
     await expectNoHorizontalScroll(page);
   }
