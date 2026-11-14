@@ -121,4 +121,14 @@ export const storylinesTunables = defineTunables({
     description: 'Starter storylines each promotion gets at new game. 0 creates none',
     docRef: 'storylines.md#starters',
   },
+  'storylines.link.maxPerSegment': {
+    kind: 'integer',
+    default: 2,
+    min: 1,
+    max: 12,
+    unit: 'count',
+    category: CATEGORY,
+    description: 'The most storylines one segment can be linked to and count for',
+    docRef: 'storylines.md#linking',
+  },
 });
