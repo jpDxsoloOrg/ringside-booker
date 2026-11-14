@@ -13,9 +13,11 @@
 import { definePhase, type PhaseDefinition } from '../../core/pipeline/phase';
 import { registerBeforeShowRuns, type BeforeShowRunsHook } from '../shows/beforeRun';
 import { runContractLifecycle } from './lifecycle';
+import { runUnhappyWorkers } from './unhappy';
 
 export const CONTRACT_LIFECYCLE_PHASE_ID = 'contracts.lifecycle';
 export const CONTRACTS_BEFORE_SHOW_HOOK_ID = 'contracts.beforeShow';
+export const UNHAPPY_WORKERS_PHASE_ID = 'contracts.unhappyWorkers';
 
 export const contractLifecyclePhase: PhaseDefinition = definePhase({
   id: CONTRACT_LIFECYCLE_PHASE_ID,
@@ -41,4 +43,21 @@ export const contractsBeforeShowHook: BeforeShowRunsHook = {
 
 registerBeforeShowRuns(contractsBeforeShowHook);
 
-export const contractsPhases: readonly PhaseDefinition[] = [contractLifecyclePhase];
+/**
+ * Unhappy clocks, release requests and walk-outs (ECO4-03): after the lifecycle (10), so a
+ * contract that ended today is not counted, and before titles are vacated (CRTV1, 90), so a
+ * walk-out's title is freed the same day. It does not run on show night before the day: it counts
+ * days, so it runs exactly once each day. Design: docs/design/contracts.md#unhappy-workers.
+ */
+export const unhappyWorkersPhase: PhaseDefinition = definePhase({
+  id: UNHAPPY_WORKERS_PHASE_ID,
+  group: 'contracts',
+  order: 30,
+  cadence: { kind: 'daily' },
+  run: runUnhappyWorkers,
+});
+
+export const contractsPhases: readonly PhaseDefinition[] = [
+  contractLifecyclePhase,
+  unhappyWorkersPhase,
+];

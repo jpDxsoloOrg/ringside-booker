@@ -8,6 +8,9 @@
  *   `withdrawn`.
  * - `contracts.acknowledgeExpiries { employmentIds | 'all' }` marks the player's "expiring soon"
  *   notices as seen, so the `contracts.expiringSoon` gate lets the day move again.
+ * - `contracts.answerReleaseRequest { employmentId, answer }` (ECO4-03) grants an unhappy worker's
+ *   request to leave (a quit with reduced severance) or refuses it (a morale hit and daily
+ *   walk-out rolls). `contracts.answerPreview` shows both outcomes first.
  *
  * Only a human who runs the contract's promotion may issue them. Rivals' releases go through
  * `releaseEmployment` directly (ECO9). Design: docs/design/contracts.md#severance and
@@ -20,12 +23,14 @@ import { controllerViewer, viewerPromotionIds, type Controller } from '../../cor
 import type { Reason } from '../../core/api/result';
 import type { EmploymentId, PromotionId } from '../../core/ids';
 import type { TraceRef } from '../../core/trace/store';
+import type { Traced } from '../../core/trace/types';
 import { UNSEEN_EXPIRY_KEY } from '../../model/entities/contract-concern';
 import { zId } from '../../model/primitives';
 import type { GameWorldView } from '../../model/tables';
 import { moneyText } from '../production';
 import { RELEASE_REASON_KEY, releaseEmployment, releaseSeverance } from './release';
-import { releaseRefusals } from './rules';
+import { grantRequest, refuseRequest, walkoutChanceFor } from './requests';
+import { answerRefusals, releaseRefusals } from './rules';
 
 export interface ReleaseResult {
   /** The severance paid, in whole cents. */
@@ -46,8 +51,32 @@ declare module '../../core/api/maps' {
       args: { employmentIds: EmploymentId[] | 'all' };
       result: null;
     };
+    'contracts.answerReleaseRequest': {
+      args: { employmentId: EmploymentId; answer: ReleaseAnswer };
+      result: AnswerReleaseResult;
+    };
   }
 }
+
+/** The player's answer to a release request (ECO4-03). */
+export type ReleaseAnswer = 'grant' | 'refuse';
+
+/** What answering a release request did. */
+export type AnswerReleaseResult =
+  | {
+      answer: 'grant';
+      /** The severance paid, in whole cents. */
+      severance: number;
+      /** The promotion's cash after paying it, in cents. */
+      cashAfter: number;
+      /** The severance ledger row's Why?, or null when nothing was paid. */
+      ledgerTraceRef: TraceRef | null;
+    }
+  | {
+      answer: 'refuse';
+      /** The worker's daily walk-out chance from tomorrow, at their morale after the refusal. */
+      walkoutChance: Traced<number>;
+    };
 
 /** The most notices one call may mark as seen by id. */
 export const ACKNOWLEDGE_MAX_EXPIRIES = 200;
@@ -153,4 +182,35 @@ export const acknowledgeExpiriesCommand = defineCommand('contracts.acknowledgeEx
   },
 });
 
-export const contractsCommands = [releaseCommand, acknowledgeExpiriesCommand] as const;
+export const answerReleaseRequestCommand = defineCommand('contracts.answerReleaseRequest', {
+  args: z.strictObject({
+    employmentId: zId('employment'),
+    answer: z.enum(['grant', 'refuse']),
+  }),
+  validate: (read, args, issuedBy) =>
+    answerRefusals(read, args.employmentId, issuerPromotionIds(read, issuedBy)),
+  apply: (ctx, args): AnswerReleaseResult => {
+    const employment = ctx.read.tables.employments.require(args.employmentId);
+    if (args.answer === 'grant') {
+      const ended = grantRequest(ctx, args.employmentId, 'player');
+      return {
+        answer: 'grant',
+        severance: ended.severance,
+        cashAfter: ctx.read.tables.promotions.require(employment.promotionId).cash,
+        ledgerTraceRef: ended.ledgerTraceRef,
+      };
+    }
+    refuseRequest(ctx, args.employmentId, 'player', ctx.date);
+    const after = ctx.read.tables.employments.require(args.employmentId);
+    return {
+      answer: 'refuse',
+      walkoutChance: walkoutChanceFor(ctx.read, after, ctx.tunables),
+    };
+  },
+});
+
+export const contractsCommands = [
+  releaseCommand,
+  acknowledgeExpiriesCommand,
+  answerReleaseRequestCommand,
+] as const;

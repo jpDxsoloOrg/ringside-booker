@@ -7,6 +7,9 @@
  * - `contracts.detail { employmentId }`: one contract. Any contract in the world can be looked at,
  *   but a rival's money terms and morale are left out (`termsPrivate: true`, D-07).
  * - `contracts.counts`: the nav badge's numbers.
+ * - `contracts.answerPreview { employmentId }` (ECO4-03): both outcomes of a release request.
+ *   Rows and details also carry the unhappy clock, the request and the walk-out chance, for the
+ *   viewer's own contracts only (rival morale stays private).
  * - `contracts.changesSince { from, to }`: the Next Day summary's contract lines, read from the
  *   contracts themselves so a long skip never loses lines to the event-log limit.
  *
@@ -22,7 +25,11 @@ import { compareDates, diffDays, type GameDate } from '../../core/date';
 import type { BrandId, EmploymentId, PersonId, PromotionId, TitleId } from '../../core/ids';
 import type { TraceRef } from '../../core/trace/store';
 import type { Traced } from '../../core/trace/types';
-import type { ContractConcern, ContractEndingHow } from '../../model/entities/contract-concern';
+import type {
+  ContractConcern,
+  ContractEndingHow,
+  ReleaseRequestStatus,
+} from '../../model/entities/contract-concern';
 import {
   type ContractKind,
   type ContractPerks,
@@ -42,7 +49,10 @@ import { plainDate } from '../health/gate';
 import { moneyText } from '../production';
 import { unseenExpiringContracts } from './gates';
 import { releaseSeverance } from './release';
-import { releaseRefusals } from './rules';
+import { grantSeverance, refusalMoraleDelta, walkoutChanceFor } from './requests';
+import { answerRefusals, releaseRefusals } from './rules';
+import { hotStorylineFor } from './storyPause';
+import { unhappyTraceRef, walkoutTraceRef } from './traceKinds';
 import { titlesHeldBy } from './titles';
 
 // ---------------------------------------------------------------------------------------------
@@ -97,7 +107,53 @@ export interface ContractRow {
   titles: HeldTitle[];
   notice: 'unseen' | 'seen' | null;
   imageRef: ImageRef;
+  /** The unhappy clock (ECO4-03), or null while the worker is not unhappy. */
+  unhappy: UnhappyView | null;
+  /** The worker's release request (ECO4-03), or null. */
+  request: RequestView | null;
+  /** The daily walk-out chance after a refused request (ECO4-03), or null. */
+  walkout: WalkoutView | null;
 }
+
+/** The unhappy clock as a contract row shows it: "Day 9 of 14", or paused by a hot storyline. */
+export interface UnhappyView {
+  days: number;
+  /** `contracts.quit.days`. */
+  of: number;
+  /** True while a hot storyline pauses the clock (D-09). */
+  paused: boolean;
+  /** The clock's Why? (today's or the last one stored), or null. */
+  traceRef: TraceRef | null;
+}
+
+export interface RequestView {
+  status: ReleaseRequestStatus;
+  raisedOn: GameDate;
+  answerBy: GameDate;
+}
+
+export interface WalkoutView {
+  /** Today's daily walk-out chance, 0 to 1. */
+  chance: number;
+  /** The latest walk-out roll's Why?, or null before the first roll. */
+  traceRef: TraceRef | null;
+}
+
+/** Both outcomes of a release request, before the player answers (ECO4-03). */
+export type AnswerPreview =
+  | {
+      kind: 'ok';
+      /** What granting pays: `contracts.quit.severanceShare` of the normal severance. */
+      grantSeverance: Traced<number>;
+      cashBefore: number;
+      /** The morale change a refusal costs (0 or less). */
+      refuseMoraleDelta: number;
+      /** The daily walk-out chance from tomorrow if refused. */
+      walkoutChanceAfterRefusal: Traced<number>;
+      /** An iron-clad contract never walks out. */
+      ironClad: boolean;
+    }
+  | { kind: 'refused'; reasons: Reason[] };
 
 export type ReleaseWarningCode = 'holdsTitle' | 'ironClad' | 'intoDebt' | 'bookedSoon' | 'gladToGo';
 
@@ -154,6 +210,12 @@ export interface OwnContractDetail extends ContractDetailBase {
   notice: 'unseen' | 'seen' | null;
   /** What releasing them would cost today, or null once the contract has ended. */
   severance: Traced<number> | null;
+  /** The unhappy clock (ECO4-03), or null. */
+  unhappy: UnhappyView | null;
+  /** The release request (ECO4-03), or null. */
+  request: RequestView | null;
+  /** The daily walk-out chance after a refused request (ECO4-03), or null. */
+  walkout: WalkoutView | null;
 }
 
 /** A rival's contract: no money terms, no morale (left out, not zeroed). */
@@ -199,7 +261,11 @@ export interface ContractChanges {
 declare module '../../core/api/maps' {
   interface QueryMap {
     'contracts.releasePreview': { args: { employmentId: EmploymentId }; result: ReleasePreview };
-    'contracts.list': { args: { tab: ContractsTab }; result: ContractRow[] };
+    'contracts.list': {
+      args: { tab: ContractsTab; wantsToLeave?: boolean | undefined };
+      result: ContractRow[];
+    };
+    'contracts.answerPreview': { args: { employmentId: EmploymentId }; result: AnswerPreview };
     'contracts.detail': { args: { employmentId: EmploymentId }; result: ContractDetail | null };
     'contracts.counts': { args: Record<string, never>; result: ContractCounts };
     'contracts.changesSince': { args: { from: GameDate; to: GameDate }; result: ContractChanges };
@@ -274,6 +340,46 @@ function endReasonOf(
   return how === 'granted' ? 'quit' : how;
 }
 
+/** The ECO4-03 fields of one of the viewer's own contracts. */
+function concernViews(
+  ctx: QueryContext,
+  employment: DeepReadonly<Employment>,
+  concern: DeepReadonly<ContractConcern> | undefined,
+): { unhappy: UnhappyView | null; request: RequestView | null; walkout: WalkoutView | null } {
+  const live = employment.status === 'active';
+  const clock = live ? (concern?.unhappy ?? null) : null;
+  const request = live ? (concern?.request ?? null) : null;
+  const known = (ref: TraceRef): TraceRef | null => (ctx.traces.has(ref) ? ref : null);
+  return {
+    unhappy:
+      clock === null
+        ? null
+        : {
+            days: clock.days,
+            of: ctx.tunables.get('contracts.quit.days'),
+            paused:
+              hotStorylineFor(
+                ctx.read,
+                employment.personId,
+                employment.promotionId,
+                ctx.tunables,
+              ) !== null,
+            traceRef: known(unhappyTraceRef(employment.id)),
+          },
+    request:
+      request === null
+        ? null
+        : { status: request.status, raisedOn: request.raisedOn, answerBy: request.answerBy },
+    walkout:
+      request?.status === 'refused'
+        ? {
+            chance: walkoutChanceFor(ctx.read, employment, ctx.tunables).value,
+            traceRef: known(walkoutTraceRef(employment.id)),
+          }
+        : null,
+  };
+}
+
 function imageOf(read: GameWorldView, personId: PersonId): ImageRef {
   return read.tables.people.get(personId)?.imageRef ?? null;
 }
@@ -307,6 +413,7 @@ function rowOf(ctx: QueryContext, employment: DeepReadonly<Employment>): Contrac
     titles: ended ? [] : heldTitles(ctx.read, employment),
     notice: noticeOf(concern),
     imageRef: imageOf(ctx.read, employment.personId),
+    ...concernViews(ctx, employment, concern),
   };
 }
 
@@ -429,39 +536,47 @@ export const releasePreviewQuery = defineQuery('contracts.releasePreview', {
 // contracts.list
 
 export const listQuery = defineQuery('contracts.list', {
-  args: z.strictObject({ tab: z.enum(['active', 'expiring', 'ended']) }),
+  args: z.strictObject({
+    tab: z.enum(['active', 'expiring', 'ended']),
+    wantsToLeave: z.boolean().optional(),
+  }),
   run: (ctx, args): ContractRow[] => {
-    const employments = ownEmployments(ctx);
-    switch (args.tab) {
-      case 'active':
-        return employments
-          .filter((employment) => employment.status === 'active' || employment.status === 'signed')
-          .map((employment) => rowOf(ctx, employment))
-          .sort(byName);
-      case 'expiring': {
-        const window = ctx.tunables.get('contracts.expiring.windowDays');
-        return employments
-          .filter((employment) => employment.status === 'active')
-          .map((employment) => rowOf(ctx, employment))
-          .filter((row) => row.daysLeft !== null && row.daysLeft <= window)
-          .sort(
-            (left, right) =>
-              (left.daysLeft ?? 0) - (right.daysLeft ?? 0) ||
-              compareIds(left.employmentId, right.employmentId),
-          );
-      }
-      case 'ended':
-        return employments
-          .filter((employment) => ENDED_TAB_STATUSES.includes(employment.status))
-          .map((employment) => rowOf(ctx, employment))
-          .sort(
-            (left, right) =>
-              compareDates(right.endedOn ?? right.startsOn, left.endedOn ?? left.startsOn) ||
-              compareIds(left.employmentId, right.employmentId),
-          );
-    }
+    const rows = listRows(ctx, args.tab);
+    return args.wantsToLeave === true ? rows.filter((row) => row.request?.status === 'open') : rows;
   },
 });
+
+function listRows(ctx: QueryContext, tab: ContractsTab): ContractRow[] {
+  const employments = ownEmployments(ctx);
+  switch (tab) {
+    case 'active':
+      return employments
+        .filter((employment) => employment.status === 'active' || employment.status === 'signed')
+        .map((employment) => rowOf(ctx, employment))
+        .sort(byName);
+    case 'expiring': {
+      const window = ctx.tunables.get('contracts.expiring.windowDays');
+      return employments
+        .filter((employment) => employment.status === 'active')
+        .map((employment) => rowOf(ctx, employment))
+        .filter((row) => row.daysLeft !== null && row.daysLeft <= window)
+        .sort(
+          (left, right) =>
+            (left.daysLeft ?? 0) - (right.daysLeft ?? 0) ||
+            compareIds(left.employmentId, right.employmentId),
+        );
+    }
+    case 'ended':
+      return employments
+        .filter((employment) => ENDED_TAB_STATUSES.includes(employment.status))
+        .map((employment) => rowOf(ctx, employment))
+        .sort(
+          (left, right) =>
+            compareDates(right.endedOn ?? right.startsOn, left.endedOn ?? left.startsOn) ||
+            compareIds(left.employmentId, right.employmentId),
+        );
+  }
+}
 
 // ---------------------------------------------------------------------------------------------
 // contracts.detail
@@ -503,6 +618,7 @@ export const detailQuery = defineQuery('contracts.detail', {
     }
     const { terms } = employment;
     const live = employment.status === 'active' || employment.status === 'signed';
+    const concern = concernOf(ctx.read, employment.id);
     return {
       ...base,
       termsPrivate: false,
@@ -513,8 +629,9 @@ export const detailQuery = defineQuery('contracts.detail', {
       appearanceCap: terms.appearanceCap,
       leave: employment.leave === null ? null : { ...employment.leave },
       morale: employment.morale,
-      notice: noticeOf(concernOf(ctx.read, employment.id)),
+      notice: noticeOf(concern),
       severance: live ? releaseSeverance(ctx, employment.id) : null,
+      ...concernViews(ctx, employment, concern),
     };
   },
 });
@@ -653,7 +770,36 @@ export const changesSinceQuery = defineQuery('contracts.changesSince', {
   },
 });
 
+// ---------------------------------------------------------------------------------------------
+// contracts.answerPreview (ECO4-03)
+
+export const answerPreviewQuery = defineQuery('contracts.answerPreview', {
+  args: z.strictObject({ employmentId: zId('employment') }),
+  run: (ctx, args): AnswerPreview => {
+    const reasons = answerRefusals(
+      ctx.read,
+      args.employmentId,
+      ownPromotions(ctx.read, ctx.viewer),
+    );
+    if (reasons.length > 0) {
+      return { kind: 'refused', reasons };
+    }
+    const employment = ctx.read.tables.employments.require(args.employmentId);
+    const delta = refusalMoraleDelta(ctx.tunables).value;
+    const moraleAfter = Math.min(100, Math.max(-100, employment.morale + delta));
+    return {
+      kind: 'ok',
+      grantSeverance: grantSeverance(ctx, employment.id),
+      cashBefore: ctx.read.tables.promotions.require(employment.promotionId).cash,
+      refuseMoraleDelta: delta,
+      walkoutChanceAfterRefusal: walkoutChanceFor(ctx.read, employment, ctx.tunables, moraleAfter),
+      ironClad: employment.terms.perks.ironClad,
+    };
+  },
+});
+
 export const contractsQueries: readonly QueryDefinition[] = [
+  answerPreviewQuery,
   releasePreviewQuery,
   listQuery,
   detailQuery,

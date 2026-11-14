@@ -11,9 +11,9 @@
  * Design: docs/design/contracts.md#expiring-soon.
  */
 
-import { compareDates } from '../../core/date';
+import { compareDates, type GameDate } from '../../core/date';
 import type { GateHit, GateSpec } from '../../core/pipeline/gates';
-import { UNSEEN_EXPIRY_KEY } from '../../model/entities/contract-concern';
+import { OPEN_REQUEST_KEY, UNSEEN_EXPIRY_KEY } from '../../model/entities/contract-concern';
 import type { Employment } from '../../model/entities/employment';
 import { compareIds } from '../../model/table';
 import type { GameWorldView } from '../../model/tables';
@@ -63,6 +63,69 @@ export const expiringSoonGate: GateSpec = {
     }
     return {
       gateId: EXPIRING_SOON_GATE_ID,
+      reason,
+      subject: { kind: 'employment', id: first.id },
+      actionHint: CONTRACTS_ACTION_HINT,
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------------------------
+// ECO4-03: "Worker wants to leave"
+
+export const RELEASE_REQUESTED_GATE_ID = 'contracts.releaseRequested';
+
+/**
+ * Active contracts with an open release request that stops a skip (the `openRequest` index only
+ * holds those), oldest request first, ties by id. Rows answered by decision mail (`mailId`, ECO4-05)
+ * are left to the mail.
+ */
+export function openReleaseRequests(read: GameWorldView): DeepReadonly<Employment>[] {
+  const rows: { employment: DeepReadonly<Employment>; raisedOn: GameDate }[] = [];
+  for (const concern of read.tables.contractConcerns.lookup('openRequest', OPEN_REQUEST_KEY)) {
+    const { request } = concern;
+    if (request?.mailId !== null) {
+      continue;
+    }
+    const employment = read.tables.employments.get(concern.employmentId);
+    if (employment?.status === 'active') {
+      rows.push({ employment, raisedOn: request.raisedOn });
+    }
+  }
+  return rows
+    .sort(
+      (left, right) =>
+        compareDates(left.raisedOn, right.raisedOn) ||
+        compareIds(left.employment.id, right.employment.id),
+    )
+    .map((row) => row.employment);
+}
+
+/** "Big Joe wants to leave", plus " and 2 others" when there are more. */
+export function releaseRequestedReason(
+  waiting: readonly DeepReadonly<Employment>[],
+): string | null {
+  const [first] = waiting;
+  if (first === undefined) {
+    return null;
+  }
+  const others = waiting.length - 1;
+  const more = others === 0 ? '' : ` and ${String(others)} ${others === 1 ? 'other' : 'others'}`;
+  return `${first.ringName} wants to leave${more}`;
+}
+
+export const releaseRequestedGate: GateSpec = {
+  id: RELEASE_REQUESTED_GATE_ID,
+  label: 'Worker wants to leave',
+  check: (view): GateHit | null => {
+    const waiting = openReleaseRequests(view);
+    const reason = releaseRequestedReason(waiting);
+    const [first] = waiting;
+    if (reason === null || first === undefined) {
+      return null;
+    }
+    return {
+      gateId: RELEASE_REQUESTED_GATE_ID,
       reason,
       subject: { kind: 'employment', id: first.id },
       actionHint: CONTRACTS_ACTION_HINT,

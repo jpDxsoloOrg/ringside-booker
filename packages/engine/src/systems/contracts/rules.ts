@@ -65,3 +65,63 @@ export function releaseRefusals(
   }
   return reasons;
 }
+
+/** The refusal codes of `contracts.answerReleaseRequest` and `contracts.answerPreview` (ECO4-03). */
+export const ANSWER_REASON_CODES = [
+  'unknownContract',
+  'notYourWorker',
+  'isOwner',
+  'noOpenRequest',
+] as const;
+export type AnswerReasonCode = (typeof ANSWER_REASON_CODES)[number];
+
+/**
+ * Why someone running `own` cannot answer `employmentId`'s release request, or `[]`. Like
+ * `releaseRefusals`, a rival contract gets only `notYourWorker`.
+ */
+export function answerRefusals(
+  read: GameWorldView,
+  employmentId: EmploymentId,
+  own: readonly PromotionId[],
+): Reason[] {
+  const employment = read.tables.employments.get(employmentId);
+  if (employment === undefined) {
+    return [
+      {
+        code: 'unknownContract',
+        message: 'That contract is not in this game any more. Refresh the page and try again.',
+      },
+    ];
+  }
+  const subject = { kind: 'employment' as const, id: employment.id };
+  if (!own.includes(employment.promotionId)) {
+    return [
+      {
+        code: 'notYourWorker',
+        message: `${employment.ringName} does not work for you, so this request is not yours to answer.`,
+        subject,
+      },
+    ];
+  }
+  const promotion = read.tables.promotions.get(employment.promotionId);
+  if (promotion?.ownerPersonId === employment.personId) {
+    return [
+      {
+        code: 'isOwner',
+        message: `${employment.ringName} owns the promotion, so they never ask to leave.`,
+        subject,
+      },
+    ];
+  }
+  const request = read.tables.contractConcerns.lookupOne('byEmployment', employment.id)?.request;
+  if (employment.status !== 'active' || request?.status !== 'open') {
+    return [
+      {
+        code: 'noOpenRequest',
+        message: `${employment.ringName} has no release request waiting for an answer.`,
+        subject,
+      },
+    ];
+  }
+  return [];
+}

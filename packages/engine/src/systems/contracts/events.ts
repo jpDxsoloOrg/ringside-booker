@@ -45,6 +45,13 @@ declare module '../../core/events/types' {
       endsOn: GameDate;
       source: DoorSource;
     };
+    /** One of the player's unhappy workers asked to be released (ECO4-03). */
+    'contract.releaseRequested': ContractRef;
+    /**
+     * A release request was refused: by the player (`player`), by a rival's rule (`ai`), or left
+     * unanswered past its answer-by date (`system`). The worker may now walk out (ECO4-03).
+     */
+    'contract.releaseRefused': ContractRef & { source: DoorSource };
   }
 }
 

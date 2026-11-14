@@ -1,7 +1,8 @@
 /**
  * The contracts system's balance numbers: the simple rival renewal rule that keeps rival rosters
  * stocked until the rival labour market (ECO6) exists (ECO4-01); severance, the "expiring soon"
- * notices and the player's temporary automatic renewal (ECO4-02). All in the `Contracts` category,
+ * notices and the player's temporary automatic renewal (ECO4-02); unhappy workers, release
+ * requests and walk-outs (ECO4-03). All in the `Contracts` category,
  * documented in docs/design/contracts.md.
  */
 
@@ -14,6 +15,8 @@ const RENEWALS_DOC = 'contracts.md#simple-renewals';
 const SEVERANCE_DOC = 'contracts.md#severance';
 const EXPIRING_DOC = 'contracts.md#expiring-soon';
 const PLAYER_RENEWAL_DOC = 'contracts.md#player-renewals';
+const UNHAPPY_DOC = 'contracts.md#unhappy-workers';
+const WALKOUT_DOC = 'contracts.md#walk-outs';
 
 function contractDays(defaultValue: number, description: string) {
   return {
@@ -222,5 +225,120 @@ export const contractsTunables = defineTunables({
     category: CONTRACTS_TUNABLE_CATEGORY,
     description: 'Temporary: how long each automatic renewal of your contracts adds',
     docRef: PLAYER_RENEWAL_DOC,
+  },
+
+  // ECO4-03: unhappy workers, release requests and walk-outs.
+  'contracts.quit.threshold': {
+    kind: 'integer',
+    default: -40,
+    min: -100,
+    max: 100,
+    unit: 'points',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'At or below this morale the unhappy clock runs',
+    docRef: UNHAPPY_DOC,
+  },
+  'contracts.quit.days': {
+    kind: 'integer',
+    default: 14,
+    min: 0,
+    max: 365,
+    unit: 'days',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Days in a row at or below the threshold before asking to leave; 0 = at once',
+    docRef: UNHAPPY_DOC,
+  },
+  'contracts.quit.severanceShare': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Share of normal severance paid when you grant a request',
+    docRef: UNHAPPY_DOC,
+  },
+  'contracts.quit.storyShieldHeat': {
+    kind: 'integer',
+    default: 70,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Storyline heat at which the clock and walk-out rolls pause (D-09)',
+    docRef: UNHAPPY_DOC,
+  },
+  'contracts.releaseRequest.answerDays': {
+    kind: 'integer',
+    default: 7,
+    min: 1,
+    max: 60,
+    unit: 'days',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Days you have to answer a release request before it counts as refused',
+    docRef: UNHAPPY_DOC,
+  },
+  'contracts.releaseRequest.stopSkip': {
+    kind: 'boolean',
+    // Off until the Contracts screen can answer a request (ECO4-04 turns it on).
+    default: false,
+    unit: 'flag',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'A new release request stops a skip until you answer it',
+    docRef: UNHAPPY_DOC,
+  },
+  'contracts.refuse.moralePenalty': {
+    kind: 'integer',
+    default: 10,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Morale a worker loses when their release request is refused',
+    docRef: UNHAPPY_DOC,
+  },
+  'contracts.walkout.chancePerDay': {
+    kind: 'number',
+    default: 0.02,
+    min: 0,
+    max: 1,
+    step: 0.005,
+    unit: 'probability',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Daily chance a refused worker walks out',
+    docRef: WALKOUT_DOC,
+  },
+  'contracts.walkout.extraPerPoint': {
+    kind: 'number',
+    default: 0.001,
+    min: 0,
+    max: 0.1,
+    step: 0.0005,
+    unit: 'probability',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Extra daily walk-out chance per morale point below the threshold',
+    docRef: WALKOUT_DOC,
+  },
+  'contracts.walkout.maxPerDay': {
+    kind: 'number',
+    default: 0.1,
+    min: 0,
+    max: 1,
+    step: 0.01,
+    unit: 'probability',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Highest daily walk-out chance',
+    docRef: WALKOUT_DOC,
+  },
+  'contracts.walkout.recoverMargin': {
+    kind: 'integer',
+    default: 10,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Morale this far above the threshold ends the walk-out risk',
+    docRef: WALKOUT_DOC,
   },
 });

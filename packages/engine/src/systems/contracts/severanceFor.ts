@@ -15,17 +15,31 @@ import type { EmploymentId } from '../../core/ids';
 import type { Traced } from '../../core/trace/types';
 import type { GameWorldView } from '../../model/tables';
 import type { EngineTunables } from '../tunables';
+import { startCalc } from '../../core/trace/calc';
 import { severance } from './formulas/severance';
+
+/** The share of normal severance a granted release request pays, as one tunable line. */
+export function grantShare(tunables: EngineTunables): Traced<number> {
+  const calc = startCalc('Agreed share', 0, {
+    unit: 'ratio',
+    docRef: 'contracts.md#unhappy-workers',
+    startLabel: 'No share yet',
+  });
+  return calc
+    .add('Share paid on a granted request', calc.tunable(tunables, 'contracts.quit.severanceShare'))
+    .done();
+}
 
 /**
  * `release`: the promotion lets the worker go. `grant`: the promotion grants the worker's own
- * request to leave (ECO4-03 adds its share tunable and the line it adds; until then it is refused).
+ * request to leave, paying `contracts.quit.severanceShare` of the normal amount ("Agreed share",
+ * in place of the glad-to-go discount).
  */
 export type SeveranceMode = 'release' | 'grant';
 
 /**
  * The severance due if `employmentId` ended on `date`, in whole cents with its trace. Throws
- * `InvalidArgumentError` for an unknown employment and, until ECO4-03, for `grant`.
+ * `InvalidArgumentError` for an unknown employment.
  */
 export function severanceFor(
   read: GameWorldView,
@@ -43,15 +57,6 @@ export function severanceFor(
       'an existing employment',
     );
   }
-  if (mode === 'grant') {
-    // ECO4-03 adds `contracts.quit.severanceShare` and passes it here as the share line.
-    throw new InvalidArgumentError(
-      'severanceFor',
-      'mode',
-      mode,
-      'release (grant arrives with ECO4-03)',
-    );
-  }
   const { terms } = employment;
   return severance(
     {
@@ -62,7 +67,7 @@ export function severanceFor(
       ironClad: terms.perks.ironClad,
       started: employment.status === 'active',
       morale: employment.morale,
-      shareOverride: null,
+      shareOverride: mode === 'grant' ? grantShare(tunables) : null,
     },
     { tunables },
   );

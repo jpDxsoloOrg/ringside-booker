@@ -22,7 +22,7 @@ import './playerAutoRenewal';
 import './notices';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { contractsCommands } from './commands';
-import { expiringSoonGate } from './gates';
+import { expiringSoonGate, releaseRequestedGate } from './gates';
 import { contractsPhases } from './phases';
 import { contractsQueries } from './queries';
 
@@ -141,10 +141,66 @@ export {
   type ReleaseWarningCode,
 } from './queries';
 
+// ECO4-03: unhappy workers, release requests, refusals and walk-outs.
+export { WALKOUT_STREAM } from './streams';
+export { aiReleaseTraceRef, unhappyTraceRef, walkoutTraceRef } from './traceKinds';
+export { grantShare } from './severanceFor';
+export { hotStorylineFor, hotStorylineText, type HotStoryline } from './storyPause';
+export {
+  IRON_CLAD_NEVER_WALKS,
+  walkoutChance,
+  WALKOUTS_DOC_REF,
+  type WalkoutChanceDeps,
+  type WalkoutChanceInputs,
+} from './formulas/walkoutChance';
+export {
+  AI_RELEASE_RULES,
+  aiReleaseDecision,
+  RIVAL_RULES_DOC_REF,
+  type AiReleaseChoice,
+  type AiReleaseInputs,
+} from './formulas/aiReleaseDecision';
+export {
+  grantRequest,
+  grantSeverance,
+  IGNORED_RELEASE_LABEL,
+  raiseRequest,
+  refusalMoraleDelta,
+  refuseRequest,
+  REFUSED_RELEASE_LABEL,
+  REFUSED_RELEASE_REASON_KEY,
+  RELEASE_GRANTED_REASON_KEY,
+  requestOf,
+  UNHAPPY_DOC_REF,
+  WALKOUT_REASON_KEY,
+  walkoutChanceFor,
+} from './requests';
+export { runUnhappyWorkers } from './unhappy';
+export { UNHAPPY_WORKERS_PHASE_ID, unhappyWorkersPhase } from './phases';
+export {
+  openReleaseRequests,
+  RELEASE_REQUESTED_GATE_ID,
+  releaseRequestedGate,
+  releaseRequestedReason,
+} from './gates';
+export { ANSWER_REASON_CODES, answerRefusals, type AnswerReasonCode } from './rules';
+export {
+  answerReleaseRequestCommand,
+  type AnswerReleaseResult,
+  type ReleaseAnswer,
+} from './commands';
+export {
+  answerPreviewQuery,
+  type AnswerPreview,
+  type RequestView,
+  type UnhappyView,
+  type WalkoutView,
+} from './queries';
+
 export const contractsSystem: SystemBundle = defineSystem({
   id: 'contracts',
   phases: contractsPhases,
-  gates: [expiringSoonGate],
+  gates: [expiringSoonGate, releaseRequestedGate],
   queries: contractsQueries,
   commands: contractsCommands,
 });
