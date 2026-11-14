@@ -98,32 +98,6 @@ function SlotRow({ slot, section, props }: SlotRowProps) {
       tabIndex={-1}
       className={styles['slotRow']}
     >
-      <CardSlot
-        {...view}
-        headingLevel={4}
-        roleAside={<RoleAside slot={slot} />}
-        {...(slotIssues === undefined ? {} : { issues: slotIssues })}
-        {...(slot.segment?.talkLine == null
-          ? {}
-          : { result: <p className={styles['talkLine']}>{slot.segment.talkLine}</p> })}
-        {...(canReorder && slot.segment !== null
-          ? { dragHandle: <DragGrip label={`Move ${place}`} /> }
-          : {})}
-        {...(actions === undefined || actions === null ? {} : { actions })}
-        {...(onAdd === undefined
-          ? emptyHint === undefined
-            ? {}
-            : { emptyHint }
-          : {
-              onAddMatch: () => {
-                onAdd(slot, 'match');
-              },
-              onAddPromo: () => {
-                onAdd(slot, 'angle');
-              },
-              addPromoLabel: 'Add talking segment',
-            })}
-      />
       <WithCardSlotChips slot={slot}>
         {(extraChips) => (
           <CardSlot
@@ -132,6 +106,9 @@ function SlotRow({ slot, section, props }: SlotRowProps) {
             headingLevel={4}
             roleAside={<RoleAside slot={slot} />}
             {...(slotIssues === undefined ? {} : { issues: slotIssues })}
+            {...(slot.segment?.talkLine == null
+              ? {}
+              : { result: <p className={styles['talkLine']}>{slot.segment.talkLine}</p> })}
             {...(canReorder && slot.segment !== null
               ? { dragHandle: <DragGrip label={`Move ${place}`} /> }
               : {})}
