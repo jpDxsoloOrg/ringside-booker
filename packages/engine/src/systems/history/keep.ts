@@ -12,7 +12,8 @@
  * - each title's newest matches the rival booker reads for its last defence and its recent
  *   challengers (`aip.titles.recentChallengers`);
  * - a segment someone was injured in (WRK6-03): injury rows are part of a worker's record and keep
- *   their `segmentId`.
+ *   their `segmentId`;
+ * - a storyline's finale segment (`finaleSegmentId`, CRTV3-01): the storyline keeps pointing at it.
  *
  * The set only depends on the world, so a roll-up is deterministic.
  */
@@ -51,6 +52,11 @@ export function segmentsToKeep(
   for (const injury of read.tables.injuries.values()) {
     if (injury.segmentId !== null) {
       keep.add(injury.segmentId);
+    }
+  }
+  for (const storyline of read.tables.storylines.values()) {
+    if (storyline.finaleSegmentId !== null) {
+      keep.add(storyline.finaleSegmentId);
     }
   }
 
