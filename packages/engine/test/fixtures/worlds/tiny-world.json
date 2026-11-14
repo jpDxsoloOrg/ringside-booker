@@ -42,7 +42,13 @@
             "beat.attack",
             "beat.brawl",
             "beat.pull-apart",
-            "beat.staredown"
+            "beat.staredown",
+            "beat.parking-lot-attack",
+            "beat.arrival"
+          ],
+          "settings": [
+            "ring",
+            "backstage"
           ],
           "hidden": false,
           "description": "An ambush in the ring, backstage or in the car park. Few words, lots of impact."
@@ -66,7 +72,13 @@
             "beat.war-of-words",
             "beat.attack",
             "beat.brawl",
-            "beat.pull-apart"
+            "beat.pull-apart",
+            "beat.backstage-confrontation",
+            "beat.office-meeting"
+          ],
+          "settings": [
+            "ring",
+            "backstage"
           ],
           "hidden": false,
           "description": "Rivals come face to face. Words are traded and it may not stay peaceful."
@@ -92,7 +104,12 @@
             "beat.brawl",
             "beat.pull-apart",
             "beat.announcement",
-            "beat.celebration"
+            "beat.celebration",
+            "beat.office-meeting"
+          ],
+          "settings": [
+            "ring",
+            "backstage"
           ],
           "hidden": false,
           "description": "A table, a contract and two people who do not like each other. It rarely ends with just a signature."
@@ -114,7 +131,15 @@
           "beatKeys": [
             "beat.interview",
             "beat.promo",
-            "beat.announcement"
+            "beat.announcement",
+            "beat.locker-room-interview",
+            "beat.medical-update",
+            "beat.arrival"
+          ],
+          "settings": [
+            "ring",
+            "backstage",
+            "video"
           ],
           "hidden": false,
           "description": "A backstage or ringside interviewer asks the questions and the talent answers."
@@ -139,7 +164,14 @@
             "beat.announcement",
             "beat.backstage-skit",
             "beat.entrance",
-            "beat.celebration"
+            "beat.celebration",
+            "beat.arrival",
+            "beat.office-meeting"
+          ],
+          "settings": [
+            "ring",
+            "backstage",
+            "video"
           ],
           "hidden": false,
           "description": "Someone takes the microphone and talks to the crowd, an opponent or the camera."
@@ -161,6 +193,9 @@
           },
           "beatKeys": [
             "beat.video-package"
+          ],
+          "settings": [
+            "video"
           ],
           "hidden": false,
           "description": "A pre-recorded piece that builds a rivalry or introduces someone new."
@@ -693,7 +728,11 @@
               "minPeople": 1,
               "maxPeople": 2,
               "optional": false,
-              "managerCanStandIn": true
+              "managerCanStandIn": true,
+              "roles": [
+                "interviewer",
+                "authority"
+              ]
             },
             {
               "label": "Subjects",
@@ -704,12 +743,47 @@
               "minPeople": 1,
               "maxPeople": 6,
               "optional": true,
-              "managerCanStandIn": false
+              "managerCanStandIn": false,
+              "roles": [
+                "wrestler",
+                "manager"
+              ]
             }
           ],
           "physical": false,
           "repetitionGroup": "announcement",
           "weight": 0.8
+        },
+        "beat.arrival": {
+          "key": "beat.arrival",
+          "name": "Arrival",
+          "description": "A camera catches someone walking into the building, bag on their shoulder and a look on their face.",
+          "groups": [
+            {
+              "label": "Arrivals",
+              "stats": [
+                "presence",
+                "charisma",
+                "popularity"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": false,
+              "roles": [
+                "wrestler",
+                "manager"
+              ]
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "spectacle",
+          "weight": 0.6,
+          "settings": [
+            "backstage",
+            "video"
+          ]
         },
         "beat.attack": {
           "key": "beat.attack",
@@ -747,6 +821,55 @@
           "repetitionGroup": "violence",
           "weight": 1
         },
+        "beat.backstage-confrontation": {
+          "key": "beat.backstage-confrontation",
+          "name": "Backstage Confrontation",
+          "description": "Two sides run into each other in a corridor. Words fly and the crew has to step in.",
+          "groups": [
+            {
+              "label": "Side A",
+              "stats": [
+                "mic",
+                "charisma",
+                "presence"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": true,
+              "roles": [
+                "wrestler",
+                "manager",
+                "authority"
+              ]
+            },
+            {
+              "label": "Side B",
+              "stats": [
+                "mic",
+                "charisma",
+                "presence"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": true,
+              "roles": [
+                "wrestler",
+                "manager",
+                "authority"
+              ]
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "faceoff",
+          "weight": 1,
+          "settings": [
+            "backstage"
+          ]
+        },
         "beat.backstage-skit": {
           "key": "beat.backstage-skit",
           "name": "Backstage Skit",
@@ -779,7 +902,11 @@
           ],
           "physical": false,
           "repetitionGroup": "skit",
-          "weight": 0.9
+          "weight": 0.9,
+          "settings": [
+            "backstage",
+            "video"
+          ]
         },
         "beat.brawl": {
           "key": "beat.brawl",
@@ -825,7 +952,11 @@
           ],
           "physical": false,
           "repetitionGroup": "ceremony",
-          "weight": 0.8
+          "weight": 0.8,
+          "settings": [
+            "ring",
+            "backstage"
+          ]
         },
         "beat.contract-signing": {
           "key": "beat.contract-signing",
@@ -884,7 +1015,11 @@
           ],
           "physical": false,
           "repetitionGroup": "spectacle",
-          "weight": 0.7
+          "weight": 0.7,
+          "settings": [
+            "ring",
+            "video"
+          ]
         },
         "beat.interview": {
           "key": "beat.interview",
@@ -901,7 +1036,11 @@
               "minPeople": 1,
               "maxPeople": 3,
               "optional": false,
-              "managerCanStandIn": true
+              "managerCanStandIn": true,
+              "roles": [
+                "wrestler",
+                "manager"
+              ]
             },
             {
               "label": "Host",
@@ -914,12 +1053,196 @@
               "minPeople": 1,
               "maxPeople": 1,
               "optional": true,
-              "managerCanStandIn": false
+              "managerCanStandIn": false,
+              "roles": [
+                "interviewer"
+              ]
             }
           ],
           "physical": false,
           "repetitionGroup": "talk",
           "weight": 0.9
+        },
+        "beat.locker-room-interview": {
+          "key": "beat.locker-room-interview",
+          "name": "Locker-Room Interview",
+          "description": "An interviewer catches someone in the locker room for a few quick words, away from the crowd.",
+          "groups": [
+            {
+              "label": "Guest",
+              "stats": [
+                "mic",
+                "charisma"
+              ],
+              "weight": 3,
+              "minPeople": 1,
+              "maxPeople": 3,
+              "optional": false,
+              "managerCanStandIn": true,
+              "roles": [
+                "wrestler",
+                "manager"
+              ]
+            },
+            {
+              "label": "Interviewer",
+              "stats": [
+                "broadcasting",
+                "mic"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 1,
+              "optional": true,
+              "managerCanStandIn": false,
+              "roles": [
+                "interviewer"
+              ]
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "talk",
+          "weight": 0.9,
+          "settings": [
+            "backstage",
+            "video"
+          ]
+        },
+        "beat.medical-update": {
+          "key": "beat.medical-update",
+          "name": "Medical Update",
+          "description": "Someone reports on how a hurt wrestler is doing, with the wrestler in shot or not.",
+          "groups": [
+            {
+              "label": "Reporter",
+              "stats": [
+                "broadcasting",
+                "mic",
+                "presence"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 1,
+              "optional": false,
+              "managerCanStandIn": false,
+              "roles": [
+                "interviewer",
+                "authority"
+              ]
+            },
+            {
+              "label": "Patient",
+              "stats": [
+                "charisma",
+                "popularity"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 2,
+              "optional": true,
+              "managerCanStandIn": false,
+              "roles": [
+                "wrestler"
+              ]
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "announcement",
+          "weight": 0.7,
+          "settings": [
+            "backstage",
+            "video"
+          ]
+        },
+        "beat.office-meeting": {
+          "key": "beat.office-meeting",
+          "name": "Office Meeting",
+          "description": "The boss calls people into the office to hand down a decision, a warning or a match.",
+          "groups": [
+            {
+              "label": "Authority",
+              "stats": [
+                "mic",
+                "presence"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 2,
+              "optional": false,
+              "managerCanStandIn": true,
+              "roles": [
+                "authority"
+              ]
+            },
+            {
+              "label": "Visitors",
+              "stats": [
+                "mic",
+                "charisma"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": true,
+              "managerCanStandIn": true,
+              "roles": [
+                "wrestler",
+                "manager"
+              ]
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "skit",
+          "weight": 1,
+          "settings": [
+            "backstage"
+          ]
+        },
+        "beat.parking-lot-attack": {
+          "key": "beat.parking-lot-attack",
+          "name": "Car Park Ambush",
+          "description": "One side waits by the cars and jumps the other as they arrive. Raw, fast and caught on a handheld camera.",
+          "groups": [
+            {
+              "label": "Attackers",
+              "stats": [
+                "presence",
+                "athleticism"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": false,
+              "roles": [
+                "wrestler",
+                "manager"
+              ]
+            },
+            {
+              "label": "Targets",
+              "stats": [
+                "charisma",
+                "presence"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": false,
+              "roles": [
+                "wrestler",
+                "manager"
+              ]
+            }
+          ],
+          "physical": true,
+          "repetitionGroup": "violence",
+          "weight": 1,
+          "settings": [
+            "backstage",
+            "video"
+          ]
         },
         "beat.promo": {
           "key": "beat.promo",
@@ -1021,7 +1344,10 @@
           ],
           "physical": false,
           "repetitionGroup": "video",
-          "weight": 0.7
+          "weight": 0.7,
+          "settings": [
+            "video"
+          ]
         },
         "beat.war-of-words": {
           "key": "beat.war-of-words",
@@ -1080,6 +1406,28 @@
           ],
           "description": "One side jumps the other until someone pulls them apart."
         },
+        "template.backstage-interview": {
+          "key": "template.backstage-interview",
+          "name": "Backstage Interview",
+          "angleTypeKey": "angle.interview",
+          "purpose": "promo",
+          "beats": [
+            {
+              "beatKey": "beat.arrival",
+              "groupOne": "a",
+              "groupTwo": null,
+              "optional": true
+            },
+            {
+              "beatKey": "beat.locker-room-interview",
+              "groupOne": "a",
+              "groupTwo": "host",
+              "optional": false
+            }
+          ],
+          "setting": "backstage",
+          "description": "An interviewer catches someone in the locker room for a few words, away from the crowd."
+        },
         "template.backstage-plot": {
           "key": "template.backstage-plot",
           "name": "Backstage Plot",
@@ -1099,6 +1447,7 @@
               "optional": true
             }
           ],
+          "setting": "backstage",
           "description": "A scene backstage that sets up trouble, and words to follow."
         },
         "template.feud-opener": {
@@ -1141,7 +1490,52 @@
               "optional": false
             }
           ],
+          "setting": "video",
           "description": "A video that builds someone up before they arrive."
+        },
+        "template.office-summons": {
+          "key": "template.office-summons",
+          "name": "Office Summons",
+          "angleTypeKey": "angle.confrontation",
+          "purpose": "titleChallenge",
+          "beats": [
+            {
+              "beatKey": "beat.office-meeting",
+              "groupOne": "host",
+              "groupTwo": "ab",
+              "optional": false
+            },
+            {
+              "beatKey": "beat.backstage-confrontation",
+              "groupOne": "a",
+              "groupTwo": "b",
+              "optional": true
+            }
+          ],
+          "setting": "backstage",
+          "description": "The boss calls both sides in and makes the match. They don't leave quietly."
+        },
+        "template.parking-lot-ambush": {
+          "key": "template.parking-lot-ambush",
+          "name": "Car Park Ambush",
+          "angleTypeKey": "angle.attack",
+          "purpose": "buildFeud",
+          "beats": [
+            {
+              "beatKey": "beat.arrival",
+              "groupOne": "b",
+              "groupTwo": null,
+              "optional": true
+            },
+            {
+              "beatKey": "beat.parking-lot-attack",
+              "groupOne": "a",
+              "groupTwo": "b",
+              "optional": false
+            }
+          ],
+          "setting": "backstage",
+          "description": "One side waits in the car park and jumps the other as they arrive."
         },
         "template.sit-down-interview": {
           "key": "template.sit-down-interview",
