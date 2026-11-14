@@ -148,3 +148,6 @@ export const LOSES_MONEY_TEXT =
 /** The owner's trade-off on pay-per-view airtime, said before signing. */
 export const PPV_AIRTIME_TEXT =
   'Pay-per-view airtime is expensive. You pay it on every show the deal carries, in return for the money from each buy.';
+
+/** The link after the camera refusal in the Propose sheet: the camera is raised in Production. */
+export const OPEN_PRODUCTION_TEXT = 'Open Production';

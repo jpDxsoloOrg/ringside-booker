@@ -21,6 +21,9 @@ the deal commands) is in `docs/design/broadcast.md`; this folder only reads it.
 | `networkText.ts`                              | `formatSlot` ("Mon · Prime time · Live") and every label the screen uses     |
 | `networksParams.ts`                           | The URL: `?tab=`, `?deal=`, `?propose=`; `networksPath()` for links          |
 | `finances/BroadcastIncomeKpi.tsx`             | The Finances Overview's "TV income (30 days)" card (`eco.broadcast`, 50)     |
+| `calendar/OnTvSection.tsx`, `register.ts`     | The calendar show sheet's "On TV" section (`eco.airing`, 30, ECO8-07)        |
+| `results/ResultsBroadcastSection.tsx`         | The results page's "On TV" section (`eco.broadcast`, 40, own shows only)     |
+| `airingText.ts`                               | The words both "On TV" sections share: airs on, viewers, missed, TV rights   |
 
 ## The URL
 
@@ -64,8 +67,9 @@ Two of the owner's decisions are said on screen, not hidden:
 - New and renewed pay-per-view deals carry the high pay-per-view airtime rate. The Propose sheet
   and the renewal say what it comes to a show before you sign (`PPV_AIRTIME_TEXT`).
 
-Deal warnings (`broadcast.dealWarned`) do not stop a skip: the risk badge is the notice. ECO8-07
-turns them into mail.
+Deal warnings (`broadcast.dealWarned`) do not stop a skip: the risk badge is the notice. Turning
+them (and deal endings) into mail is owed by SOC1's integration ticket: the inbox was not on main
+when ECO8-07 wired the partners.
 
 ## Why? everywhere
 

@@ -102,6 +102,11 @@ export const NEWS_TEXT_CATALOG: TextCatalog = {
   'news.release-refused.headline': '{personId} was refused a release by {promotionId}',
   'news.release-refused.body':
     'Word is out that {personId} asked {promotionId} to be let go and the promotion said no.',
+
+  // TV deals (ECO8, wired by ECO8-07). Who airs what only: never what the network pays.
+  'news.deal-signed.headline': '{promotionId} signs with {network}',
+  'news.deal-signed.body':
+    '{network} will carry {show} for {promotionId}. The terms were not made public.',
 };
 
 registerTextCatalog('news', NEWS_TEXT_CATALOG);

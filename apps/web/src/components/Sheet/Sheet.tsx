@@ -6,6 +6,7 @@ import { classNames } from '../classNames';
 import styles from './Sheet.module.css';
 import { useBodyScrollLock } from './useBodyScrollLock';
 import { firstOpenFocusIn, useOverlayFocus } from './useOverlayFocus';
+import { useScrollableRegion } from './useScrollableRegion';
 
 export type SheetSide = 'right' | 'left' | 'bottom';
 export type SheetSize = 'sm' | 'md' | 'lg';
@@ -86,6 +87,9 @@ export function Sheet({
   const showsHandle = resolvedSide === 'bottom' && isMobile && !fullOnPhone;
   const focusHandlers = useOverlayFocus(open, sheetInitialFocus);
   useBodyScrollLock(open);
+  // A body that scrolls takes focus when it overflows, so it can be scrolled from the keyboard
+  // even when it holds no control (a long read-only sheet on a phone).
+  const [bodyRef, bodyScrolls] = useScrollableRegion();
 
   return (
     <Dialog.Root
@@ -127,7 +131,15 @@ export function Sheet({
             </Dialog.Title>
             <IconButton icon="close" label={closeLabel} onClick={onClose} />
           </div>
-          <div className={styles['body']} data-sheet-body="">
+          <div
+            ref={bodyRef}
+            className={styles['body']}
+            data-sheet-body=""
+            // Only while it overflows: then it takes focus for the keyboard to scroll it, even
+            // when it holds no control (WCAG 2.1.1).
+            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+            tabIndex={bodyScrolls ? 0 : undefined}
+          >
             {children}
           </div>
           {footer !== undefined && (

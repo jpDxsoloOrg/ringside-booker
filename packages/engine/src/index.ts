@@ -3833,6 +3833,7 @@ export {
   dealHealthTraceRef,
   dealInForce,
   dealsAiringShow,
+  firstDealInForce,
   hasActiveBroadcastDeal,
   incomeCategoryFor,
   isHumanControlled,
@@ -3880,6 +3881,7 @@ export {
   benchmarkInputsFor,
   broadcastHypeFor,
   formatViewers,
+  shortViewers,
   networkBenchmark,
   projectedAudience,
   regionAudience,
@@ -4007,3 +4009,11 @@ export type {
   ProposeDealArgs,
   RenegotiateArgs,
 } from './systems/broadcast/index';
+// ECO8-07: a signed deal on the news wire, and the reach line's airing audience.
+export {
+  DEAL_SIGNED_NEWS_SUBSCRIPTION_ID,
+  DEAL_SIGNED_TOPIC,
+  dealShowText,
+  dealSignedDedupeKey,
+} from './systems/broadcast/index';
+export type { ReachAudience } from './systems/promoPop/index';

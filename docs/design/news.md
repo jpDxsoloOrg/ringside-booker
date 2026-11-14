@@ -466,6 +466,7 @@ morale, popularity or money (D-09).
 | ECO4        | `contract.expired`, `contract.quit` (`granted`)          | `departure`       | `release`     | as above                                                                   | `departure:<employmentId>`         |
 | ECO4        | `contract.quit` (`walkedOut`)                            | `walked-out`      | `release`     | as above                                                                   | `walked-out:<employmentId>`        |
 | AIP1 + ECO4 | a rival's refused release request, on its `revealOn` day | `release-refused` | `rumour`      | the decision's importance (1)                                              | `aip-decision:<decisionId>`        |
+| ECO8        | `broadcast.dealSigned` (the player's and rivals')        | `deal-signed`     | `business`    | 2 for a prime-time slot, else 1                                            | `deal-signed:<dealId>`             |
 
 - **Show results.** The story names the promotion and the main event's people
   (competitors, or the speakers of a talking main event, at most 6); a show
@@ -494,6 +495,10 @@ morale, popularity or money (D-09).
   Posting them again from the decision would post every rival show twice. ECO4
   registers refused releases, which no event makes public; they come out when
   the contract ends (a year on for an open-ended one).
+- **TV deals (ECO8-07).** Posted from `systems/broadcast/news.ts`. A deal's
+  existence is public, its money is not: the story names the promotion, the
+  network and the show ("every televised show" / "every major show" for a
+  promotion-wide deal), never the fee, the rate or the airtime.
 - **WRK1.** People in story text, the feed's "Who" column, hero cards, the
   story sheet and the Office panel are drawn through `WorkerLink`
   (`screens/news/newsEntityLink.tsx`), which links to
@@ -517,7 +522,7 @@ only) stop a skip about 20 times a year, 4 of them in the first 90 days, up
 from 10 and 2 before: title changes of well-known champions reach the front
 page on buzz.
 
-**Wires from its own pack.** WRK3, WRK9, CRTV2, CRTV8, ECO6, ECO8, ECO9,
+**Wires from its own pack.** WRK3, WRK9, CRTV2, CRTV8, ECO6, ECO9,
 ECO10, DAY3, DAY4, DAY5, DAY6, DAY7, DAY9, SOC2, SOC7, BRW3, MOD1 and MOD7
 were not on main; each posts its own stories from its integration ticket with
 the defaults DAY1-06 lists for it.

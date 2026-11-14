@@ -16,6 +16,7 @@ import {
   parseId,
   type CountryId,
   type EventInstanceId,
+  type NetworkId,
   type PromotionId,
   type RegionId,
 } from '../../core/ids';
@@ -31,7 +32,7 @@ import { zId } from '../../model/primitives';
 import { compareIds } from '../../model/table';
 import type { DeepReadonly } from '../../model/world';
 import { geographyOf } from '../world/geography';
-import { reachLabel, type ReachRoute } from './formulas/labels';
+import { reachLabel, type ReachAudience, type ReachRoute } from './formulas/labels';
 import { monthlyGainsOf, showChangeOf } from './helpers';
 import { detailKeptNote } from '../history/note';
 import { showChangeTraceRef } from './traces';
@@ -170,8 +171,31 @@ function prunedViewOf(
   };
 }
 
+/**
+ * What the show's airing on a network drew (ECO8-07), for the reach line, or null when nothing
+ * aired there (or the airing row is gone).
+ */
+function airedAudience(
+  ctx: QueryContext,
+  instance: DeepReadonly<EventInstance>,
+  networkId: NetworkId,
+): ReachAudience | null {
+  const network = ctx.read.tables.networks.get(networkId);
+  const aired = ctx.read.tables.airings
+    .lookup('byEventInstance', instance.id)
+    .filter((airing) => airing.networkId === networkId && airing.status === 'aired');
+  if (network === undefined || aired.length === 0) {
+    return null;
+  }
+  return {
+    count: aired.reduce((sum, airing) => sum + airing.viewers, 0),
+    noun: network.kind === 'ppv' ? 'buys' : 'viewers',
+  };
+}
+
 function routeOf(
   ctx: QueryContext,
+  instance: DeepReadonly<EventInstance>,
   region: DeepReadonly<PopularityShowRegion>,
   showRegionName: string,
 ): ReachRoute {
@@ -186,6 +210,7 @@ function routeOf(
     source: 'tv',
     networkId: region.networkId,
     networkName: network?.name ?? region.networkId,
+    audience: airedAudience(ctx, instance, region.networkId),
   };
 }
 
@@ -239,7 +264,7 @@ function appliedView(
       regionId: regionRow.id,
       name: regionRow.name,
       source: region.source,
-      sourceLabel: reachLabel(routeOf(ctx, region, showRegionName)),
+      sourceLabel: reachLabel(routeOf(ctx, instance, region, showRegionName)),
       weight: region.weight,
       expectation: region.expectation,
       before: region.before,

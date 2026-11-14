@@ -25,6 +25,7 @@ import { dealQueries } from './queries/deals';
 import { proposeDealCommand } from './commands/proposeDeal';
 import { renegotiateCommand } from './commands/renegotiate';
 import { cancelDealCommand } from './commands/cancelDeal';
+import { dealSignedNewsSubscription } from './news';
 
 export {
   AIRING_KIND_LABELS,
@@ -36,6 +37,7 @@ export {
   dealCoversShow,
   dealInForce,
   dealsAiringShow,
+  firstDealInForce,
   hasActiveBroadcastDeal,
   incomeCategoryFor,
   networkOnAir,
@@ -64,6 +66,7 @@ export {
   AUDIENCE_TRACE_HYPE_NODES,
   audience,
   formatViewers,
+  shortViewers,
   NEUTRAL_QUALITY_NOTE,
   NO_HYPE_NOTE,
   PPV_TIMESLOT_NOTE,
@@ -223,11 +226,19 @@ export {
   type DealView,
 } from './queries/deals';
 export { HEALTH_MAX_WINDOW } from './tunables';
+export {
+  DEAL_SIGNED_NEWS_SUBSCRIPTION_ID,
+  DEAL_SIGNED_TOPIC,
+  dealShowText,
+  dealSignedDedupeKey,
+  dealSignedNewsSubscription,
+} from './news';
 
 export const broadcastSystem: SystemBundle = defineSystem({
   id: 'broadcast',
   phases: [settleAiringsPhase, dealHealthPhase, pruneAiringsPhase],
-  subscriptions: [settleOnShowNightSubscription],
+  // ECO8-07: a signed deal is news (DAY1).
+  subscriptions: [settleOnShowNightSubscription, dealSignedNewsSubscription],
   queries: [...broadcastQueries, ...airingQueries, ...dealQueries],
   commands: [proposeDealCommand, renegotiateCommand, cancelDealCommand],
 });

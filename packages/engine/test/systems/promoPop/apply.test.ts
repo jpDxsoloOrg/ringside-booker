@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { defineSubscription, defineSystem } from '../../../src/core/api/system';
 import { yearMonthOf } from '../../../src/core/date';
+import { cents } from '../../../src/core/money';
 import { definePhase } from '../../../src/core/pipeline/phase';
 import { defaultSystems } from '../../../src/systems';
 import type { EventInstanceId, NetworkId } from '../../../src/core/ids';
@@ -21,11 +22,13 @@ import {
   SHOW_CHANGE_TRACE_KIND,
   showChangeTraceRef,
 } from '../../../src/systems/promoPop';
+import { showReach } from '../../../src/systems/promoPop/formulas/showReach';
+import { createEngineTunables } from '../../../src/systems/tunables';
 import { geographyOf } from '../../../src/systems/world/geography';
 import type { DeepPartial } from '../../support/builders/build-row';
 import { TEST_START_DATE } from '../../support/builders/build-row';
 import { anEventDefinition } from '../../support/builders/creative';
-import { aDeal, aNetwork } from '../../support/builders/media';
+import { aDeal, anAiring, aNetwork } from '../../support/builders/media';
 import { testId } from '../../support/ids';
 import { expectSerialisable } from '../../support/trace';
 import type { Deal } from '../../../src/model/entities/deal';
@@ -294,7 +297,7 @@ describe('dealsInForce and reachInputsFor', () => {
     expect(dealsInForce(world, show)).toHaveLength(1);
   });
 
-  it('carries a one-off show with no definition on no deal', () => {
+  it('carries a one-off show on a promotion-wide deal, as ECO8 airs it (ECO8-07)', () => {
     let showId = null as EventInstanceId | null;
     const { world } = baseWorld()
       .with('one-off', (context) => {
@@ -308,7 +311,95 @@ describe('dealsInForce and reachInputsFor', () => {
       })
       .build();
     const show = world.tables.eventInstances.require(showId ?? expect.fail('no show'));
+    expect(dealsInForce(world, show)).toHaveLength(1);
+  });
+
+  it.each([
+    ['a regular show', 'regular', 0],
+    ['a major show', 'major', 1],
+  ] as const)(
+    'reaches %s on a promotion-wide pay-per-view deal only when ECO8 airs it',
+    (_label, importance, expected) => {
+      let showId = null as EventInstanceId | null;
+      const { world } = baseWorld()
+        .with('ppv', (context) => {
+          const promotionId = context.ids.promotions.A ?? expect.fail('no promotion');
+          const network = context.insert('networks', aNetwork({ kind: 'ppv' }, context.sequence));
+          context.insert(
+            'deals',
+            aDeal(
+              { networkId: network.id, promotionId, eventDefinitionId: null },
+              context.sequence,
+            ),
+          );
+          showId = completedShow(context, { score: 60, date: SHOW_DAY, importance });
+        })
+        .build();
+      const show = world.tables.eventInstances.require(showId ?? expect.fail('no show'));
+      expect(dealsInForce(world, show)).toHaveLength(expected);
+    },
+  );
+
+  /** A one-off show of A on a whole-map deal, with its airing settled as `status`. */
+  function settledShow(status: 'aired' | 'missed') {
+    let showId = null as EventInstanceId | null;
+    const { world } = baseWorld()
+      .with('settled', (context) => {
+        const promotionId = context.ids.promotions.A ?? expect.fail('no promotion');
+        const network = context.insert(
+          'networks',
+          aNetwork(
+            {
+              name: 'Test Signal',
+              coverage: { continentIds: [], countryIds: [SOUTH], regionIds: [] },
+            },
+            context.sequence,
+          ),
+        );
+        const deal = context.insert(
+          'deals',
+          aDeal({ networkId: network.id, promotionId, eventDefinitionId: null }, context.sequence),
+        );
+        showId = completedShow(context, { score: 60, date: SHOW_DAY });
+        context.insert(
+          'airings',
+          anAiring(
+            {
+              dealId: deal.id,
+              networkId: network.id,
+              promotionId,
+              eventInstanceId: showId,
+              airDate: day(SHOW_DAY),
+              status,
+              missReason: status === 'missed' ? 'notRun' : null,
+              quality: status === 'missed' ? null : { score: 60, source: 'show' },
+              viewers: status === 'missed' ? 0 : 2_412_345,
+              income: status === 'missed' ? cents(0) : cents(150_000),
+            },
+            context.sequence,
+          ),
+        );
+      })
+      .build();
+    return { world, show: world.tables.eventInstances.require(showId ?? expect.fail('no show')) };
+  }
+
+  it('gives no TV reach for a missed airing', () => {
+    const { world, show } = settledShow('missed');
     expect(dealsInForce(world, show)).toEqual([]);
+    expect(reachInputsFor(world, show, geographyOf(world)).deals).toEqual([]);
+  });
+
+  it('names what an aired airing drew in the reach line', () => {
+    const { world, show } = settledShow('aired');
+    const inputs = reachInputsFor(world, show, geographyOf(world));
+    expect(inputs.deals.map((deal) => deal.audience)).toEqual([
+      { count: 2_412_345, noun: 'viewers' },
+    ]);
+    const reached = showReach(inputs, { tunables: createEngineTunables() }).regions.find(
+      (region) => region.regionId === SOUTH_1,
+    );
+    expect(reached?.label).toBe('TV: Test Signal, 2.4M viewers');
   });
 });
 

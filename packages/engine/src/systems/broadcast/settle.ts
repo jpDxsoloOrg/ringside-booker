@@ -38,7 +38,7 @@ import { airingTraceRef, isHumanControlled } from './traces';
 
 export const SETTLEMENT_DOC_REF = 'broadcast.md#settlement';
 
-/** Shown wherever an airing of a show that never ran is listed (until ECO8-07). */
+/** Shown wherever an airing with no show result is listed: only a world without the calendar. */
 export const AIRED_WITHOUT_RESULT_NOTE = 'Aired without a show result';
 /** The memo suffix for the same airing. */
 export const AIRED_WITHOUT_RESULT_MEMO = ' (aired without a show result)';
@@ -97,10 +97,13 @@ export type AiringOutcome =
  * | --------------------------------- | ---------------------------------------- |
  * | completed                         | aired, the show's score                  |
  * | cancelled                         | missed, `showCancelled`                  |
- * | scheduled or booked on air date   | aired, neutral quality, "without result" |
+ * | scheduled or booked on air date   | missed, `notRun` (ECO8-07)               |
  * | definition date (no calendar)     | aired, neutral quality, "without result" |
  *
- * ECO8-07 turns "scheduled or booked on its air date" into a missed `notRun` airing.
+ * EVT3 runs every show dated today in the `shows` group (and the player runs theirs before the
+ * day's phases), so a show still open when its airings settle was not run: nothing aired. A
+ * completed show with no result (only a hand-built world) counts as not run too. Only a world
+ * without the calendar (a definition date) still airs at neutral quality.
  */
 export function airingOutcomeOf(due: DueAiring, tunables: EngineTunables): AiringOutcome {
   const neutral: AiringOutcome = {
@@ -118,7 +121,7 @@ export function airingOutcomeOf(due: DueAiring, tunables: EngineTunables): Airin
   switch (instance.status) {
     case 'completed':
       return instance.result === null
-        ? neutral
+        ? { status: 'missed', reason: 'notRun' }
         : {
             status: 'aired',
             quality: { score: instance.result.score, source: 'show' },
@@ -128,7 +131,7 @@ export function airingOutcomeOf(due: DueAiring, tunables: EngineTunables): Airin
       return { status: 'missed', reason: 'showCancelled' };
     case 'scheduled':
     case 'booked':
-      return neutral;
+      return { status: 'missed', reason: 'notRun' };
   }
 }
 

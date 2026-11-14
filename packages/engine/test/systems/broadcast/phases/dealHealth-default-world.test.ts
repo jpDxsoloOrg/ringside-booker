@@ -1,5 +1,6 @@
-// Deal health on the shipped default world (ECO8-05): half a year as Altura with no player action
-// (the player's shows air without a result, at neutral quality). No shipped deal is cancelled for
+// Deal health on the shipped default world (ECO8-05): half a year as Altura, the stand-in player
+// pressing Run the show on every show day with a decent card (`cardEveryShowSystem`'s random
+// singles; since ECO8-07 a show left unrun is a missed airing, which would cancel the deal). No shipped deal is cancelled for
 // low viewers, rival deals that reach their end date renew, and nothing fails. Pins ECO8-02's
 // calibration against regressions. A half-year run: in the slow suite (RB_SLOW_TESTS=1).
 // Design: docs/design/broadcast.md#deal-health
@@ -7,16 +8,10 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { createEngine, type Engine } from '../../../../src/core/api';
 import { addDays, compareDates, type GameDate } from '../../../../src/core/date';
 import type { Deal } from '../../../../src/model/entities/deal';
-import {
-  EXPIRING_SOON_GATE_ID,
-  RELEASE_REQUESTED_GATE_ID,
-} from '../../../../src/systems/contracts/gates';
 import { defaultSystems } from '../../../../src/systems';
-import { OWN_WORKER_INJURED_GATE_ID } from '../../../../src/systems/health/gate';
-import { COUNTER_WAITING_GATE_ID } from '../../../../src/systems/negotiation/gates';
-import { SHOWS_TONIGHT_GATE_ID } from '../../../../src/systems/shows/tonight';
+import { withMyShowsRun } from '../../../support';
+import { cardEveryShowSystem } from '../../../support/card-every-show';
 import { SLOW_TESTS } from '../../../support/slow';
-import { systemsWithoutGates } from '../../../support/systems';
 import { startDefaultGame } from '../../calendar/default-game';
 
 // 182 days after the first one: the run's last day is 5 Jul 2027, Cielo Alto's deal's end date.
@@ -34,13 +29,7 @@ describe.runIf(SLOW_TESTS)('half a year of deal health on the default world', ()
     start = state.world.meta.currentDate;
     engine = createEngine({
       state,
-      systems: systemsWithoutGates(defaultSystems, [
-        SHOWS_TONIGHT_GATE_ID,
-        OWN_WORKER_INJURED_GATE_ID,
-        EXPIRING_SOON_GATE_ID,
-        RELEASE_REQUESTED_GATE_ID,
-        COUNTER_WAITING_GATE_ID,
-      ]),
+      systems: withMyShowsRun([...defaultSystems, cardEveryShowSystem]),
     });
     const advanced = await engine.advanceDays({ maxDays: DAYS });
     expect(advanced.daysAdvanced).toBe(DAYS);

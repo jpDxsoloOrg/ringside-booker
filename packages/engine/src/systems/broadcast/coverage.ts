@@ -302,14 +302,29 @@ export function networksCovering(
     );
 }
 
+/**
+ * The promotion's deal in force on `date` with the lowest id, or null. ECO7's camera minimum
+ * (`production/deals.ts`) reads this, so the camera floor holds exactly while a deal airs shows.
+ */
+export function firstDealInForce(
+  read: GameWorldView,
+  promotionId: PromotionId,
+  date: GameDate,
+): Deal | null {
+  // `lookup` lists rows in ascending id order, so the first match is the lowest id.
+  return (
+    read.tables.deals.lookup('byPromotion', promotionId).find((deal) => {
+      const network = read.tables.networks.get(deal.networkId);
+      return network !== undefined && dealInForce(deal, network, date);
+    }) ?? null
+  );
+}
+
 /** True when the promotion has a deal in force on `date` (ECO7's camera rule reads it). */
 export function hasActiveBroadcastDeal(
   read: GameWorldView,
   promotionId: PromotionId,
   date: GameDate,
 ): boolean {
-  return read.tables.deals.lookup('byPromotion', promotionId).some((deal) => {
-    const network = read.tables.networks.get(deal.networkId);
-    return network !== undefined && dealInForce(deal, network, date);
-  });
+  return firstDealInForce(read, promotionId, date) !== null;
 }

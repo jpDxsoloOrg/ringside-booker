@@ -206,6 +206,11 @@ function valuation(
             message: 'Prime time needs a reach of 25.0; yours is 12.4',
           },
           {
+            code: 'cameraTooLow' as const,
+            message:
+              'National Sports Network needs camera level 4; yours is 2. Raise your camera level in Production',
+          },
+          {
             code: 'audienceTooSmall' as const,
             message: 'Your audience would be about 41% of what the network needs (85%)',
           },
@@ -243,7 +248,10 @@ export const galleryAcceptedValuation: DealValuation = valuation('accept', {
   cost: 69_000,
 });
 
-/** A national network that refuses: prime time is out of reach and the audience too small. */
+/**
+ * A national network that refuses: prime time is out of reach, the camera is too low (with the
+ * link to Production) and the audience too small.
+ */
 export const galleryRefusedValuation: DealValuation = valuation('refuse', {
   viewers: 48_300,
   benchmark: 117_800,

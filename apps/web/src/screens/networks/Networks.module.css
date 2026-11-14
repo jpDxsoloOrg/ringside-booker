@@ -165,6 +165,15 @@
   padding-inline-start: var(--space-5);
 }
 
+/* Touch screens: the Production link gets a finger-sized hit area without taking more room. */
+@media (pointer: coarse) {
+  .reasonLink {
+    display: inline-block;
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}
+
 .airingStatus {
   display: grid;
   gap: var(--space-1);
