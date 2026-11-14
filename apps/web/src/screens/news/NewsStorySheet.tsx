@@ -8,7 +8,7 @@ import { Explained } from '@/components/Trace';
 import { renderTemplatedText, templatedTextToString } from '@/text/renderTemplatedText';
 import { NewsKindTag } from './NewsKindTag';
 import { newsEntitiesOf } from './newsStory';
-import { NEWS_IMPORTANCE_LABELS } from './newsTone';
+import { NEWS_IMPORTANCE_LABELS, shownBuzz } from './newsTone';
 import styles from './NewsStorySheet.module.css';
 
 /** What the sheet has to show: the story, its refusal, or nothing yet. */
@@ -72,7 +72,7 @@ function StoryBody({ item, names, buzzTrace }: StoryBodyProps) {
           <dt>Buzz</dt>
           <dd>
             <Explained
-              value={item.buzz}
+              value={shownBuzz(item.buzz)}
               label="Buzz"
               {...(buzzTrace === undefined
                 ? { traceRef: item.buzzTraceRef }

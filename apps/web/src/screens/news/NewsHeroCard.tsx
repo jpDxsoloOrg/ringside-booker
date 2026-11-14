@@ -11,7 +11,7 @@ import { Explained } from '@/components/Trace';
 import { renderTemplatedText, templatedTextToString } from '@/text/renderTemplatedText';
 import { NewsKindTag } from './NewsKindTag';
 import { newsSubjectOf } from './newsStory';
-import { newsKindTone } from './newsTone';
+import { newsKindTone, shownBuzz } from './newsTone';
 import styles from './NewsHeroCard.module.css';
 
 export type NewsHeroCardSize = 'large' | 'small';
@@ -73,7 +73,7 @@ export function NewsHeroCard({
           <p className={styles['buzz']}>
             <span className={styles['buzzLabel']}>Buzz</span>
             <Explained
-              value={item.buzz}
+              value={shownBuzz(item.buzz)}
               label="Buzz"
               {...(buzzTrace === undefined
                 ? { traceRef: item.buzzTraceRef }

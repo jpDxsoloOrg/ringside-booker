@@ -34,3 +34,8 @@ export const NEWS_IMPORTANCE_LABELS: Readonly<Record<NewsImportance, string>> = 
   2: 'Major',
   3: 'Front page',
 };
+
+/** Buzz as the screens show it: a whole number (the stored score keeps its decimals). */
+export function shownBuzz(buzz: number): number {
+  return Math.round(buzz);
+}

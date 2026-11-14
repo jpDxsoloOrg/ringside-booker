@@ -9,7 +9,7 @@ import { Explained } from '@/components/Trace';
 import type { EntityLinkRenderer } from '@/components/Trace/rows/rowTypes';
 import { templatedTextToString } from '@/text/renderTemplatedText';
 import { newsEntitiesOf } from './newsStory';
-import { NEWS_IMPORTANCE_LABELS, newsKindTone } from './newsTone';
+import { NEWS_IMPORTANCE_LABELS, newsKindTone, shownBuzz } from './newsTone';
 import styles from './NewsScreen.module.css';
 
 export interface NewsColumnsInput {
@@ -88,7 +88,9 @@ export function newsColumns({
     {
       id: 'buzz',
       header: 'Buzz',
-      cell: (item) => <Explained value={item.buzz} label="Buzz" traceRef={item.buzzTraceRef} />,
+      cell: (item) => (
+        <Explained value={shownBuzz(item.buzz)} label="Buzz" traceRef={item.buzzTraceRef} />
+      ),
       align: 'end',
       numeric: true,
       width: 'sm',
