@@ -78,6 +78,12 @@ export interface FixtureOptions {
   readonly withoutWorkers?: boolean;
   /** Give worker 1 this style instead of a known one. */
   readonly firstStyle?: string;
+  /**
+   * Add the data shapes found in installed mods that the engine's cross-record checks refuse
+   * (UNITY-12): an active tag team with a member who has died, a second contract between the same
+   * person and promotion, and an exclusive contract next to an earlier non-exclusive one.
+   */
+  readonly withCheckFailures?: boolean;
 }
 
 function insert(db: Database, table: string, row: Record<string, SqlValue>): void {
@@ -610,8 +616,60 @@ export async function makeWorldModDatabase(options: FixtureOptions = {}): Promis
     airday: 'Saturday',
     isLive: 0,
   });
+  if (options.withCheckFailures === true) addCheckFailures(db);
   if (options.withoutWorkers === true) db.run('DROP TABLE workers');
   return db;
+}
+
+function addCheckFailures(db: Database): void {
+  // Worker 42 has died; the mod still lists an active tag team of them and worker 4.
+  insert(db, 'workers', {
+    workerID: 42,
+    name: 'Osric Vale',
+    status: 'Deceased',
+    birthDate: '1950-02-02',
+    debutDate: '1972-03-01',
+    style: 'Brawler',
+    gender: 'Male',
+    type: 'Wrestler',
+    height: 'Average',
+    weight: 'Heavyweight',
+    build: 'Average',
+  });
+  insert(db, 'tagteams', {
+    tagID: 2,
+    worker1: 4,
+    worker2: 42,
+    tagExperience: 40,
+    defaultName: 'The Lantern Pair',
+    tagStatus: 1,
+  });
+  // Worker 3 already has contract 3 with promotion 1: a second one with it.
+  insert(db, 'contracts', {
+    contractID: 201,
+    workerID: 3,
+    promotionID: 1,
+    contractType: 'PPA',
+    role: 'Face',
+    expiryDate: '2011-06-30',
+    exclusive: 0,
+    wagePerAppearance: 200,
+    push: 'Midcard',
+    contractStartDate: '2009-01-01',
+  });
+  // Worker 2 has non-exclusive contract 2 with promotion 1; a later exclusive one with promotion 2.
+  insert(db, 'contracts', {
+    contractID: 202,
+    workerID: 2,
+    promotionID: 2,
+    contractType: 'Written',
+    role: 'Heel',
+    expiryDate: '2011-06-30',
+    exclusive: 1,
+    wagePerMonth: 3000,
+    push: 'Midcard',
+    contractStartDate: '2009-01-01',
+  });
 }
 
 /** Every row of every table, as the game's C# reader passes them: column name to value. */

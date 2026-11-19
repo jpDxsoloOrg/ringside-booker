@@ -37,14 +37,13 @@ import {
   INVALID_ARGS,
   isGameDate,
   loadSave,
-  loadWorldFromPacks,
   previewWorld,
   SAVE_LABEL_MAX_LENGTH,
   serializeError,
   TABLES,
   worldHash,
 } from '@ringside/engine';
-import type { Engine, EngineState, PackIssue, RawPack, Reason } from '@ringside/engine';
+import type { Engine, EngineState, RawPack, Reason } from '@ringside/engine';
 import { decodeBase64, encodeBase64 } from './base64';
 import { readContentPacks } from './contentPacks';
 import type { ContentFiles, ContentPackSet } from './contentPacks';
@@ -52,6 +51,7 @@ import { LOCAL_OBSERVER_PLAYER_ID, resolveLocalViewer } from './localSeat';
 import type { LocalSeat } from './localSeat';
 import { convertWorldMod } from './worldMod/convert';
 import { baseGeographyOf } from './worldMod/base';
+import { checkWorldModPack, ruleOf } from './worldMod/check';
 
 /** Bumped when a function, an argument or a result shape of this API changes. */
 export const HOST_API_VERSION = 2;
@@ -514,41 +514,45 @@ export function createEmbeddedHost(options: EmbeddedHostOptions): RingsideEngine
             'importWorldMod',
           );
         }
-        const { pack } = conversion;
-        const others = allPacks().filter((candidate) => candidate.manifest.id !== pack.manifest.id);
-        // The same check a new game runs: resolve, merge, check every record and build the world.
-        const loaded = loadWorldFromPacks([...others, pack], [pack.manifest.id], {
-          seed: 'world-mod-import-check',
-        });
-        const issues: readonly PackIssue[] = loaded.issues;
-        const errorCount = issues.filter((issue) => issue.severity === 'error').length;
-        const listed = [...issues]
-          .sort((left, right) =>
-            left.severity === right.severity ? 0 : left.severity === 'error' ? -1 : 1,
-          )
-          .slice(0, MAX_REPORTED_PACK_ISSUES);
-        if (!loaded.ok) {
+        const others = allPacks().filter(
+          (candidate) => candidate.manifest.id !== conversion.pack.manifest.id,
+        );
+        // The same check a new game runs (resolve, merge, check every record, build the world);
+        // records it refuses are left out and reported, and the pack is checked again.
+        const checked = checkWorldModPack(others, conversion.pack, conversion.report);
+        const listed = checked.issues.slice(0, MAX_REPORTED_PACK_ISSUES);
+        if (!checked.ok) {
+          const ruleCounts: Record<string, number> = {};
+          for (const issue of checked.issues) {
+            if (issue.severity !== 'error') continue;
+            const rule = ruleOf(issue);
+            ruleCounts[rule] = (ruleCounts[rule] ?? 0) + 1;
+          }
           return out(
             {
               ok: false,
               stage: 'load',
-              errors: [`The converted world did not load: ${String(errorCount)} problem(s)`],
-              report: conversion.report,
+              errors: [
+                `The converted world did not load: ${String(checked.errorCount)} problem(s)`,
+              ],
+              ruleCounts,
+              report: checked.report,
               issues: listed,
-              issueCount: issues.length,
+              issueCount: checked.issues.length,
               revision,
             },
             'importWorldMod',
           );
         }
+        const { pack } = checked;
         importedPacks.set(pack.manifest.id, pack);
         return out(
           {
             ok: true,
             manifest: pack.manifest,
-            report: conversion.report,
+            report: checked.report,
             issues: listed,
-            issueCount: issues.length,
+            issueCount: checked.issues.length,
             revision,
           },
           'importWorldMod',

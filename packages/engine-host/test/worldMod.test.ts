@@ -2,17 +2,20 @@
  * The workshop world mod converter, on a generated fictional database (worldModFixture.ts): the
  * mapping and the report, stable keys, picture references and the roster-only option, a missing
  * table, an unknown enum value, and an import through the host API that starts a new game and plays
- * a week.
+ * a week. Also the shapes from installed mods that the engine's checks refused (UNITY-12): the
+ * converter fixes the known ones, and the import check skips any other refused record.
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { packManifestSchema } from '@ringside/engine';
 import type { RawPack, RecordKind } from '@ringside/engine';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { readContentPacks } from '../src/contentPacks';
 import { createEmbeddedHost } from '../src/host';
 import { baseGeographyOf } from '../src/worldMod/base';
+import { checkWorldModPack } from '../src/worldMod/check';
 import { convertWorldMod } from '../src/worldMod/convert';
 import type { WorldModConversion } from '../src/worldMod/convert';
 import { decodeWorldModImageRef, encodeWorldModImageRef } from '../src/worldMod/imageRef';
@@ -231,6 +234,103 @@ describe('convertWorldMod', () => {
     const warning = conversion.report.warnings.find((entry) => entry.code === 'unknown-style');
     expect(warning).toMatchObject({ count: 1, examples: ['workers#1'] });
     expect(find(recordsOf(conversion, 'person'), 'wm-w1')['style']).toBe('allRounder');
+  });
+});
+
+describe('records the engine checks refuse (UNITY-12)', () => {
+  let failing: Tables;
+
+  beforeAll(async () => {
+    failing = readTables(await makeWorldModDatabase({ withCheckFailures: true }));
+  });
+
+  function warningCount(conversion: WorldModConversion, code: string): number | undefined {
+    return conversion.report.warnings.find((warning) => warning.code === code)?.count;
+  }
+
+  it('imports an active team with a member who has died as inactive', () => {
+    const conversion = convert(failing);
+    expect(warningCount(conversion, 'team-member-deceased')).toBe(1);
+    expect(find(recordsOf(conversion, 'team'), 'wm-tt2')['status']).toBe('inactive');
+    expect(find(recordsOf(conversion, 'team'), 'wm-tt1')['status']).toBe('active');
+  });
+
+  it('keeps only the first contract between the same person and promotion', () => {
+    const conversion = convert(failing);
+    expect(warningCount(conversion, 'duplicate-contract')).toBe(1);
+    const keys = recordsOf(conversion, 'employment').map((record) => record['key']);
+    expect(keys).toContain('wm-k3');
+    expect(keys).not.toContain('wm-k201');
+    // Contract 3 is still the person's only contract, so it stays exclusive.
+    expect(find(recordsOf(conversion, 'employment'), 'wm-k3')['terms']).toMatchObject({
+      exclusive: true,
+    });
+  });
+
+  it('makes an exclusive contract non-exclusive when its person has other contracts', () => {
+    const conversion = convert(failing);
+    const employments = recordsOf(conversion, 'employment');
+    expect(find(employments, 'wm-k202')['terms']).toMatchObject({ exclusive: false });
+    expect(find(employments, 'wm-k2')['terms']).toMatchObject({ exclusive: false });
+    const warning = conversion.report.warnings.find(
+      (entry) => entry.code === 'exclusive-alongside-other-contracts',
+    );
+    expect(warning).toMatchObject({ count: 1, examples: ['contracts#202'] });
+  });
+
+  it('imports the mod through the host with no loader problems', () => {
+    const host = createEmbeddedHost({ content });
+    const imported = parse(host.importWorldMod(JSON.stringify({ tables: failing })));
+    expect(imported['issues']).toEqual([]);
+    expect(imported['ok']).toBe(true);
+    // The converter fixed every shape itself: the check did not have to skip anything.
+    const report = imported['report'];
+    const codes =
+      isRec(report) && Array.isArray(report['warnings'])
+        ? report['warnings'].filter(isRec).map((warning) => String(warning['code']))
+        : [];
+    expect(codes).toContain('team-member-deceased');
+    expect(codes.filter((code) => code.startsWith('check-'))).toEqual([]);
+  });
+
+  it('skips a record the checks refuse and reports it, then loads the rest', () => {
+    const conversion = convert(failing);
+    if (!conversion.ok) throw new Error(conversion.errors.join('; '));
+    // A shape the converter does not fix: the team with a member who has died, made active again.
+    const teams = recordsOf(conversion, 'team').map((team) =>
+      team['key'] === 'wm-tt2' ? { ...team, status: 'active' } : team,
+    );
+    const pack = { ...conversion.pack, files: { ...conversion.pack.files, team: teams } };
+    const others = readContentPacks(content).packs;
+    const checked = checkWorldModPack(others, pack, conversion.report);
+    expect(checked.ok).toBe(true);
+    if (!checked.ok) return;
+    const skipped = checked.report.warnings.find(
+      (warning) => warning.code === 'check-teams.deceasedMember',
+    );
+    expect(skipped).toMatchObject({ count: 1, examples: ['team:wm-tt2'] });
+    expect(checked.report.counts['team']).toBe(1);
+    const kept = checked.pack.files.team;
+    expect(Array.isArray(kept) ? kept.length : 0).toBe(1);
+    // The input pack is left as it was.
+    expect(pack.files.team).toHaveLength(2);
+  });
+
+  it('fails when a problem is not tied to one of the mod records', () => {
+    const conversion = convert(failing);
+    if (!conversion.ok) throw new Error(conversion.errors.join('; '));
+    const pack = {
+      ...conversion.pack,
+      manifest: packManifestSchema.parse({
+        ...conversion.pack.manifest,
+        dependsOn: [{ id: 'no-such-pack', version: '^1.0.0' }],
+      }),
+    };
+    const checked = checkWorldModPack(readContentPacks(content).packs, pack, conversion.report);
+    expect(checked.ok).toBe(false);
+    if (checked.ok) return;
+    expect(checked.errorCount).toBeGreaterThan(0);
+    expect(checked.issues[0]?.severity).toBe('error');
   });
 });
 

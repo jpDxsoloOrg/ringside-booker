@@ -895,6 +895,19 @@ export function convertWorldMod(
       (value): value is GameDate => value !== null && !isAfter(value, start),
     );
     const formedOn = debuts.length === 0 ? start : debuts.reduce(laterOf);
+    let status: 'active' | 'inactive' = (int(row, 'tagStatus') ?? 1) === 1 ? 'active' : 'inactive';
+    if (
+      status === 'active' &&
+      (first.record['status'] === 'deceased' || second.record['status'] === 'deceased')
+    ) {
+      // The engine keeps no active team with a member who has died.
+      report.warn(
+        'team-member-deceased',
+        'An active tag team with a member who has died was imported as inactive',
+        example,
+      );
+      status = 'inactive';
+    }
     teamRecords.push({
       key: `wm-tt${String(tagId)}`,
       kind: 'tag',
@@ -907,7 +920,7 @@ export function convertWorldMod(
       memberKeys: [first.key, second.key],
       formedOn,
       experience: round1(clamp(num(row, 'tagExperience') ?? 0, 0, 100)),
-      status: (int(row, 'tagStatus') ?? 1) === 1 ? 'active' : 'inactive',
+      status,
     });
   }
 
@@ -1220,7 +1233,7 @@ export function convertWorldMod(
   // Employments
 
   const employmentRecords: Rec[] = [];
-  const exclusiveHolders = new Set<string>();
+  const personPromotionPairs = new Set<string>();
   const contractRows = [...rows(tables, 'contracts')].sort(
     (left, right) => (id(left, 'contractID') ?? 0) - (id(right, 'contractID') ?? 0),
   );
@@ -1265,16 +1278,18 @@ export function convertWorldMod(
         : (text(row, 'contractType') ?? '').toUpperCase() === 'PPA'
           ? 'perAppearance'
           : 'written';
-    let exclusive = flag(row, 'exclusive');
-    if (exclusive && exclusiveHolders.has(person.key)) {
+    // The engine allows one live contract per person and promotion: the first one wins.
+    const pairKey = `${person.key}|${promotion.key}`;
+    if (personPromotionPairs.has(pairKey)) {
       report.warn(
-        'second-exclusive-contract',
-        'A second exclusive contract for the same person was made non-exclusive',
+        'duplicate-contract',
+        'A second contract between the same person and promotion was left out',
         example,
       );
-      exclusive = false;
+      continue;
     }
-    if (exclusive) exclusiveHolders.add(person.key);
+    personPromotionPairs.add(pairKey);
+    const exclusive = flag(row, 'exclusive');
     let startsOn = date(row, 'contractStartDate') ?? start;
     if (isAfter(startsOn, start)) startsOn = start;
     const expiryText = text(row, 'expiryDate');
@@ -1333,6 +1348,32 @@ export function convertWorldMod(
         ? { morale: clamp((moraleValue - 50) * 2, -100, 100) }
         : {}),
     });
+  }
+  // An exclusive contract must be its person's only contract. A person the mod gives an exclusive
+  // contract and other contracts keeps all of them, made non-exclusive.
+  const contractsPerPerson = new Map<unknown, number>();
+  for (const record of employmentRecords) {
+    contractsPerPerson.set(
+      record['personKey'],
+      (contractsPerPerson.get(record['personKey']) ?? 0) + 1,
+    );
+  }
+  for (const record of employmentRecords) {
+    const terms: unknown = record['terms'];
+    if (
+      typeof terms !== 'object' ||
+      terms === null ||
+      Reflect.get(terms, 'exclusive') !== true ||
+      (contractsPerPerson.get(record['personKey']) ?? 0) < 2
+    ) {
+      continue;
+    }
+    Reflect.set(terms, 'exclusive', false);
+    report.warn(
+      'exclusive-alongside-other-contracts',
+      'An exclusive contract held alongside other contracts was made non-exclusive',
+      `contracts#${String(record['key']).slice('wm-k'.length)}`,
+    );
   }
   report.notImportedField(
     'contracts: gimmick, hasMask, hiringVeto, wageMatching, planned turns and gimmicks, momentum, entrance, indy bookings',
