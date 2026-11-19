@@ -124,6 +124,10 @@ namespace RingsideBooker.UI.Bridge
                     return ScreenRegistry.IsLive(ScreenIds.Worker) ? ShellRoute.With(ScreenIds.Worker, "id", entity.Id) : ShellRoute.To("roster");
                 case "promotion":
                     return ScreenRegistry.IsLive(ScreenIds.Promotion) ? ShellRoute.With(ScreenIds.Promotion, "id", entity.Id) : ShellRoute.To(NavigationModel.HomeItemId);
+                case "title":
+                    return ScreenRegistry.IsLive("titles") ? ShellRoute.With("titles", "title", entity.Id) : null;
+                case "storyline":
+                    return ScreenRegistry.IsLive("storylines") ? ShellRoute.With("storylines", "storyline", entity.Id) : null;
                 default:
                     return null;
             }
