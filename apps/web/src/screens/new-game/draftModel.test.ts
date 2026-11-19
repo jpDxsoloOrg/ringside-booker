@@ -40,6 +40,7 @@ const PREVIEW: WorldPreview = {
       prestige: 10,
       rosterSize: 1,
       titleCount: 0,
+      logoRef: null,
       homeCountryPopularity: 1,
       regionsKnownIn: 1,
       brands: [],

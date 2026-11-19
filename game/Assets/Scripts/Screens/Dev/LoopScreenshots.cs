@@ -54,9 +54,34 @@ namespace RingsideBooker.Screens.Dev
             yield return TitleCredits();
 
             while (NewGameWizard.Last == null) yield return null;
-            yield return Await(NewGameWizard.Last.UseDefaults(workshop));
+            NewGameWizard wizard = NewGameWizard.Last;
+            while (wizard.SelectedWorldId == null) yield return null;
+            yield return Wait(0.5f);
+            if (!workshop) yield return Capture("new-game-world");
+            yield return Await(wizard.UseDefaults(workshop));
+            yield return Wait(0.5f);
+            // Every wizard step (UNITY-13): promotion, options (top and scrolled to the end) and
+            // the options with Advanced open.
+            wizard.ShowStep(1);
+            yield return Wait(0.5f);
+            yield return Capture("new-game-promotion");
+            wizard.ShowStep(2);
             yield return Wait(0.5f);
             yield return Capture("new-game-options");
+            yield return ScrollToEnd(wizard.Body);
+            yield return Capture("new-game-options-end");
+            wizard.ShowStep(2, advanced: true);
+            yield return Wait(0.3f);
+            yield return ScrollToEnd(wizard.Body);
+            yield return Capture("new-game-options-advanced");
+            wizard.ShowStep(2);
+            yield return Wait(0.3f);
+            if (Array.Exists(Environment.GetCommandLineArgs(), arg => string.Equals(arg, "-rbLoopWizardOnly", StringComparison.OrdinalIgnoreCase)))
+            {
+                Debug.Log($"[LoopScreenshots] done (wizard only): {folder}");
+                Application.Quit(0);
+                yield break;
+            }
             if (workshop) Debug.Log($"[LoopScreenshots] import report: {(NewGameWizard.Last.ImportNotice ?? "none")}");
             yield return Await(NewGameWizard.Last.StartGame());
 
@@ -163,6 +188,14 @@ namespace RingsideBooker.Screens.Dev
                 submit.target = button;
                 button.SendEvent(submit);
             }
+        }
+
+        private static IEnumerator ScrollToEnd(ScrollView scroll)
+        {
+            yield return Wait(0.3f);
+            if (scroll == null) yield break;
+            scroll.scrollOffset = new Vector2(0, Mathf.Max(0, scroll.contentContainer.layout.height - scroll.contentViewport.layout.height));
+            yield return Wait(0.4f);
         }
 
         private static IEnumerator Wait(float seconds)

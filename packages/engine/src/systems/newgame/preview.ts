@@ -61,6 +61,8 @@ export interface PreviewPromotion {
   name: string;
   shortName: string;
   color: string;
+  /** The promotion's logo picture (a world mod's `wm/...` ref), or null when it has none. */
+  logoRef: string | null;
   homeRegion: PlaceRef;
   homeCountry: PlaceRef;
   style: PromotionStyle;
@@ -229,6 +231,7 @@ function previewPromotions(world: GameWorld, places: Places): PreviewPromotion[]
       name: promotion.name,
       shortName: promotion.shortName,
       color: promotion.color,
+      logoRef: promotion.logoRef ?? null,
       homeRegion: placeRef(places.regionKeys, region.id, region.name),
       homeCountry: placeRef(places.countryKeys, country.id, country.name),
       style: promotion.style,

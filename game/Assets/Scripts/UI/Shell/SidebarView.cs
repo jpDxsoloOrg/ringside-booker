@@ -24,6 +24,12 @@ namespace RingsideBooker.UI.Shell
         private bool? builtForPromotion;
         private string currentScreenId;
 
+        /// <summary>
+        /// Turns a promotion's logo ref into its picture (set by the screens: a workshop world's
+        /// pictures), or null for none; the crest then shows the monogram.
+        /// </summary>
+        public static Func<string, UnityEngine.Texture2D> LogoTexture { get; set; }
+
         public SidebarView(VisualElement sidebar, ShellNavigator navigator, Action onMainMenu)
         {
             this.navigator = navigator;
@@ -45,6 +51,9 @@ namespace RingsideBooker.UI.Shell
         {
             PromotionInfo promotion = snapshot.Promotion;
             crest.EnableInClassList("promotion-crest--empty", promotion == null);
+            UnityEngine.Texture2D logo = promotion?.LogoRef == null ? null : LogoTexture?.Invoke(promotion.LogoRef);
+            crest.EnableInClassList("promotion-crest--logo", logo != null);
+            crest.style.backgroundImage = logo != null ? new StyleBackground(logo) : new StyleBackground(StyleKeyword.Null);
             if (promotion == null)
             {
                 crest.text = "?";
@@ -53,7 +62,8 @@ namespace RingsideBooker.UI.Shell
             }
             else
             {
-                crest.text = Monogram(promotion.ShortName ?? promotion.Name);
+                crest.text = logo != null ? string.Empty : Monogram(promotion.ShortName ?? promotion.Name);
+                crest.tooltip = promotion.Name;
                 promotionName.text = TextFormat.Upper(promotion.Name);
                 promotionTagline.text = promotion.Tagline ?? string.Empty;
             }

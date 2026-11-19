@@ -87,11 +87,13 @@ namespace RingsideBooker.Screens
                 double popularity = Kit.Num(row, "popularity") ?? 0;
                 string push = Kit.Str(row, "push");
 
-                VisualElement name = Ui.El("rb-row", "rb-row--tight").With(
+                // A fixed-size portrait, then the name and its detail line, each truncated with an ellipsis.
+                VisualElement name = Ui.El("rb-row", "rb-row--tight", "rb-name-cell").With(
                     Portrait(pictures, Kit.Str(row, "imageRef")),
                     Ui.El("rb-cell-stack").With(
                         Ui.Text(Kit.Str(row, "ringName"), "t-ui-semibold"),
                         Ui.Text($"{Kit.Capital(Kit.Str(row, "alignment"))} · {Kit.Num(row, "age")}", "t-xs", "t-muted")));
+                name.tooltip = Kit.Str(row, "ringName");
 
                 VisualElement pushCell = Ui.El("rb-row", "rb-row--tight");
                 pushCell.Add(Ui.Text(Kit.PushLabel(push), "rb-table__text"));
@@ -124,7 +126,8 @@ namespace RingsideBooker.Screens
                     morale.HasValue ? Kit.WhyRef("Morale", morale.Value, Kit.Obj(row, "morale.traceRef")) : null);
 
                 string status = Kit.Str(row, "availability.status");
-                Label availability = Ui.Text(AvailabilityText(row), "rb-table__text", "t-wrap");
+                Label availability = Ui.Text(AvailabilityText(row), "rb-table__text");
+                availability.tooltip = AvailabilityText(row);
                 if (status != "available") availability.AddToClassList("t-negative");
 
                 string ends = Kit.Str(row, "endsOn");

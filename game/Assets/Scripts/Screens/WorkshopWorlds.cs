@@ -237,6 +237,25 @@ namespace RingsideBooker.Screens
             }
         }
 
+        private static string packPicturesId;
+        private static PictureProvider packPictures;
+
+        /// <summary>
+        /// Pictures of a workshop world imported this session (the New game wizard's promotion
+        /// logos), or null for a built-in world, a roster-only import or an unknown pack.
+        /// </summary>
+        public static PictureProvider PicturesForPack(string packId)
+        {
+            if (packId == packPicturesId) return packPictures;
+            packPictures?.Dispose();
+            packPictures = null;
+            packPicturesId = packId;
+            if (packId == null || !ModsByPack.TryGetValue(packId, out WorkshopMod mod)) return null;
+            if (!Imported.TryGetValue(packId, out bool rosterOnly) || rosterOnly || mod.PictureFolder == null) return null;
+            packPictures = new PictureProvider(mod.PictureFolder, false);
+            return packPictures;
+        }
+
         /// <summary>
         /// Pictures for the running game's save, when it came from a workshop world mod with
         /// pictures; null otherwise (a world without pictures).

@@ -31,7 +31,7 @@ namespace RingsideBooker.Screens
 
         private readonly VisualElement root;
         private readonly VisualElement steps;
-        private readonly VisualElement body;
+        private readonly ScrollView body;
         private readonly VisualElement nav;
         private readonly Label feedback;
 
@@ -47,6 +47,8 @@ namespace RingsideBooker.Screens
         private readonly Dictionary<string, JToken> settings = new Dictionary<string, JToken>();
         private int step;
         private bool busy;
+        private bool showAdvanced;
+        private string drawnPage;
 
         // The "Import a workshop world" sub-screen (UNITY-12).
         private bool importing;
@@ -61,7 +63,10 @@ namespace RingsideBooker.Screens
         {
             root = Ui.El("rb-wizard").Named("new-game-wizard");
             steps = Ui.El("rb-wizard__steps");
-            body = Ui.El("rb-stack");
+            // The step scrolls when it is taller than the window; the step names, feedback and the
+            // Back/Next buttons stay put.
+            body = new ScrollView(ScrollViewMode.Vertical) { name = "wizard-body" };
+            body.AddToClassList("rb-wizard__body");
             nav = Ui.El("rb-wizard__nav");
             feedback = Kit.Feedback();
             root.With(steps, body, feedback, nav);
@@ -150,29 +155,46 @@ namespace RingsideBooker.Screens
                 label.EnableInClassList("rb-wizard__step--current", index == step);
                 steps.Add(label);
             }
+            // Redrawing the same page (picking an option, opening Advanced) keeps the scroll position.
+            string page = importing ? "import" : $"step-{step}";
+            Vector2 offset = page == drawnPage ? body.scrollOffset : Vector2.zero;
+            drawnPage = page;
             body.Clear();
             nav.Clear();
             feedback.SetShown(false);
-            if (importing)
+            if (importing) DrawImport();
+            else
             {
-                DrawImport();
-                return;
+                switch (step)
+                {
+                    case 0: DrawWorlds(); break;
+                    case 1: DrawPromotions(); break;
+                    default: DrawOptions(); break;
+                }
             }
-            switch (step)
-            {
-                case 0: DrawWorlds(); break;
-                case 1: DrawPromotions(); break;
-                default: DrawOptions(); break;
-            }
+            body.scrollOffset = offset;
+            if (offset != Vector2.zero) body.schedule.Execute(() => body.scrollOffset = offset);
         }
+
+        /// <summary>The tours: shows a step (0 World, 1 Promotion, 2 Options) of the current draft.</summary>
+        public void ShowStep(int index, bool advanced = false)
+        {
+            if (index > 0 && preview == null) return;
+            importing = false;
+            step = index;
+            showAdvanced = advanced;
+            Draw();
+        }
+
+        /// <summary>The step's scroll view (the tours scroll it to the end).</summary>
+        public ScrollView Body => body;
 
         private void DrawWorlds()
         {
-            var list = new ScrollView(ScrollViewMode.Vertical) { name = "world-list" };
-            list.AddToClassList("rb-world-list");
+            VisualElement list = Ui.El("rb-world-list").Named("world-list");
             foreach (IGrouping<string, (string group, WorldChoice world)> group in worlds.GroupBy(entry => entry.group))
             {
-                list.Add(Ui.Text(TextFormat.Upper(group.Key), "field-label", "rb-gap-top"));
+                list.Add(Section(group.Key, first: list.childCount == 0));
                 foreach ((string _, WorldChoice choice) in group) list.Add(WorldOption(choice));
             }
             body.Add(list);
@@ -262,12 +284,11 @@ namespace RingsideBooker.Screens
             }
 
             body.Add(Kit.Note($"{mods.Count} installed workshop {(mods.Count == 1 ? "mod" : "mods")}. Pick a world to import; a big world takes a few seconds."));
-            var list = new ScrollView(ScrollViewMode.Vertical) { name = "workshop-mod-list" };
-            list.AddToClassList("rb-mod-list");
+            VisualElement list = Ui.El("rb-mod-list").Named("workshop-mod-list");
             foreach (WorkshopMod mod in mods) list.Add(ModOption(mod));
             body.Add(list);
 
-            body.Add(Ui.Text(TextFormat.Upper("Pictures"), "field-label", "rb-gap-top"));
+            body.Add(Ui.Text(TextFormat.Upper("Pictures"), "rb-wizard__section"));
             body.Add(Kit.Chips(new[] { (false, "With pictures"), (true, "Roster only (no pictures)") }, WorkshopWorlds.RosterOnly,
                 picked => WorkshopWorlds.RosterOnly = picked, "import-roster-only"));
 
@@ -313,7 +334,7 @@ namespace RingsideBooker.Screens
             }, "choice-chip", "rb-option");
             option.name = $"mod-{mod.ItemId}";
             option.Add(Ui.Text(mod.WorldName ?? $"Workshop item {mod.ItemId}", "choice-chip__label"));
-            option.Add(Ui.Text(ModDetail(mod), "choice-chip__detail"));
+            option.Add(Ui.Text(ModDetail(mod), "choice-chip__detail", "t-wrap"));
             option.EnableInClassList("choice-chip--selected", mod == pickedMod);
             option.SetEnabled(mod.IsWorld);
             return option;
@@ -387,9 +408,8 @@ namespace RingsideBooker.Screens
                 JArray warnings = importResult.Response?["report"]?["warnings"] as JArray;
                 if (warnings != null && warnings.Count > 0)
                 {
-                    body.Add(Ui.Text(TextFormat.Upper("What was skipped or adjusted"), "field-label", "rb-gap-top"));
-                    var list = new ScrollView(ScrollViewMode.Vertical) { name = "import-warnings" };
-                    list.AddToClassList("rb-import-warnings");
+                    body.Add(Ui.Text(TextFormat.Upper("What was skipped or adjusted"), "rb-wizard__section"));
+                    VisualElement list = Ui.El("rb-import-warnings").Named("import-warnings");
                     foreach (JToken warning in warnings.OrderByDescending(entry => (int?)entry["count"] ?? 0))
                     {
                         list.Add(Ui.Text($"{Kit.Num(warning, "count"):N0} × {Kit.Str(warning, "message")}", "t-sm", "t-wrap"));
@@ -436,7 +456,7 @@ namespace RingsideBooker.Screens
             }, "choice-chip", "rb-option");
             option.name = $"world-{choice.Id}";
             option.Add(Ui.Text(choice.Name, "choice-chip__label"));
-            if (choice.Detail.Length > 0) option.Add(Ui.Text(choice.Detail, "choice-chip__detail"));
+            if (choice.Detail.Length > 0) option.Add(Ui.Text(choice.Detail, "choice-chip__detail", "t-wrap"));
             if (choice.Description.Length > 0) option.Add(Ui.Text(choice.Description, "choice-chip__detail", "t-wrap"));
             option.EnableInClassList("choice-chip--selected", choice == world);
             return option;
@@ -478,8 +498,8 @@ namespace RingsideBooker.Screens
         {
             if (world.Notice != null) body.Add(Kit.Note(world.Notice).Named("wizard-import-report"));
             body.Add(Kit.Note("Pick the promotion you take over. Founding your own arrives in a later sprint."));
-            var list = new ScrollView(ScrollViewMode.Vertical);
-            list.AddToClassList("rb-promo-list");
+            VisualElement list = Ui.El("rb-promo-list").Named("promotion-list");
+            Import.Pictures.PictureProvider pictures = WorkshopWorlds.PicturesForPack(world?.Id);
             foreach (JToken promotion in Kit.Arr(preview, "promotions"))
             {
                 string key = Kit.Str(promotion, "key");
@@ -487,14 +507,17 @@ namespace RingsideBooker.Screens
                 {
                     promotionKey = key;
                     Draw();
-                }, "choice-chip", "rb-option");
+                }, "choice-chip", "rb-option", "rb-option--with-logo");
                 option.name = $"promotion-{key}";
-                option.Add(Ui.Text($"{Kit.Str(promotion, "name")} ({Kit.Str(promotion, "shortName")})", "choice-chip__label"));
-                option.Add(Ui.Text(
+                option.Add(PromotionLogos.Badge(pictures, Kit.Str(promotion, "logoRef"), Kit.Str(promotion, "shortName") ?? Kit.Str(promotion, "name"), "rb-logo--lg"));
+                VisualElement text = Ui.El("rb-option__text");
+                option.Add(text);
+                text.Add(Ui.Text($"{Kit.Str(promotion, "name")} ({Kit.Str(promotion, "shortName")})", "choice-chip__label"));
+                text.Add(Ui.Text(
                     $"{Kit.Str(promotion, "homeRegion.name")}, {Kit.Str(promotion, "homeCountry.name")} · {Kit.Capital(Kit.Str(promotion, "style"))} · " +
                     $"Cash {TextFormat.Money((long)(Kit.Num(promotion, "cash") ?? 0))} · Prestige {Kit.Whole(Kit.Num(promotion, "prestige"))} · " +
                     $"Roster {Kit.Num(promotion, "rosterSize")} · Titles {Kit.Num(promotion, "titleCount")} · Popularity {Kit.Decimal1(Kit.Num(promotion, "homeCountryPopularity"))}",
-                    "choice-chip__detail"));
+                    "choice-chip__detail", "t-wrap"));
                 option.EnableInClassList("choice-chip--selected", key == promotionKey);
                 list.Add(option);
             }
@@ -508,20 +531,54 @@ namespace RingsideBooker.Screens
 
         private void DrawOptions()
         {
-            body.Add(TextRow("Save name", saveName, value => saveName = value, "wizard-save-name"));
-            body.Add(TextRow("Your name", playerName, value => playerName = value, "wizard-player-name"));
-            VisualElement seedRow = TextRow("Seed", seed, value => seed = value, "wizard-seed");
-            seedRow.Add(Ui.Btn("New seed", () => { seed = NewSeed(); Draw(); }, "btn--link"));
-            body.Add(seedRow);
+            body.Add(Section("You", first: true));
+            VisualElement names = Ui.El("rb-form");
+            names.Add(TextRow("Save name", saveName, value => saveName = value, "wizard-save-name"));
+            names.Add(TextRow("Your name", playerName, value => playerName = value, "wizard-player-name"));
+            body.Add(names);
 
-            body.Add(Ui.Text(TextFormat.Upper("Season length"), "field-label", "rb-gap-top"));
-            body.Add(Kit.Chips(Kit.Arr(preview, "seasonLength.presets").Select(preset => (Kit.Str(preset, "key"), Kit.Str(preset, "label"))),
-                seasonPreset, picked => seasonPreset = picked));
+            body.Add(Section("Season length"));
+            VisualElement season = Kit.Chips(Kit.Arr(preview, "seasonLength.presets").Select(preset => (Kit.Str(preset, "key"), Kit.Str(preset, "label"))),
+                seasonPreset, picked => seasonPreset = picked, "wizard-season-length");
+            season.AddToClassList("rb-segmented");
+            body.Add(season);
+            body.Add(Ui.Text("Seasons set the competitive rhythm: awards, rankings and season goals come round at the end of each one.",
+                "rb-setting__description"));
 
-            foreach (IGrouping<string, JToken> group in Kit.Arr(preview, "settings").GroupBy(setting => Kit.Str(setting, "group") ?? "world"))
+            List<IGrouping<string, JToken>> groups = Kit.Arr(preview, "settings")
+                .GroupBy(setting => Kit.Str(setting, "group") ?? "world").ToList();
+            foreach (IGrouping<string, JToken> group in groups.Where(group => group.Key != AdvancedGroup))
             {
-                body.Add(Ui.Text(TextFormat.Upper(Kit.Capital(group.Key)), "field-label", "rb-gap-top"));
+                body.Add(Section(GroupLabel(group.Key)));
                 foreach (JToken setting in group) body.Add(SettingRow(setting));
+            }
+
+            // Don't overwhelm: the seed and the advanced settings sit behind a toggle, closed by default.
+            Button toggle = Ui.Btn(showAdvanced ? "Hide advanced options" : "Advanced options…", () =>
+            {
+                showAdvanced = !showAdvanced;
+                Draw();
+            }, "btn--ghost");
+            toggle.name = "wizard-advanced-toggle";
+            toggle.AddToClassList("rb-wizard__advanced-toggle");
+            body.Add(toggle);
+            if (showAdvanced)
+            {
+                VisualElement advanced = Ui.El("rb-wizard__advanced").Named("wizard-advanced");
+                VisualElement seedForm = Ui.El("rb-form");
+                VisualElement seedRow = TextRow("Seed", seed, value => seed = value, "wizard-seed");
+                Button newSeed = Ui.Btn("New seed", () => { seed = NewSeed(); Draw(); }, "btn--ghost");
+                newSeed.AddToClassList("rb-form__action");
+                seedRow.Add(newSeed);
+                seedForm.Add(seedRow);
+                seedForm.Add(Ui.Text("The same seed and choices build the same world.", "rb-form__hint"));
+                advanced.Add(seedForm);
+                foreach (IGrouping<string, JToken> group in groups.Where(group => group.Key == AdvancedGroup))
+                {
+                    advanced.Add(Section(GroupLabel(group.Key)));
+                    foreach (JToken setting in group) advanced.Add(SettingRow(setting));
+                }
+                body.Add(advanced);
             }
 
             nav.Add(Ui.Btn("BACK", () => { step = 1; Draw(); }, "btn--ghost"));
@@ -530,30 +587,57 @@ namespace RingsideBooker.Screens
             nav.Add(start);
         }
 
+        private const string AdvancedGroup = "advanced";
+
+        private static string GroupLabel(string group) => group switch
+        {
+            "world" => "World",
+            "difficulty" => "Difficulty",
+            AdvancedGroup => "Advanced settings",
+            _ => Kit.Capital(group),
+        };
+
+        private static Label Section(string title, bool first = false)
+        {
+            Label label = Ui.Text(TextFormat.Upper(title), "rb-wizard__section");
+            label.EnableInClassList("rb-wizard__section--first", first);
+            return label;
+        }
+
+        /// <summary>
+        /// One setting per row: the name with its description under it on the left (wrapping), the
+        /// choice buttons on the right, vertically centred.
+        /// </summary>
         private VisualElement SettingRow(JToken setting)
         {
             string key = Kit.Str(setting, "key");
             VisualElement row = Ui.El("rb-setting").Named($"setting-{key}");
-            row.Add(Ui.Text(Kit.Str(setting, "label"), "t-ui-semibold", "t-sm"));
+            VisualElement text = Ui.El("rb-setting__text").With(
+                Ui.Text(Kit.Str(setting, "label"), "rb-setting__name"),
+                Ui.Text(Kit.Str(setting, "description"), "rb-setting__description"));
+            row.Add(text);
             IEnumerable<(string, string)> options = Kit.Str(setting, "kind") == "boolean"
                 ? new[] { ("true", "On"), ("false", "Off") }
                 : Kit.Arr(setting, "options").Select(option => ((string)option, Kit.Capital((string)option)));
             string current = settings.TryGetValue(key, out JToken value) && value != null
                 ? (value.Type == JTokenType.Boolean ? ((bool)value ? "true" : "false") : value.ToString())
                 : null;
-            row.Add(Kit.Chips(options, current, picked =>
-                settings[key] = Kit.Str(setting, "kind") == "boolean" ? new JValue(picked == "true") : new JValue(picked)));
-            row.Add(Ui.Text(Kit.Str(setting, "description"), "t-xs", "t-muted", "t-wrap"));
+            VisualElement choices = Kit.Chips(options, current, picked =>
+                settings[key] = Kit.Str(setting, "kind") == "boolean" ? new JValue(picked == "true") : new JValue(picked));
+            choices.AddToClassList("rb-segmented");
+            choices.AddToClassList("rb-setting__choices");
+            row.Add(choices);
             return row;
         }
 
+        /// <summary>A form row: the label on the left, the field on the right (fixed height, never overlapping).</summary>
         private static VisualElement TextRow(string label, string value, Action<string> onChange, string name)
         {
             var field = new TextField { value = value, name = name };
             field.AddToClassList("text-input");
-            field.style.width = 320;
+            field.AddToClassList("rb-form__field");
             field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-            return Ui.El("rb-line").With(Ui.Text(label, "rb-line__label"), field);
+            return Ui.El("rb-form__row").With(Ui.Text(label, "rb-form__label"), field);
         }
 
         /// <summary>Starts the game with what the wizard holds (the tour calls it after picking the defaults).</summary>
@@ -562,8 +646,14 @@ namespace RingsideBooker.Screens
             if (busy || client == null || world == null || promotionKey == null) return;
             if (string.IsNullOrWhiteSpace(seed) || seed.Length > SeedMaxLength)
             {
-                feedback.text = $"Enter a seed of 1 to {SeedMaxLength} characters.";
+                feedback.text = $"Enter a seed of 1 to {SeedMaxLength} characters (Advanced options).";
                 feedback.SetShown(true);
+                if (!showAdvanced)
+                {
+                    showAdvanced = true;
+                    Draw();
+                    feedback.SetShown(true);
+                }
                 return;
             }
             busy = true;

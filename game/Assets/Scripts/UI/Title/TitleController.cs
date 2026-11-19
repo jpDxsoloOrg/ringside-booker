@@ -98,6 +98,7 @@ namespace RingsideBooker.UI.Title
         private VisualElement ResetPanel(string title)
         {
             panel.Clear();
+            panel.RemoveFromClassList("title-panel--wizard");
             VisualElement inner = Ui.El("title-panel__inner");
             inner.Add(Ui.Text(TextFormat.Upper(title), "screen-heading"));
             panel.Add(inner);
@@ -107,6 +108,9 @@ namespace RingsideBooker.UI.Title
         private void ShowNewGame()
         {
             VisualElement inner = ResetPanel("New game");
+            // The wizard fills the panel's height and scrolls its step inside it (UNITY-13).
+            panel.AddToClassList("title-panel--wizard");
+            inner.AddToClassList("title-panel__inner--wizard");
             inner.Add(RingsideBooker.Screens.NewGameWizard.Build());
             Button demo = Ui.Btn("Or look around the demo game (sample data)", StartDemo, "btn--link");
             demo.name = "start-demo";

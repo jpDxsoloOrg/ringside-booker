@@ -85,6 +85,12 @@ export interface CalendarShow {
    * elsewhere stay valid; the calendar queries always fill it.
    */
   score?: number | null;
+  /**
+   * The show's logo picture (its definition's `logoRef`, e.g. a workshop world mod's `wm/...`).
+   * Only present when the definition has one, so worlds without show logos keep their rows as
+   * they were.
+   */
+  logoRef?: string;
 }
 
 /** `calendar.show`: one stored show with the reasoning behind where it is held. */
@@ -238,6 +244,7 @@ export function calendarRowBuilder(
           viewer.kind === 'controller' &&
           cancelRefusal(read, instance, viewer.controller, today) === null,
         score: instance.status === 'completed' ? (instance.result?.score ?? null) : null,
+        ...logoOf(definition),
       };
     },
     projected(definition, date) {
@@ -269,9 +276,18 @@ export function calendarRowBuilder(
         segmentCount: 0,
         canCancel: false,
         score: null,
+        ...logoOf(definition),
       };
     },
   };
+}
+
+/** `{ logoRef }` when the definition has a logo, else nothing (see {@link CalendarShow.logoRef}). */
+function logoOf(definition: DeepReadonly<{ logoRef?: string | null }> | undefined): {
+  logoRef?: string;
+} {
+  const logoRef = definition?.logoRef;
+  return typeof logoRef === 'string' && logoRef !== '' ? { logoRef } : {};
 }
 
 /**

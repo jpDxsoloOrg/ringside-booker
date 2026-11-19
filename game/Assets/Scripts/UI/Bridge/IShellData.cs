@@ -14,13 +14,17 @@ namespace RingsideBooker.UI.Bridge
     /// <summary>The promotion the player runs, for the sidebar's crest block.</summary>
     public sealed class PromotionInfo
     {
-        public PromotionInfo(string id, string name, string shortName, string tagline)
+        public PromotionInfo(string id, string name, string shortName, string tagline, string logoRef = null)
         {
             Id = id;
             Name = name;
             ShortName = shortName;
             Tagline = tagline;
+            LogoRef = logoRef;
         }
+
+        /// <summary>The promotion's logo picture ref (a workshop world mod's <c>wm/...</c>), or null.</summary>
+        public string LogoRef { get; }
 
         public string Id { get; }
         public string Name { get; }

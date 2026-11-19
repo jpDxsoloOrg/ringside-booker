@@ -210,11 +210,16 @@ namespace RingsideBooker.Screens
                 return row;
             }
 
+            /// <summary>Each width unit keeps at least this many px, so a narrow window never squeezes a column into its neighbour.</summary>
+            public const float MinWidthPerUnit = 70f;
+
             private VisualElement Cell(VisualElement content, int index)
             {
                 VisualElement cell = Ui.El("rb-table__cell");
-                cell.style.flexGrow = index < widths.Length ? widths[index] : 1;
+                float weight = index < widths.Length ? widths[index] : 1;
+                cell.style.flexGrow = weight;
                 cell.style.flexBasis = 0;
+                cell.style.minWidth = weight * MinWidthPerUnit;
                 cell.Add(content);
                 return cell;
             }

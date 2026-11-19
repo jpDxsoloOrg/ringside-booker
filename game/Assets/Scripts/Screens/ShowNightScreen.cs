@@ -72,6 +72,7 @@ namespace RingsideBooker.Screens
 
             // Header and score bug.
             VisualElement header = Ui.El("card", "rb-showbar", "rb-broadcast").Named("show-night-header");
+            PromotionLogos.PrependShow(header, eventId, null, Kit.Str(view, "promotion.id") ?? Kit.Str(view, "promotionId"), "rb-logo--lg");
             string kicker = finished ? "Show's over" : stage == "live" ? "Live" : "Tonight";
             header.Add(Ui.El("rb-showbar__info").With(
                 Ui.El("rb-row", "rb-row--tight").With(Kit.Badge(kicker, stage == "live" ? "badge--action" : null)),

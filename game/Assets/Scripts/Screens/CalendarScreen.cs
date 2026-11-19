@@ -100,6 +100,13 @@ namespace RingsideBooker.Screens
                     if (Kit.Bool(show, "isOwn")) chip.AddToClassList("rb-show-chip--own");
                     if (Kit.Str(show, "status") == "completed") chip.AddToClassList("rb-show-chip--done");
                     if (Kit.Str(show, "importance") != "regular") chip.AddToClassList("rb-show-chip--major");
+                    // A small show logo when the world has one (no placeholder: month cells stay compact).
+                    if (PromotionLogos.ShowTexture(Kit.Str(show, "logoRef")) is UnityEngine.Texture2D icon)
+                    {
+                        var image = new Image { image = icon, scaleMode = UnityEngine.ScaleMode.ScaleToFit };
+                        image.AddToClassList("rb-show-chip__icon");
+                        chip.Add(image);
+                    }
                     chip.Add(Ui.Text(Kit.Str(show, "name"), "rb-show-chip__label"));
                     chip.tooltip = $"{Kit.Str(show, "promotion.name")}: {Kit.Str(show, "name")}";
                     cell.Add(chip);
@@ -127,7 +134,22 @@ namespace RingsideBooker.Screens
             }
 
             VisualElement body = sheet.Body;
-            body.Add(Kit.Line("Promotion", Kit.Str(show, "promotion.name")));
+            VisualElement promotionLine = Kit.Line("Promotion", Kit.Str(show, "promotion.name"));
+            body.Add(promotionLine);
+            // The logo slots in after the label, before the name.
+            string promotionId = Kit.Str(show, "promotion.id");
+            if (promotionId != null)
+            {
+                VisualElement logoSlot = Ui.El("rb-logo-slot");
+                promotionLine.Insert(Math.Min(1, promotionLine.childCount), logoSlot);
+                PromotionLogos.Prepend(logoSlot, promotionId, Kit.Str(show, "promotion.shortName"), "rb-logo--sm");
+            }
+            // The show's own logo at the top of the sheet (else its promotion's).
+            {
+                VisualElement showLogo = Ui.El("rb-identity").Named("show-sheet-logo");
+                body.Insert(0, showLogo);
+                PromotionLogos.PrependShow(showLogo, eventInstanceId, Kit.Str(show, "logoRef"), promotionId, "rb-logo--xl");
+            }
             if (Kit.Str(show, "brand.name") is string brand) body.Add(Kit.Line("Brand", brand));
             body.Add(Kit.Line("Date", Kit.Date(Kit.Str(show, "date"), true),
                 Kit.WhyTrace("Placement", 0, Kit.Obj(show, "placementTrace"), null, "Why this date")));
