@@ -1,0 +1,116 @@
+/* Shared pieces of the redesigned screens (UNITY-21): quiet Why?, fields, choices, pickers, search. */
+
+.ds-why-host .rb-why-quiet {
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 120ms;
+}
+
+.ds-why-host:hover .rb-why-quiet,
+.ds-why-host .rb-why-quiet:focus {
+    opacity: 1;
+}
+
+.rb-ds-field {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+}
+
+.rb-ds-field__label {
+    margin-bottom: 6px;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.rb-ds-field__hint {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+    white-space: normal;
+}
+
+.rb-ds-choices > .ds-chip {
+    margin: 0 6px 6px 0;
+}
+
+.rb-ds-picker {
+    align-self: flex-start;
+    max-width: 100%;
+}
+
+.rb-ds-picker .ds-btn__label {
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rb-ds-picker-list {
+    width: 340px;
+    max-height: 420px;
+}
+
+.rb-ds-picker-list__scroll {
+    flex-shrink: 1;
+    max-height: 380px;
+}
+
+.unity-button.rb-ds-picker-list__row {
+    flex-direction: column;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 6px 10px;
+    border-width: 0;
+    border-radius: var(--ds-radius-sm);
+    background-color: transparent;
+    align-items: flex-start;
+    -unity-text-align: middle-left;
+}
+
+.unity-button.rb-ds-picker-list__row:hover {
+    background-color: var(--ds-elev-4);
+}
+
+.rb-ds-picker-list__label {
+    font-size: 13px;
+    color: var(--ds-text);
+    -unity-text-align: middle-left;
+}
+
+.rb-ds-picker-list__detail {
+    font-size: 11px;
+    color: var(--ds-text-3);
+    white-space: normal;
+    -unity-text-align: middle-left;
+}
+
+.rb-ds-search {
+    flex-shrink: 0;
+    height: 32px;
+    margin-bottom: 8px;
+    padding-left: 8px;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-0);
+    align-items: center;
+}
+
+.rb-ds-search__icon {
+    color: var(--ds-text-3);
+}
+
+.rb-ds-search__field {
+    flex-grow: 1;
+    margin: 0;
+}
+
+.rb-ds-search__field > .unity-base-text-field__input {
+    margin: 0;
+    padding: 0 8px;
+    border-width: 0;
+    background-color: transparent;
+    font-size: 13px;
+    color: var(--ds-text);
+}

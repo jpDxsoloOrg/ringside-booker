@@ -18,6 +18,7 @@ import { hasCard } from '../booking/card';
 import { showContextOf, slotRoleInput, type ShowContext, type ShowSegment } from './context';
 import { OFFSCREEN_SHOW_SCORE_DOC_REF, offscreenShowScore } from './formulas/offscreenShowScore';
 import { showScore, type ShowScoreInputs, type ShowSlotInput } from './formulas/showScore';
+import { isDistantShow } from './bigWorldSpeed';
 import { runSegment } from './runSegment';
 import {
   applyCapModifiers,
@@ -104,7 +105,11 @@ export function scoreInputs(
  * trace, ends any live run (EVT10-01) and announces `show.completed`. The one ending both ways of
  * running a card share: all at once ({@link runShowCard}) and one segment at a time (`live.ts`).
  */
-export function completeShowCard(ctx: PhaseContext, instanceId: EventInstanceId): void {
+export function completeShowCard(
+  ctx: PhaseContext,
+  instanceId: EventInstanceId,
+  { light = false }: { light?: boolean } = {},
+): void {
   const current = ctx.read.tables.eventInstances.require(instanceId);
   const show = showContextOf(ctx.read, current);
   countAppearances(ctx, show);
@@ -152,16 +157,22 @@ export function completeShowCard(ctx: PhaseContext, instanceId: EventInstanceId)
     rawScore,
     offscreen: false,
     segmentCount: show.segments.length,
+    // Only set on a light show (POL4-13), so a Full detail world announces what it always did.
+    ...(light ? { light: true as const } : {}),
   });
 }
 
-/** Runs every segment of the show's card in running order, scores the show and completes it. */
+/**
+ * Runs every segment of the show's card in running order, scores the show and completes it. A
+ * distant rival show in a Fast world (POL4-13, {@link isDistantShow}) runs on the light path.
+ */
 export function runShowCard(ctx: PhaseContext, instance: DeepReadonly<EventInstance>): void {
   const show = showContextOf(ctx.read, instance);
+  const light = isDistantShow(ctx.read, show, ctx.tunables);
   for (const entry of show.segments) {
-    runSegment(ctx, show, entry);
+    runSegment(ctx, show, entry, { light });
   }
-  completeShowCard(ctx, instance.id);
+  completeShowCard(ctx, instance.id, { light });
 }
 
 /**

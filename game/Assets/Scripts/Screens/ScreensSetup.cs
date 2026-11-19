@@ -15,6 +15,12 @@ namespace RingsideBooker.Screens
             ScreenRegistry.Register("booking", BookingScreen.Build);
             ScreenRegistry.Register(ScreenIds.ShowNight, ShowNightScreen.Build);
             ScreenRegistry.Register(ScreenIds.ShowResults, ResultsScreen.Build);
+            // World screens (UNITY-15).
+            ScreenRegistry.Register("workers", WorkersScreen.Build);
+            ScreenRegistry.Register(ScreenIds.Worker, WorkerProfileScreen.Build);
+            ScreenRegistry.Register("promotions", PromotionsScreen.Build);
+            ScreenRegistry.Register(ScreenIds.Promotion, PromotionProfileScreen.Build);
+            ScreenRegistry.Register("event-history", EventHistoryScreen.Build);
         }
     }
 }

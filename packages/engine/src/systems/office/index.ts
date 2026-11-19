@@ -152,8 +152,11 @@ export const officeSystem: SystemBundle = defineSystem({
       id: POPULARITY_CHANGED_SUBSCRIPTION_ID,
       type: 'popularity.changed',
       handler: (event, ctx) => {
-        const { subjectKind, subjectId } = event.payload;
-        if (subjectKind === 'promotion' && isId('promotion', subjectId)) {
+        const { subjectKind, subjectId, light } = event.payload;
+        // A distant rival's light-path change (POL4-13) leaves its headline Why? until the next
+        // full change: nobody near the player reads it, and re-recording it was a show's dearest
+        // reaction.
+        if (subjectKind === 'promotion' && isId('promotion', subjectId) && light !== true) {
           recordHeadlinePopularity(ctx, subjectId);
         }
       },

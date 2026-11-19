@@ -43,6 +43,11 @@ namespace RingsideBooker.Screens.Dev
         public const string StoredArgument = "-rbSkipCheckStored";
         private static string storedItem;
 
+        /// <summary><c>-rbSkipCheckSpeed full|fast</c>: the Big world speed the new game starts with (POL4-13).</summary>
+        public const string SpeedArgument = "-rbSkipCheckSpeed";
+
+        private static string speed;
+
         private int days = 90;
         private static string shots;
         private static int shotCount;
@@ -65,6 +70,8 @@ namespace RingsideBooker.Screens.Dev
                 if (workshopAt >= 0 && workshopAt + 1 < args.Length) workshopItem = args[workshopAt + 1];
                 int storedAt = Array.FindIndex(args, arg => string.Equals(arg, StoredArgument, StringComparison.OrdinalIgnoreCase));
                 if (storedAt >= 0 && storedAt + 1 < args.Length) storedItem = args[storedAt + 1];
+                int speedAt = Array.FindIndex(args, arg => string.Equals(arg, SpeedArgument, StringComparison.OrdinalIgnoreCase));
+                if (speedAt >= 0 && speedAt + 1 < args.Length) speed = args[speedAt + 1];
                 return;
             }
         }
@@ -127,6 +134,11 @@ namespace RingsideBooker.Screens.Dev
             else
             {
                 await NewGameWizard.Last.UseDefaults(false);
+            }
+            if (speed != null)
+            {
+                NewGameWizard.Last.SetSetting("bigWorldSpeed", speed);
+                Debug.Log($"[SkipCheck] Big world speed: {speed}");
             }
             await NewGameWizard.Last.StartGame();
             while (EngineGame.Current == null || ShellController.Current == null) await Task.Yield();
@@ -253,7 +265,9 @@ namespace RingsideBooker.Screens.Dev
             Sheet sheet = control.WaitingSheet;
             if (sheet == null)
             {
-                Debug.Log($"[SkipCheck] {lead.GateId}: \"{lead.Reason}\" → opened {ShellController.Current.Navigator.Current?.ScreenId}");
+                string screen = ShellController.Current.Navigator.Current?.ScreenId;
+                Debug.Log($"[SkipCheck] {lead.GateId}: \"{lead.Reason}\" → opened {screen}");
+                if (screen == Contracts.ContractsScreen.ScreenId) await ClearOnContracts(lead);
                 return;
             }
             Button button = sheet.Root.Q<Button>($"waiting-action-{lead.GateId}-0");
@@ -278,6 +292,43 @@ namespace RingsideBooker.Screens.Dev
             }
             await Settle();
             control.WaitingSheet?.Close();
+        }
+
+        /// <summary>
+        /// A contract stop on the Contracts screen (UNITY-17): press what a player would press there.
+        /// Expiring: Mark all seen. Wants to leave: Refuse in the contract sheet. Counter waiting: End
+        /// talks in the Negotiation sheet. Offer answered: opening the talks already marked it seen.
+        /// </summary>
+        internal static async Task ClearOnContracts(GateHit lead)
+        {
+            for (int wait = 0; wait < 50 && Contracts.ContractsScreen.Current?.Root.panel == null; wait++) await Task.Delay(100);
+            await Settle();
+            VisualElement root = ShellController.Current.GetComponent<UIDocument>().rootVisualElement;
+            string name = lead.GateId switch
+            {
+                EngineGateActions.ExpiringSoon => "contracts-mark-all-seen",
+                EngineGateActions.ReleaseRequested => "release-refuse",
+                EngineGateActions.CounterWaiting => "negotiation-end",
+                _ => null,
+            };
+            Button button = null;
+            for (int wait = 0; name != null && button == null && wait < 50; wait++)
+            {
+                button = root.Q<Button>(name) ?? (name == "contracts-mark-all-seen" ? root.Q<Button>("decision-expiring-go") : null);
+                if (button == null) await Task.Delay(100);
+            }
+            if (name != null && button == null) Debug.LogWarning($"[SkipCheck] {lead.GateId}: no {name} button on Contracts");
+            if (button != null)
+            {
+                Debug.Log($"[SkipCheck] {lead.GateId}: Contracts › {name}");
+                using (NavigationSubmitEvent submit = NavigationSubmitEvent.GetPooled())
+                {
+                    submit.target = button;
+                    button.SendEvent(submit);
+                }
+            }
+            await Settle();
+            ShellController.Current.Overlay.CloseAll();
         }
 
         /// <summary>

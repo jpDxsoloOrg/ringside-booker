@@ -1,5 +1,9 @@
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using RingsideBooker.Engine;
+using RingsideBooker.UI.Bridge;
 using RingsideBooker.UI.Navigation;
 using RingsideBooker.UI.Settings;
 using RingsideBooker.UI.Widgets;
@@ -8,7 +12,10 @@ using UnityEngine.UIElements;
 
 namespace RingsideBooker.UI.Shell
 {
-    /// <summary>The Settings screen (in game) and panel (title screen): UI scale and window mode.</summary>
+    /// <summary>
+    /// The Settings screen (in game) and panel (title screen): UI scale and window mode, and in a game
+    /// the world's Big world speed.
+    /// </summary>
     public static class SettingsScreen
     {
         /// <summary>The in-game screen: heading, a back button, then the settings panel.</summary>
@@ -33,6 +40,8 @@ namespace RingsideBooker.UI.Shell
             var panel = new VisualElement();
             panel.Add(ScaleGroup());
             panel.Add(WindowGroup());
+            // A world setting: only while a game is running (the title screen has no world).
+            if (EngineGame.Current != null) panel.Add(BigWorldSpeedGroup(EngineGame.Current));
             panel.Add(CreditsGroup());
             return panel;
         }
@@ -110,6 +119,74 @@ namespace RingsideBooker.UI.Shell
             AddMode("Fullscreen", FullScreenMode.FullScreenWindow);
             AddMode("Windowed", FullScreenMode.Windowed);
             Refresh();
+            return group;
+        }
+
+        /// <summary>Big world speed's choices: the engine's value and the button text.</summary>
+        private static readonly (string Value, string Label)[] BigWorldSpeeds =
+        {
+            ("full", "Full detail"),
+            ("fast", "Fast"),
+        };
+
+        /// <summary>
+        /// Big world speed (POL4-13): Full detail or Fast, read with <c>world.bigWorldSpeed</c> and
+        /// changed with <c>world.setBigWorldSpeed</c>. The change is saved with the game.
+        /// </summary>
+        private static VisualElement BigWorldSpeedGroup(EngineGame game)
+        {
+            VisualElement group = Ui.El("card", "settings-group").Named("settings-big-world-speed");
+            VisualElement chips = Ui.El("chip-row");
+            Label note = Ui.Text(string.Empty, "field-hint", "t-wrap");
+            note.SetShown(false);
+            group.With(
+                Ui.Text(TextFormat.Upper("Big world speed"), "settings-group__title"),
+                Ui.Text("Full detail simulates every show in the world in full. Fast simulates rival shows far from you more lightly, so long skips in big worlds are quicker; their results, titles, money and news still happen.",
+                    "field-hint", "settings-group__hint", "t-wrap"),
+                Ui.Text("Changing it changes how the future plays out. The days already played stay as they are.",
+                    "field-hint", "settings-group__hint", "t-wrap"),
+                chips,
+                note);
+
+            string current = null;
+
+            void Refresh()
+            {
+                foreach (VisualElement chip in chips.Children())
+                {
+                    chip.EnableInClassList("choice-chip--selected", (string)chip.userData == current);
+                }
+            }
+
+            async Task Pick(string value)
+            {
+                if (value == current) return;
+                CommandResult<JToken> result = await game.Client.Command("world.setBigWorldSpeed", new { speed = value });
+                if (result.Ok) current = value;
+                note.text = result.Ok ? string.Empty : $"Could not change it: {result.ReasonText}";
+                note.SetShown(!result.Ok);
+                Refresh();
+            }
+
+            async Task Load()
+            {
+                QueryResult<JToken> read = await game.Client.Query("world.bigWorldSpeed");
+                current = read.Ok ? (string)read.Data?["speed"] : null;
+                Refresh();
+            }
+
+            foreach ((string value, string label) in BigWorldSpeeds)
+            {
+                string speed = value;
+                Button chip = Ui.Button(string.Empty, async () => await Pick(speed), "choice-chip");
+                chip.name = $"big-world-speed-{speed}";
+                chip.userData = speed;
+                chip.Add(Ui.Text(TextFormat.Upper(label), "choice-chip__label"));
+                chip.style.flexGrow = 0;
+                chip.style.minWidth = 140;
+                chips.Add(chip);
+            }
+            _ = Load();
             return group;
         }
 

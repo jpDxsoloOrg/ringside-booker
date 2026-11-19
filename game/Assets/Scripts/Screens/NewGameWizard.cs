@@ -24,7 +24,7 @@ namespace RingsideBooker.Screens
     /// then Start: <c>newGame</c>, the first save (<see cref="GameSession.BeginNewAsync"/>) and the
     /// Game scene (<see cref="EngineGame.Enter"/>).
     /// </summary>
-    public sealed class NewGameWizard
+    public sealed partial class NewGameWizard
     {
         private const int SeedMaxLength = 64;
         private static readonly string[] StepNames = { "World", "Promotion", "Options" };
@@ -642,35 +642,65 @@ namespace RingsideBooker.Screens
         private void DrawPromotions()
         {
             if (world.Notice != null) body.Add(Kit.Note(world.Notice).Named("wizard-import-report"));
-            body.Add(Kit.Note("Pick the promotion you take over. Founding your own arrives in a later sprint."));
-            VisualElement list = Ui.El("rb-promo-list").Named("promotion-list");
-            Import.Pictures.PictureProvider pictures = WorkshopWorlds.PicturesForPack(world?.Id);
-            foreach (JToken promotion in Kit.Arr(preview, "promotions"))
+            VisualElement mode = Kit.Chips(new[] { ("existing", "Take over a promotion"), ("found", "Found your own") }, foundMode ? "found" : "existing", picked =>
             {
-                string key = Kit.Str(promotion, "key");
-                Button option = Ui.Button(string.Empty, () =>
-                {
-                    promotionKey = key;
-                    Draw();
-                }, "choice-chip", "rb-option", "rb-option--with-logo");
-                option.name = $"promotion-{key}";
-                option.Add(PromotionLogos.Badge(pictures, Kit.Str(promotion, "logoRef"), Kit.Str(promotion, "shortName") ?? Kit.Str(promotion, "name"), "rb-logo--lg"));
-                VisualElement text = Ui.El("rb-option__text");
-                option.Add(text);
-                text.Add(Ui.Text($"{Kit.Str(promotion, "name")} ({Kit.Str(promotion, "shortName")})", "choice-chip__label"));
-                text.Add(Ui.Text(
-                    $"{Kit.Str(promotion, "homeRegion.name")}, {Kit.Str(promotion, "homeCountry.name")} · {Kit.Capital(Kit.Str(promotion, "style"))} · " +
-                    $"Cash {TextFormat.Money((long)(Kit.Num(promotion, "cash") ?? 0))} · Prestige {Kit.Whole(Kit.Num(promotion, "prestige"))} · " +
-                    $"Roster {Kit.Num(promotion, "rosterSize")} · Titles {Kit.Num(promotion, "titleCount")} · Popularity {Kit.Decimal1(Kit.Num(promotion, "homeCountryPopularity"))}",
-                    "choice-chip__detail", "t-wrap"));
-                option.EnableInClassList("choice-chip--selected", key == promotionKey);
-                list.Add(option);
+                foundMode = picked == "found";
+                Draw();
+            }, "wizard-promotion-mode");
+            mode.AddToClassList("rb-segmented");
+            body.Add(mode);
+            if (foundMode)
+            {
+                DrawFoundForm();
             }
-            body.Add(list);
+            else
+            {
+                body.Add(Kit.Note("Pick the promotion you take over: its roster, titles, shows and money become yours."));
+                VisualElement list = Ui.El("rb-promo-list").Named("promotion-list");
+                Import.Pictures.PictureProvider pictures = WorkshopWorlds.PicturesForPack(world?.Id);
+                foreach (JToken promotion in Kit.Arr(preview, "promotions"))
+                {
+                    string key = Kit.Str(promotion, "key");
+                    Button option = Ui.Button(string.Empty, () =>
+                    {
+                        promotionKey = key;
+                        Draw();
+                    }, "choice-chip", "rb-option", "rb-option--with-logo");
+                    option.name = $"promotion-{key}";
+                    option.Add(PromotionLogos.Badge(pictures, Kit.Str(promotion, "logoRef"), Kit.Str(promotion, "shortName") ?? Kit.Str(promotion, "name"), "rb-logo--lg"));
+                    VisualElement text = Ui.El("rb-option__text");
+                    option.Add(text);
+                    text.Add(Ui.Text($"{Kit.Str(promotion, "name")} ({Kit.Str(promotion, "shortName")})", "choice-chip__label"));
+                    text.Add(Ui.Text(
+                        $"{Kit.Str(promotion, "homeRegion.name")}, {Kit.Str(promotion, "homeCountry.name")} · {Kit.Capital(Kit.Str(promotion, "style"))} · " +
+                        $"Cash {TextFormat.Money((long)(Kit.Num(promotion, "cash") ?? 0))} · Prestige {Kit.Whole(Kit.Num(promotion, "prestige"))} · " +
+                        $"Roster {Kit.Num(promotion, "rosterSize")} · Titles {Kit.Num(promotion, "titleCount")} · Popularity {Kit.Decimal1(Kit.Num(promotion, "homeCountryPopularity"))}",
+                        "choice-chip__detail", "t-wrap"));
+                    option.EnableInClassList("choice-chip--selected", key == promotionKey);
+                    list.Add(option);
+                }
+                body.Add(list);
+            }
             nav.Add(Ui.Btn("BACK", () => { step = 0; Draw(); }, "btn--ghost"));
-            Button next = Ui.Btn("NEXT", () => { step = 2; Draw(); }, "btn--primary");
+            Button next = Ui.Btn("NEXT", () =>
+            {
+                if (foundMode)
+                {
+                    string problem = found.FirstProblem(preview);
+                    if (problem != null)
+                    {
+                        foundChecked = true;
+                        Draw();
+                        feedback.text = problem;
+                        feedback.SetShown(true);
+                        return;
+                    }
+                }
+                step = 2;
+                Draw();
+            }, "btn--primary");
             next.name = "wizard-next";
-            next.SetEnabled(promotionKey != null);
+            next.SetEnabled(foundMode || promotionKey != null);
             nav.Add(next);
         }
 
@@ -763,7 +793,7 @@ namespace RingsideBooker.Screens
             row.Add(text);
             IEnumerable<(string, string)> options = Kit.Str(setting, "kind") == "boolean"
                 ? new[] { ("true", "On"), ("false", "Off") }
-                : Kit.Arr(setting, "options").Select(option => ((string)option, Kit.Capital((string)option)));
+                : Kit.Arr(setting, "options").Select(option => ((string)option, OptionLabel(key, (string)option)));
             string current = settings.TryGetValue(key, out JToken value) && value != null
                 ? (value.Type == JTokenType.Boolean ? ((bool)value ? "true" : "false") : value.ToString())
                 : null;
@@ -774,6 +804,16 @@ namespace RingsideBooker.Screens
             row.Add(choices);
             return row;
         }
+
+        /// <summary>
+        /// An enum option's button text: the engine's option key capitalised, except where a plainer
+        /// name reads better (Big world speed's <c>full</c> is "Full detail").
+        /// </summary>
+        public static string OptionLabel(string settingKey, string option) => (settingKey, option) switch
+        {
+            ("bigWorldSpeed", "full") => "Full detail",
+            _ => Kit.Capital(option),
+        };
 
         /// <summary>A form row: the label on the left, the field on the right (fixed height, never overlapping).</summary>
         private static VisualElement TextRow(string label, string value, Action<string> onChange, string name)
@@ -788,7 +828,16 @@ namespace RingsideBooker.Screens
         /// <summary>Starts the game with what the wizard holds (the tour calls it after picking the defaults).</summary>
         public async Task StartGame()
         {
-            if (busy || client == null || world == null || promotionKey == null) return;
+            if (busy || client == null || world == null || (!foundMode && promotionKey == null)) return;
+            if (foundMode && found.FirstProblem(preview) is string foundProblem)
+            {
+                step = 1;
+                foundChecked = true;
+                Draw();
+                feedback.text = foundProblem;
+                feedback.SetShown(true);
+                return;
+            }
             if (string.IsNullOrWhiteSpace(seed) || seed.Length > SeedMaxLength)
             {
                 feedback.text = $"Enter a seed of 1 to {SeedMaxLength} characters (Advanced options).";
@@ -817,7 +866,7 @@ namespace RingsideBooker.Screens
                     ["playerName"] = string.IsNullOrWhiteSpace(playerName) ? "Booker" : playerName.Trim(),
                     ["saveName"] = string.IsNullOrWhiteSpace(saveName) ? "My career" : saveName.Trim(),
                     ["seasonLength"] = new JObject { ["preset"] = seasonPreset ?? "12m" },
-                    ["player"] = new JObject { ["mode"] = "existing", ["promotionKey"] = promotionKey },
+                    ["player"] = foundMode ? found.ToPlayer() : new JObject { ["mode"] = "existing", ["promotionKey"] = promotionKey },
                     ["settings"] = settingsJson,
                     ["tunableOverrides"] = new JObject(),
                 };
@@ -828,6 +877,12 @@ namespace RingsideBooker.Screens
                 if (!created.Ok)
                 {
                     feedback.text = Kit.Reasons(created.Reasons);
+                    if (foundMode && created.Reasons.Any(reason => reason.Field != null && reason.Field.Contains("player")))
+                    {
+                        step = 1;
+                        Draw();
+                        feedback.text = Kit.Reasons(created.Reasons);
+                    }
                     feedback.SetShown(true);
                     return;
                 }
@@ -886,6 +941,16 @@ namespace RingsideBooker.Screens
             step = 2;
             Draw();
             return ok;
+        }
+
+        /// <summary>
+        /// Sets one setting of the Options step as if its button were pressed (tours and the skip
+        /// check), and redraws. A boolean setting takes "true" or "false".
+        /// </summary>
+        public void SetSetting(string key, string value)
+        {
+            settings[key] = value == "true" || value == "false" ? new JValue(value == "true") : new JValue(value);
+            Draw();
         }
 
         /// <summary>
