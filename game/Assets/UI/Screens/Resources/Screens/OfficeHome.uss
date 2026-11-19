@@ -1,0 +1,321 @@
+/* Office as a sports homepage (UNITY-21). Layout from the approved UNITY-11 mockup; looks come from ds- components. */
+
+.oh-page {
+    flex-shrink: 0;
+}
+
+.oh-columns {
+    flex-shrink: 0;
+}
+
+.oh-main {
+    flex-grow: 2.2;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 16px;
+}
+
+.oh-side {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 420px;
+}
+
+.oh-main > .ds-panel,
+.oh-side > .ds-panel,
+.oh-main > .ds-news {
+    flex-shrink: 0;
+    margin-bottom: 16px;
+}
+
+.oh-twin {
+    flex-shrink: 0;
+}
+
+.oh-twin > .ds-panel {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 16px;
+    margin-bottom: 16px;
+}
+
+.oh-twin > .oh-stories {
+    margin-right: 0;
+}
+
+.oh-stories .ds-news {
+    flex-shrink: 0;
+    margin-bottom: 8px;
+    background-color: var(--ds-elev-2);
+}
+
+.oh-clickable:hover {
+    border-color: var(--ds-line-strong);
+}
+
+.oh-lead {
+    height: 340px;
+    flex-shrink: 0;
+}
+
+.oh-lead .ds-news__words {
+    right: 46%;
+}
+
+.oh-lead .ds-news__headline {
+    white-space: normal;
+}
+
+.oh-lead .ds-news__dek {
+    white-space: normal;
+}
+
+.oh-lead .ds-news__feature {
+    position: absolute;
+    right: 28px;
+    bottom: 0;
+    top: 36px;
+    align-items: flex-end;
+}
+
+.oh-lead__faces > .ds-portrait {
+    border-bottom-width: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.oh-lead__vs {
+    width: 70px;
+    height: 44px;
+    margin: 0 -10px 96px -10px;
+    align-items: center;
+    justify-content: center;
+    --skew-fill: #d7301a;
+    --skew-edge: #ff3b1d;
+}
+
+.oh-lead__vs-text {
+    font-size: 26px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: #ffffff;
+}
+
+.oh-label {
+    margin-right: 10px;
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-4);
+}
+
+.oh-quiet {
+    flex-shrink: 0;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+    white-space: normal;
+}
+
+.oh-num-quiet {
+    margin-left: 8px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+    color: var(--ds-text-4);
+}
+
+.oh-cell {
+    flex-direction: row;
+    align-items: center;
+}
+
+.oh-mini-card {
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.oh-mini-match {
+    flex-shrink: 0;
+    height: 28px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.oh-mini-match__icon {
+    color: var(--ds-text-3);
+    margin-right: 8px;
+}
+
+.oh-mini-match__icon--gold {
+    color: var(--ds-gold);
+    margin-right: 8px;
+}
+
+.oh-mini-match__name {
+    flex-shrink: 1;
+    font-size: 13px;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.oh-mini-match__vs {
+    margin: 0 6px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+}
+
+.oh-mini-match__title {
+    flex-shrink: 1;
+    font-size: 12px;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--ds-gold);
+}
+
+.oh-mini-match__role {
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.oh-upcoming {
+    flex-shrink: 0;
+    margin-top: 12px;
+    align-items: center;
+}
+
+.oh-upcoming > .ds-chip {
+    margin: 0 6px 6px 0;
+}
+
+.oh-needs {
+    border-color: rgba(255, 59, 29, 0.35);
+}
+
+.oh-need {
+    flex-shrink: 0;
+    padding: 9px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.oh-need__icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-state-soft);
+    color: var(--ds-state);
+}
+
+.oh-need__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin: 0 12px;
+}
+
+.oh-need__title {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.oh-need__detail {
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.oh-need__action {
+    flex-shrink: 0;
+}
+
+.oh-tiles {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-bottom: 12px;
+}
+
+.oh-tiles > .ds-stat {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 10px;
+}
+
+.oh-tiles .ds-stat__words {
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.oh-rank {
+    flex-shrink: 0;
+    height: 38px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.oh-rank__number {
+    width: 26px;
+    font-size: 20px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text-4);
+}
+
+.oh-rank__words {
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 10px;
+}
+
+.oh-rank__name {
+    font-size: 13px;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.oh-rank__role {
+    font-size: 11px;
+    color: var(--ds-text-3);
+}
+
+.oh-rank__champ {
+    font-size: 11px;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--ds-gold);
+}
+
+.oh-rank__trend {
+    margin: 0 0 0 10px;
+}
+
+.oh-rankings > .ds-segmented {
+    align-self: flex-start;
+    margin-bottom: 6px;
+}
+
+.oh-promo-cell {
+    flex-direction: row;
+    align-items: center;
+}
+
+.oh-promo-cell > .ds-logo {
+    margin-right: 8px;
+}
+
+.oh-promo-cell > .ds-tag {
+    margin-left: 8px;
+}
