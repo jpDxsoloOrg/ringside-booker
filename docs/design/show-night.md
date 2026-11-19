@@ -805,6 +805,77 @@ The save break: EVT3-01 changed the segment rating and show result shapes, so
 saves made before it fail to load with the "Made with an older build" message
 and a new game is needed.
 
+## Big world speed
+
+POL4-13. Big imported worlds run many rival shows a day, each simulated in full.
+The **Big world speed** setting picks how much detail far-away rival shows get:
+
+- **Full detail** (the default) simulates every show in full. It is today's
+  behaviour: a Full detail world stores no value for the setting at all (it is
+  registered with `storeDefault: false`), so its saves, results and world hash
+  are exactly what they were before the setting existed.
+- **Fast** runs _distant_ rival shows on a light path.
+
+It is a new-game setting (`bigWorldSpeed`, group World, `full` | `fast`) and can
+be changed in a game with `world.setBigWorldSpeed { speed }` from a player seat
+(the same permission rule as Show night). Choosing Full detail removes the
+stored value again. Changing it mid-game changes how the future plays out; the
+days already played stay as they were. The same seed and the same setting give
+the same world.
+
+### Which shows are distant
+
+`showDetailVerdict(read, show, tunables)` (`systems/shows/bigWorldSpeed.ts`)
+answers, checked in this order, the first that applies:
+
+| Verdict             | Full detail because                                                                                                                                                                                                                                                         |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fullDetailSetting` | The world is on Full detail.                                                                                                                                                                                                                                                |
+| `playerShow`        | A human runs the show.                                                                                                                                                                                                                                                      |
+| `playerPromotion`   | The show's promotion is a player's promotion (by its controller or a human-run brand), or the parent or a child of one.                                                                                                                                                     |
+| `sharedRegion`      | The rival's regions overlap the players' regions. A rival's regions: the show's region, its home region and every region where it has at least `bigWorld.regionPopularity`. A player's regions: its home region, the home region's neighbours and every region at that bar. |
+| `playerLink`        | Someone on the card works for, is signed or offered to, or is in an open negotiation with a player's promotion, or a title or storyline on the card belongs to one.                                                                                                         |
+| `bigReach`          | The rival's reach (`reachOf`) is at least `bigWorld.fullDetailReach`. Checked last because it is the dearest check.                                                                                                                                                         |
+| `distant`           | None of the above: the show takes the light path.                                                                                                                                                                                                                           |
+
+In a world nobody plays, every computer show is distant in Fast. Off-screen
+shows (no card) are already light and do not change.
+
+### The light path
+
+`runShowCard` asks once per show and passes `light` down. The light path keeps
+every result and lightens only the detail:
+
+- **The same:** the match outcome and finish (winners, and title changes through
+  the title applier), every segment's rating and so the show score, the physical
+  toll (fatigue and injuries), storyline heat, the show's attendance and money
+  (the `show.completed` reactions), the news stories and momentum changes.
+- **Region only:** each competitor's popularity change and the promotion's
+  popularity change after the show reach the show's region only, at weight 1
+  (no neighbour spill, no TV or other reach providers). They go through the
+  one-region door `applyPopularityChangeInRegion`, which keeps the taper, clamp,
+  rounding, drop rule and `popularity.changed` event (with `light: true`). The
+  `aftermaths` and `popularityShowChanges` rows list the show's region only.
+- **Skipped:** the win-streak lookup in a match's popularity gain (counted as no
+  streak), and the Office's re-recording of the rival's headline popularity Why?
+  (`office.popularityChanged` skips a `light` change).
+- **Summaries:** the segment score, match result, popularity and momentum gain,
+  door and promotion popularity traces are stored as one-line summaries
+  (`lightSummary`, `systems/shows/lightPath.ts`) with the note "simulated
+  lightly: Big world speed is Fast", kept `summaryOnly`.
+
+`SegmentResult.light` and `show.completed`'s `light` are `true` on a light show
+and absent on every other show, so Full detail announces exactly what it always
+did.
+
+### Speed
+
+Measured with `packages/engine-host/scripts/benchmark-world.ts --speed full|fast`
+on a big imported workshop world; the numbers are on the POL4-13 ticket. What a
+light show still costs is mostly its rating and physical toll, which still build
+their traced formulas. An untraced formula mode is the next step if Fast needs
+to go further.
+
 ## Integration
 
 EVT3-07 wires show night into the partners that were on `main` when it ran.

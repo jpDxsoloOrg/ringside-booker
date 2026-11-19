@@ -23,9 +23,12 @@ import type { PersonId, RegionId, SegmentId } from '../../../core/ids';
 import { refKey, type TraceRef } from '../../../core/trace/store';
 import type { Aftermath, AftermathRegion } from '../../../model/entities/aftermath';
 import { showControllerOf } from '../../calendar/control';
+import { LIGHT_TRACE_KEPT, lightSummary } from '../../shows/lightPath';
 import {
   applyMomentumChange,
   applyPopularityChange,
+  applyPopularityChangeInRegion,
+  type PopularityDoorResult,
   type DoorContext,
   type DoorReason,
   type DoorSource,
@@ -58,7 +61,15 @@ export interface AppliedAftermath {
  * Applies one run match's aftermath. Call it after the segment's result and rating are written.
  * Writes nothing for an angle, a match with no result, or a no contest.
  */
-export function applySegmentAftermath(step: DoorContext, segmentId: SegmentId): AppliedAftermath {
+export function applySegmentAftermath(
+  step: DoorContext,
+  segmentId: SegmentId,
+  /**
+   * Big world speed's light path (POL4-13): the change reaches the show's region only, through
+   * the one-region door, and the traces are one-line summaries.
+   */
+  { light = false }: { light?: boolean } = {},
+): AppliedAftermath {
   const { read } = step;
   const segment = read.tables.segments.require(segmentId);
   if (
@@ -75,6 +86,7 @@ export function applySegmentAftermath(step: DoorContext, segmentId: SegmentId): 
   // The door works each region out again as it writes; the preview and roll-ups are for screens.
   const aftermath = computeSegmentAftermath(read, { segmentId }, step.tunables, geographyOf(read), {
     regionDetail: !fastPathsEnabled(),
+    light,
   });
   // The cast names the key type `Object.fromEntries` widens to string.
   const regionWeights = Object.fromEntries(
@@ -91,14 +103,33 @@ export function applySegmentAftermath(step: DoorContext, segmentId: SegmentId): 
       label: `${instance.name}: ${worker.resultLine}`,
     };
     const popularityRef = popularityGainTraceRef(segmentId, worker.personId);
-    step.recordTrace(popularityRef, step.date, worker.popularity.delta, kept);
-    const popularity = applyPopularityChange(step, {
-      subject: { kind: 'person', id: worker.personId },
-      regionWeights,
-      delta: worker.popularity.delta,
-      source,
-      reason,
-    });
+    const subject = { kind: 'person', id: worker.personId } as const;
+    let popularity: PopularityDoorResult;
+    if (light) {
+      const gain = worker.popularity.delta.value;
+      step.recordTrace(
+        popularityRef,
+        step.date,
+        lightSummary(`${worker.name}'s popularity gain`, gain),
+        LIGHT_TRACE_KEPT,
+      );
+      popularity = applyPopularityChangeInRegion(step, {
+        subject,
+        regionId: aftermath.showRegionId,
+        delta: gain,
+        source,
+        reason,
+      });
+    } else {
+      step.recordTrace(popularityRef, step.date, worker.popularity.delta, kept);
+      popularity = applyPopularityChange(step, {
+        subject,
+        regionWeights,
+        delta: worker.popularity.delta,
+        source,
+        reason,
+      });
+    }
     // The cast names the key type `Object.fromEntries` widens to string.
     const byRegion = Object.fromEntries(
       aftermath.weights.map((line): [RegionId, AftermathRegion] => [
@@ -114,7 +145,16 @@ export function applySegmentAftermath(step: DoorContext, segmentId: SegmentId): 
     let momentumTraceId: string | null = null;
     if (hasMomentum(worker.momentum)) {
       const momentumRef = momentumGainTraceRef(segmentId, worker.personId);
-      step.recordTrace(momentumRef, step.date, worker.momentum.delta, kept);
+      if (light) {
+        step.recordTrace(
+          momentumRef,
+          step.date,
+          lightSummary(`${worker.name}'s momentum gain`, worker.momentum.delta.value),
+          LIGHT_TRACE_KEPT,
+        );
+      } else {
+        step.recordTrace(momentumRef, step.date, worker.momentum.delta, kept);
+      }
       const door = applyMomentumChange(step, {
         employmentId: worker.momentum.employmentId,
         delta: worker.momentum.delta,

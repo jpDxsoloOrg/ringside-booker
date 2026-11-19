@@ -124,3 +124,24 @@ export function segmentRegionWeights(
     notes,
   };
 }
+
+/**
+ * The show's region alone, at weight 1: the spread Big world speed's light path uses for a distant
+ * rival show (POL4-13), with no neighbours and no reach providers.
+ */
+export function showRegionWeights(read: GameWorldView, regionId: RegionId): SegmentRegionWeights {
+  const region = read.tables.regions.require(regionId);
+  return {
+    weights: new Map([[region.id, WEIGHT_MAX]]),
+    lines: [
+      {
+        regionId: region.id,
+        name: region.name,
+        weight: WEIGHT_MAX,
+        source: 'show',
+        reason: SHOW_REGION_REASON,
+      },
+    ],
+    notes: [],
+  };
+}

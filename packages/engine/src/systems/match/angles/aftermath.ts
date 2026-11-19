@@ -54,7 +54,11 @@ import {
   type AftermathNoMomentum,
   type AftermathPopularity,
 } from '../aftermath/computeSegmentAftermath';
-import { segmentRegionWeights, type RegionWeightLine } from '../aftermath/regionWeights';
+import {
+  segmentRegionWeights,
+  showRegionWeights,
+  type RegionWeightLine,
+} from '../aftermath/regionWeights';
 import type { SlotRole } from '../slots';
 import { beatLimitOf } from './beatLimit';
 import { angleMomentumGain } from './formulas/angleMomentumGain';
@@ -109,6 +113,8 @@ export interface AngleAftermath {
 export interface AngleAftermathOptions {
   /** Per-region preview and roll-ups (the lab). Show night turns it off; see MTCH3's option. */
   readonly regionDetail?: boolean;
+  /** Reach the show's region only (POL4-13's light path); see MTCH3's `light` option. */
+  readonly showRegionOnly?: boolean;
 }
 
 /** Everyone in the beats, by first appearance, with how many beats they were in. */
@@ -168,18 +174,20 @@ export function computeAngleAftermath(
   const spread =
     input.promotionId === null
       ? { weights: new Map([[showRegion.id, 1]]), lines: [], notes: [] }
-      : segmentRegionWeights(
-          read,
-          {
-            promotionId: input.promotionId,
-            eventInstanceId: input.eventInstanceId,
-            regionId: input.regionId,
-            televised: input.televised,
-            importance: input.importance,
-            date: input.date,
-          },
-          tunables,
-        );
+      : options.showRegionOnly === true
+        ? showRegionWeights(read, showRegion.id)
+        : segmentRegionWeights(
+            read,
+            {
+              promotionId: input.promotionId,
+              eventInstanceId: input.eventInstanceId,
+              regionId: input.regionId,
+              televised: input.televised,
+              importance: input.importance,
+              date: input.date,
+            },
+            tunables,
+          );
   const regionWeights = Object.fromEntries(spread.weights) as Record<RegionId, number>;
   const totalBeats = input.beats.length;
 
@@ -294,6 +302,7 @@ export function applyAngleAftermath(
   step: DoorContext,
   segmentId: SegmentId,
   roleKey: SlotRole,
+  { showRegionOnly = false }: { showRegionOnly?: boolean } = {},
 ): AppliedAngleAftermath {
   const { read } = step;
   const input = storedAngleAftermathInput(read, segmentId, roleKey, step.tunables);
@@ -306,6 +315,7 @@ export function applyAngleAftermath(
   const source: DoorSource = showControllerOf(read, instance).kind === 'human' ? 'player' : 'ai';
   const aftermath = computeAngleAftermath(read, input, step.tunables, geographyOf(read), {
     regionDetail: false,
+    showRegionOnly,
   });
   const regionWeights = Object.fromEntries(
     aftermath.weights.map((line) => [line.regionId, line.weight]),
