@@ -1,0 +1,1488 @@
+/*
+ * Titles and Storylines layout (UNITY-16). The look comes from the UNITY-11 ds- components; cr-
+ * classes only place things. Loaded at run time by CreativeUi.Style (Resources "Creative/Creative").
+ * Rows never shrink (UNITY-13 layout rule), portraits and belts have fixed sizes, and labels that
+ * ellipsize keep letter-spacing 0 (Unity measures text without it).
+ */
+
+.cr-page {
+    flex-shrink: 0;
+    padding-bottom: 24px;
+}
+
+.cr-quiet {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.cr-micro {
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+    flex-shrink: 0;
+}
+
+.cr-clip {
+    flex-shrink: 1;
+    min-width: 0;
+    letter-spacing: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cr-line {
+    white-space: normal;
+}
+
+/* ---- Head, tabs, toolbar -------------------------------------------------------------------------- */
+
+.cr-head {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+    align-items: flex-end;
+}
+
+.cr-head__words {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.cr-head__title {
+    color: var(--ds-text);
+}
+
+.cr-head__sub {
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--ds-text-3);
+}
+
+.cr-tabs {
+    flex-shrink: 0;
+}
+
+.cr-tabs > .ds-tabs {
+    flex-grow: 1;
+}
+
+.cr-toolbar {
+    flex-shrink: 0;
+    margin: 12px 0 4px 0;
+}
+
+.cr-back {
+    align-self: flex-start;
+    flex-shrink: 0;
+    margin-bottom: 8px;
+}
+
+.cr-back .ds-btn__label {
+    -unity-text-align: middle-left;
+}
+
+/* ---- Groups and cards ----------------------------------------------------------------------------- */
+
+.cr-group {
+    flex-shrink: 0;
+    margin-top: 18px;
+}
+
+.cr-group__head {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-bottom: 10px;
+}
+
+.cr-group__head > .rb-logo {
+    margin-right: 10px;
+}
+
+.cr-group__name {
+    font-size: 20px;
+    color: var(--ds-text);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    flex-shrink: 0;
+}
+
+.cr-group__count {
+    margin-left: 10px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    flex-shrink: 0;
+}
+
+.cr-group__rule {
+    flex-grow: 1;
+    height: 1px;
+    margin-left: 12px;
+    background-color: var(--ds-line);
+}
+
+.cr-cards {
+    flex-shrink: 0;
+    margin-right: -14px;
+}
+
+.cr-clickable {
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-lg);
+    background-color: var(--ds-elev-1);
+    transition-property: background-color, border-color;
+    transition-duration: 120ms;
+}
+
+.cr-clickable:hover {
+    background-color: var(--ds-elev-2);
+    border-color: var(--ds-line-strong);
+}
+
+.cr-clickable:focus {
+    border-color: var(--ds-focus);
+}
+
+/* A title card: fixed size so a wrap row never squeezes it. */
+.cr-tcard {
+    width: 400px;
+    height: 182px;
+    flex-shrink: 0;
+    margin: 0 14px 14px 0;
+    padding: 12px 14px;
+    overflow: hidden;
+}
+
+.cr-tcard__top {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cr-tcard__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 12px;
+}
+
+.cr-tcard__name {
+    font-size: 16px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.cr-tcard__meta {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.cr-tcard__menu {
+    flex-shrink: 0;
+    margin-left: 6px;
+}
+
+.cr-tcard__champ {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 64px;
+    margin-top: 10px;
+}
+
+.cr-tcard__champ > .ds-portrait {
+    flex-shrink: 0;
+}
+
+.cr-tcard__who {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 12px;
+}
+
+.cr-tcard__who-row {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+}
+
+.cr-tcard__champion {
+    font-size: 15px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.cr-tcard__champion--vacant {
+    color: var(--ds-text-2);
+}
+
+.cr-tcard__reign {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--ds-text-2);
+}
+
+.cr-tcard__empty-portrait {
+    width: 52px;
+    height: 60px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-0);
+}
+
+.cr-tcard__empty-icon {
+    color: var(--ds-text-4);
+}
+
+.cr-tcard__award {
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.cr-tcard__foot {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 12px;
+}
+
+.cr-tcard__prestige {
+    margin-left: 8px;
+    font-size: 13px;
+    color: var(--ds-gold);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+.cr-tcard__meter {
+    flex-grow: 1;
+    margin-left: 12px;
+}
+
+.cr-belt-mark {
+    flex-shrink: 0;
+    margin-right: 6px;
+    color: var(--ds-gold);
+}
+
+/* The belt plate: a picture from the world, else the metal its prestige earns. */
+.cr-belt {
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+    border-radius: var(--ds-radius-md);
+    border-color: var(--ds-line-strong);
+    background-color: var(--ds-elev-3);
+    color: var(--ds-text-3);
+    overflow: hidden;
+}
+
+.cr-belt--sm { width: 32px; height: 32px; }
+.cr-belt--md { width: 52px; height: 52px; }
+.cr-belt--lg { width: 104px; height: 104px; border-radius: var(--ds-radius-lg); }
+
+.cr-belt--gold { border-color: #a9861a; background-color: rgba(250, 204, 21, 0.14); color: var(--ds-gold); }
+.cr-belt--silver { border-color: #7c8594; background-color: rgba(203, 213, 225, 0.12); color: #cbd5e1; }
+.cr-belt--bronze { border-color: #8a5a2e; background-color: rgba(205, 127, 50, 0.14); color: #d9955b; }
+.cr-belt--picture { background-color: var(--ds-elev-0); }
+
+.cr-belt__image {
+    width: 100%;
+    height: 100%;
+}
+
+/* A storyline card. */
+.cr-scard {
+    width: 440px;
+    height: 214px;
+    flex-shrink: 0;
+    margin: 0 14px 14px 0;
+    padding: 12px 14px;
+    overflow: hidden;
+}
+
+.cr-scard__top {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cr-scard__top > .ds-tag,
+.cr-scard__top > .ds-pill {
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+.cr-scard__name {
+    flex-grow: 1;
+    font-size: 16px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.cr-scard__heat {
+    margin-top: 10px;
+}
+
+.cr-scard__sides {
+    flex-shrink: 0;
+    margin-top: 10px;
+    height: 104px;
+    overflow: hidden;
+}
+
+.cr-scard__neutral {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.cr-scard__foot {
+    margin-top: auto;
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.cr-side-list {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 12px;
+}
+
+.cr-side-list > .ds-tag {
+    align-self: flex-start;
+    margin-bottom: 4px;
+}
+
+.cr-member-line {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 28px;
+    margin-bottom: 2px;
+    min-width: 0;
+}
+
+.cr-member-line__name {
+    margin-left: 8px;
+    font-size: 13px;
+    color: var(--ds-text-2);
+}
+
+.cr-member-line__left {
+    flex-shrink: 0;
+    margin-left: 4px;
+    color: var(--ds-bad);
+}
+
+/* Heat: a word, a meter and the number. */
+.cr-heat {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 26px;
+}
+
+.cr-heat > .ds-pill {
+    flex-shrink: 0;
+    width: 76px;
+}
+
+.cr-heat__meter {
+    flex-grow: 1;
+    margin: 0 10px;
+}
+
+.cr-heat__number {
+    font-size: 16px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text);
+}
+
+.cr-heat__lock {
+    color: var(--ds-text-4);
+    margin-right: 6px;
+}
+
+.cr-heat__private {
+    margin-top: 0;
+}
+
+/* ---- Detail pages --------------------------------------------------------------------------------- */
+
+.cr-hero {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-left-width: 3px;
+    border-left-color: var(--ds-gold);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+}
+
+.cr-hero--story {
+    border-left-color: var(--ds-action);
+}
+
+.cr-hero__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 16px;
+}
+
+.cr-hero--story > .cr-hero__words {
+    margin-left: 0;
+}
+
+.cr-hero__name {
+    color: var(--ds-text);
+}
+
+.cr-hero__belongs {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    margin-top: 4px;
+}
+
+.cr-hero__line {
+    font-size: 13px;
+    color: var(--ds-text-2);
+}
+
+.cr-chips {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    margin-top: 8px;
+}
+
+.cr-chips > * {
+    margin: 0 8px 4px 0;
+}
+
+.cr-prestige {
+    width: 200px;
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
+.cr-actions {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    margin-bottom: 12px;
+}
+
+.cr-actions > .ds-btn {
+    margin: 0 8px 4px 0;
+}
+
+.cr-actions--inline {
+    margin-bottom: 0;
+    margin-left: 12px;
+    flex-wrap: nowrap;
+}
+
+.cr-columns {
+    flex-shrink: 0;
+}
+
+.cr-main {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 520px;
+}
+
+.cr-side {
+    width: 380px;
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
+.cr-panel {
+    margin-bottom: 16px;
+}
+
+.cr-panel > .ds-section-header {
+    margin-bottom: 10px;
+}
+
+/* Champion panel. */
+.cr-champ {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cr-champ__portraits {
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+.cr-champ__holder {
+    width: 84px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.cr-champ__holder-name {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--ds-text-2);
+}
+
+.cr-champ__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 8px;
+}
+
+.cr-champ__name-row {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+}
+
+.cr-champ__name {
+    font-size: 26px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.cr-champ__line {
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--ds-text-2);
+}
+
+.cr-champ__stats {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.cr-mini-stat {
+    margin-right: 28px;
+    flex-shrink: 0;
+}
+
+.cr-mini-stat__value {
+    margin-top: 2px;
+    font-size: 22px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text);
+}
+
+.cr-vacant {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cr-vacant__art {
+    width: 76px;
+    height: 88px;
+}
+
+.cr-vacant__words {
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 14px;
+}
+
+.cr-vacant__title {
+    font-size: 26px;
+    color: var(--ds-text-2);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+}
+
+.cr-vacant__line {
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--ds-text-2);
+}
+
+.cr-vacant__hint {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+/* Lineage table cells. */
+.cr-table {
+    flex-shrink: 0;
+}
+
+.cr-name-cell {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.cr-name-cell > .ds-portrait {
+    flex-shrink: 0;
+}
+
+.cr-name-cell__mark {
+    margin-left: 8px;
+    margin-right: 0;
+}
+
+.cr-name-cell__name {
+    margin-left: 8px;
+}
+
+.cr-name-cell__aside {
+    margin-left: 8px;
+    flex-shrink: 2;
+}
+
+/* Records and facts. */
+.cr-facts__row {
+    min-height: 26px;
+    height: auto;
+}
+
+.cr-records {
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.cr-record {
+    flex-shrink: 0;
+    padding: 6px 0;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line-subtle);
+}
+
+.cr-record__label {
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.cr-record__line {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    margin-top: 2px;
+}
+
+.cr-record__who {
+    flex-grow: 1;
+    font-size: 13px;
+    color: var(--ds-text);
+}
+
+.cr-record__value {
+    flex-shrink: 0;
+    margin-left: 10px;
+    font-size: 13px;
+    color: var(--ds-gold);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+/* ---- Storyline page ------------------------------------------------------------------------------- */
+
+.cr-callout {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    border-width: 1px;
+    border-color: var(--ds-state);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-state-soft);
+}
+
+.cr-callout__icon {
+    color: var(--ds-state);
+    margin-right: 10px;
+}
+
+.cr-callout__text {
+    flex-shrink: 1;
+    font-size: 14px;
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.cr-heat-big {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cr-heat-big__icon {
+    color: var(--ds-state);
+    margin-right: 8px;
+}
+
+.cr-heat-big__word {
+    font-size: 30px;
+    color: var(--ds-state);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+}
+
+.cr-heat-big__number {
+    font-size: 30px;
+    color: var(--ds-text);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+}
+
+.cr-heat-big__meter {
+    margin-top: 8px;
+}
+
+.cr-summary {
+    font-size: 13px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+.cr-people {
+    flex-shrink: 0;
+}
+
+.cr-people__side {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 16px;
+}
+
+.cr-people__head {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-bottom: 6px;
+}
+
+.cr-people__count {
+    margin-left: 8px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.cr-member {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 68px;
+    padding: 4px 6px;
+    border-radius: var(--ds-radius-sm);
+}
+
+.cr-member:hover {
+    background-color: var(--ds-elev-2);
+}
+
+.cr-member > .ds-portrait,
+.cr-member > .ds-pill,
+.cr-member > .ds-icon-btn {
+    flex-shrink: 0;
+}
+
+.cr-member > .ds-pill {
+    margin-left: 6px;
+}
+
+.cr-member__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 10px;
+}
+
+.cr-member__name {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.cr-member__meta {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+/* Timeline. */
+.cr-timeline {
+    flex-shrink: 0;
+    margin-top: 8px;
+}
+
+.cr-tl {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 52px;
+    padding: 0 6px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line-subtle);
+}
+
+.cr-tl__dot {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    margin-right: 12px;
+    border-radius: 5px;
+    background-color: var(--ds-data);
+}
+
+.cr-tl--booked .cr-tl__dot {
+    background-color: transparent;
+    border-width: 2px;
+    border-color: var(--ds-text-4);
+}
+
+.cr-tl--notCounted .cr-tl__dot {
+    background-color: var(--ds-text-4);
+}
+
+.cr-tl__when {
+    width: 120px;
+    flex-shrink: 0;
+}
+
+.cr-tl__date {
+    font-size: 13px;
+    color: var(--ds-text);
+}
+
+.cr-tl__slot {
+    font-size: 11px;
+    color: var(--ds-text-3);
+}
+
+.cr-tl__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 10px;
+}
+
+.cr-tl__show-line,
+.cr-tl__segment {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+}
+
+.cr-tl__show {
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.cr-tl__label {
+    font-size: 13px;
+    color: var(--ds-text);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+.cr-tl__segment > .ds-tag {
+    margin-left: 6px;
+}
+
+.cr-tl__stars {
+    flex-direction: row;
+    align-items: center;
+    width: 112px;
+    flex-shrink: 0;
+}
+
+.cr-tl__heat {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    width: 220px;
+    flex-shrink: 0;
+}
+
+.cr-tl__pending {
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+    -unity-text-align: middle-right;
+}
+
+.cr-heat-step {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: var(--ds-radius-pill);
+    background-color: var(--ds-state-soft);
+}
+
+.cr-heat-step__icon {
+    color: var(--ds-state);
+    margin-right: 4px;
+}
+
+.cr-heat-step__text {
+    font-size: 12px;
+    color: var(--ds-text);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+.cr-ending__title {
+    font-size: 15px;
+    color: var(--ds-text);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+/* ---- Payoff --------------------------------------------------------------------------------------- */
+
+.cr-end,
+.cr-payoff {
+    flex-shrink: 0;
+}
+
+.cr-end__preview {
+    flex-shrink: 0;
+    margin-top: 12px;
+}
+
+.cr-payoff__strength {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 12px 14px;
+    border-width: 1px;
+    border-color: var(--ds-state);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-state-soft);
+}
+
+.cr-payoff__icon {
+    color: var(--ds-state);
+    margin-right: 12px;
+}
+
+.cr-payoff__words {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.cr-payoff__headline {
+    margin-top: 2px;
+    font-size: 15px;
+    color: var(--ds-text);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    white-space: normal;
+}
+
+.cr-payoff__number {
+    font-size: 22px;
+    color: var(--ds-text);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+}
+
+.cr-payoff__members {
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.cr-payoff__member {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 40px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line-subtle);
+}
+
+.cr-payoff__member > .ds-portrait {
+    flex-shrink: 0;
+}
+
+.cr-payoff__name {
+    flex-grow: 1;
+    margin-left: 10px;
+    font-size: 13px;
+    color: var(--ds-text);
+}
+
+.cr-payoff__skipped {
+    flex-shrink: 2;
+    margin-left: 10px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.cr-change {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: 14px;
+}
+
+.cr-change__label {
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.cr-change__value {
+    margin-left: 6px;
+    min-width: 34px;
+    font-size: 14px;
+    color: var(--ds-state);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    -unity-text-align: middle-right;
+}
+
+/* ---- Values and quiet Why? ------------------------------------------------------------------------ */
+
+.cr-value {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cr-value__text {
+    white-space: nowrap;
+}
+
+/* The engine's Why? button made quiet: faint until its host is hovered or it has focus. */
+.cr-why-host .unity-button.why-button.cr-quiet-why {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    margin: 0 0 0 4px;
+    padding: 0;
+    font-size: 11px;
+    border-color: transparent;
+    border-radius: 9px;
+    opacity: 0.15;
+    -unity-text-align: middle-center;
+    transition-property: opacity, background-color;
+    transition-duration: 120ms;
+}
+
+.cr-why-host:hover .unity-button.why-button.cr-quiet-why,
+.cr-why-host .unity-button.why-button.cr-quiet-why:focus {
+    opacity: 1;
+    background-color: var(--ds-data-soft);
+    color: var(--ds-data);
+}
+
+/* ---- Notices ---------------------------------------------------------------------------------------- */
+
+.cr-notice {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin: 6px 0;
+    padding: 8px 12px;
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-state-soft);
+}
+
+.cr-notice__icon {
+    margin-right: 8px;
+    flex-shrink: 0;
+    color: var(--ds-state);
+}
+
+.cr-notice__text {
+    flex-shrink: 1;
+    font-size: 13px;
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+/* ---- Forms and sheets ----------------------------------------------------------------------------- */
+
+.cr-form {
+    flex-shrink: 0;
+}
+
+.cr-field {
+    flex-shrink: 0;
+    margin-top: 12px;
+}
+
+.cr-field__label {
+    margin-bottom: 4px;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.cr-field__hint {
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+    white-space: normal;
+}
+
+.cr-field__error {
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--ds-bad);
+    white-space: normal;
+}
+
+.cr-choices > * {
+    margin: 0 6px 6px 0;
+}
+
+.cr-swatch {
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    border-radius: 3px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.cr-input {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 32px;
+    padding-left: 4px;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-0);
+}
+
+.cr-input--multiline {
+    height: 96px;
+    align-items: stretch;
+}
+
+.cr-input__field {
+    flex-grow: 1;
+    margin: 0;
+}
+
+.cr-input__field > .unity-base-text-field__input,
+.cr-search__field > .unity-base-text-field__input {
+    margin: 0;
+    padding: 0 8px;
+    border-width: 0;
+    background-color: transparent;
+    font-size: 13px;
+    color: var(--ds-text);
+}
+
+.cr-input--multiline .unity-base-text-field__input {
+    padding: 6px 8px;
+    white-space: normal;
+    -unity-text-align: upper-left;
+}
+
+.cr-pair > .cr-field {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-right: 12px;
+}
+
+.cr-more-toggle {
+    align-self: flex-start;
+    margin-top: 12px;
+}
+
+.cr-more {
+    flex-shrink: 0;
+    padding-left: 12px;
+    border-left-width: 2px;
+    border-left-color: var(--ds-line);
+}
+
+.cr-search {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    width: 280px;
+    height: 30px;
+    padding-left: 8px;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-0);
+}
+
+.cr-search__icon {
+    color: var(--ds-text-3);
+}
+
+.cr-search__field {
+    flex-grow: 1;
+    margin: 0;
+}
+
+.cr-switch {
+    height: auto;
+    min-height: 34px;
+    margin-top: 8px;
+    padding: 4px 6px;
+    align-items: flex-start;
+    flex-shrink: 0;
+}
+
+.cr-switch .ds-check__box {
+    margin-top: 2px;
+}
+
+.cr-switch__words {
+    flex-grow: 1;
+    margin-left: 10px;
+}
+
+.cr-switch__label {
+    margin-left: 0;
+    -unity-text-align: middle-left;
+}
+
+.cr-switch__hint {
+    margin-top: 1px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+.cr-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.cr-footer > .ds-btn {
+    margin-left: 8px;
+}
+
+.cr-footer-stack {
+    flex-shrink: 0;
+}
+
+.cr-confirm {
+    flex-shrink: 0;
+    width: 440px;
+}
+
+.cr-confirm__text {
+    font-size: 13px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+.cr-menu {
+    min-width: 200px;
+    padding: 6px;
+}
+
+.cr-menu__item {
+    justify-content: flex-start;
+    flex-shrink: 0;
+    margin: 0 0 2px 0;
+}
+
+.cr-menu__item .ds-btn__label {
+    -unity-text-align: middle-left;
+}
+
+/* Award list. */
+.cr-award {
+    flex-shrink: 0;
+}
+
+.cr-award__prompt {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--ds-text-2);
+}
+
+.cr-award__tools {
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.cr-award__list {
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.cr-award__list > .ds-section-header {
+    margin-top: 14px;
+    margin-bottom: 4px;
+}
+
+.cr-pick,
+.cr-option {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 48px;
+    margin: 0;
+    padding: 0 8px;
+    border-width: 0;
+    border-radius: var(--ds-radius-sm);
+    background-color: transparent;
+}
+
+.cr-pick:hover,
+.cr-option:hover {
+    background-color: var(--ds-elev-3);
+}
+
+.cr-pick--on {
+    background-color: var(--ds-data-soft);
+}
+
+.cr-pick > .ds-check__box {
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+.cr-pick__radio {
+    border-radius: 7px;
+}
+
+.cr-pick > .ds-portrait,
+.cr-option > .ds-portrait {
+    flex-shrink: 0;
+}
+
+.cr-pick__words,
+.cr-option__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 10px;
+}
+
+.cr-pick__name,
+.cr-option__name {
+    font-size: 13px;
+    color: var(--ds-text);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    -unity-text-align: middle-left;
+}
+
+.cr-pick__meta,
+.cr-pick__hint,
+.cr-option__facts {
+    font-size: 12px;
+    color: var(--ds-text-3);
+    -unity-text-align: middle-left;
+}
+
+.cr-pick__hint {
+    color: var(--ds-warn);
+}
+
+.cr-pick__end {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.cr-pick__end > * {
+    margin-left: 6px;
+}
+
+.cr-option > .ds-tag {
+    margin-left: 8px;
+}
+
+/* Member picker. */
+.cr-picker {
+    flex-shrink: 0;
+    margin-top: 14px;
+}
+
+.cr-picker__head {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cr-picker__counter {
+    font-size: 12px;
+    color: var(--ds-text-2);
+}
+
+.cr-picker__chosen {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+}
+
+.cr-chosen {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 34px;
+}
+
+.cr-chosen__name {
+    flex-grow: 1;
+    font-size: 13px;
+    color: var(--ds-text);
+}
+
+.cr-chosen__sides {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.cr-picker__options {
+    flex-shrink: 0;
+    margin-top: 8px;
+}
+
+/* ---- Links, modal titles, spacing (review fixes) -------------------------------------------------- */
+
+.cr-link {
+    cursor: link;
+}
+
+.cr-link:hover {
+    color: var(--ds-data);
+}
+
+.cr-cards {
+    margin-top: 12px;
+}
+
+.cr-modal .ds-overlay-header__words {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.cr-modal .ds-overlay-header__title {
+    white-space: normal;
+    max-width: 440px;
+}
