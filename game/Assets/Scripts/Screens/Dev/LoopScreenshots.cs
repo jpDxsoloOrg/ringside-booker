@@ -51,6 +51,7 @@ namespace RingsideBooker.Screens.Dev
             while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != SceneFlow.TitleScene) yield return null;
             yield return Wait(1.5f);
             yield return Capture("title-new-game");
+            yield return TitleCredits();
 
             while (NewGameWizard.Last == null) yield return null;
             yield return Await(NewGameWizard.Last.UseDefaults(workshop));
@@ -113,6 +114,23 @@ namespace RingsideBooker.Screens.Dev
 
             Debug.Log($"[LoopScreenshots] done: {folder}");
             Application.Quit(0);
+        }
+
+        /// <summary>Title › Settings › Credits &amp; licences with the notices summary open, then back to New game.</summary>
+        private IEnumerator TitleCredits()
+        {
+            VisualElement root = FindAnyObjectByType<UI.Title.TitleController>()?.GetComponent<UIDocument>().rootVisualElement;
+            if (root == null) yield break;
+            Click(root.Q<Button>("menu-settings"));
+            yield return Wait(0.6f);
+            VisualElement credits = root.Q<VisualElement>("settings-credits");
+            Button first = credits?.Q<Button>(className: "choice-chip");
+            Click(first);
+            yield return Wait(0.6f);
+            yield return Wait(0.4f);
+            yield return Capture("title-credits");
+            Click(root.Q<Button>("menu-new-game"));
+            yield return Wait(1f);
         }
 
         private void GiveUp()

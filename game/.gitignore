@@ -13,6 +13,10 @@
 /Assets/StreamingAssets/engine/
 /Assets/StreamingAssets/engine.meta
 
+# Third-party notices staged by BuildScripts.BuildWindows (from docs/licenses and the plugin folders)
+/Assets/StreamingAssets/licenses/
+/Assets/StreamingAssets/licenses.meta
+
 # IDE / generated project files
 .vs/
 .idea/

@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Builds the Windows 64-bit player via BuildScripts.BuildWindows in batch mode.
 # Output: game/Builds/Windows/RingsideBooker.exe. Log: game/Logs/build.log.
+# Extra arguments go to Unity, e.g. -rbVersion 0.1.0-u1+abc1234 (default 0.1.0-dev).
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/unity-common.sh"
 
 LOG="$LOG_DIR/build.log"
 EXE="$GAME_DIR/Builds/Windows/RingsideBooker.exe"
 echo "Building Windows player with Unity $UNITY_VERSION (log: $LOG)"
-run_unity "$LOG" -buildTarget Win64 -executeMethod BuildScripts.BuildWindows
+run_unity "$LOG" -buildTarget Win64 -executeMethod BuildScripts.BuildWindows "$@"
 status=$?
 
 if print_compile_errors "$LOG"; then

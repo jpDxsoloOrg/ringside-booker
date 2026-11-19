@@ -1,3 +1,5 @@
+using System.IO;
+using System.Linq;
 using RingsideBooker.UI.Navigation;
 using RingsideBooker.UI.Settings;
 using RingsideBooker.UI.Widgets;
@@ -31,6 +33,7 @@ namespace RingsideBooker.UI.Shell
             var panel = new VisualElement();
             panel.Add(ScaleGroup());
             panel.Add(WindowGroup());
+            panel.Add(CreditsGroup());
             return panel;
         }
 
@@ -107,6 +110,61 @@ namespace RingsideBooker.UI.Shell
             AddMode("Fullscreen", FullScreenMode.FullScreenWindow);
             AddMode("Windowed", FullScreenMode.Windowed);
             Refresh();
+            return group;
+        }
+
+        /// <summary>The licences folder the build stages (BuildScripts.StageLicenses).</summary>
+        public static string LicensesFolder => Path.Combine(Application.streamingAssetsPath, "licenses");
+
+        /// <summary>
+        /// Credits &amp; licences: the version, then one button per third-party notice the build
+        /// ships (StreamingAssets/licenses); a button shows that notice's text below.
+        /// </summary>
+        private static VisualElement CreditsGroup()
+        {
+            VisualElement group = Ui.El("card", "settings-group").Named("settings-credits");
+            VisualElement chips = Ui.El("chip-row");
+            var text = new ScrollView(ScrollViewMode.Vertical) { name = "licence-text" };
+            text.style.maxHeight = 360;
+            text.style.marginTop = 12;
+            text.SetShown(false);
+            group.With(
+                Ui.Text(TextFormat.Upper("Credits & licences"), "settings-group__title"),
+                Ui.Text($"Ringside Booker {Application.version}. Built with Unity {Application.unityVersion}. " +
+                        "The game runs its simulation on ClearScript and V8, reads workshop world mods with SQLite and uses the Barlow Condensed and Inter fonts. " +
+                        "Their notices:", "field-hint", "settings-group__hint", "t-wrap"),
+                chips,
+                text);
+
+            string[] files = Directory.Exists(LicensesFolder)
+                ? Directory.GetFiles(LicensesFolder, "*.txt").OrderBy(path => Path.GetFileName(path) == "THIRD-PARTY-NOTICES.txt" ? 0 : 1).ThenBy(path => path).ToArray()
+                : new string[0];
+            if (files.Length == 0)
+            {
+                group.Add(Ui.Text("The notices are added by the Windows build (licenses folder).", "field-hint"));
+                return group;
+            }
+
+            foreach (string file in files)
+            {
+                string path = file;
+                Button chip = Ui.Button(string.Empty, () =>
+                {
+                    text.Clear();
+                    // One label per paragraph: a single label cannot hold a long licence.
+                    foreach (string paragraph in File.ReadAllText(path).Replace("\r\n", "\n").Split(new[] { "\n\n" }, System.StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        Label label = Ui.Text(paragraph, "t-sm", "t-wrap", "mono");
+                        label.style.marginBottom = 8;
+                        text.Add(label);
+                    }
+                    text.SetShown(true);
+                    text.scrollOffset = Vector2.zero;
+                }, "choice-chip");
+                chip.Add(Ui.Text(Path.GetFileNameWithoutExtension(path), "choice-chip__label"));
+                chip.style.flexGrow = 0;
+                chips.Add(chip);
+            }
             return group;
         }
     }

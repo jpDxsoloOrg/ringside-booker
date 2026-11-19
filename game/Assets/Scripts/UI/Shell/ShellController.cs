@@ -30,6 +30,9 @@ namespace RingsideBooker.UI.Shell
 
         public ShellNavigator Navigator { get; } = new ShellNavigator();
 
+        /// <summary>The day control (its main button and the "Needs attention" sheet).</summary>
+        public DayControlView DayControl => dayControl;
+
         /// <summary>The root overlay layer (<see cref="OverlayLayer.ElementName"/>) panels and sheets open into.</summary>
         public OverlayLayer Overlay { get; private set; }
 

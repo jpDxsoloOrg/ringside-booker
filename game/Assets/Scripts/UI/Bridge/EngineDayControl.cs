@@ -19,7 +19,7 @@ namespace RingsideBooker.UI.Bridge
     /// Stop through <c>cancelAdvance</c>, and the last advance's report with the shows it completed
     /// (<c>shows.completedSince</c>). Everything runs on the main thread.
     /// </summary>
-    public sealed class EngineDayControl : IDayControl, INavigationObserver
+    public sealed class EngineDayControl : IDayControl, INavigationObserver, IGateActions
     {
         private readonly EngineGame game;
         private IReadOnlyList<GateHit> gates = Array.Empty<GateHit>();
@@ -65,6 +65,9 @@ namespace RingsideBooker.UI.Bridge
             game.Client.CancelAdvance();
             Changed?.Invoke();
         }
+
+        /// <summary>The commands that clear a stop with no screen in the game yet (<see cref="EngineGateActions"/>).</summary>
+        public IReadOnlyList<GateAction> ActionsFor(GateHit hit) => EngineGateActions.For(game, hit);
 
         public void DismissReport()
         {
