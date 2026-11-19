@@ -1,0 +1,14 @@
+{
+    "name": "RingsideBooker.Import",
+    "rootNamespace": "RingsideBooker.Import",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

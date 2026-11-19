@@ -37,21 +37,27 @@ import {
   INVALID_ARGS,
   isGameDate,
   loadSave,
+  loadWorldFromPacks,
   previewWorld,
   SAVE_LABEL_MAX_LENGTH,
   serializeError,
   TABLES,
   worldHash,
 } from '@ringside/engine';
-import type { Engine, EngineState, Reason } from '@ringside/engine';
+import type { Engine, EngineState, PackIssue, RawPack, Reason } from '@ringside/engine';
 import { decodeBase64, encodeBase64 } from './base64';
 import { readContentPacks } from './contentPacks';
 import type { ContentFiles, ContentPackSet } from './contentPacks';
 import { LOCAL_OBSERVER_PLAYER_ID, resolveLocalViewer } from './localSeat';
 import type { LocalSeat } from './localSeat';
+import { convertWorldMod } from './worldMod/convert';
+import { baseGeographyOf } from './worldMod/base';
 
 /** Bumped when a function, an argument or a result shape of this API changes. */
-export const HOST_API_VERSION = 1;
+export const HOST_API_VERSION = 2;
+
+/** The most loader issues an import result lists; the rest are only counted. */
+const MAX_REPORTED_PACK_ISSUES = 50;
 
 /** The reason every world call gets before a game is loaded. */
 export const NO_WORLD_REASON: Reason = Object.freeze({
@@ -84,6 +90,8 @@ export interface RingsideEngineApi {
   query(name: string, argsJson?: string, viewerJson?: string): string;
   command(name: string, argsJson?: string): string;
   advanceDays(optionsJson: string, onProgress?: ProgressListener): Promise<string>;
+  importWorldMod(inputJson: string): string;
+  removeImportedWorld(packId: string): string;
   cancelAdvance(): string;
   exportState(): string;
   worldHash(): string;
@@ -172,9 +180,18 @@ export function createEmbeddedHost(options: EmbeddedHostOptions): RingsideEngine
   /** The running advance's cancel flag, or null when none is running. */
   let advanceSignal: { aborted: boolean } | null = null;
 
+  /** World packs converted from workshop world mods this session, by pack id. */
+  const importedPacks = new Map<string, RawPack>();
+
   function packs(): ContentPackSet {
     contentPacks ??= readContentPacks(options.content);
     return contentPacks;
+  }
+
+  /** The bundled packs plus every imported world. */
+  function allPacks(): readonly RawPack[] {
+    const bundled = packs().packs.filter((pack) => !importedPacks.has(pack.manifest.id));
+    return [...bundled, ...importedPacks.values()];
   }
 
   /** JSON text of a result, checked to be plain JSON first when debug checks are on. */
@@ -253,9 +270,9 @@ export function createEmbeddedHost(options: EmbeddedHostOptions): RingsideEngine
     listWorlds: () =>
       guard('listWorlds', () => {
         const set = packs();
-        const worlds = set.packs
+        const worlds = allPacks()
           .filter((pack) => pack.manifest.kind === 'world')
-          .map((pack) => pack.manifest);
+          .map((pack) => ({ ...pack.manifest, imported: importedPacks.has(pack.manifest.id) }));
         return out({ ok: true, packs: worlds, issues: set.issues }, 'listWorlds');
       }),
 
@@ -264,7 +281,7 @@ export function createEmbeddedHost(options: EmbeddedHostOptions): RingsideEngine
         if (typeof rootPackId !== 'string' || rootPackId === '') {
           return refused([invalid('previewWorld needs a world pack id')]);
         }
-        return out(previewWorld(packs().packs, rootPackId), 'previewWorld');
+        return out(previewWorld(allPacks(), rootPackId), 'previewWorld');
       }),
 
     newGame: (optionsJson) =>
@@ -273,7 +290,7 @@ export function createEmbeddedHost(options: EmbeddedHostOptions): RingsideEngine
         const parsed = parseObject(optionsJson, 'The new-game options');
         if (!parsed.ok) return refused([parsed.reason]);
         const input = { playerId: LOCAL_OBSERVER_PLAYER_ID, ...parsed.value };
-        const created = createNewGame(packs().packs, input);
+        const created = createNewGame(allPacks(), input);
         if (!created.ok) return refused(created.reasons);
         const installed = install(created.state);
         return out(
@@ -463,6 +480,85 @@ export function createEmbeddedHost(options: EmbeddedHostOptions): RingsideEngine
         } finally {
           advanceSignal = null;
         }
+      }),
+
+    importWorldMod: (inputJson) =>
+      guard('importWorldMod', () => {
+        const parsed = parseObject(inputJson, 'The world mod');
+        if (!parsed.ok) return refused([parsed.reason]);
+        const { tables, rosterOnly, packId } = parsed.value;
+        if (!isPlainObject(tables)) {
+          return refused([invalid('tables must be an object of table name to row arrays')]);
+        }
+        if (rosterOnly !== undefined && typeof rosterOnly !== 'boolean') {
+          return refused([invalid('rosterOnly must be true or false')]);
+        }
+        if (packId !== undefined && typeof packId !== 'string') {
+          return refused([invalid('packId must be a string')]);
+        }
+        const base = packs().packs.find((pack) => pack.manifest.id === 'base');
+        if (base === undefined) return refused([invalid('The bundled base pack is missing')]);
+        const conversion = convertWorldMod(tables, baseGeographyOf(base), {
+          ...(rosterOnly === undefined ? {} : { rosterOnly }),
+          ...(packId === undefined ? {} : { packId }),
+        });
+        if (!conversion.ok) {
+          return out(
+            {
+              ok: false,
+              stage: 'convert',
+              errors: conversion.errors,
+              report: conversion.report,
+              revision,
+            },
+            'importWorldMod',
+          );
+        }
+        const { pack } = conversion;
+        const others = allPacks().filter((candidate) => candidate.manifest.id !== pack.manifest.id);
+        // The same check a new game runs: resolve, merge, check every record and build the world.
+        const loaded = loadWorldFromPacks([...others, pack], [pack.manifest.id], {
+          seed: 'world-mod-import-check',
+        });
+        const issues: readonly PackIssue[] = loaded.issues;
+        const errorCount = issues.filter((issue) => issue.severity === 'error').length;
+        const listed = [...issues]
+          .sort((left, right) =>
+            left.severity === right.severity ? 0 : left.severity === 'error' ? -1 : 1,
+          )
+          .slice(0, MAX_REPORTED_PACK_ISSUES);
+        if (!loaded.ok) {
+          return out(
+            {
+              ok: false,
+              stage: 'load',
+              errors: [`The converted world did not load: ${String(errorCount)} problem(s)`],
+              report: conversion.report,
+              issues: listed,
+              issueCount: issues.length,
+              revision,
+            },
+            'importWorldMod',
+          );
+        }
+        importedPacks.set(pack.manifest.id, pack);
+        return out(
+          {
+            ok: true,
+            manifest: pack.manifest,
+            report: conversion.report,
+            issues: listed,
+            issueCount: issues.length,
+            revision,
+          },
+          'importWorldMod',
+        );
+      }),
+
+    removeImportedWorld: (packId) =>
+      guard('removeImportedWorld', () => {
+        const removed = typeof packId === 'string' && importedPacks.delete(packId);
+        return JSON.stringify({ ok: true, removed });
       }),
 
     cancelAdvance: () => {
