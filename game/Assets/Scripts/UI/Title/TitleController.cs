@@ -10,8 +10,9 @@ namespace RingsideBooker.UI.Title
 {
     /// <summary>
     /// The title screen: New game, Continue, Load, Settings, Quit. Quit quits; Settings shows the
-    /// settings panel; New game, Continue and Load show placeholders until the engine bridge
-    /// (UNITY-04/09) can start, find and load games. New game offers the demo shell meanwhile.
+    /// settings panel; Continue loads the latest save and Load lists the save slots
+    /// (<see cref="TitleSaves"/>). New game offers a quick default-world game and the demo shell
+    /// until the new-game wizard (UNITY-09) arrives.
     /// Up/Down move through the menu, Enter picks, Escape closes an open sheet.
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
@@ -21,6 +22,7 @@ namespace RingsideBooker.UI.Title
         private VisualElement panel;
         private OverlayLayer overlay;
         private Button current;
+        private TitleSaves saves;
 
         private void OnEnable()
         {
@@ -30,12 +32,12 @@ namespace RingsideBooker.UI.Title
             root.Q<VisualElement>("title-stripe").Add(GradientStripe.Flame(1f));
             root.Q<Label>("title-version").text = $"v{Application.version} · Unity {Application.unityVersion}";
 
+            saves = new TitleSaves(ResetPanel, overlay, GoToNewGame);
+
             menu.Clear();
             Wire(root, "menu-new-game", ShowNewGame);
-            Wire(root, "menu-continue", () => ShowPlaceholder("Continue",
-                "Continue picks up your most recent save. Saves are files on disk; reading them arrives with the engine bridge (UNITY-04)."));
-            Wire(root, "menu-load", () => ShowPlaceholder("Load",
-                "Load lists your saves to choose from. It arrives with the engine bridge (UNITY-04)."));
+            Wire(root, "menu-continue", () => saves.Continue());
+            Wire(root, "menu-load", () => saves.ShowLoad());
             Wire(root, "menu-settings", ShowSettings);
             Wire(root, "menu-quit", SceneFlow.Quit);
 
@@ -61,6 +63,15 @@ namespace RingsideBooker.UI.Title
                 show();
             };
             menu.Add(button);
+        }
+
+        private void GoToNewGame()
+        {
+            Button button = menu.Find(item => item.name == "menu-new-game");
+            if (button == null) return;
+            Select(button);
+            ShowNewGame();
+            button.Focus();
         }
 
         private void Select(Button button)
@@ -93,23 +104,11 @@ namespace RingsideBooker.UI.Title
         private void ShowNewGame()
         {
             VisualElement inner = ResetPanel("New game");
-            VisualElement card = Ui.El("card", "placeholder__card").With(
-                Ui.Text(TextFormat.Upper("Not built yet"), "section-label"),
-                Ui.Text("Choosing a world (built-in or a workshop world mod) and the promotion you run arrives with the engine bridge. Until then, the demo game shows the in-game shell with sample data.", "placeholder__body"));
-            Button demo = Ui.Btn("START DEMO GAME", StartDemo, "btn--primary");
+            inner.Add(RingsideBooker.Screens.NewGameWizard.Build());
+            Button demo = Ui.Btn("Or look around the demo game (sample data)", StartDemo, "btn--link");
             demo.name = "start-demo";
-            demo.style.alignSelf = Align.FlexStart;
-            demo.style.marginTop = 20;
-            card.Add(demo);
-            inner.Add(card);
-        }
-
-        private void ShowPlaceholder(string title, string body)
-        {
-            VisualElement inner = ResetPanel(title);
-            inner.Add(Ui.El("card", "placeholder__card").With(
-                Ui.Text(TextFormat.Upper("Not built yet"), "section-label"),
-                Ui.Text(body, "placeholder__body")));
+            demo.style.marginTop = 16;
+            inner.Add(demo);
         }
 
         private void ShowSettings()

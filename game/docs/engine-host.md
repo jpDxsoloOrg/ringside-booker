@@ -91,7 +91,7 @@ Never needed: timers (`setTimeout`), `MessageChannel`, `performance`, `crypto`, 
 ```json
 {
   "engineVersion": "0.1.0",
-  "hostApiVersion": 1,
+  "hostApiVersion": 2,
   "saveFormatVersion": 1,
   "schemaFingerprint": "0a9b98cd…",
   "shims": ["TextEncoder", "TextDecoder"],
@@ -110,9 +110,10 @@ development builds). Takes effect for the next `newGame` or `load`. Returns `{ "
 
 ### `listWorlds()` → JSON
 
-`{ "ok": true, "packs": [PackManifest, ...], "issues": [PackIssue, ...] }`: the manifests of the
-bundled world packs (`kind: "world"`; today just `default-world`). `issues` lists bundled packs
-that would not read (normally empty).
+`{ "ok": true, "packs": [PackManifest & { imported: bool }, ...], "issues": [PackIssue, ...] }`: the
+manifests of the bundled world packs (`kind: "world"`; today just `default-world`) and of every
+workshop world mod imported this session (`imported: true`, see `importWorldMod`). `issues` lists
+bundled packs that would not read (normally empty).
 
 ### `previewWorld(rootPackId)` → JSON
 
@@ -277,6 +278,27 @@ web app and the headless runner print for the same game. Two runtimes that made 
 
 Stops the running game: every world call after it gets `noWorld` until `newGame` or `load`.
 Returns `{ "ok": true, "revision": n }`.
+
+### `importWorldMod(inputJson)` → JSON (API version 2)
+
+Converts a workshop world mod into a world pack and keeps it for this runtime's session, so
+`listWorlds`, `previewWorld` and `newGame` (with `rootPackId` = the pack id) can use it. Input:
+`{ "tables": { "<table>": [ { "<column>": value, ... }, ... ], ... }, "rosterOnly"?: bool, "packId"?: string }`
+— the mod database's rows as the C# reader writes them (`WorldModDatabase.ReadTablesJson`).
+`rosterOnly` leaves every picture reference out; `packId` defaults to `wm-` + the slugged world name
+(the game passes `wm-<workshop item id>`). Importing the same id again replaces the earlier import.
+
+On success: `{ "ok": true, "manifest": PackManifest, "report": WorldModReport, "issues": [PackIssue...],
+"issueCount": n }`, where `issues` are the pack loader's warnings (at most 50 listed). On failure:
+`{ "ok": false, "stage": "convert" | "load", "errors": [string...], "report": ..., "issues"?: [...] }`.
+The report holds source row counts, imported counts per record kind, picture counts per folder,
+grouped warnings (code, count, example source ids) and the "not imported" list. See
+game/docs/world-mod-import.md.
+
+### `removeImportedWorld(packId)` → JSON
+
+Forgets an imported world: `{ "ok": true, "removed": bool }`. A game already started from it keeps
+running (a game never needs its packs after `newGame`).
 
 ## Example (C#, ClearScript V8 shape)
 

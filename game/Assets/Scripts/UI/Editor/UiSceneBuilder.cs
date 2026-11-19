@@ -64,7 +64,8 @@ namespace RingsideBooker.UI.EditorTools
 
             settings.themeStyleSheet = theme;
             settings.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-            settings.screenMatchMode = PanelScreenMatchMode.Shrink;
+            settings.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
+            settings.match = UiScale.MatchWidthOrHeight;
             settings.referenceResolution = UiScale.ReferenceResolution;
             settings.clearColor = true;
             settings.colorClearValue = Background;

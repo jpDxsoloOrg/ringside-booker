@@ -1,0 +1,96 @@
+/*
+ * The title screen's Continue and Load panels and the save sheets (Assets/Scripts/UI/Title/TitleSaves.cs).
+ * Loaded at runtime with Resources.Load("Saves/SaveSlots").
+ */
+
+.save-toolbar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: var(--space-4);
+}
+
+.save-toolbar > .btn {
+    margin-right: var(--space-2);
+    margin-bottom: var(--space-2);
+}
+
+.save-status {
+    margin-bottom: var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    white-space: normal;
+}
+
+.save-status--error {
+    color: var(--color-negative);
+}
+
+.save-list {
+    flex-direction: column;
+}
+
+.save-slot {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: var(--space-3);
+}
+
+.save-slot__main {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.save-slot__label {
+    font-size: var(--font-size-xl);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    white-space: normal;
+}
+
+.save-slot__subtitle {
+    margin-top: var(--space-1);
+    font-size: var(--font-size-md);
+    white-space: normal;
+}
+
+.save-slot__meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: var(--space-1);
+}
+
+.save-slot__meta-text {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.save-tag {
+    margin-left: var(--space-2);
+    padding: 1px var(--space-2);
+    border-width: 1px;
+    border-color: var(--color-warning);
+    border-radius: var(--radius-pill);
+    color: var(--color-warning);
+    font-size: var(--font-size-xs);
+}
+
+.save-slot__actions {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-left: var(--space-4);
+}
+
+.save-slot__actions > .btn {
+    margin-left: var(--space-2);
+}
+
+.save-sheet__body {
+    white-space: normal;
+    margin-bottom: var(--space-3);
+}
+
+.save-sheet__footer-button {
+    margin-left: var(--space-2);
+    margin-bottom: var(--space-2);
+}
