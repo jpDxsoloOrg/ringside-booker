@@ -1,0 +1,95 @@
+/*
+ * Text faces and colour helpers shared by every screen. USS has no font-weight or text-transform:
+ * a weight is a font file, and display text is set in capitals by the code (TextFormat.Upper).
+ */
+
+/* Labels never carry the default theme's margins or padding. */
+.unity-label {
+    margin: 0;
+    padding: 0;
+}
+
+/* Before the face classes below, so they win over it. Default-theme fields and buttons get the body face. */
+.unity-text-element {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-Regular.ttf");
+}
+
+.t-display {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Regular.ttf");
+}
+
+.t-display-semibold {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+}
+
+.t-display-bold {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+}
+
+.t-display-extrabold {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+}
+
+.t-ui {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-Regular.ttf");
+}
+
+.t-ui-semibold {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+.t-ui-bold {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-Bold.ttf");
+}
+
+.t-xs { font-size: var(--font-size-xs); }
+.t-sm { font-size: var(--font-size-sm); }
+.t-md { font-size: var(--font-size-md); }
+.t-lg { font-size: var(--font-size-lg); }
+.t-xl { font-size: var(--font-size-xl); }
+.t-2xl { font-size: var(--font-size-2xl); }
+.t-3xl { font-size: var(--font-size-3xl); }
+
+.t-muted { color: var(--color-text-muted); }
+.t-subtle { color: var(--color-text-subtle); }
+.t-data { color: var(--color-data); }
+.t-prestige { color: var(--color-prestige); }
+.t-action { color: var(--color-action-bright); }
+.t-negative { color: var(--color-negative); }
+.t-positive { color: var(--color-positive); }
+
+.t-wrap { white-space: normal; }
+
+/* Scrollbars in the navy palette. */
+.unity-scroller--vertical {
+    width: 10px;
+}
+
+.unity-scroller .unity-base-slider__tracker {
+    background-color: transparent;
+    border-width: 0;
+}
+
+.unity-scroller .unity-base-slider__dragger {
+    background-color: var(--color-border-strong);
+    border-width: 0;
+    border-radius: 5px;
+}
+
+.unity-scroller .unity-base-slider__dragger:hover {
+    background-color: var(--color-text-subtle);
+}
+
+.unity-scroller .unity-repeat-button {
+    display: none;
+}
+
+.unity-scroller--vertical > .unity-scroller__slider {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.unity-scroller--vertical .unity-base-slider__dragger {
+    width: 6px;
+    left: 2px;
+}

@@ -1,0 +1,471 @@
+/*
+ * The in-game frame (the web's AppShell.module.css, DayControl.module.css and StatusChips).
+ * Desktop layout: sidebar | (top bar over the advance summary and the screen), the main area
+ * scrolling on its own. Built for 1280×720 logical pixels and up; the panel scales to the window.
+ */
+
+.shell {
+    flex-grow: 1;
+    flex-direction: row;
+    background-color: var(--color-bg);
+}
+
+/* ---- Sidebar ------------------------------------------------------------------------------- */
+
+.sidebar {
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    flex-shrink: 0;
+    flex-direction: column;
+    border-right-width: 1px;
+    border-right-color: var(--color-border);
+    background-color: var(--color-surface);
+}
+
+/* The wordmark sits level with the top bar, so the two read as one header band. */
+.brand {
+    flex-direction: row;
+    align-items: center;
+    height: var(--topbar-height);
+    min-height: var(--topbar-height);
+    padding: 0 var(--space-4);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--color-border);
+    border-top-width: 0;
+    border-left-width: 0;
+    border-right-width: 0;
+    background-color: transparent;
+    margin: 0;
+    border-radius: 0;
+}
+
+.brand:hover {
+    background-color: var(--color-surface-hover);
+}
+
+.brand:focus {
+    border-bottom-color: var(--color-focus);
+}
+
+.brand__word {
+    font-size: var(--font-size-xl);
+    letter-spacing: 0.9px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--color-text);
+}
+
+.brand__accent {
+    margin-left: 5px;
+    color: var(--color-action-bright);
+}
+
+.promotion-block {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin: var(--space-3) var(--space-2) 0 var(--space-2);
+    padding: var(--space-3);
+    border-width: 1px;
+    border-color: var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-surface-raised);
+}
+
+.promotion-crest {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    margin-right: var(--space-3);
+    border-width: 1px;
+    border-color: var(--color-border-strong);
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface-hover);
+    color: var(--color-prestige);
+    font-size: var(--font-size-lg);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    -unity-text-align: middle-center;
+}
+
+.promotion-crest--empty {
+    border-color: var(--color-border-strong);
+    background-color: transparent;
+    color: var(--color-text-muted);
+}
+
+.promotion-text {
+    flex-shrink: 1;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.promotion-name {
+    color: var(--color-prestige);
+    font-size: var(--font-size-md);
+    letter-spacing: 0.5px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    white-space: normal;
+}
+
+.promotion-tagline-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: var(--space-1);
+}
+
+.promotion-tagline {
+    margin-right: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    white-space: normal;
+}
+
+.sidebar-nav {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.sidebar-nav .unity-scroll-view__content-container {
+    padding: var(--space-4) var(--space-2);
+}
+
+.nav-section {
+    margin-bottom: var(--space-4);
+}
+
+.nav-section__heading {
+    margin-bottom: var(--space-1);
+    padding: 0 var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    letter-spacing: 1.9px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+}
+
+.nav-link {
+    flex-direction: row;
+    align-items: center;
+    min-height: 36px;
+    margin: 0;
+    padding: var(--space-1) var(--space-3);
+    border-width: 1px;
+    border-color: transparent;
+    border-radius: var(--radius-control);
+    background-color: transparent;
+    transition-property: background-color;
+    transition-duration: 120ms;
+}
+
+.nav-link:hover {
+    background-color: var(--color-surface-hover);
+    border-color: transparent;
+}
+
+.nav-link:active {
+    background-color: var(--color-border);
+}
+
+.nav-link:focus {
+    border-color: var(--color-focus);
+}
+
+/* The current page: a red-orange rail down its start edge. */
+.nav-link--current {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left-width: 3px;
+    border-left-color: var(--color-action-bright);
+    background-color: var(--color-surface-hover);
+}
+
+.nav-link--current:hover {
+    border-left-color: var(--color-action-bright);
+}
+
+.nav-link__icon {
+    width: 20px;
+    height: 20px;
+    margin-right: var(--space-3);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-border);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    -unity-text-align: middle-center;
+}
+
+.nav-link--current > .nav-link__icon {
+    background-color: var(--color-action);
+    color: var(--color-action-contrast);
+}
+
+.nav-link__label {
+    flex-grow: 1;
+    flex-shrink: 1;
+    color: var(--color-text);
+    font-size: var(--font-size-md);
+    letter-spacing: 0.8px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+    -unity-text-align: middle-left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nav-link--current > .nav-link__label {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+}
+
+.nav-link__badge {
+    min-width: 20px;
+}
+
+.sidebar-footer {
+    flex-shrink: 0;
+    padding: var(--space-3) var(--space-2);
+    border-top-width: 1px;
+    border-top-color: var(--color-border);
+}
+
+/* ---- Main column and top bar -------------------------------------------------------------- */
+
+.main-column {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.top-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--topbar-height);
+    min-height: var(--topbar-height);
+    padding: 0 var(--space-6);
+    background-color: var(--color-surface);
+}
+
+/* The thin red-orange stripe along the top bar's bottom edge (GradientStripe draws it). */
+.top-bar-stripe {
+    height: 2px;
+    min-height: 2px;
+    background-color: var(--color-border);
+}
+
+.top-bar__start {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.top-bar__end {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.page-title {
+    font-size: var(--font-size-xl);
+    letter-spacing: 0.7px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    white-space: nowrap;
+}
+
+.crumb-section {
+    color: var(--color-text-muted);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+}
+
+.crumb-separator {
+    margin: 0 var(--space-2);
+    color: var(--color-action-bright);
+}
+
+/* Status chips: a small uppercase label over its value, a coloured edge on the start side. */
+.status-chips {
+    flex-direction: row;
+    align-items: stretch;
+    margin-right: var(--space-3);
+}
+
+.status-chip {
+    justify-content: center;
+    margin-left: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    border-left-width: 2px;
+    border-left-color: var(--color-border-strong);
+    background-color: var(--color-surface-raised);
+}
+
+.status-chip--date {
+    border-left-color: var(--color-action-bright);
+}
+
+.status-chip__label {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    letter-spacing: 1.3px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+    white-space: nowrap;
+}
+
+.status-chip__value {
+    font-size: var(--font-size-md);
+    letter-spacing: 0.3px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    white-space: nowrap;
+}
+
+.status-chip__value--negative {
+    color: var(--color-negative);
+}
+
+.status-chip__secondary {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+}
+
+/* ---- Day control ---------------------------------------------------------------------------- */
+
+.day-control {
+    flex-direction: row;
+    align-items: center;
+}
+
+.day-control > .live-bug {
+    margin: 0 var(--space-2) 0 var(--space-1);
+}
+
+/* ---- Content -------------------------------------------------------------------------------- */
+
+.main-scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.content {
+    max-width: var(--content-max-width);
+    width: 100%;
+    align-self: center;
+    padding: var(--space-6) var(--space-8) var(--space-10) var(--space-8);
+}
+
+/* ---- Last advance summary ------------------------------------------------------------------- */
+
+.summary {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border-width: 1px;
+    border-left-width: 3px;
+    border-color: var(--color-border);
+    border-left-color: var(--color-data);
+    border-radius: var(--radius-card);
+    background-color: var(--color-surface);
+}
+
+.summary--warning {
+    border-left-color: var(--color-warning);
+}
+
+.summary__body {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.summary__eyebrow {
+    margin-bottom: var(--space-1);
+}
+
+.summary__headline {
+    font-size: var(--font-size-lg);
+    letter-spacing: 0.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    white-space: normal;
+}
+
+.summary__reason {
+    margin-top: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    white-space: normal;
+}
+
+.summary__links {
+    margin-top: var(--space-1);
+}
+
+.summary__failure {
+    margin-top: var(--space-1);
+    color: var(--color-warning);
+}
+
+/* ---- Placeholder screens --------------------------------------------------------------------- */
+
+.placeholder {
+    align-items: flex-start;
+}
+
+.placeholder__card {
+    max-width: 720px;
+    padding: var(--space-6);
+}
+
+.placeholder__body {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-md);
+    white-space: normal;
+}
+
+.placeholder__route {
+    margin-top: var(--space-4);
+    color: var(--color-data);
+    font-size: var(--font-size-sm);
+}
+
+/* ---- Skip days and the advance overlay ------------------------------------------------------- */
+
+.skip-preview {
+    margin-top: var(--space-2);
+    color: var(--color-data);
+    font-size: var(--font-size-lg);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+}
+
+.stop-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.advance-overlay__date {
+    margin-top: var(--space-2);
+    color: var(--color-data);
+    font-size: var(--font-size-2xl);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+}
+
+/* ---- Settings ---------------------------------------------------------------------------------- */
+
+.settings-group {
+    max-width: 720px;
+    margin-bottom: var(--space-4);
+}
+
+.settings-group__title {
+    margin-bottom: var(--space-1);
+    font-size: var(--font-size-xl);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+}
+
+.settings-group__hint {
+    margin-bottom: var(--space-3);
+}

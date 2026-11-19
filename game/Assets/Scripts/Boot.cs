@@ -3,8 +3,8 @@ using UnityEngine;
 namespace RingsideBooker
 {
     /// <summary>
-    /// Placeholder bootstrap behaviour for the Boot scene. It only logs a line so a
-    /// player build (run with -batchmode -nographics -logFile) proves the game starts.
+    /// Bootstrap behaviour for the Boot scene. It logs a line so a player build (run with
+    /// -batchmode -nographics -logFile) proves the game starts, then opens the title screen.
     /// </summary>
     public sealed class Boot : MonoBehaviour
     {
@@ -18,7 +18,10 @@ namespace RingsideBooker
             {
                 // A headless smoke run has nothing else to do yet.
                 Application.Quit(0);
+                return;
             }
+
+            UI.SceneFlow.LoadTitle();
         }
     }
 }

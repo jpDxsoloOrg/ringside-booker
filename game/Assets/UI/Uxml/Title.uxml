@@ -1,0 +1,23 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- The title screen. TitleController wires the menu and fills title-panel. -->
+    <ui:VisualElement name="title-screen" class="title-screen">
+        <ui:VisualElement name="title-side" class="title-side">
+            <ui:VisualElement class="title-wordmark">
+                <ui:Label text="RINGSIDE" class="title-wordmark__word" />
+                <ui:Label text="BOOKER" class="title-wordmark__word title-wordmark__accent" />
+            </ui:VisualElement>
+            <ui:Label text="Run a wrestling promotion: book the shows, sign the talent, keep the lights on." class="title-tagline" />
+            <ui:VisualElement name="title-stripe" class="title-stripe" />
+            <ui:VisualElement name="title-menu" class="title-menu">
+                <ui:Button name="menu-new-game" text="NEW GAME" class="menu-button" />
+                <ui:Button name="menu-continue" text="CONTINUE" class="menu-button" />
+                <ui:Button name="menu-load" text="LOAD" class="menu-button" />
+                <ui:Button name="menu-settings" text="SETTINGS" class="menu-button" />
+                <ui:Button name="menu-quit" text="QUIT" class="menu-button" />
+            </ui:VisualElement>
+            <ui:Label name="title-version" class="title-version" />
+        </ui:VisualElement>
+        <ui:VisualElement name="title-panel" class="title-panel" />
+    </ui:VisualElement>
+    <ui:VisualElement name="overlay-layer" class="overlay-layer" picking-mode="Ignore" />
+</ui:UXML>

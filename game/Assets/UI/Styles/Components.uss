@@ -1,0 +1,501 @@
+/*
+ * Shared controls: buttons, badges, chips, cards, sheets and the overlay layer, ported from the web
+ * components (Button, Badge, Sheet, LiveBugButton, StatusChips). Font classes (.t-*) go on the text
+ * element itself: every label sets its own face, so a parent's face is not inherited.
+ */
+
+/* ---- Buttons ----------------------------------------------------------------------------- */
+
+.btn {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    margin: 0;
+    padding: var(--space-2) var(--space-4);
+    border-width: 1px;
+    border-color: var(--color-border-strong);
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface-raised);
+    color: var(--color-text);
+    font-size: var(--font-size-md);
+    letter-spacing: 0.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    transition-property: background-color, border-color, color;
+    transition-duration: 120ms;
+}
+
+.btn:hover {
+    background-color: var(--color-surface-hover);
+    border-color: var(--color-border-strong);
+}
+
+.btn:active {
+    background-color: var(--color-border);
+}
+
+.btn:focus {
+    border-color: var(--color-focus);
+}
+
+.btn:disabled {
+    opacity: 0.45;
+}
+
+.btn--primary {
+    border-color: var(--color-action-bright);
+    background-color: var(--color-action);
+    color: var(--color-action-contrast);
+}
+
+.btn--primary:hover {
+    border-color: var(--color-action-bright);
+    background-color: var(--color-action-bright);
+}
+
+.btn--primary:active {
+    background-color: var(--color-action);
+}
+
+.btn--primary:focus {
+    border-color: var(--color-focus);
+}
+
+.btn--ghost {
+    border-color: transparent;
+    background-color: transparent;
+}
+
+.btn--ghost:hover {
+    border-color: transparent;
+    background-color: var(--color-surface-hover);
+}
+
+.btn--ghost:focus {
+    border-color: var(--color-focus);
+}
+
+/* A text link drawn as a button: cyan, no box. */
+.btn--link {
+    min-height: 24px;
+    padding: 0;
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--color-data);
+    font-size: var(--font-size-sm);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    letter-spacing: 0;
+    justify-content: flex-start;
+    align-self: flex-start;
+}
+
+.btn--link:hover {
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--color-text);
+}
+
+.btn--link:focus {
+    border-color: var(--color-focus);
+}
+
+.btn--link-first {
+    color: var(--color-action-bright);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-Bold.ttf");
+}
+
+.btn--icon {
+    width: 36px;
+    min-width: 36px;
+    padding: 0;
+    font-size: var(--font-size-xl);
+}
+
+/* ---- The live bug: the skewed red-orange "Next day" button (LiveBugButton.cs draws the fill) ---- */
+
+.live-bug {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 var(--space-6);
+    --bug-fill: #d7301a;
+    --bug-edge: #ff3b1d;
+}
+
+.live-bug:hover {
+    --bug-fill: #ff3b1d;
+}
+
+.live-bug:focus {
+    --bug-edge: #00e5ff;
+}
+
+.live-bug--busy {
+    --bug-fill: #3b4d6b;
+    --bug-edge: #64748b;
+}
+
+.live-bug--busy:hover {
+    --bug-fill: #3b4d6b;
+}
+
+.live-bug__label {
+    color: var(--color-action-contrast);
+    font-size: var(--font-size-lg);
+    letter-spacing: 1px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    white-space: nowrap;
+}
+
+.live-bug__arrow {
+    margin-left: var(--space-2);
+    color: var(--color-action-contrast);
+    font-size: var(--font-size-lg);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+}
+
+/* ---- Badges and chips ---------------------------------------------------------------------- */
+
+.badge {
+    padding: 1px var(--space-2);
+    border-radius: var(--radius-pill);
+    background-color: var(--color-border);
+    color: var(--color-text);
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    -unity-text-align: middle-center;
+}
+
+.badge--action {
+    background-color: var(--color-action);
+    color: var(--color-action-contrast);
+}
+
+.badge--data {
+    background-color: var(--color-data);
+    color: var(--color-text-inverse);
+}
+
+/* A selectable chip (Skip days' quick choices, the UI scale presets). */
+.choice-chip {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    min-width: 104px;
+    min-height: 36px;
+    margin: 0 var(--space-2) var(--space-2) 0;
+    padding: var(--space-1) var(--space-3);
+    border-width: 1px;
+    border-color: var(--color-border-strong);
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface-sunken);
+}
+
+.choice-chip:hover {
+    background-color: var(--color-surface-hover);
+}
+
+.choice-chip:focus {
+    border-color: var(--color-focus);
+}
+
+.choice-chip--selected {
+    border-color: var(--color-data);
+    background-color: var(--color-surface-raised);
+}
+
+.choice-chip__label {
+    color: var(--color-text);
+    font-size: var(--font-size-md);
+    letter-spacing: 0.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.choice-chip--selected > .choice-chip__label {
+    color: var(--color-data);
+}
+
+.choice-chip__detail {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    -unity-text-align: middle-center;
+}
+
+.chip-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+/* ---- Cards ----------------------------------------------------------------------------------- */
+
+.card {
+    padding: var(--space-4) var(--space-5);
+    border-width: 1px;
+    border-color: var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-surface);
+}
+
+.screen-heading {
+    margin-bottom: var(--space-4);
+    font-size: var(--font-size-3xl);
+    letter-spacing: 1px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+}
+
+.section-label {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    letter-spacing: 1.8px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+}
+
+.field-label {
+    margin-bottom: var(--space-2);
+    font-size: var(--font-size-sm);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+.field-hint {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    white-space: normal;
+}
+
+.field-error {
+    margin-top: var(--space-1);
+    color: var(--color-negative);
+    font-size: var(--font-size-sm);
+    white-space: normal;
+}
+
+.fieldset {
+    margin-bottom: var(--space-5);
+}
+
+/* ---- Text input ------------------------------------------------------------------------------ */
+
+.text-input {
+    margin: 0;
+}
+
+.text-input > .unity-base-text-field__input {
+    min-height: 40px;
+    padding: var(--space-2) var(--space-3);
+    border-width: 1px;
+    border-color: var(--color-border-strong);
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface-sunken);
+    color: var(--color-text);
+    font-size: var(--font-size-md);
+    --unity-cursor-color: #f1f5f9;
+    --unity-selection-color: rgba(0, 229, 255, 0.35);
+}
+
+.text-input:focus > .unity-base-text-field__input {
+    border-color: var(--color-focus);
+}
+
+.text-input--invalid > .unity-base-text-field__input {
+    border-color: var(--color-negative);
+}
+
+/* ---- Check rows (the Skip days sheet's "Always stops") ---------------------------------------- */
+
+.check-row {
+    flex-direction: row;
+    align-items: center;
+    min-height: 32px;
+}
+
+.check-box {
+    width: 16px;
+    height: 16px;
+    margin-right: var(--space-3);
+    border-width: 1px;
+    border-color: var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface-sunken);
+    align-items: center;
+    justify-content: center;
+}
+
+.check-box--on {
+    border-color: var(--color-data);
+    background-color: var(--color-data);
+}
+
+.check-box__tick {
+    color: var(--color-text-inverse);
+    font-size: 12px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-Bold.ttf");
+}
+
+.check-row__label {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    white-space: normal;
+    flex-shrink: 1;
+}
+
+.check-row--interactive {
+    border-width: 1px;
+    border-color: transparent;
+    border-radius: var(--radius-sm);
+    padding: 0 var(--space-1);
+}
+
+.check-row--interactive:hover > .check-row__label {
+    color: var(--color-text);
+}
+
+.check-row--interactive:focus {
+    border-color: var(--color-focus);
+}
+
+/* ---- Overlay layer, scrim and sheets ---------------------------------------------------------- */
+
+/* The root layer every sheet, dialog and panel opens into (OverlayLayer.cs). */
+.overlay-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.overlay-entry {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+
+.scrim {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-overlay);
+}
+
+.sheet {
+    position: absolute;
+    flex-direction: column;
+    border-width: 1px;
+    border-color: var(--color-border);
+    background-color: var(--color-surface);
+}
+
+/* A side sheet on the right (Skip days). */
+.sheet--right {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 420px;
+    max-width: 90%;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-right-width: 0;
+}
+
+/* A centred dialog: in the flow of a centred overlay entry, so it sits mid-width near the top. */
+.sheet--center {
+    position: relative;
+    margin-top: 8%;
+    max-height: 80%;
+    width: 520px;
+    max-width: 90%;
+    border-radius: var(--radius-card);
+}
+
+.sheet--small.sheet--center {
+    width: 440px;
+}
+
+.overlay-entry--center {
+    align-items: center;
+}
+
+.sheet__header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 56px;
+    padding: 0 var(--space-3) 0 var(--space-5);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--color-border);
+}
+
+.sheet__title {
+    font-size: var(--font-size-xl);
+    letter-spacing: 0.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+}
+
+.sheet__body {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.sheet__body-content {
+    padding: var(--space-5);
+}
+
+.sheet__footer {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    padding: var(--space-3) var(--space-5);
+    border-top-width: 1px;
+    border-top-color: var(--color-border);
+}
+
+.sheet__footer > .btn {
+    margin-left: var(--space-2);
+}
+
+/* ---- Progress -------------------------------------------------------------------------------- */
+
+.progress {
+    height: 8px;
+    margin: var(--space-3) 0;
+    border-radius: 4px;
+    background-color: var(--color-surface-sunken);
+    overflow: hidden;
+}
+
+.progress__fill {
+    height: 100%;
+    background-color: var(--color-data);
+}
+
+/* ---- List rows (gates waiting, failed steps) -------------------------------------------------- */
+
+.list-row {
+    margin-bottom: var(--space-2);
+    padding: var(--space-3);
+    border-width: 1px;
+    border-color: var(--color-border);
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface-sunken);
+}
+
+.list-row__meta {
+    flex-direction: row;
+    margin-bottom: var(--space-1);
+}
+
+.mono {
+    color: var(--color-data);
+    margin-left: var(--space-2);
+    font-size: var(--font-size-xs);
+}
