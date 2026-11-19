@@ -23,8 +23,14 @@ Windows x64, Mono scripting backend. Chosen in UNITY-03 (#864).
     `JsEngineHost.ConfigureNativeSearchPath(Application.dataPath)` on the main thread first (it is
     also done automatically at player start-up).
   - `EvaluateDiagnostic(expr)` evaluates raw JavaScript: diagnostics and tests only.
-- No assembly definition: the scripts compile into `Assembly-CSharp` (and the `Editor/` folder into
-  `Assembly-CSharp-Editor`).
+- Game code does not call `JsEngineHost` directly: it uses `EngineClient` (`EngineClient.cs`,
+  types in `EngineTypes.cs`), which owns the host on a dedicated engine thread, queues calls, returns
+  `Task<T>` results and raises progress, finished, state-changed and busy events on the main thread.
+- Assembly definitions (UNITY-04): `Assets/Scripts/Engine/` is `RingsideBooker.Engine` (auto
+  referenced, so `Assembly-CSharp` sees it; it references ClearScript and Newtonsoft explicitly and
+  cannot see `Assembly-CSharp`), its `Editor/` folder `RingsideBooker.Engine.Editor`, and the
+  EditMode test `Assets/Tests/Engine/` `RingsideBooker.Engine.Tests` (package
+  `com.unity.test-framework`).
 
 ## Files
 
