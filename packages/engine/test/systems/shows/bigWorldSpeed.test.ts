@@ -8,6 +8,7 @@ import {
   worldHash,
   type EngineState,
 } from '../../../src/core/api';
+import { controllerViewer } from '../../../src/core/api/controller';
 import { TABLES, type GameWorldView } from '../../../src/model/tables';
 import { documentToWorld } from '../../../src/persistence/world-document';
 import { defaultSystems } from '../../../src/systems';
@@ -69,8 +70,14 @@ describe('Big world speed: the setting', () => {
   it('changes mid-game from a player seat, and Full detail removes the stored value', () => {
     const engine = createEngine({ state: startDefaultGame(), systems: defaultSystems });
     const before = engine.exportState().world.meta.settings;
+    const speedNow = (): unknown => {
+      const read = engine.query('world.bigWorldSpeed', {}, controllerViewer(PLAYER));
+      return read.ok ? read.data.speed : read.reasons;
+    };
+    expect(speedNow()).toBe('full');
     const fast = engine.command('world.setBigWorldSpeed', { speed: 'fast' }, PLAYER);
     expect(fast.ok).toBe(true);
+    expect(speedNow()).toBe('fast');
     expect(engine.exportState().world.meta.settings.extra['bigWorldSpeed']).toBe('fast');
     const full = engine.command('world.setBigWorldSpeed', { speed: 'full' }, PLAYER);
     expect(full.ok).toBe(true);

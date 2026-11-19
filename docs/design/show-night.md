@@ -818,7 +818,8 @@ The **Big world speed** setting picks how much detail far-away rival shows get:
 
 It is a new-game setting (`bigWorldSpeed`, group World, `full` | `fast`) and can
 be changed in a game with `world.setBigWorldSpeed { speed }` from a player seat
-(the same permission rule as Show night). Choosing Full detail removes the
+(the same permission rule as Show night); `world.bigWorldSpeed` reads it back
+for the Settings screen. Choosing Full detail removes the
 stored value again. Changing it mid-game changes how the future plays out; the
 days already played stay as they were. The same seed and the same setting give
 the same world.

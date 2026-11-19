@@ -18,6 +18,7 @@
 
 import { z } from 'zod';
 import { defineCommand } from '../../core/api/command';
+import { defineQuery } from '../../core/api/query';
 import type { Controller } from '../../core/api/controller';
 import type { Reason } from '../../core/api/result';
 import { isId, type PromotionId, type RegionId } from '../../core/ids';
@@ -35,6 +36,9 @@ export const BIG_WORLD_SPEEDS = ['full', 'fast'] as const;
 export type BigWorldSpeed = (typeof BIG_WORLD_SPEEDS)[number];
 
 declare module '../../core/api/maps' {
+  interface QueryMap {
+    'world.bigWorldSpeed': { args: Record<string, never>; result: { speed: BigWorldSpeed } };
+  }
   interface CommandMap {
     'world.setBigWorldSpeed': {
       args: { speed: BigWorldSpeed };
@@ -270,4 +274,10 @@ export const setBigWorldSpeedCommand = defineCommand('world.setBigWorldSpeed', {
     ctx.log(`Big world speed is now ${args.speed}`);
     return { speed: args.speed };
   },
+});
+
+/** `world.bigWorldSpeed`: the world's Big world speed, for the Settings screen. Public. */
+export const bigWorldSpeedQuery = defineQuery('world.bigWorldSpeed', {
+  args: z.strictObject({}),
+  run: (ctx) => ({ speed: bigWorldSpeedOf(ctx.read) }),
 });
