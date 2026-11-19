@@ -113,6 +113,20 @@ namespace RingsideBooker.UI.Why
 
         public bool IsClosed => closed;
 
+        /// <summary>
+        /// True when an outside overlay (the shell's overlay layer) draws the scrim and holds the
+        /// panel: the panel then draws only its sheet and lets clicks beside it through.
+        /// </summary>
+        public bool Embedded
+        {
+            get => ClassListContains(UssClassName + "--embedded");
+            set
+            {
+                EnableInClassList(UssClassName + "--embedded", value);
+                pickingMode = value ? PickingMode.Ignore : PickingMode.Position;
+            }
+        }
+
         /// <summary>Puts keyboard focus inside the panel: the first row, else the close button.</summary>
         public void FocusInside()
         {

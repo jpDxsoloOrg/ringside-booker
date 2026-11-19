@@ -37,6 +37,11 @@
     background-color: var(--why-scrim);
 }
 
+/* Held by the shell's overlay layer, which draws the scrim: only the sheet, on the right. */
+.why-overlay--embedded {
+    background-color: rgba(0, 0, 0, 0);
+}
+
 .why-sheet {
     width: 480px;
     max-width: 100%;

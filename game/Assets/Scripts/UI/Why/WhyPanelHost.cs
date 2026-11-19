@@ -5,15 +5,30 @@ using UnityEngine.UIElements;
 namespace RingsideBooker.UI.Why
 {
     /// <summary>
-    /// Opens Why? panels: one at a time (opening another replaces it), into the overlay layer,
-    /// with focus returned to whatever opened it when it closes.
+    /// Shows a Why? panel in an outside overlay (the shell's overlay layer) and returns the action
+    /// that removes it there, or null to let <see cref="WhyPanelHost"/> place it itself. The panel
+    /// comes <see cref="WhyPanel.Embedded"/>: the overlay draws the scrim. When the overlay closes
+    /// the entry itself (Esc, a scrim click), call <see cref="WhyPanel.Close"/>.
+    /// </summary>
+    public delegate Action WhyPanelPresenter(VisualElement opener, WhyPanel panel);
+
+    /// <summary>
+    /// Opens Why? panels: one at a time (opening another replaces it), with focus returned to
+    /// whatever opened it when it closes.
     ///
-    /// Screens normally use a <see cref="WhyButton"/>. Set <see cref="DefaultRoot"/> once (the
-    /// shell's overlay layer) and <see cref="DefaultLinks"/> (how to open a worker, promotion,
-    /// title…); without a root, a panel opens into the top of the opener's panel.
+    /// Screens normally use a <see cref="WhyButton"/>. Where a panel goes: the root the caller
+    /// names, else <see cref="Presenter"/> (the shell's overlay layer), else
+    /// <see cref="DefaultRoot"/>, else the top of the opener's panel. Set
+    /// <see cref="DefaultLinks"/> once (how to open a worker, promotion, title…).
     /// </summary>
     public static class WhyPanelHost
     {
+        /// <summary>
+        /// Hands panels to an outside overlay when set (see <see cref="WhyPanelPresenter"/>). Used
+        /// when the caller names no root; takes precedence over <see cref="DefaultRoot"/>.
+        /// </summary>
+        public static WhyPanelPresenter Presenter { get; set; }
+
         /// <summary>Where panels open when the caller names no root: the shell's overlay layer.</summary>
         public static VisualElement DefaultRoot { get; set; }
 
@@ -37,21 +52,32 @@ namespace RingsideBooker.UI.Why
         public static WhyPanel Open(string title, WhySource source, VisualElement root = null,
             Focusable returnFocusTo = null, WhyLinks links = null)
         {
-            VisualElement target = root ?? DefaultRoot ?? TopOf(returnFocusTo as VisualElement);
-            if (target == null)
-            {
-                throw new InvalidOperationException(
-                    "No root to open the Why? panel in: pass one, set WhyPanelHost.DefaultRoot, or open it from an element in a panel.");
-            }
             CloseCurrent();
             var panel = new WhyPanel(title, source, links ?? DefaultLinks);
+            Action removeFromPresenter = null;
+            if (root == null && Presenter != null)
+            {
+                panel.Embedded = true;
+                removeFromPresenter = Presenter(returnFocusTo as VisualElement, panel);
+                if (removeFromPresenter == null) panel.Embedded = false;
+            }
+            if (removeFromPresenter == null)
+            {
+                VisualElement target = root ?? DefaultRoot ?? TopOf(returnFocusTo as VisualElement);
+                if (target == null)
+                {
+                    throw new InvalidOperationException(
+                        "No root to open the Why? panel in: pass one, set WhyPanelHost.DefaultRoot or Presenter, or open it from an element in a panel.");
+                }
+                target.Add(panel);
+            }
             panel.Closed += () =>
             {
                 if (Current == panel) Current = null;
+                removeFromPresenter?.Invoke();
                 if (returnFocusTo is VisualElement element && element.panel != null) element.Focus();
                 else returnFocusTo?.Focus();
             };
-            target.Add(panel);
             Current = panel;
             panel.FocusInside();
             // The rows take focus once laid out; try again on the next update if they could not yet.
