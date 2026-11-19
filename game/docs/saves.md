@@ -14,11 +14,11 @@ auto-referenced, so Assembly-CSharp sees it). Title screen panels:
 `Application.persistentDataPath/Saves`, which on Windows is
 `%USERPROFILE%\AppData\LocalLow\<company>\Ringside Booker\Saves`. One slot is:
 
-| File | What it is |
-| --- | --- |
-| `<slot>.rbsave` | The save, the engine's bytes as they are. |
-| `<slot>.rbsave.bak` | The save before it (one rolling backup). "Load the backup" uses it. |
-| `<slot>.json` | The slot's header (`SaveSlotInfo`): label, world, promotion, game date, days simulated, cash, real time saved, engine version, schema fingerprint, format version, size. The load list reads only these, so listing never builds a world. |
+| File                | What it is                                                                                                                                                                                                                                |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<slot>.rbsave`     | The save, the engine's bytes as they are.                                                                                                                                                                                                 |
+| `<slot>.rbsave.bak` | The save before it (one rolling backup). "Load the backup" uses it.                                                                                                                                                                       |
+| `<slot>.json`       | The slot's header (`SaveSlotInfo`): label, world, promotion, game date, days simulated, cash, real time saved, engine version, schema fingerprint, format version, size. The load list reads only these, so listing never builds a world. |
 
 The slot id is a slug of the label plus the UTC time it was made (`new-career-20261119-142233`);
 it never changes for the slot's life. A `.rbsave` copied into the folder by hand shows up too:
@@ -87,12 +87,12 @@ different window), which only matters for cross-runtime hash comparisons.
 Measured with the same engine bundle on Node (V8), default world, a founded promotion, no player
 shows, 365-day skip, gzipped save size and load time:
 
-| Days played | keep 28 (web) | keep 90 (desktop) | keep 365 |
-| --- | --- | --- | --- |
-| 30 | 0.77 MB | 0.78 MB | 0.78 MB |
-| 90 | 1.08 MB | 1.33 MB | 1.33 MB |
-| 180 | 1.21 MB | 1.50 MB | 1.71 MB |
-| 365 | **1.28 MB** (load 0.63 s) | **1.58 MB** (load 0.73 s) | 2.25 MB (load 0.99 s) |
+| Days played | keep 28 (web)             | keep 90 (desktop)         | keep 365              |
+| ----------- | ------------------------- | ------------------------- | --------------------- |
+| 30          | 0.77 MB                   | 0.78 MB                   | 0.78 MB               |
+| 90          | 1.08 MB                   | 1.33 MB                   | 1.33 MB               |
+| 180         | 1.21 MB                   | 1.50 MB                   | 1.71 MB               |
+| 365         | **1.28 MB** (load 0.63 s) | **1.58 MB** (load 0.73 s) | 2.25 MB (load 0.99 s) |
 
 90 days costs about 0.3 MB (+24 %) and 0.1 s of load time on a year-old save and then levels off,
 because older detail is still rolled up into totals. Keeping a whole year would grow the save by
