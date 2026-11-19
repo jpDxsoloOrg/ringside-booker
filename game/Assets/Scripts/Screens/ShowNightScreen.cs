@@ -44,8 +44,8 @@ namespace RingsideBooker.Screens
         {
             EngineClient client = Kit.Game.Client;
             var args = new JObject { ["eventInstanceId"] = eventId };
-            QueryResult<JToken> liveAnswer = await client.Query("shows.liveState", args);
-            QueryResult<JToken> viewAnswer = await client.Query("shows.results", args);
+            (QueryResult<JToken> liveAnswer, QueryResult<JToken> viewAnswer) = await client.Read("showNight",
+                reader => (reader.Query("shows.liveState", args), reader.Query("shows.results", args)));
             host.Clear();
             if (!liveAnswer.Ok || liveAnswer.Data == null || liveAnswer.Data.Type == JTokenType.Null || !viewAnswer.Ok || viewAnswer.Data == null)
             {
@@ -64,8 +64,8 @@ namespace RingsideBooker.Screens
             bool? tonight = null;
             if (stage == "notStarted")
             {
-                QueryResult<JToken> card = await client.Query("booking.card", args);
-                QueryResult<JToken> validation = await client.Query("booking.validate", args);
+                (QueryResult<JToken> card, QueryResult<JToken> validation) = await client.Read("showNight.card",
+                    reader => (reader.Query("booking.card", args), reader.Query("booking.validate", args)));
                 if (card.Ok) tonight = Kit.Bool(card.Data, "runsTonight");
                 if (validation.Ok) problems = Kit.Arr(validation.Data, "errors").Count();
             }

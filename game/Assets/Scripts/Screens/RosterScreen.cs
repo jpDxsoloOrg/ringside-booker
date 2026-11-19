@@ -48,8 +48,8 @@ namespace RingsideBooker.Screens
         private static async Task RenderGroup(VisualElement host, string group, ScreenContext context)
         {
             EngineClient client = Kit.Game.Client;
-            QueryResult<JToken> rows = await client.Query("roster.rows", new JObject { ["group"] = group });
-            QueryResult<JToken> summary = await client.Query("roster.summary");
+            (QueryResult<JToken> rows, QueryResult<JToken> summary) = await client.Read("roster",
+                reader => (reader.Query("roster.rows", new JObject { ["group"] = group }), reader.Query("roster.summary")));
             host.Clear();
             if (!rows.Ok)
             {

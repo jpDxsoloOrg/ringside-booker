@@ -149,6 +149,7 @@ namespace RingsideBooker.Screens.Dev
             GameDate start = await Today(game);
             GameDate target = start.AddDays(days);
             Debug.Log($"[SkipCheck] new game on {start.Iso}; skipping {days} days to {target.Iso}");
+            SkipProfile profile = SkipProfile.Asked ? SkipProfile.Begin() : null;
 
             var stops = new SortedDictionary<string, int>();
             int skips = 0;
@@ -170,6 +171,10 @@ namespace RingsideBooker.Screens.Dev
                         Debug.Log($"[SkipCheck] PASSED: {start.Iso} → {today.Iso} ({start.DaysUntil(today)} days) in {skips} skips, " +
                                   $"{liveShows} live and {autoShows} auto show nights; stops: {(summary.Length == 0 ? "none" : summary)}; " +
                                   $"{clock.Elapsed.TotalSeconds:0.0} s");
+                        if (profile != null)
+                        {
+                            await profile.Finish("SkipCheck", game, $"{start.DaysUntil(today)} days in {skips} skips, {liveShows} live and {autoShows} auto show nights");
+                        }
                         return true;
                     }
                     int remaining = today.DaysUntil(target);
@@ -213,16 +218,17 @@ namespace RingsideBooker.Screens.Dev
             return false;
         }
 
-        /// <summary>Waits for the engine to go idle and the day control to read today's stops again.</summary>
+        /// <summary>
+        /// Waits for the engine to go idle and the day control to read today's stops again (frame by
+        /// frame, no fixed delays: UNITY-23 found the old 0.6 s per step was most of a run's time).
+        /// </summary>
         private static async Task Settle()
         {
-            await Task.Delay(300);
             EngineGame game = EngineGame.Current;
-            while (game != null && (game.Client.IsBusy || game.DayControl.Advancing)) await Task.Yield();
-            game?.DayControl.Refresh();
-            await Task.Delay(200);
-            while (game != null && game.Client.IsBusy) await Task.Yield();
-            await Task.Delay(100);
+            if (game == null) return;
+            await ProfileSkip.Idle(game);
+            game.DayControl.Refresh();
+            await ProfileSkip.Idle(game);
         }
 
         private static async Task<GameDate> Today(EngineGame game)
@@ -255,7 +261,7 @@ namespace RingsideBooker.Screens.Dev
         {
             DayControlView control = ShellController.Current.DayControl;
             control.RunPrimary();
-            await Task.Delay(300);
+            await Task.Yield();
             Sheet sheet = control.WaitingSheet;
             if (sheet == null)
             {

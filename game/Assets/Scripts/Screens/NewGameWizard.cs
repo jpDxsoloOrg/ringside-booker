@@ -42,7 +42,7 @@ namespace RingsideBooker.Screens
         private string promotionKey;
         private string saveName = "My career";
         private string playerName = "Alex Booker";
-        private string seed = NewSeed();
+        private string seed = DevSeed() ?? NewSeed();
         private string seasonPreset;
         private readonly Dictionary<string, JToken> settings = new Dictionary<string, JToken>();
         private int step;
@@ -925,6 +925,31 @@ namespace RingsideBooker.Screens
             step = 2;
             Draw();
             return preview != null;
+        }
+
+        /// <summary><c>-rbSeed &lt;seed&gt;</c> (dev): every new game starts with this seed, so profile runs compare.</summary>
+        public const string SeedArgument = "-rbSeed";
+
+        /// <summary>
+        /// Sets one new-game setting on the Options step (dev tools; e.g. <c>showNight</c> = <c>auto</c>).
+        /// False when the world has no such setting.
+        /// </summary>
+        public bool SetSetting(string key, JToken value)
+        {
+            if (!settings.ContainsKey(key)) return false;
+            settings[key] = value;
+            Draw();
+            return true;
+        }
+
+        /// <summary>The seed the next game starts with.</summary>
+        public string Seed => seed;
+
+        private static string DevSeed()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            int at = Array.FindIndex(args, arg => string.Equals(arg, SeedArgument, StringComparison.OrdinalIgnoreCase));
+            return at >= 0 && at + 1 < args.Length ? args[at + 1] : null;
         }
 
         private static string NewSeed() =>
