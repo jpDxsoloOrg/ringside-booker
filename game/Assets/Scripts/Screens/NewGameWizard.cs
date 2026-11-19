@@ -92,6 +92,7 @@ namespace RingsideBooker.Screens
             WorldListResult bundled = await client.ListWorlds();
             foreach (JToken pack in bundled.Packs)
             {
+                if (Kit.Bool(pack, "imported")) continue; // an imported workshop world: listed by its source
                 list.Add(("Built in", new WorldChoice(Kit.Str(pack, "id"), Kit.Str(pack, "name"), Kit.Str(pack, "description"),
                     $"{Kit.Str(pack, "author")} · v{Kit.Str(pack, "version")}")));
             }
@@ -136,10 +137,17 @@ namespace RingsideBooker.Screens
                 body.Add(Ui.Text(TextFormat.Upper(group.Key), "field-label", "rb-gap-top"));
                 foreach ((string _, WorldChoice choice) in group) body.Add(WorldOption(choice));
             }
-            if (!WorldSources.All.Any())
+            if (!worlds.Any(entry => entry.group == "Workshop mods"))
             {
                 body.Add(Ui.Text(TextFormat.Upper("Workshop mods"), "field-label", "rb-gap-top"));
-                body.Add(Kit.Note("Installed workshop world mods will be listed here."));
+                body.Add(Kit.Note("No workshop world mods are installed. Subscribed world mods are listed here."));
+            }
+            else
+            {
+                body.Add(Ui.Text(TextFormat.Upper("Workshop mod import"), "field-label", "rb-gap-top"));
+                body.Add(Kit.Chips(new[] { (false, "With pictures"), (true, "Roster only (no pictures)") }, WorkshopWorlds.RosterOnly,
+                    picked => WorkshopWorlds.RosterOnly = picked, "wizard-roster-only"));
+                body.Add(Kit.Note("Picking a workshop world mod imports it when you press Next; a big world takes a few seconds."));
             }
             Button next = Ui.Btn("NEXT", async () =>
             {
@@ -170,12 +178,17 @@ namespace RingsideBooker.Screens
         {
             if (busy) return;
             busy = true;
+            nav.SetEnabled(false);
+            feedback.text = "Reading the world…";
+            feedback.SetShown(true);
             try
             {
+                world.Notice = null;
                 WorldPreviewResult answer = await world.RunPreview(client);
                 if (!answer.Ok || answer.Value == null)
                 {
-                    feedback.text = "That world could not be read: " + string.Join("; ", answer.Issues.Select(issue => Kit.Str(issue, "message") ?? issue.ToString()).Concat(answer.Reasons.Select(reason => reason.Message)));
+                    feedback.text = "That world could not be read: " + string.Join("; ", answer.Issues.Select(issue => Kit.Str(issue, "message") ?? issue.ToString()).Concat(answer.Reasons.Select(reason => reason.Message)))
+                        + (world.Notice == null ? string.Empty : " " + world.Notice);
                     feedback.SetShown(true);
                     return;
                 }
@@ -190,11 +203,13 @@ namespace RingsideBooker.Screens
             finally
             {
                 busy = false;
+                nav.SetEnabled(true);
             }
         }
 
         private void DrawPromotions()
         {
+            if (world.Notice != null) body.Add(Kit.Note(world.Notice).Named("wizard-import-report"));
             body.Add(Kit.Note("Pick the promotion you take over. Founding your own arrives in a later sprint."));
             var list = new ScrollView(ScrollViewMode.Vertical);
             list.AddToClassList("rb-promo-list");
@@ -314,7 +329,8 @@ namespace RingsideBooker.Screens
                     feedback.SetShown(true);
                     return;
                 }
-                await GameSession.BeginNewAsync(client, (string)options["saveName"], created.Revision, created.Seat);
+                GameSession session = await GameSession.BeginNewAsync(client, (string)options["saveName"], created.Revision, created.Seat);
+                WorkshopWorlds.RememberForSlot(session?.SlotId, world.Id);
                 EngineGame.Enter(client, created.Seat);
             }
             catch (Exception exception)

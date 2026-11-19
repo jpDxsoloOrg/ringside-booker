@@ -27,6 +27,9 @@ namespace RingsideBooker.UI.Bridge
         /// <summary>A short line under the name, such as the author and version.</summary>
         public string Detail { get; }
 
+        /// <summary>A note the source sets while previewing (an import report summary), shown by the wizard. No names.</summary>
+        public string Notice { get; set; }
+
         /// <summary>
         /// The wizard's preview of the world (promotions, settings, start date). Default:
         /// <c>client.PreviewWorld(Id)</c>. Override when the world needs preparing first.

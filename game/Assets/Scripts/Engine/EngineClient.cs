@@ -351,6 +351,29 @@ namespace RingsideBooker.Engine
             return Enqueue("worldHash", true, engine => ParseResult<WorldHashResult>(engine.Call("worldHash")));
         }
 
+        /// <summary>
+        /// Host API v2 (UNITY-06): converts a workshop world mod's tables into a world pack the
+        /// engine keeps for the session (<c>{tables, rosterOnly?, packId?}</c> JSON in, the host's raw
+        /// JSON answer out). Pass it as <c>WorldModImporter.Import</c>'s delegate from a worker thread
+        /// with <c>json =&gt; client.ImportWorldMod(json).Result</c>, never from the main thread.
+        /// </summary>
+        public Task<string> ImportWorldMod(string inputJson)
+        {
+            return Enqueue("importWorldMod", false, engine => engine.Call("importWorldMod", inputJson));
+        }
+
+        /// <summary>Host API v2: forgets an imported world pack (raw JSON answer).</summary>
+        public Task<string> RemoveImportedWorld(string packId)
+        {
+            return Enqueue("removeImportedWorld", false, engine => engine.Call("removeImportedWorld", packId));
+        }
+
+        /// <summary>Any host function by name, with JSON-text arguments; the raw JSON answer (tools, new host calls).</summary>
+        public Task<string> CallRaw(string function, params string[] jsonArgs)
+        {
+            return Enqueue("call " + function, false, engine => engine.Call(function, jsonArgs));
+        }
+
         /// <summary>Stops the running game (every world call then gets <c>noWorld</c>).</summary>
         public Task<EngineResult> Unload()
         {

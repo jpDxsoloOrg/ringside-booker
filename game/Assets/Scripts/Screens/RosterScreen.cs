@@ -75,6 +75,7 @@ namespace RingsideBooker.Screens
             }
 
             bool wrestlers = group == "wrestlers";
+            Import.Pictures.PictureProvider pictures = WorkshopWorlds.CurrentPictures;
             var table = new Kit.Table(host,
                 new[] { "Name", "Brand", "Push", "Expects", "Overall", "Popularity", "Momentum", "Morale", "Availability", "Contract ends" },
                 new[] { 2.2f, 1.4f, 1.6f, 1.1f, 1f, 1.1f, 0.9f, 0.8f, 1.3f, 1.2f });
@@ -86,9 +87,11 @@ namespace RingsideBooker.Screens
                 double popularity = Kit.Num(row, "popularity") ?? 0;
                 string push = Kit.Str(row, "push");
 
-                VisualElement name = Ui.El("rb-cell-stack").With(
-                    Ui.Text(Kit.Str(row, "ringName"), "t-ui-semibold"),
-                    Ui.Text($"{Kit.Capital(Kit.Str(row, "alignment"))} · {Kit.Num(row, "age")}", "t-xs", "t-muted"));
+                VisualElement name = Ui.El("rb-row", "rb-row--tight").With(
+                    Portrait(pictures, Kit.Str(row, "imageRef")),
+                    Ui.El("rb-cell-stack").With(
+                        Ui.Text(Kit.Str(row, "ringName"), "t-ui-semibold"),
+                        Ui.Text($"{Kit.Capital(Kit.Str(row, "alignment"))} · {Kit.Num(row, "age")}", "t-xs", "t-muted")));
 
                 VisualElement pushCell = Ui.El("rb-row", "rb-row--tight");
                 pushCell.Add(Ui.Text(Kit.PushLabel(push), "rb-table__text"));
@@ -132,6 +135,15 @@ namespace RingsideBooker.Screens
                 table.AddRow(name, Kit.Str(row, "brandName") ?? "Shared", pushCell, expects, overallCell, popularityCell,
                     momentumCell, moraleCell, availability, contract).name = $"roster-row-{employmentId}";
             }
+        }
+
+        /// <summary>A small portrait from a workshop world mod's pictures (placeholder when missing); nothing for a world without pictures.</summary>
+        public static VisualElement Portrait(Import.Pictures.PictureProvider pictures, string imageRef)
+        {
+            if (pictures == null) return null;
+            var image = new Image { image = pictures.Get(imageRef), scaleMode = UnityEngine.ScaleMode.ScaleAndCrop };
+            image.AddToClassList("rb-portrait");
+            return image;
         }
 
         private static string AvailabilityText(JToken row)

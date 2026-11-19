@@ -144,3 +144,4 @@
 .status-chip__why { margin-left: 4px; }
 .rb-order-row .unity-label { -unity-text-align: middle-left; }
 .rb-order-row > .rb-cell-stack { align-items: flex-start; }
+.rb-portrait { width: 28px; height: 28px; border-radius: 4px; margin-right: 6px; }

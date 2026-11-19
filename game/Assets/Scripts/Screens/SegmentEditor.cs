@@ -373,6 +373,8 @@ namespace RingsideBooker.Screens
             sheet.Body.Add(list);
             List<JToken> people = Kit.Arr(answer.Data, "people").Where(person => !taken.Contains(Kit.Str(person, "personId"))).ToList();
 
+            Import.Pictures.PictureProvider pictures = WorkshopWorlds.CurrentPictures;
+
             void Fill(string filter)
             {
                 list.Clear();
@@ -388,6 +390,8 @@ namespace RingsideBooker.Screens
                         onPick(id, name);
                     }, "rb-pick-row");
                     row.name = $"pick-{id}";
+                    VisualElement portrait = RosterScreen.Portrait(pictures, Kit.Str(person, "imageRef"));
+                    if (portrait != null) row.Add(portrait);
                     row.Add(Ui.Text(name, "t-ui-semibold", "rb-pick-row__name"));
                     row.Add(Ui.Text(Kit.PushLabel(Kit.Str(person, "push")), "t-xs", "t-muted", "rb-pick-row__cell"));
                     row.Add(Ui.Text($"Pop {Kit.Decimal1(Kit.Num(person, "popularity"))}", "t-xs", "t-data", "rb-pick-row__cell"));
