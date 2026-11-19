@@ -73,5 +73,6 @@ namespace RingsideBooker.UI.Navigation
         public const string ShowNight = "show-night";
         public const string ShowResults = "show-results";
         public const string Worker = "worker";
+        public const string Promotion = "promotion";
     }
 }

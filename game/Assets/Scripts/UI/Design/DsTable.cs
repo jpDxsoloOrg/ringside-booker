@@ -81,6 +81,17 @@ namespace RingsideBooker.UI.Design
         public event Action<T> RowClicked;
 
         public IReadOnlyList<DsColumn<T>> Columns => columns;
+
+        /// <summary>
+        /// When set, sorting is the screen's job: a header click (or <see cref="SortBy"/>) records the
+        /// column and direction, shows them in the header and calls this, and the table keeps the rows
+        /// in the order <see cref="SetRows"/> gave (a long list the screen sorts in full, then pages).
+        /// </summary>
+        public Action<string, bool> ExternalSort { get; set; }
+
+        /// <summary>The sorted column's id (null = none) and direction.</summary>
+        public string SortId => sortId;
+        public bool SortDescending => sortDescending;
         public bool IsVisible(string columnId) => shownColumns.Contains(columnId);
 
         public void SetRows(IEnumerable<T> newRows)
@@ -93,7 +104,19 @@ namespace RingsideBooker.UI.Design
         {
             sortId = columnId;
             sortDescending = descending;
+            if (ExternalSort != null)
+            {
+                ExternalSort(columnId, descending);
+                return;
+            }
             Render();
+        }
+
+        /// <summary>Shows a sort in the header without sorting or raising <see cref="ExternalSort"/>.</summary>
+        public void ShowSort(string columnId, bool descending)
+        {
+            sortId = columnId;
+            sortDescending = descending;
         }
 
         public void SetColumnVisible(string columnId, bool show)
@@ -180,7 +203,7 @@ namespace RingsideBooker.UI.Design
 
             IEnumerable<T> ordered = rows;
             DsColumn<T> sortColumn = columns.FirstOrDefault(column => column.Id == sortId && column.SortKey != null);
-            if (sortColumn != null)
+            if (sortColumn != null && ExternalSort == null)
             {
                 ordered = sortDescending
                     ? rows.OrderByDescending(row => sortColumn.SortKey(row))

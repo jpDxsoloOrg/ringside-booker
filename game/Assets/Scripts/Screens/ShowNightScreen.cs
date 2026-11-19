@@ -4,32 +4,45 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using RingsideBooker.Engine;
 using RingsideBooker.UI;
+using RingsideBooker.UI.Design;
 using RingsideBooker.UI.Navigation;
 using RingsideBooker.UI.Widgets;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace RingsideBooker.Screens
 {
     /// <summary>
-    /// Show night, live (the web's ShowNightScreen): the running order, Run next segment
-    /// (<c>shows.runNextSegment</c>), Sim the rest (<c>shows.runRestOfShow</c>), Leave and finish later,
-    /// a report for each segment once it has run, and the show so far (<c>shows.liveState</c>,
-    /// <c>shows.results</c>). When the last segment is over it offers the results.
+    /// Show night with the broadcast feel of the approved mockup (10): a LIVE bar with the show so far
+    /// as a scoreboard (<c>shows.liveState</c>), the segment on now big in the middle as a matchup card
+    /// (the one just run, with its result, or the one up next), what happened in it in plain lines, one
+    /// clear call to action (Run the next segment, <c>shows.runNextSegment</c>) with Sim the rest
+    /// (<c>shows.runRestOfShow</c>) beside it, and the running order on the right. When the show is over
+    /// the call to action is See the results. Keys: Space runs the next segment, S sims the rest.
     /// </summary>
     public static class ShowNightScreen
     {
         public static VisualElement Build(ScreenContext context)
         {
             string eventId = context.Route.Param("event");
-            VisualElement screen = Kit.Screen(ScreenIds.ShowNight, "Show night");
-            VisualElement host = Ui.El("rb-show-night");
+            VisualElement screen = FightCardStyles.Apply(Ui.El("rb-screen", "fc-screen").Named($"screen-{ScreenIds.ShowNight}"));
+            VisualElement host = Ds.Column("fc-page").Named("show-night-host");
             screen.Add(host);
             if (eventId == null)
             {
-                host.Add(Kit.Note("No show was picked. Open one from Booking or the calendar."));
+                host.Add(Ds.Empty("live", "No show was picked", "Open a show from Booking or the calendar.", "Open Booking", () => context.Navigator.Go(ShellRoute.To("booking")), "booking"));
                 return screen;
             }
             var state = new State();
+            screen.focusable = true;
+            screen.RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (evt.target is TextField) return;
+                if (evt.keyCode == KeyCode.Space) state.RunNext?.Invoke();
+                else if (evt.keyCode == KeyCode.S) state.SimRest?.Invoke();
+                else return;
+                evt.StopPropagation();
+            });
             Kit.Live(host, () => Render(host, context, eventId, state));
             return screen;
         }
@@ -38,17 +51,22 @@ namespace RingsideBooker.Screens
         {
             public string Selected;
             public string Refusal;
+            public CardPeople People;
+            public System.Action RunNext;
+            public System.Action SimRest;
+            public bool Busy;
         }
 
         private static async Task Render(VisualElement host, ScreenContext context, string eventId, State state)
         {
             EngineClient client = Kit.Game.Client;
             var args = new JObject { ["eventInstanceId"] = eventId };
-            (QueryResult<JToken> liveAnswer, QueryResult<JToken> viewAnswer) = await client.Read("showNight",
-                reader => (reader.Query("shows.liveState", args), reader.Query("shows.results", args)));
-            host.Clear();
-            if (!liveAnswer.Ok || liveAnswer.Data == null || liveAnswer.Data.Type == JTokenType.Null || !viewAnswer.Ok || viewAnswer.Data == null)
+            (QueryResult<JToken> liveAnswer, QueryResult<JToken> viewAnswer, QueryResult<JToken> card, QueryResult<JToken> validation) = await client.Read("show-night",
+                reader => (reader.Query("shows.liveState", args), reader.Query("shows.results", args), reader.Query("booking.card", args), reader.Query("booking.validate", args)));
+            state.People ??= await CardPeople.LoadAsync();
+            if (!liveAnswer.Ok || liveAnswer.Data == null || liveAnswer.Data.Type == JTokenType.Null || !viewAnswer.Ok || viewAnswer.Data == null || viewAnswer.Data.Type == JTokenType.Null)
             {
+                host.Clear();
                 host.Add(Kit.Error(liveAnswer.Ok ? "That show can't be run from here. Only your own shows run on show night." : Kit.Reasons(liveAnswer.Reasons)));
                 return;
             }
@@ -64,177 +82,193 @@ namespace RingsideBooker.Screens
             bool? tonight = null;
             if (stage == "notStarted")
             {
-                (QueryResult<JToken> card, QueryResult<JToken> validation) = await client.Read("showNight.card",
-                    reader => (reader.Query("booking.card", args), reader.Query("booking.validate", args)));
                 if (card.Ok) tonight = Kit.Bool(card.Data, "runsTonight");
                 if (validation.Ok) problems = Kit.Arr(validation.Data, "errors").Count();
             }
 
-            // Header and score bug.
-            VisualElement header = Ui.El("card", "rb-showbar", "rb-broadcast").Named("show-night-header");
-            PromotionLogos.PrependShow(header, eventId, null, Kit.Str(view, "promotion.id") ?? Kit.Str(view, "promotionId"), "rb-logo--lg");
-            string kicker = finished ? "Show's over" : stage == "live" ? "Live" : "Tonight";
-            header.Add(Ui.El("rb-showbar__info").With(
-                Ui.El("rb-row", "rb-row--tight").With(Kit.Badge(kicker, stage == "live" ? "badge--action" : null)),
-                Ui.Text(TextFormat.Upper(Kit.Str(view, "name")), "rb-title"),
-                Kit.Note($"{Kit.Date(Kit.Str(view, "date"), true)} · {Kit.Str(view, "venue.name") ?? Kit.Str(view, "region.name")}")));
-            VisualElement bug = Ui.El("rb-row", "rb-scorebug").Named("show-score-bug");
-            JToken result = Kit.Obj(view, "result");
-            if (finished && result != null)
-            {
-                double score = Kit.Num(result, "score") ?? 0;
-                bug.Add(Kit.Stat("Final score", Kit.Whole(score), Kit.WhyRef("Show score", score, Kit.Obj(result, "scoreTraceRef"), "points"), "t-prestige"));
-                bug.Add(Kit.Stat("Stars", Kit.Stars(Kit.Num(result, "stars"))));
-            }
-            else
-            {
-                JToken soFar = Kit.Obj(live, "scoreSoFar");
-                double score = Kit.Num(soFar, "score") ?? 0;
-                bug.Add(Kit.Stat("Show so far", soFar == null ? "–" : Kit.Whole(score), soFar == null ? null : Kit.WhyTrace("Show score so far", score, Kit.Obj(soFar, "trace"), "points"), "t-prestige"));
-                bug.Add(Kit.Stat("Stars", soFar == null ? "–" : Kit.Stars(Kit.Num(soFar, "stars"))));
-            }
-            bug.Add(Kit.Stat("Segments", $"{(finished ? total : ran.Count)}/{total}"));
-            header.Add(bug);
-            host.Add(header);
+            JToken next = Kit.Obj(live, "next");
+            var ranById = ran.ToDictionary(segment => Kit.Str(segment, "segmentId"), segment => segment);
+            JToken shown = (state.Selected != null && ranById.TryGetValue(state.Selected, out JToken picked) ? picked : null)
+                ?? (finished ? segments.LastOrDefault() : ran.LastOrDefault());
+            int done = finished ? total : ran.Count;
 
-            // Controls.
+            host.Clear();
+            host.Add(LiveBar(view, live, eventId, stage, done, total, next));
+
+            // Controls (built first so the keys work).
             Label feedback = Kit.Feedback();
             if (state.Refusal != null)
             {
                 feedback.text = state.Refusal;
                 feedback.SetShown(true);
             }
-            JToken next = Kit.Obj(live, "next");
             bool stuck = stage == "live" && next == null;
             bool canRun = next != null && (stage == "live" || (stage == "notStarted" && tonight == true && problems == 0));
-            VisualElement controls = Ui.El("rb-row", "rb-controls").Named("show-night-controls");
-            if (!finished)
+
+            async void Run(string command)
             {
-                Button runNext = Ui.Btn("RUN NEXT SEGMENT", async () =>
+                if (state.Busy) return;
+                state.Busy = true;
+                try
                 {
-                    CommandResult<JToken> run = await client.Command("shows.runNextSegment", args);
+                    CommandResult<JToken> run = await client.Command(command, args);
                     state.Refusal = run.Ok ? null : Kit.Reasons(run.Reasons);
-                    state.Selected = run.Ok ? (string)run.Data?["segmentId"] : state.Selected;
+                    state.Selected = run.Ok && command == "shows.runNextSegment" ? (string)run.Data?["segmentId"] : null;
                     if (!run.Ok) await Render(host, context, eventId, state);
-                }, "btn--primary");
-                runNext.name = "show-run-next";
-                runNext.SetEnabled(canRun);
-                controls.Add(runNext);
-
-                Button simRest = Ui.Btn("SIM THE REST", async () =>
-                {
-                    CommandResult<JToken> run = await client.Command("shows.runRestOfShow", args);
-                    state.Refusal = run.Ok ? null : Kit.Reasons(run.Reasons);
-                    state.Selected = null;
-                    if (!run.Ok) await Render(host, context, eventId, state);
-                }, null);
-                simRest.name = "show-sim-rest";
-                simRest.SetEnabled(canRun);
-                controls.Add(simRest);
-
-                if (stuck)
-                {
-                    controls.Add(Ui.Btn("FINISH THE SHOW", async () =>
-                    {
-                        CommandResult<JToken> run = await client.Command("shows.finishShow", args);
-                        state.Refusal = run.Ok ? null : Kit.Reasons(run.Reasons);
-                    }, null));
                 }
-                if (stage == "live")
+                finally
                 {
-                    controls.Add(Ui.Btn("Leave and finish later", () => context.Navigator.Go(NavigationModel.HomeItemId), "btn--ghost").Named("show-leave"));
+                    state.Busy = false;
                 }
             }
-            else
-            {
-                Button results = Ui.Btn("SEE THE RESULTS", () => context.Navigator.Go(ShellRoute.With(ScreenIds.ShowResults, "event", eventId)), "btn--primary");
-                results.name = "show-see-results";
-                controls.Add(results);
-            }
-            host.Add(controls);
-            host.Add(feedback);
 
-            // Before the first segment: what keeps it from starting, if anything.
+            state.RunNext = canRun ? () => Run("shows.runNextSegment") : (System.Action)null;
+            state.SimRest = canRun ? () => Run("shows.runRestOfShow") : (System.Action)null;
+
+            VisualElement columns = Ds.Row("ds-row--top", "fc-columns");
+            VisualElement stageColumn = Ds.Column("fc-stage").Named("show-night-stage");
+            columns.Add(stageColumn);
+
+            // What keeps it from starting, if anything.
             if (stage == "notStarted")
             {
                 string blocker = total == 0 ? "Nothing is booked on this show yet. Book the card first, then come back to go live."
                     : tonight == false ? $"This show isn't on tonight. It's on {Kit.Date(Kit.Str(live, "date"), true)}."
-                    : problems > 0 ? $"Fix {problems} {(problems == 1 ? "problem" : "problems")} to run the show. The card has problems that keep it from starting."
+                    : problems > 0 ? $"Fix {problems} {(problems == 1 ? "problem" : "problems")} on the card to run the show."
                     : null;
                 if (blocker != null)
                 {
-                    host.Add(Kit.Error(blocker));
-                    host.Add(Ui.Btn("Open the card", () => context.Navigator.Go(ShellRoute.With("booking", "event", eventId)), "btn--link"));
-                }
-                else
-                {
-                    host.Add(Kit.Note($"The card has {total} {(total == 1 ? "segment" : "segments")}. Run them one at a time and read how each one went, or sim the whole show at once. The results are the same either way."));
+                    VisualElement row = Ds.Row("fc-note");
+                    row.Add(Ds.Pill(DsState.Warn, blocker));
+                    row.Add(Ds.Button("Open the card", () => context.Navigator.Go(ShellRoute.With("booking", "event", eventId)), DsButtonKind.Ghost, "booking"));
+                    stageColumn.Add(row);
                 }
             }
 
-            // Running order and the report.
-            VisualElement columns = Kit.Columns();
-            VisualElement order = Ui.El("rb-column");
-            VisualElement report = Ui.El("rb-column", "rb-column--wide");
-            columns.With(order, report);
+            JToken onStage = shown ?? next;
+            bool hasResult = shown != null;
+            VisualElement now = Ds.Row("fc-now");
+            var tag = new SkewShape { SkewLeft = false };
+            tag.AddToClassList("fc-now__tag");
+            tag.Add(Ds.Text(finished ? "FINAL" : hasResult ? "JUST IN" : "UP NEXT", "fc-now__tag-text"));
+            now.Add(tag);
+            if (onStage != null)
+            {
+                string kindText = Kit.Str(onStage, "kind") == "match" ? "match" : "segment";
+                now.Add(Ds.Text($"{Kit.Str(onStage, "roleLabel")} · {Kit.Str(onStage, "typeName")} · {CardWords.Length(Kit.Str(onStage, "durationClass"))} {kindText}", "fc-now__text"));
+            }
+            else now.Add(Ds.Text(stage == "notStarted" ? "The show hasn't started." : "Nothing left to run.", "fc-now__text"));
+            stageColumn.Add(now);
+            if (onStage != null)
+            {
+                VisualElement big = DsCards.MatchupCard(Matchups.FromResult(onStage, state.People, hasResult), big: true);
+                big.name = "show-now-card";
+                stageColumn.Add(big);
+                stageColumn.Add(Feed(onStage, hasResult));
+            }
+
+            VisualElement controls = Ds.Row("fc-controls").Named("show-night-controls");
+            if (!finished)
+            {
+                SkewButton runNext = Ds.Cta(next == null ? "Nothing to run" : ran.Count == 0 ? "Start the show" : "Run the next segment", () => state.RunNext?.Invoke(), "play");
+                runNext.name = "show-run-next";
+                runNext.AddToClassList("ds-cta--lg");
+                runNext.SetEnabled(canRun);
+                controls.Add(runNext);
+                Button simRest = Ds.Button("Sim the rest", () => state.SimRest?.Invoke(), DsButtonKind.Secondary, "fast-forward");
+                simRest.name = "show-sim-rest";
+                simRest.SetEnabled(canRun);
+                controls.Add(simRest);
+                if (stuck)
+                {
+                    Button finish = Ds.Button("Finish the show", async () =>
+                    {
+                        CommandResult<JToken> run = await client.Command("shows.finishShow", args);
+                        state.Refusal = run.Ok ? null : Kit.Reasons(run.Reasons);
+                    }, DsButtonKind.Secondary, "stop");
+                    finish.name = "show-finish";
+                    controls.Add(finish);
+                }
+                if (stage == "live")
+                {
+                    Button leave = Ds.Button("Leave and finish later", () => context.Navigator.Go(NavigationModel.HomeItemId), DsButtonKind.Ghost, "pause");
+                    leave.name = "show-leave";
+                    controls.Add(leave);
+                }
+                controls.Add(Ds.Spacer());
+                if (canRun) controls.Add(Ds.Text("Space: run · S: sim the rest", "ds-type-caption"));
+            }
+            else
+            {
+                SkewButton results = Ds.Cta("See the results", () => context.Navigator.Go(ShellRoute.With(ScreenIds.ShowResults, "event", eventId)), "chevron-right");
+                results.name = "show-see-results";
+                results.AddToClassList("ds-cta--lg");
+                controls.Add(results);
+            }
+            stageColumn.Add(controls);
+            stageColumn.Add(feedback);
+            if (stage == "notStarted" && canRun)
+            {
+                stageColumn.Add(Ds.Text($"The card has {total} {(total == 1 ? "segment" : "segments")}. Run them one at a time and see how each one went, or sim the whole show at once. The results are the same either way.", "fc-hint"));
+            }
+
+            columns.Add(RunningOrder(segments, ranById, finished, Kit.Str(next, "segmentId"), shown, done, total, id =>
+            {
+                state.Selected = id;
+                _ = Render(host, context, eventId, state);
+            }));
             host.Add(columns);
-
-            var ranIds = new HashSet<string>(ran.Select(segment => Kit.Str(segment, "segmentId")));
-            string nextId = Kit.Str(next, "segmentId");
-            JToken shown = ran.FirstOrDefault(segment => Kit.Str(segment, "segmentId") == state.Selected) ?? ran.LastOrDefault();
-            if (finished && shown == null) shown = segments.LastOrDefault();
-
-            Kit.Panel(order, "Running order", out VisualElement orderBody).Named("show-running-order");
-            orderBody.Add(Kit.Note($"{(finished ? total : ran.Count)} of {total} run"));
-            foreach (JToken segment in segments)
-            {
-                string id = Kit.Str(segment, "segmentId");
-                bool done = finished || ranIds.Contains(id);
-                string mark = done ? "✓" : id == nextId ? "▶" : "·";
-                Button row = Ui.Button(string.Empty, () =>
-                {
-                    if (!done) return;
-                    state.Selected = id;
-                    _ = Render(host, context, eventId, state);
-                }, "rb-order-row");
-                row.EnableInClassList("rb-order-row--next", id == nextId);
-                row.EnableInClassList("rb-order-row--shown", shown != null && Kit.Str(shown, "segmentId") == id);
-                row.Add(Ui.Text(mark, "rb-order-row__mark"));
-                row.Add(Ui.El("rb-cell-stack").With(
-                    Ui.Text($"{Kit.Num(segment, "slotNumber")}. {Kit.Str(segment, "roleLabel")} · {Kit.Str(segment, "typeName")}", "t-xs", "t-muted"),
-                    Ui.Text(SegmentTitle(segment), "t-sm", "t-wrap")));
-                JToken rating = Kit.Obj(ran.FirstOrDefault(entry => Kit.Str(entry, "segmentId") == id) ?? (finished ? segment : null), "rating");
-                if (rating != null) row.Add(Ui.Text(Kit.Stars(Kit.Num(rating, "stars")), "t-sm", "t-prestige"));
-                orderBody.Add(row);
-            }
-
-            if (shown != null) report.Add(SegmentReport.Build(shown, "show-segment-report"));
-            else if (next != null)
-            {
-                Kit.Panel(report, "Up next", out VisualElement upNext);
-                upNext.Add(Ui.Text(SegmentTitle(next), "rb-title"));
-                upNext.Add(Kit.Note($"{Kit.Str(next, "roleLabel")} · {Kit.Str(next, "typeName")} · {Kit.Str(next, "durationLabel")}"));
-            }
         }
 
-        public static string SegmentTitle(JToken segment)
+        private static VisualElement LiveBar(JToken view, JToken live, string eventId, string stage, int done, int total, JToken next)
         {
-            if (Kit.Str(segment, "label") is string label) return label;
-            bool match = Kit.Str(segment, "kind") == "match";
-            string sides = string.Join(match ? " vs " : " & ", Kit.Arr(segment, "sides").Select(side => Kit.Str(side, "label")));
-            return !match && Kit.Str(segment, "talkLine") is string talk ? talk : sides;
+            VisualElement bar = Ds.Row("fc-live-bar").Named("show-night-header");
+            bool onAir = stage == "live";
+            VisualElement pill = Ds.Pill(onAir ? DsState.Live : stage == "finished" ? DsState.Neutral : DsState.Info, onAir ? "LIVE" : stage == "finished" ? "OFF AIR" : "TONIGHT", onAir ? "live" : "tv", solid: onAir);
+            pill.AddToClassList("fc-live-pill");
+            bar.Add(pill);
+            PromotionLogos.PrependShow(bar, eventId, null, Kit.Str(view, "promotion.id"), "rb-logo--md");
+            // PrependShow puts the logo first; keep the LIVE pill in front of it.
+            pill.SendToBack();
+            VisualElement title = Ds.Column("fc-live-bar__title");
+            title.Add(Ds.Text(TextFormat.Upper(Kit.Str(view, "name")), "fc-live-bar__name"));
+            string where = Kit.Str(view, "venue.name") ?? Kit.Str(view, "region.name");
+            title.Add(Ds.Text(string.Join(" · ", new[] { where, Kit.Date(Kit.Str(view, "date"), true), Kit.Str(view, "brand.name") }.Where(text => !string.IsNullOrEmpty(text))), "ds-type-caption"));
+            bar.Add(title);
+            bar.Add(Ds.Spacer());
+
+            JToken soFar = Kit.Obj(live, "scoreSoFar");
+            JToken result = Kit.Obj(view, "result");
+            double? stars = stage == "finished" && result != null ? Kit.Num(result, "stars") : Kit.Num(soFar, "stars");
+            double? score = stage == "finished" && result != null ? Kit.Num(result, "score") : Kit.Num(soFar, "score");
+            string segmentLabel = stage == "finished" ? "All done" : next != null ? Kit.Str(next, "roleLabel") + " next" : "—";
+            VisualElement board = DsCards.Scoreboard(new[]
+            {
+                ("Segment", $"{done} / {total}", segmentLabel, DsState.Neutral),
+                (stage == "finished" ? "Show" : "Show so far", stars == null ? "–" : Kit.Stars(stars), stars == null ? "Nothing run yet" : CardWords.StarsWord(stars.Value) + (stage == "finished" ? " show" : " so far"), DsState.Gold),
+                ("Score", score == null ? "–" : Kit.Whole(score), stage == "finished" ? "Final" : "Running total", DsState.Good),
+            }, "live");
+            board.AddToClassList("fc-board");
+            board.name = "show-score-bug";
+            VisualElement scoreCell = board.Children().LastOrDefault();
+            if (scoreCell != null)
+            {
+                if (stage == "finished" && result != null) scoreCell.AddOpt(Kit.WhyRef("Show score", score ?? 0, Kit.Obj(result, "scoreTraceRef"), "points"));
+                else scoreCell.AddOpt(Kit.WhyTrace("Show score so far", score ?? 0, Kit.Obj(soFar, "trace"), "points"));
+            }
+            bar.Add(board);
+            return bar;
         }
-    }
 
-    /// <summary>One segment's report (the web's SegmentReport): result, rating with Why?s, why it rated so, title changes.</summary>
-    public static class SegmentReport
-    {
-        public static VisualElement Build(JToken segment, string name = null)
+        /// <summary>What happened in the segment, in plain lines: the result, title news, then the reasons for its rating.</summary>
+        private static VisualElement Feed(JToken segment, bool hasResult)
         {
-            VisualElement panel = Kit.Panel(null, $"{Kit.Str(segment, "roleLabel")} · {Kit.Str(segment, "typeName")}", out VisualElement body, "rb-report");
-            if (name != null) panel.name = name;
-            body.Add(Ui.Text(ShowNightScreen.SegmentTitle(segment), "rb-title", "t-wrap"));
-
+            VisualElement feed = Ds.Panel(hasResult ? "How it went" : "Before the bell", null, null, "fc-feed").Named("show-segment-report");
+            if (!hasResult)
+            {
+                feed.Add(Ds.Text("Run it to see how it goes. The crowd, the work and the finish are decided on the night.", "fc-hint"));
+                return feed;
+            }
             JToken outcome = Kit.Obj(segment, "outcome");
             if (outcome != null)
             {
@@ -247,47 +281,95 @@ namespace RingsideBooker.Screens
                     text = $"{winner} won by {Kit.Str(outcome, "methodName")?.ToLowerInvariant()}";
                     if (Kit.Str(outcome, "finishName") is string finish) text += $" ({finish})";
                 }
-                else text = kind == "draw" ? "A draw" : "No contest";
-                body.Add(Ui.El("rb-row", "rb-row--tight").With(
-                    Ui.Text(text, "t-ui-semibold", "t-wrap"),
-                    Kit.WhyRef("Result", 0, Kit.Obj(outcome, "resultTraceRef"), null, "Why this result")));
+                else text = kind == "draw" ? "It ended in a draw" : "No contest";
+                VisualElement line = Line("RESULT", text, true, null);
+                line.AddOpt(Kit.WhyRef("Result", 0, Kit.Obj(outcome, "resultTraceRef"), null, "Why this result"));
+                feed.Add(line);
             }
-
             foreach (JToken title in Kit.Arr(segment, "titles"))
             {
                 string titleOutcome = Kit.Str(title, "outcome");
                 if (titleOutcome == "none") continue;
-                string line = titleOutcome == "changed"
-                    ? $"New {Kit.Str(title, "name")}: {string.Join(" & ", Kit.Arr(title, "newHolderNames").Select(holder => (string)holder))}"
-                    : $"{Kit.Str(title, "name")} {titleOutcome}";
-                body.Add(Ui.El("rb-row", "rb-row--tight").With(
-                    Ui.Text(line, "t-sm", titleOutcome == "changed" ? "t-prestige" : "t-muted", "t-wrap"),
-                    Kit.WhyRef(Kit.Str(title, "name"), 0, Kit.Obj(title, "outcomeTraceRef"), null, "Title outcome")));
+                string text = titleOutcome == "newChampion"
+                    ? $"And new {CardWords.Champion(Kit.Str(title, "name"))}: {string.Join(" & ", Kit.Arr(title, "newHolderNames").Select(holder => (string)holder))}"
+                    : titleOutcome == "retained" ? $"{Kit.Str(title, "name")} retained" : $"{Kit.Str(title, "name")} is still vacant";
+                VisualElement line = Line("TITLE", text, titleOutcome == "newChampion", "good");
+                line.AddOpt(Kit.WhyRef(Kit.Str(title, "name"), 0, Kit.Obj(title, "outcomeTraceRef"), null, "Title outcome"));
+                feed.Add(line);
             }
-
             JToken rating = Kit.Obj(segment, "rating");
             if (rating != null)
             {
                 double score = Kit.Num(rating, "score") ?? 0;
-                body.Add(Kit.Row(
-                    Kit.Stat("Score", Kit.Whole(score), Kit.WhyRef("Segment score", score, Kit.Obj(rating, "traceRef"), "points"), "t-prestige"),
-                    Kit.Stat("Stars", Kit.Stars(Kit.Num(rating, "stars"))),
-                    Kit.Stat("Work rate", Kit.Whole(Kit.Num(rating, "workRate"))),
-                    Kit.Stat("Crowd", Kit.Whole(Kit.Num(rating, "crowd"))),
-                    Kit.Stat("Expected", Kit.Whole(Kit.Num(rating, "expectation")))));
-                foreach (JToken reason in Kit.Arr(rating, "reasons"))
+                VisualElement line = Line("RATING", $"{Kit.Stars(Kit.Num(rating, "stars"))} · {CardWords.StarsWord(Kit.Num(rating, "stars") ?? 0)} (score {Kit.Whole(score)})", false, null);
+                line.AddOpt(Kit.WhyRef("Segment score", score, Kit.Obj(rating, "traceRef"), "points"));
+                feed.Add(line);
+                foreach (JToken reason in Kit.Arr(rating, "reasons").Take(6))
                 {
                     double effect = Kit.Num(reason, "effect") ?? 0;
-                    body.Add(Ui.Text($"{(effect >= 0 ? "+" : TextFormat.Minus)}{System.Math.Abs(effect):0.0}  {Kit.Str(reason, "label")}", "t-sm", effect >= 0 ? "t-positive" : "t-negative"));
+                    feed.Add(Line(effect >= 0 ? "+" : TextFormat.Minus, Kit.Str(reason, "label"), false, effect >= 0 ? "good" : "bad"));
                 }
             }
-            else body.Add(Kit.Note("Not run yet."));
-
             if (Kit.Arr(segment, "storylines").Any())
             {
-                body.Add(Ui.Text("Storylines: " + string.Join(", ", Kit.Arr(segment, "storylines").Select(story => Kit.Str(story, "name") ?? Kit.Str(story, "storylineId"))), "t-xs", "t-muted", "t-wrap"));
+                feed.Add(Line("STORY", "Moved on: " + string.Join(", ", Kit.Arr(segment, "storylines").Select(story => Kit.Str(story, "name"))), false, null));
             }
-            return panel;
+            return feed;
+        }
+
+        private static VisualElement Line(string mark, string text, bool big, string tone)
+        {
+            VisualElement row = Ds.Row("fc-feed__line");
+            if (big) row.AddToClassList("fc-feed__line--big");
+            Label markLabel = Ds.Text(mark, "fc-feed__mark");
+            if (tone != null) markLabel.AddToClassList($"fc-feed__mark--{tone}");
+            row.Add(markLabel);
+            row.Add(Ds.Text(text, "fc-feed__text"));
+            return row;
+        }
+
+        private static VisualElement RunningOrder(List<JToken> segments, Dictionary<string, JToken> ranById, bool finished, string nextId, JToken shown,
+            int done, int total, System.Action<string> onPick)
+        {
+            VisualElement order = Ds.Panel("Running order", null, null, "fc-order").Named("show-running-order");
+            order.Add(Ds.Text($"{done} of {total} run", "fc-hint"));
+            foreach (JToken segment in segments)
+            {
+                string id = Kit.Str(segment, "segmentId");
+                JToken ranEntry = ranById.TryGetValue(id, out JToken found) ? found : finished ? segment : null;
+                bool isNext = id == nextId;
+                var row = new Button(() =>
+                {
+                    if (ranEntry != null) onPick(id);
+                }) { text = string.Empty, name = $"order-{id}" };
+                row.AddToClassList("fc-order__row");
+                row.EnableInClassList("fc-order__row--done", ranEntry != null);
+                row.EnableInClassList("fc-order__row--now", isNext);
+                row.EnableInClassList("fc-order__row--shown", shown != null && Kit.Str(shown, "segmentId") == id && !isNext);
+                row.Add(Ds.Text(Kit.Bool(segment, "preShow") ? "PRE" : Kit.Num(segment, "slotNumber")?.ToString() ?? string.Empty, "fc-order__number"));
+                VisualElement words = Ds.Column("fc-order__words");
+                words.Add(Ds.Text(SegmentTitle(segment, shortNames: true), "fc-order__name"));
+                string title = Kit.Str(Kit.Arr(segment, "titles").FirstOrDefault(), "name");
+                words.Add(Ds.Text(title != null ? CardWords.Title(title) : Kit.Str(segment, "roleLabel"), title != null ? "fc-order__title" : "fc-order__slot"));
+                row.Add(words);
+                row.Add(Ds.Spacer());
+                JToken rating = Kit.Obj(ranEntry, "rating");
+                if (rating != null) row.Add(new Stars((float)(Kit.Num(rating, "stars") ?? 0), "ds-icon--xs"));
+                else if (isNext) row.Add(Ds.Pill(DsState.Live, "Next", "live"));
+                else row.Add(Ds.Text(CardWords.Length(Kit.Str(segment, "durationClass")), "fc-order__meta"));
+                order.Add(row);
+            }
+            return order;
+        }
+
+        public static string SegmentTitle(JToken segment, bool shortNames = false)
+        {
+            if (Kit.Str(segment, "label") is string label) return label;
+            bool match = Kit.Str(segment, "kind") == "match";
+            IEnumerable<string> sides = Kit.Arr(segment, "sides").Select(side => Kit.Str(side, "label"));
+            if (shortNames) sides = sides.Select(CardWords.Short);
+            string joined = string.Join(match ? " vs " : " & ", sides);
+            return !match && Kit.Str(segment, "talkLine") is string talk ? talk : joined;
         }
     }
 }
