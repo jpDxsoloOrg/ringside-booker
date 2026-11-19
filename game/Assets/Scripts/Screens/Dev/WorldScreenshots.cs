@@ -184,6 +184,7 @@ namespace RingsideBooker.Screens.Dev
             EngineClient client = game.Client;
             int left = total;
             int guard = 0;
+            int stuck = 0;
             while (left > 0 && guard++ < 200)
             {
                 Engine.AdvanceReport report = await client.AdvanceDays(AdvanceOptions.Days(left));
@@ -193,6 +194,13 @@ namespace RingsideBooker.Screens.Dev
                     return;
                 }
                 left -= report.DaysAdvanced;
+                stuck = report.DaysAdvanced == 0 ? stuck + 1 : 0;
+                if (stuck > 3)
+                {
+                    Debug.LogWarning("[WorldScreenshots] the same stop keeps coming back; playing on stops here");
+                    break;
+                }
+                Debug.Log($"[WorldScreenshots] advanced {report.DaysAdvanced} to {report.EndDate}: {report.StoppedBy?.Kind} {string.Join(",", report.GateHits.Select(h => h.GateId))}");
                 foreach (Engine.GateHit hit in report.GateHits)
                 {
                     string subject = hit.Subject?.Id;
@@ -215,7 +223,7 @@ namespace RingsideBooker.Screens.Dev
                             break;
                         case "health.ownWorkerInjured":
                             QueryResult<JToken> health = await client.Query("health.report", new JObject { ["promotionId"] = game.PromotionId });
-                            await client.Command("health.acknowledgeInjuries", new JObject { ["injuryIds"] = new JArray(Kit.Arr(health.Data, "waitingForViewer")) });
+                            await RosterScreen.Acknowledge(health.Data);
                             break;
                         default:
                             Debug.LogWarning($"[WorldScreenshots] stop {hit.GateId} not handled; playing on stops here");

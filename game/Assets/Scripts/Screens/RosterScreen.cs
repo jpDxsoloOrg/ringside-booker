@@ -600,7 +600,7 @@ namespace RingsideBooker.Screens
         }
 
         /// <summary>Opening the tab marks every injury the player has not seen as seen (the web's useAcknowledgeOnView).</summary>
-        private static async Task Acknowledge(JToken report)
+        public static async Task Acknowledge(JToken report)
         {
             EngineGame game = Kit.Game;
             if (game.Client.IsAdvancing) return;
