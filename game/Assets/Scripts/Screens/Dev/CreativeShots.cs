@@ -304,7 +304,13 @@ namespace RingsideBooker.Screens.Dev
                 GateHit lead = DayControlLogic.LeadingGate(gates);
                 if (lead.GateId == EngineGateActions.ShowsTonight) await SkipCheck.ShowNight(game, lead);
                 else if (lead.GateId.StartsWith("contracts.", StringComparison.Ordinal)) await SkipCheck.ClearOnContracts(lead);
-                else await SkipCheck.ClearStop(lead);
+                else
+                {
+                    // A stop with an action of its own (injuries, news) is cleared with it; else the day button.
+                    GateAction action = day.ActionsFor(lead).FirstOrDefault(entry => entry.Primary) ?? day.ActionsFor(lead).FirstOrDefault();
+                    if (action != null) Log($"{lead.GateId}: {await action.Run() ?? "cleared"}");
+                    else await SkipCheck.ClearStop(lead);
+                }
             }
             ShellController.Current.Overlay.CloseAll();
         }
