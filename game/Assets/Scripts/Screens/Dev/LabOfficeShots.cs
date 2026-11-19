@@ -112,6 +112,10 @@ namespace RingsideBooker.Screens.Dev
             Click(Q<Button>(button => button.name == "lab-more"));
             yield return ScrollTo("lab-setup-panel");
             yield return Capture("lab-more-options");
+            Click(Q<Button>(button => button.name == "lab-region"));
+            yield return Wait(0.8f);
+            yield return Capture("lab-region-picker");
+            ShellController.Current.Overlay.CloseAll();
 
 
             state.Kind = "angle";

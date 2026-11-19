@@ -24,6 +24,7 @@ namespace RingsideBooker.Screens.MatchLab
             string scope = "mine";
             string search = string.Empty;
             VisualElement body = Ds.Column("lab-picker");
+            ScreenDs.Style(body, "Screens/MatchLab");
             VisualElement list = Ds.Column("lab-picker__list").Named("lab-picker-list");
             Label count = Ds.Text(string.Empty, "lab-picker__count");
             OverlayHandle handle = null;

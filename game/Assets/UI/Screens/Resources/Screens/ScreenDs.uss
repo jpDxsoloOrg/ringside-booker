@@ -56,7 +56,8 @@
     max-height: 380px;
 }
 
-.rb-ds-picker-list__row {
+.unity-button.rb-ds-picker-list__row {
+    flex-direction: column;
     flex-shrink: 0;
     margin: 0;
     padding: 6px 10px;
@@ -67,7 +68,7 @@
     -unity-text-align: middle-left;
 }
 
-.rb-ds-picker-list__row:hover {
+.unity-button.rb-ds-picker-list__row:hover {
     background-color: var(--ds-elev-4);
 }
 

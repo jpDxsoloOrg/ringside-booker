@@ -101,6 +101,8 @@ namespace RingsideBooker.Screens
         private static void OpenPicker(VisualElement anchor, IReadOnlyList<(string value, string label, string detail)> options, Action<string> onPick, bool searchable)
         {
             VisualElement content = Ds.Column("rb-ds-picker-list");
+            var shared = Resources.Load<StyleSheet>("Screens/ScreenDs");
+            if (shared != null) content.styleSheets.Add(shared);
             OverlayHandle handle = null;
             var scroll = new ScrollView(ScrollViewMode.Vertical) { horizontalScrollerVisibility = ScrollerVisibility.Hidden };
             scroll.AddToClassList("rb-ds-picker-list__scroll");

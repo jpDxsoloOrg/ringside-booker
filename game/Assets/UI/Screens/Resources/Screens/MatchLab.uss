@@ -468,7 +468,7 @@
     margin-bottom: 6px;
 }
 
-.lab-picker__row {
+.unity-button.lab-picker__row {
     flex-direction: row;
     flex-shrink: 0;
     height: 44px;
@@ -483,7 +483,7 @@
     -unity-text-align: middle-left;
 }
 
-.lab-picker__row:hover {
+.unity-button.lab-picker__row:hover {
     background-color: var(--ds-elev-3);
 }
 
