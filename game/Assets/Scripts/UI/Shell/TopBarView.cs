@@ -1,78 +1,80 @@
+using System;
+using System.Globalization;
 using RingsideBooker.UI.Bridge;
+using RingsideBooker.UI.Design;
 using RingsideBooker.UI.Navigation;
-using RingsideBooker.UI.Widgets;
 using UnityEngine.UIElements;
 
 namespace RingsideBooker.UI.Shell
 {
     /// <summary>
-    /// The bar above the content: "Section › Page" at the start; the status chips (date and season,
-    /// cash, popularity) and the day control at the end; a red-orange stripe along its bottom edge.
+    /// The top bar over the redesigned <see cref="AppShell"/> (UNITY-11): "Section › Page" at the
+    /// start; the scoreboard (date and season, cash, popularity), the bell and the day control at
+    /// the end; a red-orange stripe along its bottom edge.
     /// </summary>
     public sealed class TopBarView
     {
-        /// <summary>The cash chip's element name: a Why? panel (UNITY-08) can attach to it; its userData is the cash trace ref.</summary>
+        /// <summary>The cash cell's element name: its userData is the cash trace ref (a Why? hook).</summary>
         public const string CashChipName = "cash-chip";
 
         /// <summary>
-        /// Called after the cash chip is drawn, to add to it (the engine bridge adds the cash Why?
-        /// button, UNITY-09). Null draws the chip alone.
+        /// Called after the cash cell is drawn, to add to it (the engine bridge adds the cash Why?
+        /// button, UNITY-09). Null draws the cell alone.
         /// </summary>
-        public static System.Action<VisualElement, ShellSnapshot> CashChipDecorator { get; set; }
+        public static Action<VisualElement, ShellSnapshot> CashChipDecorator { get; set; }
 
-        private readonly Label crumbSection;
-        private readonly Label crumbSeparator;
-        private readonly Label crumbPage;
-        private readonly VisualElement chips;
+        private readonly AppShell shell;
 
-        public TopBarView(VisualElement root)
-        {
-            crumbSection = root.Q<Label>("crumb-section");
-            crumbSeparator = root.Q<Label>("crumb-separator");
-            crumbPage = root.Q<Label>("crumb-page");
-            chips = root.Q<VisualElement>("status-chips");
-            root.Q<VisualElement>("top-bar-stripe").Add(GradientStripe.Flame());
-        }
+        public TopBarView(AppShell shell) => this.shell = shell;
 
         /// <summary>"Section › Page" for a sidebar screen; just the page for any other.</summary>
         public void SetLocation(ShellRoute route)
         {
             (NavSection section, NavItem item) = NavigationModel.Find(route.ScreenId);
             bool inSection = section != null && item != null;
-            crumbSection.SetShown(inSection);
-            crumbSeparator.SetShown(inSection);
-            crumbSection.text = inSection ? TextFormat.Upper(section.Label) : string.Empty;
-            crumbPage.text = TextFormat.Upper(NavigationModel.ScreenLabel(route.ScreenId));
+            shell.SetCrumbs(inSection ? section.Label : null, NavigationModel.ScreenLabel(route.ScreenId));
         }
 
         public void Render(ShellSnapshot snapshot)
         {
-            chips.Clear();
-            chips.Add(Chip("date-chip", "Date", snapshot.Date.Short, snapshot.SeasonLabel, "status-chip--date"));
-            chips[0].tooltip = snapshot.Date.Long;
-            if (!snapshot.HasPromotion) return;
-
-            VisualElement cash = Chip(CashChipName, "Cash", TextFormat.Money(snapshot.CashCents), null, null);
-            cash.userData = snapshot.CashTraceRef;
-            if (snapshot.CashCents < 0) cash.Q<Label>(className: "status-chip__value").AddToClassList("status-chip__value--negative");
-            chips.Add(cash);
-            CashChipDecorator?.Invoke(cash, snapshot);
-
-            if (snapshot.Popularity.HasValue)
+            bool promotion = snapshot.HasPromotion;
+            shell.SetScore(new ShellScore
             {
-                string prestige = snapshot.Prestige.HasValue ? $"Prestige {TextFormat.Number(snapshot.Prestige.Value)}" : null;
-                chips.Add(Chip("popularity-chip", "Popularity", TextFormat.Number(snapshot.Popularity.Value), prestige, null));
+                Date = snapshot.Date.DayMonthYear,
+                Season = snapshot.SeasonLabel,
+                Cash = promotion ? CompactMoney(snapshot.CashCents) : null,
+                CashWords = promotion && snapshot.CashCents < 0 ? "In debt" : null,
+                CashState = promotion && snapshot.CashCents < 0 ? DsState.Bad : DsState.Neutral,
+                Popularity = promotion && snapshot.Popularity.HasValue ? TextFormat.Number(snapshot.Popularity.Value) : null,
+                PopularityWords = snapshot.Popularity.HasValue ? PopularityWord(snapshot.Popularity.Value) : null,
+            });
+            VisualElement date = shell.ScoreCell("date");
+            if (date != null) date.tooltip = snapshot.Date.Long;
+
+            VisualElement cash = shell.ScoreCell("cash");
+            if (cash != null)
+            {
+                cash.name = CashChipName;
+                cash.userData = snapshot.CashTraceRef;
+                cash.tooltip = TextFormat.Money(snapshot.CashCents);
+                CashChipDecorator?.Invoke(cash, snapshot);
             }
+            VisualElement popularity = shell.ScoreCell("popularity");
+            if (popularity != null && snapshot.Prestige.HasValue) popularity.tooltip = $"Prestige {TextFormat.Number(snapshot.Prestige.Value)}";
         }
 
-        private static VisualElement Chip(string name, string label, string value, string secondary, string modifier)
+        /// <summary>Cents as a short amount for the scoreboard: $40.62M, $125K, $900 (the tooltip has the exact figure).</summary>
+        public static string CompactMoney(long cents)
         {
-            VisualElement chip = Ui.El("status-chip").Named(name);
-            if (modifier != null) chip.AddToClassList(modifier);
-            chip.Add(Ui.Text(TextFormat.Upper(label), "status-chip__label"));
-            chip.Add(Ui.Text(TextFormat.Upper(value), "status-chip__value"));
-            if (!string.IsNullOrEmpty(secondary)) chip.Add(Ui.Text(secondary, "status-chip__secondary"));
-            return chip;
+            double dollars = Math.Abs(cents) / 100.0;
+            string body = dollars >= 1_000_000 ? "$" + (dollars / 1_000_000).ToString("0.00", CultureInfo.InvariantCulture) + "M"
+                : dollars >= 10_000 ? "$" + (dollars / 1_000).ToString("0", CultureInfo.InvariantCulture) + "K"
+                : "$" + dollars.ToString("N0", CultureInfo.InvariantCulture);
+            return cents < 0 && dollars >= 0.5 ? TextFormat.Minus + body : body;
         }
+
+        /// <summary>Plain words for home-region popularity (words before numbers).</summary>
+        public static string PopularityWord(int popularity) =>
+            popularity >= 70 ? "Huge at home" : popularity >= 55 ? "Big at home" : popularity >= 40 ? "Known at home" : popularity >= 25 ? "Small following" : "Unknown";
     }
 }

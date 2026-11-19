@@ -1,48 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <!--
-        The in-game frame. ShellController fills the named parts from IShellData / IDayControl:
-        sidebar-nav and sidebar-footer (NavigationModel), status-chips, day-control,
-        advance-summary-slot and screen-host. Sheets, dialogs and panels open into overlay-layer.
+        The in-game frame. Since UNITY-11 phase 2 the frame is the design system's AppShell
+        (Assets/UI/Design/Resources/Design/AppShell.uxml), which ShellController clones into this
+        document's root; this file stays as the Game scene's (empty) tree asset.
     -->
-    <ui:VisualElement name="shell" class="shell">
-        <ui:VisualElement name="sidebar" class="sidebar">
-            <ui:Button name="brand" class="brand" tooltip="Dashboard">
-                <ui:Label text="RINGSIDE" class="brand__word" />
-                <ui:Label text="BOOKER" class="brand__word brand__accent" />
-            </ui:Button>
-            <ui:VisualElement name="promotion-block" class="promotion-block">
-                <ui:Label name="promotion-crest" class="promotion-crest" />
-                <ui:VisualElement class="promotion-text">
-                    <ui:Label name="promotion-name" class="promotion-name" />
-                    <ui:VisualElement class="promotion-tagline-row">
-                        <ui:Label name="promotion-tagline" class="promotion-tagline" />
-                        <ui:Label name="promotion-sample" text="SAMPLE" class="badge" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
-            </ui:VisualElement>
-            <ui:ScrollView name="sidebar-nav" class="sidebar-nav" horizontal-scroller-visibility="Hidden" />
-            <ui:VisualElement name="sidebar-footer" class="sidebar-footer" />
-        </ui:VisualElement>
-        <ui:VisualElement name="main-column" class="main-column">
-            <ui:VisualElement name="top-bar" class="top-bar">
-                <ui:VisualElement name="top-bar-start" class="top-bar__start">
-                    <ui:Label name="crumb-section" class="page-title crumb-section" />
-                    <ui:Label name="crumb-separator" text="›" class="page-title crumb-separator" />
-                    <ui:Label name="crumb-page" class="page-title" />
-                </ui:VisualElement>
-                <ui:VisualElement name="top-bar-end" class="top-bar__end">
-                    <ui:VisualElement name="status-chips" class="status-chips" />
-                    <ui:VisualElement name="day-control" class="day-control" />
-                </ui:VisualElement>
-            </ui:VisualElement>
-            <ui:VisualElement name="top-bar-stripe" class="top-bar-stripe" />
-            <ui:ScrollView name="main-scroll" class="main-scroll" horizontal-scroller-visibility="Hidden">
-                <ui:VisualElement name="content" class="content">
-                    <ui:VisualElement name="advance-summary-slot" />
-                    <ui:VisualElement name="screen-host" class="screen-host" />
-                </ui:VisualElement>
-            </ui:ScrollView>
-        </ui:VisualElement>
-    </ui:VisualElement>
-    <ui:VisualElement name="overlay-layer" class="overlay-layer" picking-mode="Ignore" />
 </ui:UXML>
