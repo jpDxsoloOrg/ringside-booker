@@ -26,13 +26,18 @@ namespace RingsideBooker.Screens.Dev
     /// rest) or auto (Run the show); every other stop by pressing the day button and, when it opens
     /// "Needs attention", that sheet's main button. Logs each stop (<c>[SkipCheck]</c> lines) and a
     /// summary, then quits: exit 0 when the days all passed, 1 when a stop could not be cleared.
+    /// <c>-rbSkipCheckShots &lt;folder&gt;</c> also saves the first three "Needs attention" sheets as PNGs.
     /// </summary>
     public sealed class SkipCheck : MonoBehaviour
     {
         public const string Argument = "-rbSkipCheck";
         private const int MaxSteps = 400;
 
+        public const string ShotsArgument = "-rbSkipCheckShots";
+
         private int days = 90;
+        private static string shots;
+        private static int shotCount;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void StartIfAsked()
@@ -46,6 +51,8 @@ namespace RingsideBooker.Screens.Dev
                 DontDestroyOnLoad(host);
                 SkipCheck check = host.AddComponent<SkipCheck>();
                 if (i + 1 < args.Length && int.TryParse(args[i + 1], out int asked) && asked > 0) check.days = asked;
+                int shotsAt = Array.FindIndex(args, arg => string.Equals(arg, ShotsArgument, StringComparison.OrdinalIgnoreCase));
+                if (shotsAt >= 0 && shotsAt + 1 < args.Length) shots = args[shotsAt + 1];
                 return;
             }
         }
@@ -201,6 +208,13 @@ namespace RingsideBooker.Screens.Dev
                 return;
             }
             Debug.Log($"[SkipCheck] {lead.GateId}: \"{lead.Reason}\" → Needs attention › {button.text}");
+            if (shots != null && shotCount < 3)
+            {
+                System.IO.Directory.CreateDirectory(shots);
+                shotCount++;
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(shots, $"needs-attention-{shotCount}-{lead.GateId}-{Screen.width}x{Screen.height}.png"));
+                await Task.Delay(500);
+            }
             using (NavigationSubmitEvent submit = NavigationSubmitEvent.GetPooled())
             {
                 submit.target = button;
