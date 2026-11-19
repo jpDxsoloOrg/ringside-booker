@@ -14,6 +14,9 @@ apps/web/e2e/fixtures/sample-contracts.rbsave
 # Built by apps/web/e2e/fixtures/build-news-save.ts before every e2e run (DAY1-05).
 apps/web/e2e/fixtures/sample-news.rbsave
 test-results/
+# The embedded engine bundle for the Unity game, built by `npm run build:engine-bundle` (UNITY-02).
+game/Assets/StreamingAssets/engine/
+game/Assets/StreamingAssets/engine.meta
 *.log
 .env
 .env.*

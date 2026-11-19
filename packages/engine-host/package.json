@@ -1,0 +1,19 @@
+{
+  "name": "@ringside/engine-host",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The engine bundled as one script with a JSON host API, for embedding in the Unity game's JavaScript runtime.",
+  "scripts": {
+    "build:bundle": "node scripts/build-bundle.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc -b . test"
+  },
+  "dependencies": {
+    "@ringside/engine": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.43",
+    "esbuild": "0.21.5"
+  }
+}
