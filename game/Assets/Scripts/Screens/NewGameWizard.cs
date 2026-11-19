@@ -888,6 +888,25 @@ namespace RingsideBooker.Screens
             return ok;
         }
 
+        /// <summary>
+        /// Goes to the last step with the defaults on a stored imported world (<c>wm-&lt;item id&gt;</c>),
+        /// without importing anything (the skip check after a restart, UNITY-14). False when New game
+        /// does not list it.
+        /// </summary>
+        public async Task<bool> UseStored(string packId)
+        {
+            while (client == null || world == null) await Task.Yield();
+            WorldChoice stored = worlds.Select(entry => entry.world).FirstOrDefault(choice => choice.Id == packId);
+            if (stored == null) return false;
+            world = stored;
+            step = 0;
+            Draw();
+            await LoadPreview();
+            step = 2;
+            Draw();
+            return preview != null;
+        }
+
         private static string NewSeed() =>
             "rb-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
     }

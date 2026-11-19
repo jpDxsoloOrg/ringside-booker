@@ -92,7 +92,7 @@ namespace RingsideBooker.Screens
         private static WorldChoice StoredChoice(StoredWorld world)
         {
             var choice = new WorldChoice(world.PackId, world.Name ?? $"Workshop item {world.ItemId}",
-                $"A workshop world mod, imported {world.ImportedAt.ToLocalTime():d MMM yyyy}.", StoredDetail(world));
+                "A workshop world mod, kept from an earlier import.", StoredDetail(world));
             string note = ModNote(world);
             choice.Notice = string.Join(" ", new[] { world.Summary, note }.Where(part => !string.IsNullOrEmpty(part)));
             if (choice.Notice.Length == 0) choice.Notice = null;
@@ -237,7 +237,8 @@ namespace RingsideBooker.Screens
         /// failure comes back as a failed result whose <see cref="WorldModImportResult.ReasonCodes"/>
         /// name the exception type. Logs the outcome as counts and reason codes.
         /// </summary>
-        public static async Task<WorldModImportResult> ImportAsync(EngineClient client, WorkshopMod mod, bool rosterOnly, Action<string> onStage = null)
+        /// <param name="keep">Store the converted world so New game lists it after a restart (the import check passes false).</param>
+        public static async Task<WorldModImportResult> ImportAsync(EngineClient client, WorkshopMod mod, bool rosterOnly, Action<string> onStage = null, bool keep = true)
         {
             ModsByPack[mod.PackId] = mod;
             WorldModImportResult result;
@@ -256,8 +257,11 @@ namespace RingsideBooker.Screens
                 Imported[mod.PackId] = rosterOnly;
                 Registered.Remove(mod.PackId);
                 Debug.Log($"[WorkshopWorlds] import ok (item {mod.ItemId}): {CountsLine(result.Counts)}; {WarningCodes(result)}; read {result.ReadMs:0} ms, convert {result.ConvertMs:0} ms");
-                onStage?.Invoke(StageStoring);
-                await StoreImportedAsync(client, mod, rosterOnly, result);
+                if (keep)
+                {
+                    onStage?.Invoke(StageStoring);
+                    await StoreImportedAsync(client, mod, rosterOnly, result);
+                }
             }
             else
             {
