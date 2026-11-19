@@ -8,6 +8,7 @@ using RingsideBooker.Engine;
 using RingsideBooker.UI;
 using RingsideBooker.UI.Bridge;
 using RingsideBooker.UI.Day;
+using RingsideBooker.UI.Navigation;
 using RingsideBooker.UI.Shell;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -265,10 +266,13 @@ namespace RingsideBooker.Screens.Dev
             Sheet sheet = control.WaitingSheet;
             if (sheet == null)
             {
-                string screen = ShellController.Current.Navigator.Current?.ScreenId;
-                Debug.Log($"[SkipCheck] {lead.GateId}: \"{lead.Reason}\" → opened {screen}");
+                ShellRoute route = ShellController.Current.Navigator.Current;
+                string screen = route?.ScreenId;
+                string tab = route?.Param("tab");
+                Debug.Log($"[SkipCheck] {lead.GateId}: \"{lead.Reason}\" → opened {screen}{(tab != null ? " (" + tab + ")" : string.Empty)}");
                 if (screen == Contracts.ContractsScreen.ScreenId) await ClearOnContracts(lead);
                 else if (screen == News.NewsScreen.ScreenId) await ClearOnNews();
+                else if (lead.GateId == EngineGateActions.OwnWorkerInjured) await ClearOnRoster(lead, screen, tab);
                 return;
             }
             Button button = sheet.Root.Q<Button>($"waiting-action-{lead.GateId}-0");
@@ -336,6 +340,26 @@ namespace RingsideBooker.Screens.Dev
         /// The news alert on the News screen (UNITY-19): the day button opened the story with
         /// <c>alert=1</c>, and the screen clears the stop itself; wait for it, then close the story.
         /// </summary>
+        /// <summary>
+        /// The injury stop (UNITY-22): the day button must land on Roster's Injuries tab, and opening
+        /// that tab marks the injuries seen. Waits (up to 5 s) for the stop to go and says if it stays.
+        /// </summary>
+        internal static async Task ClearOnRoster(GateHit lead, string screen, string tab)
+        {
+            if (screen != "roster" || tab != DayControlLogic.InjuriesTabId)
+            {
+                Debug.LogWarning($"[SkipCheck] {lead.GateId}: the day button opened {screen} ({tab ?? "no tab"}), not Roster › Injuries");
+            }
+            EngineGame game = EngineGame.Current;
+            for (int wait = 0; wait < 50; wait++)
+            {
+                await Settle();
+                if (!game.DayControl.Gates.Any(hit => hit.GateId == lead.GateId)) return;
+                await Task.Delay(100);
+            }
+            Debug.LogWarning($"[SkipCheck] {lead.GateId}: still waiting after Roster › Injuries opened");
+        }
+
         internal static async Task ClearOnNews()
         {
             for (int wait = 0; wait < 50 && News.NewsScreen.Current?.Root.panel == null; wait++) await Task.Delay(100);

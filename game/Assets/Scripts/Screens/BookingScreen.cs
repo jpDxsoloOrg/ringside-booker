@@ -267,8 +267,16 @@ namespace RingsideBooker.Screens
             {
                 return Ds.Text($"On air {CardWords.Countdown(Kit.Num(card, "show.daysUntil") ?? 0).ToLowerInvariant()}", "fc-runs-later");
             }
+            if (goesLive)
+            {
+                // A live show goes on air from the day button in the top bar ("Go live" / "Back to the
+                // show"), so the header doesn't offer a second one (UNITY-22: don't overwhelm).
+                Label hint = Ds.Text(underWay ? "On air now: Back to the show, top right" : "Go live with the day button, top right", "fc-runs-later");
+                hint.name = "booking-live-hint";
+                return hint;
+            }
             bool runnable = page.Checks != null && Kit.Bool(page.Checks, "runnable");
-            SkewButton run = Ds.Cta(underWay ? "Back to the show" : goesLive ? "Go live" : "Run the show", async () =>
+            SkewButton run =Ds.Cta(underWay ? "Back to the show" : goesLive ? "Go live" : "Run the show", async () =>
             {
                 if (!runnable && !underWay)
                 {

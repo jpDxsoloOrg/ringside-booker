@@ -158,7 +158,10 @@ namespace RingsideBooker.Screens.Dev
             }
             yield return Wait(0.5f);
 
-            ClickNamed("booking-run");
+            // A live show goes on air from the day button (Booking has no Go live of its own); an Auto
+            // show runs from Booking's Run the show.
+            if (Q<VisualElement>(candidate => candidate.name == "booking-run") != null) ClickNamed("booking-run");
+            else ShellController.Current.DayControl.RunPrimary();
             yield return Wait(1.5f);
             yield return Capture("show-night-ready");
             ClickNamed("show-run-next");
