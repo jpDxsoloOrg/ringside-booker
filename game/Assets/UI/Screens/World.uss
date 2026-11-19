@@ -296,3 +296,8 @@
 .wl-crown-lead { margin-right: 6px; color: var(--ds-gold); flex-shrink: 0; }
 .wl-tab-body > .ds-section-header { margin-top: 14px; }
 .wl-tab-body > .ds-table { margin-bottom: 6px; }
+
+/* UNITY-17's contract action (Open talks / Renew / Offer) on the worker screens. */
+.wl-contract-slot { flex-direction: row; align-items: center; flex-shrink: 0; margin-right: 8px; }
+.wl-contract-slot--center { justify-content: center; margin-top: 8px; }
+.wl-contract-reason { margin-left: 8px; max-width: 280px; color: var(--ds-text-3); }

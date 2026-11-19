@@ -68,8 +68,9 @@ namespace RingsideBooker.Screens
             }
             host.Add(picker);
 
-            QueryResult<JToken> cardAnswer = await client.Query("booking.card", new JObject { ["eventInstanceId"] = eventId });
-            QueryResult<JToken> validation = await client.Query("booking.validate", new JObject { ["eventInstanceId"] = eventId });
+            var eventArgs = new JObject { ["eventInstanceId"] = eventId };
+            (QueryResult<JToken> cardAnswer, QueryResult<JToken> validation) = await client.Read("booking.card",
+                reader => (reader.Query("booking.card", eventArgs), reader.Query("booking.validate", eventArgs)));
             if (!cardAnswer.Ok)
             {
                 host.Add(Kit.Error(Kit.Reasons(cardAnswer.Reasons)));

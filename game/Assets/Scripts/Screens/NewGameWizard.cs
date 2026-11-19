@@ -42,7 +42,7 @@ namespace RingsideBooker.Screens
         private string promotionKey;
         private string saveName = "My career";
         private string playerName = "Alex Booker";
-        private string seed = NewSeed();
+        private string seed = DevSeed() ?? NewSeed();
         private string seasonPreset;
         private readonly Dictionary<string, JToken> settings = new Dictionary<string, JToken>();
         private int step;
@@ -763,7 +763,7 @@ namespace RingsideBooker.Screens
             row.Add(text);
             IEnumerable<(string, string)> options = Kit.Str(setting, "kind") == "boolean"
                 ? new[] { ("true", "On"), ("false", "Off") }
-                : Kit.Arr(setting, "options").Select(option => ((string)option, Kit.Capital((string)option)));
+                : Kit.Arr(setting, "options").Select(option => ((string)option, OptionLabel(key, (string)option)));
             string current = settings.TryGetValue(key, out JToken value) && value != null
                 ? (value.Type == JTokenType.Boolean ? ((bool)value ? "true" : "false") : value.ToString())
                 : null;
@@ -774,6 +774,16 @@ namespace RingsideBooker.Screens
             row.Add(choices);
             return row;
         }
+
+        /// <summary>
+        /// An enum option's button text: the engine's option key capitalised, except where a plainer
+        /// name reads better (Big world speed's <c>full</c> is "Full detail").
+        /// </summary>
+        public static string OptionLabel(string settingKey, string option) => (settingKey, option) switch
+        {
+            ("bigWorldSpeed", "full") => "Full detail",
+            _ => Kit.Capital(option),
+        };
 
         /// <summary>A form row: the label on the left, the field on the right (fixed height, never overlapping).</summary>
         private static VisualElement TextRow(string label, string value, Action<string> onChange, string name)
@@ -889,6 +899,16 @@ namespace RingsideBooker.Screens
         }
 
         /// <summary>
+        /// Sets one setting of the Options step as if its button were pressed (tours and the skip
+        /// check), and redraws. A boolean setting takes "true" or "false".
+        /// </summary>
+        public void SetSetting(string key, string value)
+        {
+            settings[key] = value == "true" || value == "false" ? new JValue(value == "true") : new JValue(value);
+            Draw();
+        }
+
+        /// <summary>
         /// Goes to the last step with the defaults on a stored imported world (<c>wm-&lt;item id&gt;</c>),
         /// without importing anything (the skip check after a restart, UNITY-14). False when New game
         /// does not list it.
@@ -905,6 +925,31 @@ namespace RingsideBooker.Screens
             step = 2;
             Draw();
             return preview != null;
+        }
+
+        /// <summary><c>-rbSeed &lt;seed&gt;</c> (dev): every new game starts with this seed, so profile runs compare.</summary>
+        public const string SeedArgument = "-rbSeed";
+
+        /// <summary>
+        /// Sets one new-game setting on the Options step (dev tools; e.g. <c>showNight</c> = <c>auto</c>).
+        /// False when the world has no such setting.
+        /// </summary>
+        public bool SetSetting(string key, JToken value)
+        {
+            if (!settings.ContainsKey(key)) return false;
+            settings[key] = value;
+            Draw();
+            return true;
+        }
+
+        /// <summary>The seed the next game starts with.</summary>
+        public string Seed => seed;
+
+        private static string DevSeed()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            int at = Array.FindIndex(args, arg => string.Equals(arg, SeedArgument, StringComparison.OrdinalIgnoreCase));
+            return at >= 0 && at + 1 < args.Length ? args[at + 1] : null;
         }
 
         private static string NewSeed() =>

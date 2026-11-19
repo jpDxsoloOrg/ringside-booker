@@ -267,7 +267,10 @@ namespace RingsideBooker.Screens
         /// <summary>
         /// Draws <paramref name="host"/> with <paramref name="render"/> when it is attached, and again
         /// whenever the engine's world changes (after a command or an advance) while it stays on
-        /// screen. Calls never overlap: a change during a draw draws once more afterwards.
+        /// screen. Calls never overlap: a change during a draw draws once more afterwards. A change
+        /// redraws once the engine has nothing queued (UNITY-23): a burst of commands, or the days of
+        /// an advance, end in one redraw, and the redraw's queries never wait in front of the next
+        /// command.
         /// </summary>
         public static void Live(VisualElement host, Func<Task> render)
         {
@@ -294,7 +297,9 @@ namespace RingsideBooker.Screens
                     do
                     {
                         again = false;
+                        long started = System.Diagnostics.Stopwatch.GetTimestamp();
                         await render();
+                        EnginePerf.Record("ui.screen.draw (wall)", (System.Diagnostics.Stopwatch.GetTimestamp() - started) * EnginePerf.MsPerTick);
                     }
                     while (again && host.panel != null);
                 }
@@ -310,9 +315,25 @@ namespace RingsideBooker.Screens
                 }
             }
 
-            void Changed(long revision)
+            bool waiting = false;
+
+            async void Changed(long revision)
             {
-                if (host.panel != null && !game.Client.IsAdvancing) Draw();
+                if (host.panel == null || waiting) return;
+                waiting = true;
+                try
+                {
+                    do
+                    {
+                        await Task.Yield();
+                    }
+                    while (host.panel != null && (game.Client.IsBusy || game.Client.IsAdvancing));
+                }
+                finally
+                {
+                    waiting = false;
+                }
+                if (host.panel != null) Draw();
             }
 
             host.RegisterCallback<AttachToPanelEvent>(_ =>

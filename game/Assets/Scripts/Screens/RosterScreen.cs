@@ -106,13 +106,16 @@ namespace RingsideBooker.Screens
         {
             EngineGame game = Kit.Game;
             EngineClient client = game.Client;
-            QueryResult<JToken> rows = await client.Query("roster.rows", new JObject { ["group"] = group });
-            QueryResult<JToken> summary = await client.Query("roster.summary");
-            QueryResult<JToken> workers = await client.Query("workers.list", new JObject
-            {
-                ["filters"] = new JObject { ["employer"] = new JObject { ["kind"] = "promotion", ["promotionId"] = game.PromotionId } },
-            });
-            QueryResult<JToken> titles = await client.Query("titles.list", new JObject { ["scope"] = "own", ["status"] = "active" });
+            // One engine-thread trip for the four reads (UNITY-23).
+            (QueryResult<JToken> rows, QueryResult<JToken> summary, QueryResult<JToken> workers, QueryResult<JToken> titles) = await client.Read("roster",
+                reader => (
+                    reader.Query("roster.rows", new JObject { ["group"] = group }),
+                    reader.Query("roster.summary"),
+                    reader.Query("workers.list", new JObject
+                    {
+                        ["filters"] = new JObject { ["employer"] = new JObject { ["kind"] = "promotion", ["promotionId"] = game.PromotionId } },
+                    }),
+                    reader.Query("titles.list", new JObject { ["scope"] = "own", ["status"] = "active" })));
             host.Clear();
             if (!rows.Ok)
             {
@@ -193,8 +196,9 @@ namespace RingsideBooker.Screens
         public static async Task<Dictionary<string, string>> AllChampionsAsync()
         {
             EngineClient client = Kit.Game.Client;
-            QueryResult<JToken> own = await client.Query("titles.list", new JObject { ["scope"] = "own", ["status"] = "active" });
-            QueryResult<JToken> world = await client.Query("titles.list", new JObject { ["scope"] = "world", ["status"] = "active" });
+            (QueryResult<JToken> own, QueryResult<JToken> world) = await client.Read("titles",
+                reader => (reader.Query("titles.list", new JObject { ["scope"] = "own", ["status"] = "active" }),
+                    reader.Query("titles.list", new JObject { ["scope"] = "world", ["status"] = "active" })));
             Dictionary<string, string> all = ChampionsByPerson(world.Data);
             foreach (KeyValuePair<string, string> pair in ChampionsByPerson(own.Data)) all[pair.Key] = pair.Value;
             return all;
@@ -499,10 +503,9 @@ namespace RingsideBooker.Screens
             {
                 actions.Add(Ds.Button("Set push", () => SetPushSheet.Open(context, entry.Row), DsButtonKind.Secondary, "trend-up"));
             }
-            if (ScreenRegistry.IsLive("contracts"))
-            {
-                actions.Add(Ds.Button("Contract", () => context.Navigator.Go(ShellRoute.With("contracts", "employment", entry.EmploymentId)), DsButtonKind.Secondary, "contracts"));
-            }
+            VisualElement contractSlot = Ds.Row("wl-contract-slot");
+            actions.Add(contractSlot);
+            WorkerProfileScreen.FillContractAction(contractSlot, entry.PersonId);
             actions.Add(Ds.Button("Full profile", () => context.Navigator.Go(ShellRoute.With(ScreenIds.Worker, "id", entry.PersonId)), DsButtonKind.Ghost, "chevron-right"));
             notes.Add(actions);
             row.Add(notes);

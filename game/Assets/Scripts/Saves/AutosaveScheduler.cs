@@ -18,7 +18,7 @@ namespace RingsideBooker.Saves
         private readonly Func<Task> save;
         private readonly Func<bool> canSave;
         private readonly Action<bool> onPendingChange;
-        private readonly int delayMs;
+        private int delayMs;
 
         private int timerGeneration;
         private bool dirty;
@@ -35,6 +35,13 @@ namespace RingsideBooker.Saves
             this.canSave = canSave ?? (() => true);
             this.onPendingChange = onPendingChange;
             this.delayMs = Math.Max(0, delayMs);
+        }
+
+        /// <summary>How long after the last change the save starts; the caller may change it (e.g. by how long saves take).</summary>
+        public int DelayMs
+        {
+            get => delayMs;
+            set => delayMs = Math.Max(0, value);
         }
 
         /// <summary>True from a change until a save that started after it has finished.</summary>

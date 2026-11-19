@@ -118,6 +118,7 @@ namespace RingsideBooker.UI.Shell
 
         private void RenderData()
         {
+            using var timing = Engine.EnginePerf.Measure("ui.shell.renderData");
             ShellSnapshot snapshot = data.Snapshot;
             sidebar.Render(snapshot);
             topBar.Render(snapshot);
@@ -132,6 +133,7 @@ namespace RingsideBooker.UI.Shell
 
         private void RenderDay()
         {
+            using var timing = Engine.EnginePerf.Measure("ui.shell.renderDay");
             dayControl.Render(day);
             // The bell: how many stops wait on the player; it opens the "Needs attention" list.
             int waiting = day.Gates.Count;
@@ -146,6 +148,7 @@ namespace RingsideBooker.UI.Shell
 
         private void ShowScreen(ShellRoute route)
         {
+            using var timing = Engine.EnginePerf.Measure("ui.shell.showScreen");
             shell.Show(ScreenRegistry.Build(new ScreenContext(route, Navigator, Overlay)));
             sidebar.SetCurrent(route.ScreenId);
             topBar.SetLocation(route);

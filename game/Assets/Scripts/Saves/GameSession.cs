@@ -68,7 +68,10 @@ namespace RingsideBooker.Saves
             Label = label;
             Seat = seat;
             baselineRevision = revision;
-            autosave = new AutosaveScheduler(() => SaveNowAsync(), () => !Engine.IsAdvancing, PendingChanged);
+            // The autosave waits until the engine has nothing queued, and waits longer after changes
+            // the slower a save is (a big imported world saves in 1-2 s), so it lands in a pause
+            // instead of in front of the player's next step (UNITY-23).
+            autosave = new AutosaveScheduler(AutosaveAsync, () => !Engine.IsBusy, PendingChanged);
             Engine.OnStateChanged += OnStateChanged;
             Engine.OnAdvanceFinished += OnAdvanceFinished;
         }
@@ -114,7 +117,7 @@ namespace RingsideBooker.Saves
             string name = string.IsNullOrWhiteSpace(label) ? "New career" : label.Trim();
             var session = new GameSession(engine, store, store.NewSlotId(name), name, seat, revision);
             Current = session;
-            SaveOutcome first = await session.SaveNowAsync();
+            SaveOutcome first = await session.TimedSaveAsync();
             if (!first.Ok) Debug.LogWarning("GameSession: the first save failed: " + first.Problem);
             return session;
         }
@@ -194,6 +197,28 @@ namespace RingsideBooker.Saves
         /// Saves now. The engine call is queued at once (so it runs before anything queued after
         /// this call, such as an unload); the file is written off the main thread, in call order.
         /// </summary>
+        /// <summary>The autosave's delay: <see cref="AutosaveDelayPerSaveTime"/> × the last save's time, from 750 ms to <see cref="MaxAutosaveDelayMs"/>.</summary>
+        public const int AutosaveDelayPerSaveTime = 3;
+
+        /// <summary>The longest the autosave waits after the last change.</summary>
+        public const int MaxAutosaveDelayMs = 10000;
+
+        private Task AutosaveAsync() => TimedSaveAsync();
+
+        // Saves now and sets the autosave's delay from how long the save took.
+        private async Task<SaveOutcome> TimedSaveAsync()
+        {
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            SaveOutcome outcome = await SaveNowAsync();
+            if (outcome.Ok)
+            {
+                long delay = clock.ElapsedMilliseconds * AutosaveDelayPerSaveTime;
+                autosave.DelayMs = (int)Math.Max(AutosaveScheduler.DefaultDelayMs, Math.Min(MaxAutosaveDelayMs, delay));
+            }
+
+            return outcome;
+        }
+
         public Task<SaveOutcome> SaveNowAsync()
         {
             DateTimeOffset savedAt = DateTimeOffset.UtcNow;

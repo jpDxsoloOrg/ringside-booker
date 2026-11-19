@@ -28,10 +28,13 @@ namespace RingsideBooker.Screens
         private static async Task Render(VisualElement host, ScreenContext context)
         {
             EngineClient client = Kit.Game.Client;
-            QueryResult<JToken> dashboard = await client.Query("office.dashboard");
-            QueryResult<JToken> next = await client.Query("calendar.nextShow", new JObject { ["scope"] = "mine" });
-            QueryResult<JToken> last = await client.Query("shows.lastCompleted", new JObject { ["scope"] = "mine" });
-            QueryResult<JToken> news = await client.Query("news.top");
+            // One trip to the engine for the whole screen.
+            (QueryResult<JToken> dashboard, QueryResult<JToken> next, QueryResult<JToken> last, QueryResult<JToken> news) =
+                await client.Read("office", reader => (
+                    reader.Query("office.dashboard"),
+                    reader.Query("calendar.nextShow", new JObject { ["scope"] = "mine" }),
+                    reader.Query("shows.lastCompleted", new JObject { ["scope"] = "mine" }),
+                    reader.Query("news.top")));
 
             host.Clear();
             if (!dashboard.Ok)

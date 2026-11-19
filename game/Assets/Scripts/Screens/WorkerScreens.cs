@@ -71,6 +71,9 @@ namespace RingsideBooker.Screens
                     SetPushSheet.Open(context, rosterRow);
                 }, DsButtonKind.Secondary, "trend-up"));
             }
+            VisualElement sheetSlot = Ds.Row("wl-contract-slot");
+            footer.Add(sheetSlot);
+            WorkerProfileScreen.FillContractAction(sheetSlot, personId, DsButtonKind.Secondary, () => handle?.Close(), showReason: false);
             footer.Add(Ds.Spacer());
             Button full = Ds.Button("Full profile", () =>
             {
@@ -179,6 +182,43 @@ namespace RingsideBooker.Screens
                 case "contract": await Contract(body, profile, context); break;
                 case "form": await Form(body, personId, context); break;
                 default: Overview(body, profile); break;
+            }
+        }
+
+        // ---- Contract action (UNITY-17) ---------------------------------------------------------
+
+        /// <summary>
+        /// The worker's contract button from UNITY-17 (<see cref="Contracts.ContractsScreen.ActionFor"/>):
+        /// "Open talks", "Renew contract" or "Offer contract", disabled with its reason in a tooltip;
+        /// filled into <paramref name="slot"/> once worked out, nothing when no action applies.
+        /// </summary>
+        public static async void FillContractAction(VisualElement slot, string personId, DsButtonKind kind = DsButtonKind.Secondary, Action before = null, bool showReason = true)
+        {
+            if (slot == null || personId == null) return;
+            try
+            {
+                Contracts.ContractAction action = await Contracts.ContractsScreen.ActionFor(personId);
+                slot.Clear();
+                if (action == null) return;
+                Button button = null;
+                button = Ds.Button(action.Label, async () =>
+                {
+                    before?.Invoke();
+                    string refused = await action.Open(personId);
+                    if (refused != null) DsOverlay.Toast(slot.panel != null ? slot : (VisualElement)ShellController.Current?.Overlay?.Layer, refused, DsState.Warn);
+                }, kind, "contracts");
+                button.name = "worker-contract-action";
+                button.SetEnabled(action.Enabled);
+                slot.Add(button);
+                if (!action.Enabled && action.Reason != null)
+                {
+                    if (showReason) slot.Add(Ds.Text(action.Reason, "ds-type-caption", "wl-wrap", "wl-contract-reason"));
+                    DsTooltip.Attach(slot, action.Reason, action.Label);
+                }
+            }
+            catch (Exception exception)
+            {
+                UnityEngine.Debug.LogWarning($"[Worker] contract action: {exception.GetType().Name}");
             }
         }
 
@@ -463,8 +503,10 @@ namespace RingsideBooker.Screens
             JToken contract = Kit.Arr(profile, "career.contracts").FirstOrDefault(c => Kit.Str(c, "status") == "active" && Kit.Str(c, "promotionId") == employerId);
             if (employerId == null || contract == null)
             {
-                body.Add(W.Empty("user", "A free agent.", "Nobody has them under contract. Offers are made from Contracts."));
-                if (ScreenRegistry.IsLive("contracts")) body.Add(Ds.Button("Go to Contracts", () => context.Navigator.Go(ShellRoute.To("contracts")), DsButtonKind.Secondary, "contracts"));
+                body.Add(W.Empty("user", "A free agent.", "Nobody has them under contract."));
+                VisualElement offerSlot = Ds.Row("wl-contract-slot", "wl-contract-slot--center").Named("worker-contract-slot");
+                body.Add(offerSlot);
+                FillContractAction(offerSlot, Kit.Str(header, "personId"), DsButtonKind.Primary);
                 return;
             }
 
@@ -506,6 +548,12 @@ namespace RingsideBooker.Screens
                 foreach (string perk in perks) pills.Add(Ds.Pill(DsState.Info, perk, "check"));
                 terms.Add(pills);
             }
+            if (!yours)
+            {
+                VisualElement rivalSlot = Ds.Row("wl-contract-slot", "wl-gap-top").Named("worker-contract-slot");
+                terms.Add(rivalSlot);
+                FillContractAction(rivalSlot, Kit.Str(header, "personId"));
+            }
             columns.Add(terms);
 
             if (detail != null)
@@ -523,13 +571,16 @@ namespace RingsideBooker.Screens
                 W.QuietWhy(line, Kit.WhyTrace("Severance", severance, Kit.Obj(detail, "severance.trace"), "money"));
                 standing.Add(line);
                 VisualElement actions = Ds.Row("ds-row--wrap", "wl-details__actions");
+                VisualElement actionSlot = Ds.Row("wl-contract-slot").Named("worker-contract-slot");
+                actions.Add(actionSlot);
+                FillContractAction(actionSlot, Kit.Str(header, "personId"), DsButtonKind.Primary);
                 if (Kit.Str(detail, "role") == "wrestler" && Kit.Str(detail, "push") is string push && push != "none")
                 {
                     actions.Add(Ds.Button("Set push", () => SetPushSheet.Open(context, detail), DsButtonKind.Secondary, "trend-up"));
                 }
                 if (ScreenRegistry.IsLive("contracts"))
                 {
-                    actions.Add(Ds.Button("Open in Contracts", () => context.Navigator.Go(ShellRoute.With("contracts", "employment", Kit.Str(detail, "employmentId"))), DsButtonKind.Secondary, "contracts"));
+                    actions.Add(Ds.Button("Open in Contracts", () => context.Navigator.Go(ShellRoute.With("contracts", "tab", "active", "employment", Kit.Str(detail, "employmentId"))), DsButtonKind.Ghost, "chevron-right"));
                 }
                 standing.Add(actions);
                 columns.Add(standing);

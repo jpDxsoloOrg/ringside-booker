@@ -46,9 +46,8 @@ namespace RingsideBooker.Screens
         {
             EngineClient client = Kit.Game.Client;
             var args = new JObject { ["eventInstanceId"] = eventId };
-            QueryResult<JToken> answer = await client.Query("shows.results", args);
-            QueryResult<JToken> crowd = await client.Query("boxOffice.showCrowd", args);
-            QueryResult<JToken> popularity = await client.Query("popularity.showChange", args);
+            (QueryResult<JToken> answer, QueryResult<JToken> crowd, QueryResult<JToken> popularity) = await client.Read("results",
+                reader => (reader.Query("shows.results", args), reader.Query("boxOffice.showCrowd", args), reader.Query("popularity.showChange", args)));
             host.Clear();
             if (!answer.Ok || answer.Data == null || answer.Data.Type == JTokenType.Null)
             {
