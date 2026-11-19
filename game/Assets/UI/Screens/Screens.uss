@@ -142,3 +142,5 @@
 
 /* The cash chip's Why? button. */
 .status-chip__why { margin-left: 4px; }
+.rb-order-row .unity-label { -unity-text-align: middle-left; }
+.rb-order-row > .rb-cell-stack { align-items: flex-start; }
