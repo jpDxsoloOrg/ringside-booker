@@ -107,7 +107,7 @@ namespace RingsideBooker.Screens.Dev
                 }
                 else
                 {
-                    Task<WorldModImportResult> run = WorkshopWorlds.ImportAsync(client, mod, false);
+                    Task<WorldModImportResult> run = WorkshopWorlds.ImportAsync(client, mod, false, keep: false);
                     yield return Await(run);
                     result = run.Result;
                     // Free the converted world again: the check holds one at a time.

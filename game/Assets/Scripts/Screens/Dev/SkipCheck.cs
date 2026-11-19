@@ -39,6 +39,10 @@ namespace RingsideBooker.Screens.Dev
         public const string WorkshopArgument = "-rbSkipCheckWorkshop";
         private static string workshopItem;
 
+        /// <summary><c>-rbSkipCheckStored &lt;item id&gt;</c>: play that workshop world as stored by an earlier import, without importing (UNITY-14).</summary>
+        public const string StoredArgument = "-rbSkipCheckStored";
+        private static string storedItem;
+
         private int days = 90;
         private static string shots;
         private static int shotCount;
@@ -59,6 +63,8 @@ namespace RingsideBooker.Screens.Dev
                 if (shotsAt >= 0 && shotsAt + 1 < args.Length) shots = args[shotsAt + 1];
                 int workshopAt = Array.FindIndex(args, arg => string.Equals(arg, WorkshopArgument, StringComparison.OrdinalIgnoreCase));
                 if (workshopAt >= 0 && workshopAt + 1 < args.Length) workshopItem = args[workshopAt + 1];
+                int storedAt = Array.FindIndex(args, arg => string.Equals(arg, StoredArgument, StringComparison.OrdinalIgnoreCase));
+                if (storedAt >= 0 && storedAt + 1 < args.Length) storedItem = args[storedAt + 1];
                 return;
             }
         }
@@ -77,13 +83,43 @@ namespace RingsideBooker.Screens.Dev
             Application.Quit(exitCode);
         }
 
+        private static async Task CaptureAsync(string name)
+        {
+            System.IO.Directory.CreateDirectory(shots);
+            string path = System.IO.Path.Combine(shots, $"{name}-{Screen.width}x{Screen.height}.png");
+            ScreenCapture.CaptureScreenshot(path);
+            await Task.Delay(500);
+            Debug.Log($"[SkipCheck] {path}");
+        }
+
         private async Task<bool> Run()
         {
             var clock = Stopwatch.StartNew();
             while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != SceneFlow.TitleScene) await Task.Yield();
             while (NewGameWizard.Last == null) await Task.Yield();
             await Task.Delay(1000);
-            if (workshopItem != null)
+            if (storedItem != null)
+            {
+                var stored = Stopwatch.StartNew();
+                if (shots != null)
+                {
+                    // The world list and "Manage imported worlds" after a restart (UNITY-14), as PNGs.
+                    await Task.Delay(1500);
+                    await CaptureAsync("new-game-stored-world");
+                    NewGameWizard.Last.OpenManage();
+                    await Task.Delay(4000);
+                    await CaptureAsync("manage-imported-worlds");
+                    NewGameWizard.Last.HandleBack();
+                    NewGameWizard.Last.HandleBack();
+                    stored.Restart();
+                }
+                if (!await NewGameWizard.Last.UseStored(Import.WorkshopModScanner.PackIdFor(storedItem)))
+                {
+                    return Fail($"stored workshop item {storedItem} is not listed in New game");
+                }
+                Debug.Log($"[SkipCheck] playing stored workshop item {storedItem}: listed and previewed in {stored.ElapsedMilliseconds} ms after the title");
+            }
+            else if (workshopItem != null)
             {
                 if (!await NewGameWizard.Last.UseDefaults(true, workshopItem)) return Fail($"workshop item {workshopItem} did not import");
                 Debug.Log($"[SkipCheck] playing imported workshop item {workshopItem}");
@@ -101,6 +137,7 @@ namespace RingsideBooker.Screens.Dev
             GameDate start = await Today(game);
             GameDate target = start.AddDays(days);
             Debug.Log($"[SkipCheck] new game on {start.Iso}; skipping {days} days to {target.Iso}");
+            SkipProfile profile = SkipProfile.Asked ? SkipProfile.Begin() : null;
 
             var stops = new SortedDictionary<string, int>();
             int skips = 0;
@@ -122,6 +159,10 @@ namespace RingsideBooker.Screens.Dev
                         Debug.Log($"[SkipCheck] PASSED: {start.Iso} → {today.Iso} ({start.DaysUntil(today)} days) in {skips} skips, " +
                                   $"{liveShows} live and {autoShows} auto show nights; stops: {(summary.Length == 0 ? "none" : summary)}; " +
                                   $"{clock.Elapsed.TotalSeconds:0.0} s");
+                        if (profile != null)
+                        {
+                            await profile.Finish("SkipCheck", game, $"{start.DaysUntil(today)} days in {skips} skips, {liveShows} live and {autoShows} auto show nights");
+                        }
                         return true;
                     }
                     int remaining = today.DaysUntil(target);
@@ -165,16 +206,17 @@ namespace RingsideBooker.Screens.Dev
             return false;
         }
 
-        /// <summary>Waits for the engine to go idle and the day control to read today's stops again.</summary>
+        /// <summary>
+        /// Waits for the engine to go idle and the day control to read today's stops again (frame by
+        /// frame, no fixed delays: UNITY-23 found the old 0.6 s per step was most of a run's time).
+        /// </summary>
         internal static async Task Settle()
         {
-            await Task.Delay(300);
             EngineGame game = EngineGame.Current;
-            while (game != null && (game.Client.IsBusy || game.DayControl.Advancing)) await Task.Yield();
-            game?.DayControl.Refresh();
-            await Task.Delay(200);
-            while (game != null && game.Client.IsBusy) await Task.Yield();
-            await Task.Delay(100);
+            if (game == null) return;
+            await ProfileSkip.Idle(game);
+            game.DayControl.Refresh();
+            await ProfileSkip.Idle(game);
         }
 
         private static async Task<GameDate> Today(EngineGame game)
@@ -207,7 +249,7 @@ namespace RingsideBooker.Screens.Dev
         {
             DayControlView control = ShellController.Current.DayControl;
             control.RunPrimary();
-            await Task.Delay(300);
+            await Task.Yield();
             Sheet sheet = control.WaitingSheet;
             if (sheet == null)
             {
@@ -249,7 +291,6 @@ namespace RingsideBooker.Screens.Dev
         {
             for (int wait = 0; wait < 50 && Contracts.ContractsScreen.Current?.Root.panel == null; wait++) await Task.Delay(100);
             await Settle();
-            await Task.Delay(500);
             VisualElement root = ShellController.Current.GetComponent<UIDocument>().rootVisualElement;
             string name = lead.GateId switch
             {

@@ -37,6 +37,7 @@ import {
   INVALID_ARGS,
   isGameDate,
   loadSave,
+  packManifestSchema,
   previewWorld,
   SAVE_LABEL_MAX_LENGTH,
   serializeError,
@@ -54,7 +55,7 @@ import { baseGeographyOf } from './worldMod/base';
 import { checkWorldModPack, ruleOf } from './worldMod/check';
 
 /** Bumped when a function, an argument or a result shape of this API changes. */
-export const HOST_API_VERSION = 2;
+export const HOST_API_VERSION = 3;
 
 /** The most loader issues an import result lists; the rest are only counted. */
 const MAX_REPORTED_PACK_ISSUES = 50;
@@ -92,6 +93,8 @@ export interface RingsideEngineApi {
   advanceDays(optionsJson: string, onProgress?: ProgressListener): Promise<string>;
   importWorldMod(inputJson: string): string;
   removeImportedWorld(packId: string): string;
+  exportImportedWorld(packId: string): string;
+  registerImportedWorld(inputJson: string): string;
   cancelAdvance(): string;
   exportState(): string;
   worldHash(): string;
@@ -563,6 +566,43 @@ export function createEmbeddedHost(options: EmbeddedHostOptions): RingsideEngine
       guard('removeImportedWorld', () => {
         const removed = typeof packId === 'string' && importedPacks.delete(packId);
         return JSON.stringify({ ok: true, removed });
+      }),
+
+    exportImportedWorld: (packId) =>
+      guard('exportImportedWorld', () => {
+        const pack = typeof packId === 'string' ? importedPacks.get(packId) : undefined;
+        if (pack === undefined) {
+          return refused([invalid('No imported world has that pack id')]);
+        }
+        return out({ ok: true, pack }, 'exportImportedWorld');
+      }),
+
+    registerImportedWorld: (inputJson) =>
+      guard('registerImportedWorld', () => {
+        const parsed = parseObject(inputJson, 'The stored world');
+        if (!parsed.ok) return refused([parsed.reason]);
+        const { pack } = parsed.value;
+        if (!isPlainObject(pack) || !isPlainObject(pack['files'])) {
+          return refused([invalid('pack must be an object with a manifest and files')]);
+        }
+        const manifest = packManifestSchema.safeParse(pack['manifest']);
+        if (!manifest.success) {
+          return refused([
+            invalid(`The stored world's manifest is not valid: ${manifest.error.message}`),
+          ]);
+        }
+        if (manifest.data.kind !== 'world') {
+          return refused([invalid('The stored pack is not a world')]);
+        }
+        const id = manifest.data.id;
+        if (packs().packs.some((bundled) => bundled.manifest.id === id)) {
+          return refused([invalid('A bundled pack already has that id')]);
+        }
+        // Not checked again here: the import checked it, and a preview or new game from it runs
+        // the full checks (a pack stored by an older build that newer rules refuse fails there).
+        const raw: RawPack = { manifest: manifest.data, files: pack['files'] };
+        importedPacks.set(id, raw);
+        return out({ ok: true, manifest: manifest.data, revision }, 'registerImportedWorld');
       }),
 
     cancelAdvance: () => {

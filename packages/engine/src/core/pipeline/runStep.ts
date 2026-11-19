@@ -22,6 +22,7 @@ import type { ReactionRunner } from '../events/bus';
 import type { AnyDomainEvent, EventSource } from '../events/types';
 import { refKey, type TraceStaging } from '../trace/store';
 import type { StepContext } from './context';
+import { timed } from './phaseTiming';
 import type { PhaseGroup } from './groups';
 import type { ReactionFailureReport, StepReport } from './report';
 import type { SimRuntime } from './runtime';
@@ -59,6 +60,17 @@ function runUnit<R extends TableRegistry>(
   source: EventSource,
   date: GameDate,
   // Typed `unknown` so whatever `run` returns reaches `transact` (see below).
+  run: (ctx: StepContext<R>) => unknown,
+  log: (message: string) => void,
+): UnitOutcome {
+  return timed(label, () => runUnitUntimed(runtime, label, source, date, run, log));
+}
+
+function runUnitUntimed<R extends TableRegistry>(
+  runtime: SimRuntime<R>,
+  label: string,
+  source: EventSource,
+  date: GameDate,
   run: (ctx: StepContext<R>) => unknown,
   log: (message: string) => void,
 ): UnitOutcome {
