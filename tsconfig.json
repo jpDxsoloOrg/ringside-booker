@@ -3,6 +3,8 @@
   "references": [
     { "path": "./packages/engine" },
     { "path": "./packages/engine/test" },
+    { "path": "./packages/engine-host" },
+    { "path": "./packages/engine-host/test" },
     { "path": "./apps/web" },
     { "path": "./tools/blog" },
     { "path": "./tools/sim-runner" },

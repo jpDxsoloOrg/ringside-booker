@@ -186,6 +186,8 @@ export default defineConfig(
     // Playwright's HTML report and per-test output (traces, screenshots).
     '**/playwright-report/**',
     '**/test-results/**',
+    // The embedded engine bundle for the Unity game (npm run build:engine-bundle).
+    'game/Assets/StreamingAssets/engine/**',
   ]),
 
   // Plain JavaScript (this file and any future build scripts) runs in Node.
