@@ -585,6 +585,17 @@ morale, momentum or popularity, so nothing here tunes them.
 | `shows.stars.zeroAt`                  | number  | 35      | 0–80   | points     | Show score that earns zero stars                                        |
 | `shows.stars.pointsPerStar`           | number  | 12      | 0–30   | points     | Show score points per star (0 = any score above zero-stars earns 5)     |
 
+## Big world speed tunables
+
+POL4-13's distant-show test, in `systems/shows/bigWorldTunables.ts`, category
+`Big world speed`. They only matter when Big world speed is Fast. See
+[show-night.md](show-night.md#big-world-speed).
+
+| Key                         | Kind   | Default | Range | Unit   | What it does                                                             |
+| --------------------------- | ------ | ------- | ----- | ------ | ------------------------------------------------------------------------ |
+| `bigWorld.regionPopularity` | number | 30      | 0–100 | points | Popularity from which a region counts as one of a promotion's regions    |
+| `bigWorld.fullDetailReach`  | number | 40      | 0–100 | points | Rival promotions with at least this much reach always run in full detail |
+
 ## Production tunables
 
 EVT4-02's production ceiling and bonus slot, in `systems/cardFlow/tunables.ts`,

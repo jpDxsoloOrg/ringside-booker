@@ -81,9 +81,9 @@ namespace RingsideBooker.Screens
             }
 
             var args = new JObject { ["eventInstanceId"] = eventId };
-            QueryResult<JToken> cardAnswer = await client.Query("booking.card", args);
-            QueryResult<JToken> validation = await client.Query("booking.validate", args);
-            QueryResult<JToken> venue = await client.Query("boxOffice.showVenue", args);
+            (QueryResult<JToken> cardAnswer, QueryResult<JToken> validation, QueryResult<JToken> venue, QueryResult<JToken> liveRead) = await client.Read("booking.card",
+                reader => (reader.Query("booking.card", args), reader.Query("booking.validate", args), reader.Query("boxOffice.showVenue", args),
+                    reader.Query("shows.liveState", args)));
             state.People ??= await CardPeople.LoadAsync();
             if (!cardAnswer.Ok)
             {
@@ -94,11 +94,7 @@ namespace RingsideBooker.Screens
             }
             JToken card = cardAnswer.Data;
             JToken live = null;
-            if (Kit.Bool(card, "runsTonight"))
-            {
-                QueryResult<JToken> liveAnswer = await client.Query("shows.liveState", args);
-                if (liveAnswer.Ok) live = liveAnswer.Data;
-            }
+            if (Kit.Bool(card, "runsTonight") && liveRead.Ok) live = liveRead.Data;
             JToken checks = validation.Ok ? validation.Data : null;
             List<JToken> slots = Kit.Arr(card, "sections").SelectMany(section => Kit.Arr(section, "slots")).ToList();
             if (state.Selected == null || slots.All(slot => SlotKey(slot) != state.Selected))

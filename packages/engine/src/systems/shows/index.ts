@@ -14,6 +14,7 @@
 import './events';
 import './streams';
 import './settings';
+import { bigWorldSpeedQuery, setBigWorldSpeedCommand } from './bigWorldSpeed';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { showsPhases } from './phases';
 import { showsQueries } from './queries';
@@ -239,14 +240,26 @@ export {
   type LiveShowStateView,
 } from './liveState';
 export { SHOW_NIGHT_MODES, SHOW_NIGHT_SETTING, type ShowNightMode } from './settings';
+export {
+  BIG_WORLD_SPEEDS,
+  BIG_WORLD_SPEED_SETTING,
+  bigWorldSpeedOf,
+  bigWorldSpeedQuery,
+  isDistantShow,
+  setBigWorldSpeedCommand,
+  showDetailVerdict,
+  type ShowDetailVerdict,
+  type BigWorldSpeed,
+} from './bigWorldSpeed';
+export { bigWorldTunables } from './bigWorldTunables';
 export { FINISH_TONIGHT_FIRST, runShowRefusals } from './tonight';
 export { segmentStreamKey, withSegmentStreams } from './runSegment';
 
 export const showsSystem: SystemBundle = defineSystem({
   id: 'shows',
   phases: showsPhases,
-  queries: [...showsQueries, liveStateQuery],
-  commands: [runTonightCommand, ...liveShowCommands],
+  queries: [...showsQueries, liveStateQuery, bigWorldSpeedQuery],
+  commands: [runTonightCommand, ...liveShowCommands, setBigWorldSpeedCommand],
   gates: [showsTonightGate],
   // DAY1-06: results and title changes on the news wire.
   subscriptions: showsNewsSubscriptions,

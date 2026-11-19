@@ -524,20 +524,23 @@ that work **only where the result is identical**: the same world, the same
 stored traces, the same RNG and the same save, byte for byte. Code:
 `packages/engine/src/core/fastPaths.ts`.
 
-| Fast path                           | Where                                                                | What it skips                                                                                                                                                                             |
-| ----------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Aftermath without region detail     | `applySegmentAftermath` (show night's MTCH3 applier)                 | The per-region preview and the country and continent roll-ups of each competitor's change. The applier stores none of them; the popularity door works the regions out as it writes        |
-| Summary-only record check           | `TraceStaging.record` with `summaryOnly`                             | Validating every node of a tree that is kept only as a summary: the tree is fitted into the size limits as before, then only its root and direct steps are checked                        |
-| One-walk record check               | `TraceStaging.record`                                                | `assertJsonValue` plus the load schema's zod parse: `copyValidTraceContent` builds the same copy in one walk, or returns null and the full check runs (and throws) as before              |
-| Headline and reach roll-ups         | `headlinePopularityOf` (office), `reachOf` (finance)                 | Rolling up every country and continent to read the home country, the home continent and the world (`popularityRollupPart`)                                                                |
-| Card values without traces          | `buildCardPool` (rival booker)                                       | The card value trace of every worker for every show: `cardValueNumber` does the same steps in the same order. A Why? that shows a card value builds it with `cardValue`                   |
-| Rival wear by body part             | `computePhysicalToll` (MTCH4's applier) on a rival show              | Each body part's wear trace: the same `load × weight` as plain numbers; the show stores only summaries                                                                                    |
-| Rival-rules injury chance           | `computePhysicalToll` on a rival show under `ai.skipInMatchInjuries` | The injury chance formula: the policy makes it 0, given with its rival-rules line; the roll is still drawn                                                                                |
-| Headline at its own level (POL4-10) | `headlinePopularityOf` (office)                                      | Every traced roll-up level but the one the headline scope picks: the others are read from the untraced roller (the same sums in the same order); the worldwide note needs only its number |
-| One map while it is unchanged       | `geographyOf`, `createPopularityRoller`                              | Building the map and its population shares again when every continent, country and region row is the same object as last time (rows are never changed in place)                           |
-| Sorted index buckets                | `MutableTable.lookup`                                                | Sorting a bucket's keys on every lookup: they are kept until a row joins or leaves the bucket, and an update that keeps a row's index keys re-files nothing                               |
-| Weekly healing as numbers           | `recoverConditions` (health)                                         | The traced cap and recovery of every body part (the phase stores no trace): the cap once per age, the week's healing once per kind of person and care, `conditionRecoveryValue` per part  |
-| Rival ring learning as numbers      | `collectRingLearning` on a rival show                                | The learning traces of each competitor and attribute (a rival show stores none): `ringLearningValue` does the same steps in the same order                                                |
+| Fast path                             | Where                                                                | What it skips                                                                                                                                                                                                                                                         |
+| ------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aftermath without region detail       | `applySegmentAftermath` (show night's MTCH3 applier)                 | The per-region preview and the country and continent roll-ups of each competitor's change. The applier stores none of them; the popularity door works the regions out as it writes                                                                                    |
+| Summary-only record check             | `TraceStaging.record` with `summaryOnly`                             | Validating every node of a tree that is kept only as a summary: the tree is fitted into the size limits as before, then only its root and direct steps are checked                                                                                                    |
+| One-walk record check                 | `TraceStaging.record`                                                | `assertJsonValue` plus the load schema's zod parse: `copyValidTraceContent` builds the same copy in one walk, or returns null and the full check runs (and throws) as before                                                                                          |
+| Headline and reach roll-ups           | `headlinePopularityOf` (office), `reachOf` (finance)                 | Rolling up every country and continent to read the home country, the home continent and the world (`popularityRollupPart`)                                                                                                                                            |
+| Card values without traces            | `buildCardPool` (rival booker)                                       | The card value trace of every worker for every show: `cardValueNumber` does the same steps in the same order. A Why? that shows a card value builds it with `cardValue`                                                                                               |
+| Rival wear by body part               | `computePhysicalToll` (MTCH4's applier) on a rival show              | Each body part's wear trace: the same `load × weight` as plain numbers; the show stores only summaries                                                                                                                                                                |
+| Rival-rules injury chance             | `computePhysicalToll` on a rival show under `ai.skipInMatchInjuries` | The injury chance formula: the policy makes it 0, given with its rival-rules line; the roll is still drawn                                                                                                                                                            |
+| Headline at its own level (POL4-10)   | `headlinePopularityOf` (office)                                      | Every traced roll-up level but the one the headline scope picks: the others are read from the untraced roller (the same sums in the same order); the worldwide note needs only its number                                                                             |
+| One map while it is unchanged         | `geographyOf`, `createPopularityRoller`                              | Building the map and its population shares again when every continent, country and region row is the same object as last time (rows are never changed in place)                                                                                                       |
+| Sorted index buckets                  | `MutableTable.lookup`                                                | Sorting a bucket's keys on every lookup: they are kept until a row joins or leaves the bucket, and an update that keeps a row's index keys re-files nothing                                                                                                           |
+| Weekly healing as numbers             | `recoverConditions` (health)                                         | The traced cap and recovery of every body part (the phase stores no trace): the cap once per age, the week's healing once per kind of person and care, `conditionRecoveryValue` per part                                                                              |
+| Rival ring learning as numbers        | `collectRingLearning` on a rival show                                | The learning traces of each competitor and attribute (a rival show stores none): `ringLearningValue` does the same steps in the same order                                                                                                                            |
+| Region changes as numbers (POL4-12)   | `applyPopularityChange` (the popularity door)                        | Each region's traced change when the door's trace does not show its working: only the first `DOOR_TRACE_DETAILED_REGIONS` changed regions are traced, the rest use `popularityChangeValue` (the same steps as numbers); the preview's per-region traces are not built |
+| World figure once per map (POL4-12)   | `PopularityRoller.rollWorld` (the door's world before and after)     | The country and continent records of `rollValues`: the same sums in the same order, kept per popularity map object (maps are never changed in place), so a change's "before" is usually the last change's "after"                                                     |
+| Buzz popularity as a number (POL4-12) | `buzzSubjectsOf` (news)                                              | The full roll-up of every subject of every story: a buzz trace reads only the world value and the root's label and doc link, so the value comes from the untraced roller                                                                                              |
 
 **Proof.** `setFastPaths(false)` turns them all off, so the engine takes the
 full path everywhere. `test/core/fastPaths.test.ts` runs a month of the roster
@@ -549,7 +552,7 @@ decisions), the trace store, the RNG and the world hash; with
 `fastCopy.test.ts` holds the one-walk check to the schema, and the
 `cardValue` sweep holds `cardValueNumber` to the traced value to the bit; the
 `conditionRecovery` and `ringLearning` sweeps do the same for their number
-twins, `headlineFastPath.test.ts` compares every promotion's headline Why?
+twins, `popularityFastPath.test.ts` runs the popularity door both ways over the default map and holds `popularityChangeValue` to the traced change, `buzzFastPath.test.ts` holds the buzz subjects and `rollWorld` to the full roll-up, `headlineFastPath.test.ts` compares every promotion's headline Why?
 under every scope, and `table.test.ts` checks sorted lookups through a run of
 inserts, moves and deletes. A
 new fast path must read `fastPathsEnabled()` and keep both tests passing; if
@@ -592,6 +595,30 @@ rival shows 0.11 s); building the map again on each `geographyOf` 0.4 s. Two
 changes outside the switch, because they do the same work in a different
 order: the trace node budget is a class instead of an object literal with
 closures, and `priorMatchesOf` lists opponents only for the matches it returns.
+
+**POL4-12** (big imported worlds). A workshop world mod imported through the
+engine host has about ten times the default world's people, six times its
+promotions and twice its regions, and runs about five times as many shows (723
+against 141 in 90 days). `packages/engine-host/scripts/benchmark-world.ts`
+measures it (`--db <local mod database>`, nothing from a mod is committed);
+`startPhaseTiming`/`stopPhaseTiming` sum each phase's and reaction's time.
+Medians of two alternating runs, same machine, wall / CPU:
+
+| Run                     | Before          | After           |
+| ----------------------- | --------------- | --------------- |
+| Imported world, 90 days | 30.1 s / 39.7 s | 25.3 s / 34.8 s |
+| Default world, 365 days | 16.7 s / 23.3 s | 13.8 s / 20.0 s |
+
+World hashes were the same before and after, and with the fast paths off. Where
+the imported world's time went before: show night 36% (the popularity door's
+per-region traces for every competitor on a show reaching every region), rival
+booking 13%, the show's popularity change 10%, news on a completed show 9%
+(a full popularity roll-up for every subject of every story), the office
+headline 4%. What is left is spread thin: recording traces (fitting, copying,
+sizing and freezing them) is about a fifth of a day, and the rest is per show.
+Since the imported world runs five times the shows, a year on it still takes
+several times the default world's year; getting closer means simulating less
+per rival show, which changes results.
 
 ## Calendar
 

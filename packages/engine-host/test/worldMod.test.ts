@@ -392,4 +392,28 @@ describe('importWorldMod through the host', () => {
     }
     expect(days).toBe(7);
   });
+
+  it('exports an imported world and registers it again in a fresh host (UNITY-14)', () => {
+    const first = createEmbeddedHost({ content });
+    expect(parse(first.importWorldMod(JSON.stringify({ tables, packId: 'wm-stored' })))['ok']).toBe(
+      true,
+    );
+    const exported = parse(first.exportImportedWorld('wm-stored'));
+    expect(exported['ok']).toBe(true);
+    expect(parse(first.exportImportedWorld('wm-missing'))['ok']).toBe(false);
+
+    // A restart: a new host knows only the bundled worlds until the stored pack is registered.
+    const second = createEmbeddedHost({ content });
+    const stored = JSON.stringify({ pack: exported['pack'] });
+    const registered = parse(second.registerImportedWorld(stored));
+    expect(registered['ok']).toBe(true);
+    expect(parse(second.listWorlds())['packs']).toContainEqual(
+      expect.objectContaining({ id: 'wm-stored', imported: true }),
+    );
+    expect(parse(second.previewWorld('wm-stored'))['ok']).toBe(true);
+    expect(parse(second.registerImportedWorld(JSON.stringify({ pack: { files: {} } })))['ok']).toBe(
+      false,
+    );
+    expect(parse(second.removeImportedWorld('wm-stored'))['removed']).toBe(true);
+  });
 });

@@ -74,6 +74,12 @@ export interface PopularityValues {
 export interface PopularityRoller {
   /** The world, continent and country values of one popularity map, untraced. */
   rollValues(regionalPop: RegionalPopularity): PopularityValues;
+  /**
+   * `rollValues(regionalPop).world`, the same sums in the same order without the other levels'
+   * records (POL4-12). With the fast paths on it is kept per map object, which is never changed
+   * once stored, so the popularity door's "world before" is usually the last change's "after".
+   */
+  rollWorld(regionalPop: RegionalPopularity): number;
 }
 
 /** A region line of the view: the stored value, with nothing to explain. */
@@ -316,7 +322,54 @@ function buildPopularityRoller(geography: Geography): PopularityRoller {
   const countryIds = geography.countries.map((country) => country.id);
   const continentIds = geography.continents.map((continent) => continent.id);
 
-  return {
+  // rollWorld's walk: each continent's countries with their regions, in the order rollValues
+  // adds them up, then the continents in the world's order.
+  const continentPlans = continentMembers.map((continent) => ({
+    id: continent.id,
+    countries: continent.countryShares.map(({ id, share }) => ({
+      share,
+      regions: regionShares.get(id) ?? [],
+    })),
+  }));
+  const continentIndex = new Map(continentPlans.map((plan, index) => [plan.id, index]));
+  const worldPlan = continentShares.map(({ id, share }) => ({
+    index: continentIndex.get(id) ?? -1,
+    share,
+  }));
+  const worlds = new WeakMap<RegionalPopularity, number>();
+  const continentValues = new Array<number>(continentPlans.length).fill(0);
+
+  const rollWorld = (regionalPop: RegionalPopularity): number => {
+    for (let index = 0; index < continentPlans.length; index += 1) {
+      let continentValue = 0;
+      for (const country of continentPlans[index]?.countries ?? []) {
+        let countryValue = 0;
+        for (const { id, share } of country.regions) {
+          countryValue += (regionalPop[id] ?? 0) * share;
+        }
+        continentValue += countryValue * country.share;
+      }
+      continentValues[index] = continentValue;
+    }
+    let world = 0;
+    for (const { index, share } of worldPlan) {
+      world += (continentValues[index] ?? 0) * share;
+    }
+    return world;
+  };
+
+  const roller: PopularityRoller = {
+    rollWorld(regionalPop) {
+      if (!fastPathsEnabled()) {
+        return roller.rollValues(regionalPop).world;
+      }
+      let world = worlds.get(regionalPop);
+      if (world === undefined) {
+        world = rollWorld(regionalPop);
+        worlds.set(regionalPop, world);
+      }
+      return world;
+    },
     rollValues(regionalPop) {
       // The casts name the two records' key types; every key is filled in below.
       const countries = {} as Record<CountryId, number>;
@@ -353,6 +406,7 @@ function buildPopularityRoller(geography: Geography): PopularityRoller {
       };
     },
   };
+  return roller;
 }
 
 /** Highest value first, then by name, so a list reads from the strongest place down. */

@@ -60,9 +60,8 @@ namespace RingsideBooker.Screens
         {
             EngineClient client = Kit.Game.Client;
             var args = new JObject { ["eventInstanceId"] = eventId };
-            QueryResult<JToken> answer = await client.Query("shows.results", args);
-            QueryResult<JToken> crowd = await client.Query("boxOffice.showCrowd", args);
-            QueryResult<JToken> popularity = await client.Query("popularity.showChange", args);
+            (QueryResult<JToken> answer, QueryResult<JToken> crowd, QueryResult<JToken> popularity) = await client.Read("results",
+                reader => (reader.Query("shows.results", args), reader.Query("boxOffice.showCrowd", args), reader.Query("popularity.showChange", args)));
             state.People ??= await CardPeople.LoadAsync();
             if (!answer.Ok || answer.Data == null || answer.Data.Type == JTokenType.Null)
             {
@@ -76,10 +75,16 @@ namespace RingsideBooker.Screens
 
             // The physical toll of every match (for the injuries in Key changes and the reports).
             var tolls = new Dictionary<string, List<JToken>>();
-            foreach (JToken segment in segments.Where(segment => Kit.Str(segment, "kind") == "match" && Kit.Obj(segment, "rating") != null))
+            List<string> matchIds = segments.Where(segment => Kit.Str(segment, "kind") == "match" && Kit.Obj(segment, "rating") != null)
+                .Select(segment => Kit.Str(segment, "segmentId")).ToList();
+            if (matchIds.Count > 0)
             {
-                QueryResult<JToken> toll = await client.Query("match.physicalForSegment", new JObject { ["segmentId"] = Kit.Str(segment, "segmentId") });
-                if (toll.Ok) tolls[Kit.Str(segment, "segmentId")] = Kit.Arr(toll.Data, "workers").ToList();
+                List<QueryResult<JToken>> answers = await client.Read("results.physical",
+                    reader => matchIds.Select(id => reader.Query("match.physicalForSegment", new JObject { ["segmentId"] = id })).ToList());
+                for (int index = 0; index < matchIds.Count; index++)
+                {
+                    if (answers[index].Ok) tolls[matchIds[index]] = Kit.Arr(answers[index].Data, "workers").ToList();
+                }
             }
 
             host.Clear();
