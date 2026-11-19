@@ -205,6 +205,7 @@ namespace RingsideBooker.Screens.Contracts
             if (id == tab || !Tabs.Any(entry => entry.id == id)) return;
             tab = id;
             Redraw();
+            LoadAndDraw();
         }
 
         public void ShowClosedOffers(bool closed)
@@ -580,6 +581,7 @@ namespace RingsideBooker.Screens.Contracts
             List<JToken> all = RowsFor(tab, out bool loading);
             if (loading)
             {
+                ShownRows = Array.Empty<JToken>();
                 listHost.Add(Ds.Loading("Loading the list…"));
                 return;
             }
@@ -589,7 +591,8 @@ namespace RingsideBooker.Screens.Contracts
             if (shown != null)
             {
                 bool narrowed = filtered.Count != all.Count;
-                string noun = tab == ContractsScreen.TabFreeAgents ? "free agents" : tab == ContractsScreen.TabOffers ? "talks" : "contracts";
+                bool one = all.Count == 1;
+                string noun = tab == ContractsScreen.TabFreeAgents ? (one ? "free agent" : "free agents") : tab == ContractsScreen.TabOffers ? (one ? "talk" : "talks") : (one ? "contract" : "contracts");
                 shown.text = narrowed ? $"{TextFormat.Number(filtered.Count)} of {TextFormat.Number(all.Count)} {noun}" : $"{TextFormat.Number(all.Count)} {noun}";
             }
 

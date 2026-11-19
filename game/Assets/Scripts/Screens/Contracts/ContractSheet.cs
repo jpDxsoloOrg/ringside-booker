@@ -30,7 +30,11 @@ namespace RingsideBooker.Screens.Contracts
             VisualElement body = Ds.Column("ct-sheet").Named("contract-sheet");
             ContractUi.Style(body);
             VisualElement footer = Ds.Row("ct-sheet__footer").Named("contract-sheet-footer");
-            OverlayHandle handle = DsOverlay.SideSheet(anchor, "Contract", body, "CONTRACT", footer, 560f);
+            OverlayHandle handle = null;
+            Label title = null;
+            // Bind before opening: the binding draws when the body joins the panel.
+            Kit.Live(body, () => Render(anchor, body, footer, title, employmentId, rules, view, handle));
+            handle = DsOverlay.SideSheet(anchor, "Contract", body, "CONTRACT", footer, 560f);
             if (handle == null) return null;
             ContractUi.Style(handle.Entry);
             Current = handle;
@@ -38,8 +42,7 @@ namespace RingsideBooker.Screens.Contracts
             {
                 if (Current == handle) Current = null;
             };
-            Label title = handle.Entry.Q<Label>(className: "ds-overlay-header__title");
-            Kit.Live(body, () => Render(anchor, body, footer, title, employmentId, rules, view, handle));
+            title = handle.Entry.Q<Label>(className: "ds-overlay-header__title");
             return handle;
         }
 
