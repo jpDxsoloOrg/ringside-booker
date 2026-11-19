@@ -987,7 +987,7 @@ namespace RingsideBooker.Screens.Contracts
                 open.name = "offer-" + personId;
                 return open;
             }
-            Button offer = Ds.Button("Make offer", () => NegotiationSheet.Open(Root, NegotiationTarget.Signing(personId)), DsButtonKind.Primary);
+            Button offer = Ds.Button("Make offer", () => NegotiationSheet.Open(Root, NegotiationTarget.Signing(personId)), DsButtonKind.Secondary);
             offer.name = "offer-" + personId;
             if (Kit.Str(row, "cooldownUntil") is string until)
             {

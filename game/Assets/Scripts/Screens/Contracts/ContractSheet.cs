@@ -31,9 +31,8 @@ namespace RingsideBooker.Screens.Contracts
             ContractUi.Style(body);
             VisualElement footer = Ds.Row("ct-sheet__footer").Named("contract-sheet-footer");
             OverlayHandle handle = null;
-            Label title = null;
-            // Bind before opening: the binding draws when the body joins the panel.
-            Kit.Live(body, () => Render(anchor, body, footer, title, employmentId, rules, view, handle));
+            // Bind before opening: the binding draws when the body joins the panel (the handle is read once the draw's queries are back).
+            Kit.Live(body, () => Render(anchor, body, footer, () => handle, employmentId, rules, view));
             handle = DsOverlay.SideSheet(anchor, "Contract", body, "CONTRACT", footer, 560f);
             if (handle == null) return null;
             ContractUi.Style(handle.Entry);
@@ -42,12 +41,11 @@ namespace RingsideBooker.Screens.Contracts
             {
                 if (Current == handle) Current = null;
             };
-            title = handle.Entry.Q<Label>(className: "ds-overlay-header__title");
             return handle;
         }
 
-        private static async Task Render(VisualElement anchor, VisualElement body, VisualElement footer, Label title, string employmentId,
-            ContractRules rules, ContractsView view, OverlayHandle handle)
+        private static async Task Render(VisualElement anchor, VisualElement body, VisualElement footer, System.Func<OverlayHandle> handleOf, string employmentId,
+            ContractRules rules, ContractsView view)
         {
             EngineClient client = Kit.Game.Client;
             QueryResult<JToken> detailResult = await client.Query("contracts.detail", new JObject { ["employmentId"] = employmentId });
@@ -76,6 +74,8 @@ namespace RingsideBooker.Screens.Contracts
                 }
             }
 
+            OverlayHandle handle = handleOf();
+            Label title = handle?.Entry.Q<Label>(className: "ds-overlay-header__title");
             body.Clear();
             footer.Clear();
             if (detail == null || detail.Type == JTokenType.Null)
