@@ -81,11 +81,13 @@ namespace RingsideBooker.Screens.Dev
             for (int step = 0; step < 200; step++)
             {
                 yield return Await(SkipCheck.Settle());
-                if (start.DaysUntil(EngineGame.Current.ShellData.Snapshot.Date) >= days) break;
+                int played = start.DaysUntil(EngineGame.Current.ShellData.Snapshot.Date);
+                if (played >= days) break;
                 IReadOnlyList<GateHit> gates = day.Gates;
                 if (gates.Count == 0)
                 {
-                    day.NextDay();
+                    // A long skip, so news alerts stop it (they never stop a single day).
+                    day.Skip(new AdvanceRequest(days - played));
                     yield return Wait(0.2f);
                     while (day.Advancing) yield return null;
                     continue;
