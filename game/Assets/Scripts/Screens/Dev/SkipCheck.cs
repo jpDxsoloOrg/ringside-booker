@@ -43,6 +43,11 @@ namespace RingsideBooker.Screens.Dev
         public const string StoredArgument = "-rbSkipCheckStored";
         private static string storedItem;
 
+        /// <summary><c>-rbSkipCheckSpeed full|fast</c>: the Big world speed the new game starts with (POL4-13).</summary>
+        public const string SpeedArgument = "-rbSkipCheckSpeed";
+
+        private static string speed;
+
         private int days = 90;
         private static string shots;
         private static int shotCount;
@@ -65,6 +70,8 @@ namespace RingsideBooker.Screens.Dev
                 if (workshopAt >= 0 && workshopAt + 1 < args.Length) workshopItem = args[workshopAt + 1];
                 int storedAt = Array.FindIndex(args, arg => string.Equals(arg, StoredArgument, StringComparison.OrdinalIgnoreCase));
                 if (storedAt >= 0 && storedAt + 1 < args.Length) storedItem = args[storedAt + 1];
+                int speedAt = Array.FindIndex(args, arg => string.Equals(arg, SpeedArgument, StringComparison.OrdinalIgnoreCase));
+                if (speedAt >= 0 && speedAt + 1 < args.Length) speed = args[speedAt + 1];
                 return;
             }
         }
@@ -127,6 +134,11 @@ namespace RingsideBooker.Screens.Dev
             else
             {
                 await NewGameWizard.Last.UseDefaults(false);
+            }
+            if (speed != null)
+            {
+                NewGameWizard.Last.SetSetting("bigWorldSpeed", speed);
+                Debug.Log($"[SkipCheck] Big world speed: {speed}");
             }
             await NewGameWizard.Last.StartGame();
             while (EngineGame.Current == null || ShellController.Current == null) await Task.Yield();

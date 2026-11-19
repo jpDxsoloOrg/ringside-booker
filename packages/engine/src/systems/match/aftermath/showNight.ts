@@ -32,14 +32,16 @@ export const AFTERMATH_APPLIER_ORDER = 30;
  * popularity by each person's share of the beats); a match with no winner or loser writes nothing.
  */
 export function applyAftermathOnShowNight(ctx: PhaseContext, result: SegmentResult): void {
+  // A distant rival show in a Fast world (POL4-13) takes the light path.
+  const light = result.light === true;
   if (result.kind === 'angle') {
-    applyAngleAftermath(ctx, result.segmentId, result.roleKey);
+    applyAngleAftermath(ctx, result.segmentId, result.roleKey, { showRegionOnly: light });
     return;
   }
   if (result.outcome === null || result.outcome.kind === 'noContest') {
     return;
   }
-  applySegmentAftermath(ctx, result.segmentId);
+  applySegmentAftermath(ctx, result.segmentId, { light });
 }
 
 export const aftermathApplier: SegmentResultApplier = {

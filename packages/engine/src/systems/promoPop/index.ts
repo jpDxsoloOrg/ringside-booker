@@ -99,7 +99,9 @@ export const promoPopSystem: SystemBundle = defineSystem({
       id: APPLY_AFTER_SHOW_SUBSCRIPTION_ID,
       type: 'show.completed',
       handler: (event, ctx) => {
-        applyShowPopularity(ctx, event.payload.eventInstanceId);
+        applyShowPopularity(ctx, event.payload.eventInstanceId, {
+          showRegionOnly: event.payload.light === true,
+        });
       },
     }),
   ],
