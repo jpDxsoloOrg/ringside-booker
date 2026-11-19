@@ -62,7 +62,7 @@ namespace RingsideBooker.Screens.MatchLab
                     if (onPick(person)) handle?.Close();
                 }) { text = string.Empty, name = $"pick-{person.Id}" };
                 button.AddToClassList("lab-picker__row");
-                button.Add(DsCards.PortraitBox(ScreenDs.Picture(person.ImageRef), Alignment.Tweener, "ds-portrait--xs"));
+                button.Add(DsCards.PortraitBox(ScreenDs.Picture(person.ImageRef), Alignment.Tweener, "ds-portrait--xs", false, person.Name));
                 VisualElement words = Ds.Column("lab-picker__words");
                 words.Add(Ds.Text(person.Name, "lab-picker__name"));
                 string where = person.PromotionShortName ?? "Free agent";

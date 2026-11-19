@@ -370,7 +370,7 @@ namespace RingsideBooker.Screens.Contracts
 
             // Who they are.
             VisualElement hero = Ds.Row("ds-row--top", "ct-hero");
-            hero.Add(ContractUi.Portrait(Kit.Str(header, "imageRef") ?? Kit.Str(view, "imageRef"), "ds-portrait--md"));
+            hero.Add(ContractUi.Portrait(Kit.Str(header, "imageRef") ?? Kit.Str(view, "imageRef"), "ds-portrait--md", false, RingName));
             VisualElement words = Ds.Column("ct-hero__words");
             words.Add(Ds.Text(TextFormat.Upper(RingName), "ds-type-title", "ct-hero__name"));
             words.Add(Ds.Dot(Kit.Str(ask, "eligibility.situation") == "freeAgent" ? DsState.Good : DsState.Info, situation ?? ContractText.NoValue));

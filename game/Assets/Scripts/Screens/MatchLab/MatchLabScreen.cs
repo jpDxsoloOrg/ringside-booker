@@ -367,7 +367,7 @@ namespace RingsideBooker.Screens.MatchLab
                     string id = personId;
                     VisualElement row = Ds.Row("lab-person");
                     (Alignment alignment, Texture2D picture) face = Face(id);
-                    row.Add(DsCards.PortraitBox(face.picture, face.alignment, "ds-portrait--xs"));
+                    row.Add(DsCards.PortraitBox(face.picture, face.alignment, "ds-portrait--xs", false, state.NameOf(id)));
                     VisualElement words = Ds.Column("lab-person__words");
                     words.Add(Ds.Text(state.NameOf(id), "lab-person__name"));
                     if (state.People.TryGetValue(id, out LabPerson person) && person.PromotionShortName != null)

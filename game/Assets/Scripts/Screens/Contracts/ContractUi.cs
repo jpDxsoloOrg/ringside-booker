@@ -41,14 +41,14 @@ namespace RingsideBooker.Screens.Contracts
             return pictures.Get(imageRef);
         }
 
-        public static VisualElement Portrait(string imageRef, string sizeClass = "ds-portrait--xs", bool gold = false) =>
-            DsCards.PortraitBox(Picture(imageRef), Alignment.Tweener, sizeClass, gold);
+        public static VisualElement Portrait(string imageRef, string sizeClass = "ds-portrait--xs", bool gold = false, string name = null) =>
+            DsCards.PortraitBox(Picture(imageRef), Alignment.Tweener, sizeClass, gold, name);
 
         /// <summary>A table's name cell: a small portrait and the name (ellipsized), a crown for a champion.</summary>
         public static VisualElement NameCell(string ringName, string imageRef, bool champion = false)
         {
             VisualElement cell = Ds.Row("ct-name-cell");
-            cell.Add(Portrait(imageRef, "ds-portrait--xs", champion));
+            cell.Add(Portrait(imageRef, "ds-portrait--xs", champion, ringName));
             cell.Add(Ds.Text(ringName ?? ContractText.NoValue, "ds-cell__text", "ds-cell__text--strong", "ct-name-cell__name"));
             if (champion) cell.Add(new Icon("crown", "ds-icon--xs", "ct-name-cell__crown"));
             return cell;

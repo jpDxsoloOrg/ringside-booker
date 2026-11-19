@@ -355,7 +355,7 @@ namespace RingsideBooker.Screens.Creative
         private static VisualElement MemberLine(string personId, string name, string imageRef, string skipped, double popularity, JToken popularityTrace, double momentum, JToken momentumTrace)
         {
             VisualElement row = Ds.Row("cr-payoff__member").Named("payoff-" + personId);
-            row.Add(CreativeUi.Portrait(imageRef, "ds-portrait--xs"));
+            row.Add(CreativeUi.Portrait(imageRef, "ds-portrait--xs", name: name));
             row.Add(CreativeUi.Person(name, personId, "cr-payoff__name"));
             if (skipped != null)
             {
@@ -505,7 +505,7 @@ namespace RingsideBooker.Screens.Creative
                 row.name = "option-" + personId;
                 row.AddToClassList("cr-option");
                 string alignment = Kit.Str(option, "alignment");
-                row.Add(CreativeUi.Portrait(Kit.Str(option, "imageRef"), "ds-portrait--xs", false, alignment == "face" ? Alignment.Face : alignment == "heel" ? Alignment.Heel : Alignment.Tweener));
+                row.Add(CreativeUi.Portrait(Kit.Str(option, "imageRef"), "ds-portrait--xs", false, alignment == "face" ? Alignment.Face : alignment == "heel" ? Alignment.Heel : Alignment.Tweener, Kit.Str(option, "name")));
                 VisualElement words = Ds.Column("cr-option__words");
                 words.Add(CreativeUi.Clip(Kit.Str(option, "name"), "cr-option__name"));
                 string facts = StorylineText.MemberOptionFacts(Kit.Str(option, "role"), Kit.Str(option, "push"), (int)(Kit.Num(option, "activeStorylineCount") ?? 0));

@@ -17,8 +17,9 @@ namespace RingsideBooker.UI.Mockups
         public const string Results = "results";
         public const string StyleGuide = "style-guide";
         public const string Components = "components";
+        public const string Portraits = "portraits";
 
-        public static readonly string[] Order = { Office, Roster, Booking, ShowNight, Results, StyleGuide, Components };
+        public static readonly string[] Order = { Office, Roster, Booking, ShowNight, Results, StyleGuide, Components, Portraits };
     }
 
     /// <summary>
@@ -79,6 +80,7 @@ namespace RingsideBooker.UI.Mockups
             builders[MockupScreens.Results] = () => ResultsMockup.Build(this);
             builders[MockupScreens.StyleGuide] = () => StyleGuideMockup.Build(this);
             builders[MockupScreens.Components] = () => ComponentsMockup.Build(this);
+            builders[MockupScreens.Portraits] = () => PortraitCompareMockup.Build(this);
 
             Current = this;
             Show(MockupScreens.Office);
@@ -136,6 +138,7 @@ namespace RingsideBooker.UI.Mockups
                 MockupScreens.ShowNight => ("Show night", "Altura Showcase", "booking"),
                 MockupScreens.Results => ("Show night", "Results", "booking"),
                 MockupScreens.StyleGuide => ("Design system", "Style guide", null),
+                MockupScreens.Portraits => ("Design system", "Placeholder portraits", null),
                 _ => ("Design system", "Components", null),
             };
             Shell.SetCrumbs(section, page);

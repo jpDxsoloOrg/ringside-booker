@@ -253,14 +253,14 @@ namespace RingsideBooker.Screens
         private static VisualElement PersonFace(string ringName, Data data)
         {
             JToken row = Kit.Arr(data.Roster, "rows").FirstOrDefault(r => Kit.Str(r, "ringName") == ringName);
-            return Face(Kit.Str(row, "imageRef"), ScreenDs.AlignmentOf(Kit.Str(row, "alignment")), false);
+            return Face(Kit.Str(row, "imageRef"), ScreenDs.AlignmentOf(Kit.Str(row, "alignment")), false, ringName);
         }
 
         private static VisualElement RankedFace(RankedWorker worker) =>
-            Face(worker?.ImageRef, ScreenDs.AlignmentOf(worker?.Alignment), worker?.Champion != null);
+            Face(worker?.ImageRef, ScreenDs.AlignmentOf(worker?.Alignment), worker?.Champion != null, worker?.Name);
 
-        private static VisualElement Face(string imageRef, Alignment alignment, bool gold) =>
-            DsCards.PortraitBox(ScreenDs.Picture(imageRef), alignment, "ds-portrait--xl", gold);
+        private static VisualElement Face(string imageRef, Alignment alignment, bool gold, string name = null) =>
+            DsCards.PortraitBox(ScreenDs.Picture(imageRef), alignment, "ds-portrait--xl", gold, name);
 
         private static VisualElement Faces(VisualElement left, VisualElement right)
         {
@@ -503,7 +503,7 @@ namespace RingsideBooker.Screens
                 {
                     VisualElement row = Ds.Row("oh-rank").Named($"rank-{rank}");
                     row.Add(Ds.Text(rank.ToString(), "oh-rank__number"));
-                    row.Add(DsCards.PortraitBox(ScreenDs.Picture(worker.ImageRef), ScreenDs.AlignmentOf(worker.Alignment), "ds-portrait--xs", worker.Champion != null));
+                    row.Add(DsCards.PortraitBox(ScreenDs.Picture(worker.ImageRef), ScreenDs.AlignmentOf(worker.Alignment), "ds-portrait--xs", worker.Champion != null, worker.Name));
                     VisualElement words = Ds.Column("oh-rank__words");
                     words.Add(Ds.Text(worker.Name, "oh-rank__name"));
                     words.Add(Ds.Text(worker.Champion ?? Kit.PushLabel(worker.Push), worker.Champion != null ? "oh-rank__champ" : "oh-rank__role"));

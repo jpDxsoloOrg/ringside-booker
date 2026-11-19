@@ -238,7 +238,7 @@ namespace RingsideBooker.Screens.Creative
             foreach (JToken member in members.Take(CardSideMax))
             {
                 VisualElement line = Ds.Row("cr-member-line");
-                line.Add(CreativeUi.Portrait(Kit.Str(member, "imageRef"), "ds-portrait--xs", false, side == "face" ? Alignment.Face : Alignment.Heel));
+                line.Add(CreativeUi.Portrait(Kit.Str(member, "imageRef"), "ds-portrait--xs", false, side == "face" ? Alignment.Face : Alignment.Heel, Kit.Str(member, "name")));
                 line.Add(CreativeUi.Person(Kit.Str(member, "name"), Kit.Str(member, "personId"), "cr-member-line__name"));
                 if (!Kit.Bool(member, "stillEmployed"))
                 {
@@ -424,7 +424,7 @@ namespace RingsideBooker.Screens.Creative
             string personId = Kit.Str(member, "personId");
             string name = Kit.Str(member, "name");
             VisualElement row = Ds.Row("cr-member").Named("storyline-member-" + personId);
-            row.Add(CreativeUi.Portrait(Kit.Str(member, "imageRef"), "ds-portrait--sm", false, side == "face" ? Alignment.Face : side == "heel" ? Alignment.Heel : Alignment.Tweener));
+            row.Add(CreativeUi.Portrait(Kit.Str(member, "imageRef"), "ds-portrait--sm", false, side == "face" ? Alignment.Face : side == "heel" ? Alignment.Heel : Alignment.Tweener, name));
             VisualElement words = Ds.Column("cr-member__words");
             words.Add(CreativeUi.Person(name, personId, "cr-member__name"));
             string alignment = Kit.Str(member, "alignment");

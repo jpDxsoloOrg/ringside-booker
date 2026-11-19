@@ -88,7 +88,7 @@ namespace RingsideBooker.Screens.Contracts
 
             // Who.
             VisualElement hero = Ds.Row("ds-row--top", "ct-hero");
-            hero.Add(ContractUi.Portrait(Kit.Str(detail, "imageRef"), "ds-portrait--md", Kit.Arr(detail, "titles").Any()));
+            hero.Add(ContractUi.Portrait(Kit.Str(detail, "imageRef"), "ds-portrait--md", Kit.Arr(detail, "titles").Any(), ringName));
             VisualElement words = Ds.Column("ct-hero__words");
             words.Add(Ds.Text(TextFormat.Upper(ringName), "ds-type-title", "ct-hero__name"));
             words.Add(Ds.Text($"{ContractText.RoleText(Kit.Str(detail, "role"), Kit.Str(detail, "push"))} at {Kit.Str(detail, "promotionName")}", "ds-type-caption", "ds-wrap"));

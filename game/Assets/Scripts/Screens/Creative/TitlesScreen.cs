@@ -234,7 +234,7 @@ namespace RingsideBooker.Screens.Creative
             if (champion != null)
             {
                 JToken first = Kit.Arr(champion, "holders").FirstOrDefault();
-                holder.Add(CreativeUi.Portrait(Kit.Str(first, "imageRef"), "ds-portrait--sm", true));
+                holder.Add(CreativeUi.Portrait(Kit.Str(first, "imageRef"), "ds-portrait--sm", true, name: Kit.Str(first, "ringName")));
                 VisualElement who = Ds.Column("cr-tcard__who");
                 VisualElement nameRow = Ds.Row("cr-tcard__who-row");
                 nameRow.Add(new Icon("titles", "ds-icon--xs", "cr-belt-mark"));
@@ -403,7 +403,7 @@ namespace RingsideBooker.Screens.Creative
             foreach (JToken holder in Kit.Arr(champion, "holders"))
             {
                 VisualElement one = Ds.Column("cr-champ__holder");
-                one.Add(CreativeUi.Portrait(Kit.Str(holder, "imageRef"), "ds-portrait--md", true));
+                one.Add(CreativeUi.Portrait(Kit.Str(holder, "imageRef"), "ds-portrait--md", true, name: Kit.Str(holder, "ringName")));
                 one.Add(CreativeUi.Person(Kit.Str(holder, "ringName"), Kit.Str(holder, "personId"), "cr-champ__holder-name"));
                 portraits.Add(one);
             }
@@ -475,7 +475,7 @@ namespace RingsideBooker.Screens.Creative
         {
             VisualElement cell = Ds.Row("cr-name-cell");
             List<JToken> holders = Kit.Arr(reign, "holders").ToList();
-            cell.Add(CreativeUi.Portrait(Kit.Str(holders.FirstOrDefault(), "imageRef"), "ds-portrait--xs", current));
+            cell.Add(CreativeUi.Portrait(Kit.Str(holders.FirstOrDefault(), "imageRef"), "ds-portrait--xs", current, name: Kit.Str(holders.FirstOrDefault(), "ringName")));
             if (current) cell.Add(new Icon("titles", "ds-icon--xs", "cr-belt-mark", "cr-name-cell__mark"));
             string label = Kit.Str(reign, "label");
             if (holders.Count == 1)
