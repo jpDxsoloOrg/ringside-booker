@@ -220,8 +220,8 @@ namespace RingsideBooker.Screens.MatchLab
             if (workers.Count == 0) return panel;
             var table = new DsTable<JToken>(new[]
             {
-                new DsColumn<JToken>("name", "Name", row => Ds.Text(Kit.Str(row, "name"), "ds-cell__text", "ds-cell__text--strong")) { Grow = 2f, Pinned = true, SortKey = row => Kit.Str(row, "name") },
-                new DsColumn<JToken>("side", "Side", row => Ds.Text(LabText.SideLabel((int)(Kit.Num(row, "side") ?? 0)), "ds-cell__text")) { Width = 70, SortKey = row => Kit.Num(row, "side") ?? 0 },
+                new DsColumn<JToken>("name", "Name", row => Ds.Text(Kit.Str(row, "name"), "ds-cell__text", "ds-cell__text--strong")) { Grow = 2f, MinWidth = 130, Pinned = true, SortKey = row => Kit.Str(row, "name") },
+                new DsColumn<JToken>("side", "Side", row => Ds.Text(LabText.SideLabel((int)(Kit.Num(row, "side") ?? 0)), "ds-cell__text")) { Width = 70, Default = false, SortKey = row => Kit.Num(row, "side") ?? 0 },
                 TraceColumn("inRing", "In-ring", "In-ring", "How they worked in the ring tonight."),
                 TraceColumn("entertainment", "Entertainment", "Entertainment", "Charisma and presence on the night."),
                 new DsColumn<JToken>("stamina", "Stamina", StaminaCell) { Grow = 1.1f, MinWidth = 130, SortKey = row => Kit.Num(row, "stamina.penalty.value") ?? 0, Help = "Did they have the gas for this length of match?" },
@@ -240,7 +240,7 @@ namespace RingsideBooker.Screens.MatchLab
                 cell.Add(Ds.Text(Kit.Whole(value), "ds-cell__text", "ds-cell__text--num"));
                 ScreenDs.WhyTrace(cell, $"{Kit.Str(row, "name")}: {label}", value, Kit.Obj(row, $"{key}.trace"), "points");
                 return cell;
-            }) { Width = 120, Align = DsAlign.Right, SortKey = row => Kit.Num(row, $"{key}.value") ?? 0, Help = help, Default = shown };
+            }) { Width = 100, Align = DsAlign.Right, SortKey = row => Kit.Num(row, $"{key}.value") ?? 0, Help = help, Default = shown };
 
         private static VisualElement StaminaCell(JToken row)
         {
