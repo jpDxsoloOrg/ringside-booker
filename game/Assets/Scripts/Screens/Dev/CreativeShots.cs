@@ -278,7 +278,10 @@ namespace RingsideBooker.Screens.Dev
 
         // ---- Playing days -----------------------------------------------------------------------------
 
-        /// <summary>Plays days: show nights get Auto-fill and Auto results, other stops their main action.</summary>
+        /// <summary>
+        /// Plays days the way the skip check does: show nights get Auto-fill and Auto results, contract
+        /// stops are cleared on the Contracts screen, other stops through the day button.
+        /// </summary>
         private static async Task PlayDays(int days)
         {
             EngineGame game = EngineGame.Current;
@@ -287,7 +290,7 @@ namespace RingsideBooker.Screens.Dev
             string startDate = start.Data?.Date;
             for (int step = 0; step < days * 4; step++)
             {
-                await Settle();
+                await SkipCheck.Settle();
                 QueryResult<SimStatus> now = await game.Client.Query<SimStatus>(EngineQueries.SimStatus);
                 if (GameDate.TryParse(startDate, out GameDate from) && GameDate.TryParse(now.Data?.Date, out GameDate to) && from.DaysUntil(to) >= days) break;
                 IReadOnlyList<GateHit> gates = day.Gates;
@@ -299,62 +302,11 @@ namespace RingsideBooker.Screens.Dev
                     continue;
                 }
                 GateHit lead = DayControlLogic.LeadingGate(gates);
-                if (lead.GateId == EngineGateActions.ShowsTonight)
-                {
-                    await RunShow(game, lead.Subject?.Id);
-                    continue;
-                }
-                GateAction action = day.ActionsFor(lead).FirstOrDefault(entry => entry.Primary) ?? day.ActionsFor(lead).FirstOrDefault();
-                if (action == null)
-                {
-                    Log($"no action for {lead.GateId}; acknowledging news");
-                    await game.Client.Command("news.ackAlerts", new JObject());
-                    continue;
-                }
-                string refused = await action.Run();
-                if (refused != null) Log($"{lead.GateId}: {refused}");
+                if (lead.GateId == EngineGateActions.ShowsTonight) await SkipCheck.ShowNight(game, lead);
+                else if (lead.GateId.StartsWith("contracts.", StringComparison.Ordinal)) await SkipCheck.ClearOnContracts(lead);
+                else await SkipCheck.ClearStop(lead);
             }
-        }
-
-        private static async Task RunShow(EngineGame game, string eventId)
-        {
-            if (eventId == null) return;
-            EngineClient client = game.Client;
-            var args = new JObject { ["eventInstanceId"] = eventId };
-            JToken live = (await client.Query("shows.liveState", args)).Data;
-            string stage = (string)live?["stage"];
-            bool goesLive = (string)live?["mode"] == "live" || stage == "live";
-            if (stage != "live")
-            {
-                QueryResult<JToken> card = await client.Query("booking.card", args);
-                if (card.Ok && card.Data?["canEdit"]?.Type == JTokenType.Boolean && (bool)card.Data["canEdit"])
-                {
-                    await client.Command("aip.autoFillCard", new JObject { ["eventInstanceId"] = eventId, ["keepFilledSlots"] = true });
-                    await BookingScreen.PlanAutoResults(eventId);
-                }
-            }
-            if (goesLive)
-            {
-                await client.Command("shows.runRestOfShow", args);
-                JToken after = (await client.Query("shows.liveState", args)).Data;
-                if (after != null && after.Type != JTokenType.Null && (string)after["stage"] == "live") await client.Command("shows.finishShow", args);
-            }
-            else
-            {
-                await client.Command("shows.runTonight", args);
-            }
-            Log($"show {eventId} run ({(goesLive ? "live" : "auto")})");
-        }
-
-        private static async Task Settle()
-        {
-            await Task.Delay(300);
-            EngineGame game = EngineGame.Current;
-            while (game != null && (game.Client.IsBusy || game.DayControl.Advancing)) await Task.Yield();
-            game?.DayControl.Refresh();
-            await Task.Delay(200);
-            while (game != null && game.Client.IsBusy) await Task.Yield();
-            await Task.Delay(100);
+            ShellController.Current.Overlay.CloseAll();
         }
 
         // ---- Helpers --------------------------------------------------------------------------------

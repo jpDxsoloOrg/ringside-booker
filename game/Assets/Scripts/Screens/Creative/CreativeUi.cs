@@ -36,18 +36,12 @@ namespace RingsideBooker.Screens.Creative
         }
 
         /// <summary>
-        /// Several queries for one draw. Each runs in order on the engine thread; once
-        /// <c>EngineClient.Read</c> (UNITY-23) is on main this can batch them into one trip.
+        /// Several queries for one draw, read in one engine-thread trip with <c>EngineClient.Read</c>
+        /// (UNITY-23), so a redraw costs one main-thread hop. Results come back in order.
         /// </summary>
-        public static async Task<QueryResult<JToken>[]> Queries(EngineClient client, params (string name, object args)[] queries)
-        {
-            var results = new QueryResult<JToken>[queries.Length];
-            for (int index = 0; index < queries.Length; index++)
-            {
-                results[index] = await client.Query(queries[index].name, queries[index].args);
-            }
-            return results;
-        }
+        public static Task<QueryResult<JToken>[]> Queries(EngineClient client, params (string name, object args)[] queries) =>
+            client.Read("creative " + string.Join("+", queries.Select(query => query.name)),
+                reader => queries.Select(query => reader.Query(query.name, query.args)).ToArray());
 
         // ---- Pictures -------------------------------------------------------------------------------
 

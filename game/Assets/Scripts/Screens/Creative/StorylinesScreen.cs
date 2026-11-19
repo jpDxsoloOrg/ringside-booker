@@ -258,28 +258,18 @@ namespace RingsideBooker.Screens.Creative
         {
             EngineGame game = Kit.Game;
             EngineClient client = game.Client;
-            QueryResult<JToken> detail = await client.Query("storylines.detail", new JObject { ["storylineId"] = storylineId });
-            JToken list = null;
-            JToken status = null;
-            JToken timeline = null;
-            JToken payoff = null;
-            if (detail.Ok)
+            // One engine-thread trip: the storyline, then what its page needs once we know whose it is.
+            (QueryResult<JToken> detail, JToken list, JToken status, JToken timeline, JToken payoff) = await client.Read("creative storyline page", reader =>
             {
-                bool own = Kit.Num(detail.Data, "heat").HasValue;
-                var queries = new List<(string, object)>
-                {
-                    ("storylines.list", new JObject { ["promotionId"] = Kit.Str(detail.Data, "promotionId"), ["status"] = "active" }),
-                    ("sim.status", new JObject()),
-                };
-                if (own) queries.Add(("storylines.timeline", new JObject { ["storylineId"] = storylineId }));
-                if (Kit.Obj(detail.Data, "ending") != null) queries.Add(("storylines.payoff", new JObject { ["storylineId"] = storylineId }));
-                QueryResult<JToken>[] more = await CreativeUi.Queries(client, queries.ToArray());
-                list = more[0].Ok ? more[0].Data : null;
-                status = more[1].Ok ? more[1].Data : null;
-                int next = 2;
-                if (own) timeline = more[next++].Data;
-                if (Kit.Obj(detail.Data, "ending") != null) payoff = more[next].Ok ? more[next].Data : null;
-            }
+                QueryResult<JToken> story = reader.Query("storylines.detail", new JObject { ["storylineId"] = storylineId });
+                if (!story.Ok) return (story, (JToken)null, (JToken)null, (JToken)null, (JToken)null);
+                bool own = Kit.Num(story.Data, "heat").HasValue;
+                QueryResult<JToken> rows = reader.Query("storylines.list", new JObject { ["promotionId"] = Kit.Str(story.Data, "promotionId"), ["status"] = "active" });
+                QueryResult<JToken> sim = reader.Query("sim.status", new JObject());
+                QueryResult<JToken> steps = own ? reader.Query("storylines.timeline", new JObject { ["storylineId"] = storylineId }) : null;
+                QueryResult<JToken> paid = Kit.Obj(story.Data, "ending") != null ? reader.Query("storylines.payoff", new JObject { ["storylineId"] = storylineId }) : null;
+                return (story, rows.Ok ? rows.Data : null, sim.Ok ? sim.Data : null, steps != null && steps.Ok ? steps.Data : null, paid != null && paid.Ok ? paid.Data : null);
+            });
 
             Root.Clear();
             Root.Add(CreativeUi.BackLink("Back to Storylines", () => context.Navigator.Go(StorylinesScreen.ListRoute(tab)), "storyline-back"));
