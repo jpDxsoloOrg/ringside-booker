@@ -1,0 +1,25 @@
+{
+  "ref": {
+    "kind": "shows.rivalSegmentScore",
+    "id": "seg_my0wsfj7f4"
+  },
+  "date": "2027-07-03",
+  "seq": 42419,
+  "label": "Segment score",
+  "value": 61,
+  "topContributors": [
+    {
+      "label": "Crowd × 0.5",
+      "effect": 30.806287209585555
+    },
+    {
+      "label": "Work rate × 0.5",
+      "effect": 27.66219990296006
+    },
+    {
+      "label": "Rival shortcut: Score bonus +3",
+      "effect": 3
+    }
+  ],
+  "unit": "points"
+}

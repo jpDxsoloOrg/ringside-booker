@@ -1,0 +1,91 @@
+{
+  "ref": {
+    "kind": "boxOffice.rivalAttendance",
+    "id": "evi_6dyabk7za9"
+  },
+  "date": "2027-07-18",
+  "trace": {
+    "label": "Crowd",
+    "unit": "count",
+    "docRef": "box-office.md#crowd-roll",
+    "children": [
+      {
+        "label": "Expected crowd",
+        "unit": "count",
+        "kind": "input",
+        "value": 734
+      },
+      {
+        "label": "Crowd on the night",
+        "children": [
+          {
+            "label": "How far the crowd can swing",
+            "unit": "ratio",
+            "docRef": "box-office.md#forecast",
+            "kind": "tunable",
+            "key": "boxOffice.crowd.spread",
+            "value": 0.1,
+            "defaultValue": 0.1,
+            "overridden": false
+          }
+        ],
+        "kind": "roll",
+        "value": 1.05476706889458,
+        "roll": {
+          "stream": "boxoffice.crowd",
+          "kind": "float",
+          "label": "Crowd on the night",
+          "min": 0.9,
+          "max": 1.1,
+          "result": 1.05476706889458
+        }
+      },
+      {
+        "label": "Crowd on the night",
+        "kind": "multiply",
+        "value": 774.1990285686218,
+        "operand": 1.05476706889458,
+        "before": 734,
+        "after": 774.1990285686218
+      },
+      {
+        "label": "Rounded to whole people",
+        "kind": "round",
+        "value": 774,
+        "mode": "round",
+        "before": 774.1990285686218,
+        "after": 774
+      },
+      {
+        "label": "Capacity of The Hibiki Room",
+        "kind": "min",
+        "value": 300,
+        "limit": 300,
+        "before": 774,
+        "after": 300,
+        "applied": true
+      },
+      {
+        "label": "Never below 0",
+        "children": [
+          {
+            "label": "Empty",
+            "kind": "constant",
+            "value": 0,
+            "reason": "A crowd cannot be smaller than nobody"
+          }
+        ],
+        "kind": "max",
+        "value": 300,
+        "limit": 0,
+        "before": 300,
+        "after": 300,
+        "applied": false
+      }
+    ],
+    "kind": "formula",
+    "value": 300
+  },
+  "value": 300,
+  "seq": 46416
+}

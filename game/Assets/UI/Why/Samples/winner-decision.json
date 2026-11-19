@@ -1,0 +1,272 @@
+{
+  "ref": {
+    "kind": "aip.winner",
+    "id": "seg_0cmnvjszhj"
+  },
+  "date": "2027-08-15",
+  "trace": {
+    "label": "Booked result: Eun-woo Yoo vs Blacksmith Ikeda & Kaoru \"Charmer\" Matsumoto",
+    "docRef": "rival-booking.md#winners",
+    "children": [
+      {
+        "label": "Who wins",
+        "children": [
+          {
+            "label": "Eun-woo Yoo: booker's value",
+            "unit": "points",
+            "children": [
+              {
+                "label": "Nothing counted yet",
+                "unit": "points",
+                "kind": "input",
+                "value": 0
+              },
+              {
+                "label": "Card value, Eun-woo Yoo",
+                "kind": "add",
+                "value": 43.46867203063983,
+                "operand": 43.46867203063983,
+                "before": 0,
+                "after": 43.46867203063983
+              },
+              {
+                "label": "Booker's gut feeling, Eun-woo Yoo",
+                "kind": "roll",
+                "value": -0.011052823858335614,
+                "roll": {
+                  "stream": "aip.winners",
+                  "kind": "float",
+                  "label": "Booker's gut feeling, Eun-woo Yoo",
+                  "min": -0.1,
+                  "max": 0.1,
+                  "result": -0.011052823858335614
+                }
+              },
+              {
+                "label": "Gut feeling -1.11%",
+                "kind": "multiply",
+                "value": 42.98822045532941,
+                "operand": 0.9889471761416644,
+                "before": 43.46867203063983,
+                "after": 42.98822045532941
+              }
+            ],
+            "kind": "formula",
+            "value": 42.98822045532941
+          },
+          {
+            "label": "Blacksmith Ikeda & Kaoru \"Charmer\" Matsumoto: booker's value",
+            "unit": "points",
+            "children": [
+              {
+                "label": "Nothing counted yet",
+                "unit": "points",
+                "kind": "input",
+                "value": 0
+              },
+              {
+                "label": "Card value, Blacksmith Ikeda",
+                "kind": "add",
+                "value": 28.110810590473065,
+                "operand": 28.110810590473065,
+                "before": 0,
+                "after": 28.110810590473065
+              },
+              {
+                "label": "Card value, Kaoru \"Charmer\" Matsumoto",
+                "kind": "add",
+                "value": 60.196252057057926,
+                "operand": 32.08544146658486,
+                "before": 28.110810590473065,
+                "after": 60.196252057057926
+              },
+              {
+                "label": "Mean of 2 card values",
+                "children": [
+                  {
+                    "label": "1 more step not shown",
+                    "kind": "note",
+                    "value": 30.098126028528963,
+                    "hiddenSteps": 1
+                  }
+                ],
+                "kind": "divide",
+                "value": 30.098126028528963,
+                "operand": 2,
+                "before": 60.196252057057926,
+                "after": 30.098126028528963
+              },
+              {
+                "label": "Booker's gut feeling, Blacksmith Ikeda & Kaoru \"Charmer\" Matsumoto",
+                "kind": "roll",
+                "value": 0.043011892493814236,
+                "roll": {
+                  "stream": "aip.winners",
+                  "kind": "float",
+                  "label": "Booker's gut feeling, Blacksmith Ikeda & Kaoru \"Charmer\" Matsumoto",
+                  "min": -0.1,
+                  "max": 0.1,
+                  "result": 0.043011892493814236
+                }
+              },
+              {
+                "label": "Gut feeling +4.3%",
+                "kind": "multiply",
+                "value": 31.392703389533324,
+                "operand": 1.0430118924938143,
+                "before": 30.098126028528963,
+                "after": 31.392703389533324
+              }
+            ],
+            "kind": "formula",
+            "value": 31.392703389533324
+          },
+          {
+            "label": "Chance a two-sided non-squash match is booked as a draw (0 = never)",
+            "unit": "probability",
+            "kind": "tunable",
+            "key": "aip.winner.drawChance",
+            "value": 0,
+            "defaultValue": 0,
+            "overridden": false
+          },
+          {
+            "label": "Draws are off (0)",
+            "kind": "note",
+            "value": null
+          },
+          {
+            "label": "Storyline finale",
+            "kind": "branch",
+            "value": false,
+            "condition": "Storyline finale",
+            "taken": false
+          },
+          {
+            "label": "No storyline on this match",
+            "kind": "note",
+            "value": null
+          },
+          {
+            "label": "An ace or prospect to protect",
+            "kind": "branch",
+            "value": false,
+            "condition": "An ace or prospect to protect",
+            "taken": false
+          },
+          {
+            "label": "Push bands between the sides before a match counts as a squash",
+            "unit": "count",
+            "kind": "tunable",
+            "key": "aip.winner.squash.pushGap",
+            "value": 3,
+            "defaultValue": 3,
+            "overridden": false
+          },
+          {
+            "label": "Squash: card positions 0 apart, needs 3",
+            "kind": "branch",
+            "value": false,
+            "condition": "Squash: card positions 0 apart, needs 3",
+            "taken": false
+          }
+        ],
+        "kind": "decision",
+        "value": "Eun-woo Yoo",
+        "chosen": "Eun-woo Yoo",
+        "reason": "Higher value on the night",
+        "considered": [
+          {
+            "option": "Eun-woo Yoo",
+            "score": 42.98822045532941
+          },
+          {
+            "option": "Blacksmith Ikeda & Kaoru \"Charmer\" Matsumoto",
+            "score": 31.392703389533324
+          }
+        ]
+      },
+      {
+        "label": "How the match ends",
+        "docRef": "match-finishes.md#finish-on-the-night",
+        "children": [
+          {
+            "label": "Only finishes this match type allows",
+            "kind": "branch",
+            "value": true,
+            "condition": "Only finishes this match type allows",
+            "taken": true
+          },
+          {
+            "label": "Finish",
+            "kind": "roll",
+            "value": "Flash finish",
+            "roll": {
+              "stream": "aip.winners",
+              "kind": "weighted",
+              "label": "Finish",
+              "odds": 0.10204081632653061,
+              "options": 7,
+              "result": "Flash finish"
+            }
+          }
+        ],
+        "kind": "decision",
+        "value": "Flash finish",
+        "chosen": "Flash finish",
+        "reason": "Picked by weighted roll",
+        "considered": [
+          {
+            "option": "Clean finish",
+            "score": 60
+          },
+          {
+            "option": "Flash finish",
+            "score": 10
+          },
+          {
+            "option": "Cheating finish",
+            "score": 12
+          },
+          {
+            "option": "Outside interference",
+            "score": 6
+          },
+          {
+            "option": "Count-out",
+            "score": 4
+          },
+          {
+            "option": "Disqualification",
+            "score": 4
+          },
+          {
+            "option": "Controversial finish",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "label": "How the match is won",
+        "docRef": "match-finishes.md#method",
+        "kind": "decision",
+        "value": "Pinfall",
+        "chosen": "Pinfall",
+        "reason": "Only method this finish allows",
+        "considered": [
+          {
+            "option": "Pinfall",
+            "score": 1
+          }
+        ]
+      }
+    ],
+    "kind": "decision",
+    "value": "Eun-woo Yoo",
+    "chosen": "Eun-woo Yoo",
+    "reason": "Higher value",
+    "considered": []
+  },
+  "value": "side:0",
+  "seq": 52970
+}
