@@ -1,5 +1,6 @@
 using RingsideBooker.UI.Bridge;
 using RingsideBooker.UI.Demo;
+using RingsideBooker.UI.Design;
 using RingsideBooker.UI.Navigation;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -17,8 +18,7 @@ namespace RingsideBooker.UI.Shell
         private IShellData data;
         private IDayControl day;
         private VisualElement root;
-        private ScrollView mainScroll;
-        private VisualElement screenHost;
+        private AppShell shell;
         private SidebarView sidebar;
         private TopBarView topBar;
         private DayControlView dayControl;
@@ -36,20 +36,28 @@ namespace RingsideBooker.UI.Shell
         /// <summary>The root overlay layer (<see cref="OverlayLayer.ElementName"/>) panels and sheets open into.</summary>
         public OverlayLayer Overlay { get; private set; }
 
+        /// <summary>The redesigned frame (UNITY-11): sidebar, top bar, ticker and screen host.</summary>
+        public AppShell Shell => shell;
+
         private void OnEnable()
         {
             if (!ShellServices.IsInstalled) DemoGame.Install();
             data = ShellServices.Data;
             day = ShellServices.Day;
 
+            // UNITY-11: the frame is the design system's AppShell (sidebar with icons and collapse,
+            // scoreboard top bar, news ticker), cloned into the document's root.
             root = GetComponent<UIDocument>().rootVisualElement;
-            Overlay = new OverlayLayer(root.Q<VisualElement>(OverlayLayer.ElementName));
-            mainScroll = root.Q<ScrollView>("main-scroll");
-            screenHost = root.Q<VisualElement>("screen-host");
-            sidebar = new SidebarView(root.Q<VisualElement>("sidebar"), Navigator, GoToMainMenu);
-            topBar = new TopBarView(root);
-            dayControl = new DayControlView(root.Q<VisualElement>("day-control"), Navigator, Overlay, OpenSkipDays);
-            summary = new AdvanceSummaryView(root.Q<VisualElement>("advance-summary-slot"), Navigator, Overlay);
+            root.Clear();
+            shell = new AppShell(root);
+            Overlay = shell.Overlay;
+            sidebar = new SidebarView(shell, Navigator, GoToMainMenu);
+            topBar = new TopBarView(shell);
+            VisualElement dayHost = new VisualElement { name = "day-control" };
+            dayHost.AddToClassList("day-control");
+            shell.Actions.Add(dayHost);
+            dayControl = new DayControlView(dayHost, Navigator, Overlay, OpenSkipDays);
+            summary = new AdvanceSummaryView(shell.SummarySlot, Navigator, Overlay);
             progressOverlay = new AdvanceProgressOverlay(Overlay);
 
             Navigator.Navigated += ShowScreen;
@@ -83,6 +91,9 @@ namespace RingsideBooker.UI.Shell
                 Overlay.CloseTop();
                 return;
             }
+            // Ctrl+B collapses or expands the sidebar.
+            bool ctrl = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+            if (ctrl && Input.GetKeyDown(KeyCode.B) && !TypingInTextField()) shell.Collapsed = !shell.Collapsed;
             // Shift+N presses the day button from anywhere outside a text field or an open sheet.
             bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
             if (shift && Input.GetKeyDown(KeyCode.N) && Overlay.Count == 0 && !TypingInTextField())
@@ -111,6 +122,7 @@ namespace RingsideBooker.UI.Shell
             ShellSnapshot snapshot = data.Snapshot;
             sidebar.Render(snapshot);
             topBar.Render(snapshot);
+            shell.SetTicker((data as IShellNews)?.Headlines);
             // A promotion screen disappears when the player loses the promotion.
             if (Navigator.Current != null && !snapshot.HasPromotion)
             {
@@ -123,6 +135,13 @@ namespace RingsideBooker.UI.Shell
         {
             using var timing = Engine.EnginePerf.Measure("ui.shell.renderDay");
             dayControl.Render(day);
+            // The bell: how many stops wait on the player; it opens the "Needs attention" list.
+            int waiting = day.Gates.Count;
+            shell.SetBell(waiting, () =>
+            {
+                if (day.Gates.Count > 0) dayControl.OpenWaitingSheet();
+                else Navigator.Go("inbox");
+            }, waiting > 0 ? "Needs attention" : "Nothing waiting: open the inbox");
             summary.Render(day);
             progressOverlay.Render(day);
         }
@@ -130,11 +149,9 @@ namespace RingsideBooker.UI.Shell
         private void ShowScreen(ShellRoute route)
         {
             using var timing = Engine.EnginePerf.Measure("ui.shell.showScreen");
-            screenHost.Clear();
-            screenHost.Add(ScreenRegistry.Build(new ScreenContext(route, Navigator, Overlay)));
+            shell.Show(ScreenRegistry.Build(new ScreenContext(route, Navigator, Overlay)));
             sidebar.SetCurrent(route.ScreenId);
             topBar.SetLocation(route);
-            mainScroll.scrollOffset = Vector2.zero;
         }
 
         private void GoToMainMenu()

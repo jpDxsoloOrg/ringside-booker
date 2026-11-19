@@ -1,0 +1,169 @@
+/*
+ * Ringside Booker design system tokens (UNITY-11). Documented in game/docs/design-system.md.
+ *
+ * Built for 1920×1080 logical pixels (the panel's reference size: 1080p draws 1:1, 1440p at 1.33×,
+ * 720p at 0.67×, and the UI scale setting on top). Colours keep the web identity: the navy base,
+ * the red-orange "act now / live" accent, cyan for data, gold for prestige. State colours always
+ * come with an icon and a word.
+ *
+ * Every token is prefixed --ds- so it sits beside the UNITY-07 tokens (Tokens.uss) without
+ * changing the screens that use them. Components use tokens, never raw hex (painted shapes take
+ * colours from custom properties set here or in DsComponents.uss).
+ */
+
+:root {
+    /* ---- Colour: surfaces by elevation (0 canvas → 4 popover) -------------------------------- */
+    --ds-elev-0: #080c15;
+    --ds-elev-1: #0e1628;
+    --ds-elev-2: #131d33;
+    --ds-elev-3: #19253f;
+    --ds-elev-4: #1f2d4b;
+    --ds-line: #22314b;
+    --ds-line-strong: #34476a;
+    --ds-line-subtle: #172238;
+    --ds-scrim: rgba(4, 7, 13, 0.72);
+
+    /* ---- Colour: text ---------------------------------------------------------------------------- */
+    --ds-text: #f1f5f9;
+    --ds-text-2: #b6c2d4;
+    --ds-text-3: #7d8ca3;
+    --ds-text-4: #56657d;
+    --ds-text-inverse: #080c15;
+
+    /* ---- Colour: brand accents (one job each) ---------------------------------------------------- */
+    --ds-action: #d7301a;
+    --ds-action-hover: #ff3b1d;
+    --ds-action-soft: rgba(255, 59, 29, 0.14);
+    --ds-data: #00e5ff;
+    --ds-data-soft: rgba(0, 229, 255, 0.12);
+    --ds-gold: #facc15;
+    --ds-gold-soft: rgba(250, 204, 21, 0.14);
+    --ds-focus: #00e5ff;
+
+    /* ---- Colour: states (always with an icon and a word) ---------------------------------------- */
+    --ds-good: #34d399;
+    --ds-good-soft: rgba(52, 211, 153, 0.14);
+    --ds-warn: #fbbf24;
+    --ds-warn-soft: rgba(251, 191, 36, 0.14);
+    --ds-bad: #fb7185;
+    --ds-bad-soft: rgba(251, 113, 133, 0.15);
+    --ds-info: #38bdf8;
+    --ds-info-soft: rgba(56, 189, 248, 0.13);
+    --ds-neutral: #94a3b8;
+    --ds-neutral-soft: rgba(148, 163, 184, 0.12);
+    --ds-live: #ff3b1d;
+    --ds-live-soft: rgba(255, 59, 29, 0.16);
+
+    /* ---- Colour: wrestling sides ------------------------------------------------------------------- */
+    --ds-face: #60a5fa;
+    --ds-face-soft: rgba(96, 165, 250, 0.15);
+    --ds-heel: #a78bfa;
+    --ds-heel-soft: rgba(167, 139, 250, 0.15);
+
+    /* ---- Type scale (px at 1080p). Display faces are Barlow Condensed in capitals; body is Inter. -- */
+    --ds-type-display: 44px;
+    --ds-type-headline: 28px;
+    --ds-type-title: 20px;
+    --ds-type-subtitle: 16px;
+    --ds-type-body: 14px;
+    --ds-type-body-sm: 13px;
+    --ds-type-caption: 12px;
+    --ds-type-micro: 11px;
+    --ds-type-stat: 30px;
+    --ds-type-stat-sm: 20px;
+
+    /* ---- Spacing: a 4 px grid ---------------------------------------------------------------------- */
+    --ds-space-0: 2px;
+    --ds-space-1: 4px;
+    --ds-space-2: 8px;
+    --ds-space-3: 12px;
+    --ds-space-4: 16px;
+    --ds-space-5: 20px;
+    --ds-space-6: 24px;
+    --ds-space-8: 32px;
+    --ds-space-12: 48px;
+
+    /* ---- Radii ---------------------------------------------------------------------------------------- */
+    --ds-radius-xs: 2px;
+    --ds-radius-sm: 4px;
+    --ds-radius-md: 6px;
+    --ds-radius-lg: 10px;
+    --ds-radius-pill: 999px;
+
+    /* ---- Layout ---------------------------------------------------------------------------------------- */
+    --ds-topbar-height: 48px;
+    --ds-sidebar-width: 216px;
+    --ds-sidebar-rail: 60px;
+    --ds-row-height: 30px;
+    --ds-control-height: 30px;
+    --ds-control-height-lg: 36px;
+
+    /*
+     * Motion (USS transitions take literal times, so components repeat these values):
+     * fast 120ms (hover, press), base 180ms (expand, tab), slow 300ms (sheets, reveals);
+     * easing ease-out-cubic. Nothing loops except the ticker and loading spinner.
+     */
+}
+
+/* ---- Text faces (put the class on the label itself; faces are not inherited) ----------------------- */
+
+.ds-display {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    letter-spacing: 0.5px;
+}
+
+.ds-type-display {
+    font-size: var(--ds-type-display);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    letter-spacing: 0.6px;
+    color: var(--ds-text);
+}
+
+.ds-type-headline {
+    font-size: var(--ds-type-headline);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    letter-spacing: 0.4px;
+    color: var(--ds-text);
+}
+
+.ds-type-title {
+    font-size: var(--ds-type-title);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    letter-spacing: 0.4px;
+    color: var(--ds-text);
+}
+
+.ds-type-subtitle {
+    font-size: var(--ds-type-subtitle);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-type-body {
+    font-size: var(--ds-type-body);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-Regular.ttf");
+    color: var(--ds-text-2);
+}
+
+.ds-type-caption {
+    font-size: var(--ds-type-caption);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-Regular.ttf");
+    color: var(--ds-text-3);
+}
+
+.ds-type-micro {
+    font-size: var(--ds-type-micro);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    letter-spacing: 1.4px;
+    color: var(--ds-text-3);
+}
+
+/* ---- State colours: one class sets --ds-state-* for the element and its children ----------------- */
+
+.ds-state--neutral { --ds-state: #94a3b8; --ds-state-soft: rgba(148, 163, 184, 0.12); }
+.ds-state--good { --ds-state: #34d399; --ds-state-soft: rgba(52, 211, 153, 0.14); }
+.ds-state--warn { --ds-state: #fbbf24; --ds-state-soft: rgba(251, 191, 36, 0.14); }
+.ds-state--bad { --ds-state: #fb7185; --ds-state-soft: rgba(251, 113, 133, 0.15); }
+.ds-state--info { --ds-state: #38bdf8; --ds-state-soft: rgba(56, 189, 248, 0.13); }
+.ds-state--live { --ds-state: #ff3b1d; --ds-state-soft: rgba(255, 59, 29, 0.16); }
+.ds-state--gold { --ds-state: #facc15; --ds-state-soft: rgba(250, 204, 21, 0.14); }

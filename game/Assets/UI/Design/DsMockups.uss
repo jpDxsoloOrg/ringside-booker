@@ -1,0 +1,1001 @@
+/*
+ * Layout for the UNITY-11 mockup screens (Scripts/UI/Mockups). mk- classes are page layout only:
+ * the look comes from the ds- components. Phase 2 moves what survives review into the screens.
+ */
+
+.mk-page {
+    flex-shrink: 0;
+}
+
+.mk-columns {
+    margin-top: 14px;
+}
+
+.mk-main {
+    flex-grow: 2.2;
+    flex-basis: 0;
+    margin-right: 16px;
+}
+
+.mk-side {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 440px;
+}
+
+.mk-grow {
+    flex-grow: 1;
+    flex-basis: 0;
+}
+
+.mk-main > .ds-panel,
+.mk-side > .ds-panel,
+.mk-main > .ds-news,
+.mk-grow > .ds-panel,
+.mk-stage > .ds-panel,
+.mk-reveals > .ds-panel {
+    margin-bottom: 16px;
+}
+
+.mk-columns > .mk-grow {
+    margin-right: 16px;
+}
+
+.mk-label {
+    margin-right: 10px;
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-4);
+}
+
+.mk-quiet {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+}
+
+.mk-num-quiet {
+    margin-left: 8px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+    color: var(--ds-text-4);
+}
+
+.mk-gap-top { margin-top: 12px; }
+.mk-gap-bottom { margin-bottom: 12px; }
+
+.mk-wrap-gap {
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.mk-wrap-gap > * {
+    margin-right: 8px;
+    margin-bottom: 6px;
+}
+
+.mk-tiles {
+    flex-direction: row;
+    margin-bottom: 12px;
+}
+
+.mk-tiles > .ds-stat {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-right: 10px;
+}
+
+.mk-trend-cell {
+    margin: 0;
+}
+
+.mk-placeholder {
+    margin-top: 40px;
+}
+
+/* ---- Office ------------------------------------------------------------------------------------------ */
+
+.mk-lead {
+    height: 340px;
+    margin-bottom: 16px;
+}
+
+.ds-news--lead .ds-news__words {
+    right: 46%;
+}
+
+.ds-news__feature {
+    position: absolute;
+    right: 28px;
+    bottom: 0;
+    top: 36px;
+    align-items: flex-end;
+}
+
+.mk-lead__faces > .ds-portrait {
+    border-bottom-width: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.mk-lead__vs {
+    width: 70px;
+    height: 44px;
+    margin: 0 -10px 96px -10px;
+    align-items: center;
+    justify-content: center;
+    --skew-fill: #d7301a;
+    --skew-edge: #ff3b1d;
+}
+
+.mk-lead__vs-text {
+    font-size: 26px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: #ffffff;
+}
+
+.mk-twin > .ds-panel {
+    margin-right: 16px;
+}
+
+.mk-twin > .mk-stories {
+    margin-right: 0;
+}
+
+.mk-stories .ds-news {
+    background-color: var(--ds-elev-2);
+}
+
+.mk-mini-card {
+    margin-top: 10px;
+}
+
+.mk-mini-match {
+    height: 28px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.mk-mini-match__icon {
+    color: var(--ds-gold);
+    margin-right: 8px;
+}
+
+.mk-mini-match__name {
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.mk-mini-match__vs {
+    margin: 0 6px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+}
+
+.mk-mini-match__title {
+    font-size: 12px;
+    color: var(--ds-gold);
+}
+
+.mk-upcoming {
+    margin-top: 12px;
+}
+
+.mk-needs {
+    border-color: rgba(255, 59, 29, 0.35);
+}
+
+.mk-need {
+    padding: 9px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.mk-need__icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-state-soft);
+    color: var(--ds-state);
+}
+
+.mk-need__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin: 0 12px;
+}
+
+.mk-need__title {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.mk-need__detail {
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.mk-rank {
+    height: 38px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.mk-rank__number {
+    width: 26px;
+    font-size: 20px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text-4);
+}
+
+.mk-rank__words {
+    margin-left: 10px;
+}
+
+.mk-rank__name {
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.mk-rank__role {
+    font-size: 11px;
+    color: var(--ds-text-3);
+}
+
+.mk-rank__champ {
+    font-size: 11px;
+    color: var(--ds-gold);
+}
+
+.mk-rank .ds-trend {
+    margin: 0;
+}
+
+.ds-panel > .ds-segmented {
+    align-self: flex-start;
+    margin-bottom: 6px;
+}
+
+/* ---- Roster ---------------------------------------------------------------------------------------------- */
+
+.mk-head {
+    align-items: flex-end;
+    margin-bottom: 8px;
+}
+
+.mk-toolbar {
+    align-items: flex-end;
+    margin-bottom: 10px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line);
+}
+
+.mk-toolbar > .ds-tabs {
+    border-bottom-width: 0;
+}
+
+.mk-toolbar > .ds-btn,
+.mk-toolbar > .mk-search {
+    margin: 0 0 4px 8px;
+}
+
+.mk-search {
+    width: 240px;
+    height: 30px;
+    padding-left: 8px;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-0);
+}
+
+.mk-search__icon {
+    color: var(--ds-text-3);
+}
+
+.mk-search__field {
+    flex-grow: 1;
+    margin: 0;
+}
+
+.mk-search__field > .unity-base-text-field__input {
+    margin: 0;
+    padding: 0 8px;
+    border-width: 0;
+    background-color: transparent;
+    font-size: 13px;
+    color: var(--ds-text);
+}
+
+.mk-attention {
+    margin-bottom: 14px;
+}
+
+.mk-card-grid {
+    margin-right: -12px;
+}
+
+.mk-name-cell__name {
+    margin-left: 10px;
+}
+
+.mk-name-cell__crown {
+    margin-left: 6px;
+    color: var(--ds-gold);
+}
+
+.mk-pop-cell__trend {
+    margin: 0 0 0 6px;
+}
+
+.mk-details {
+    padding-top: 6px;
+}
+
+.mk-details__col {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-right: 28px;
+}
+
+.mk-details__col > .mk-label {
+    margin-bottom: 6px;
+}
+
+.mk-details__col > .ds-pill {
+    align-self: flex-start;
+    margin-bottom: 6px;
+}
+
+.mk-details__actions {
+    margin-top: 8px;
+}
+
+.mk-details__actions > .ds-btn {
+    margin-right: 8px;
+}
+
+.mk-skill {
+    height: 24px;
+}
+
+.mk-skill__label {
+    width: 90px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.mk-skill > .ds-meter {
+    flex-grow: 1;
+}
+
+.mk-worker__hero {
+    margin-bottom: 16px;
+}
+
+.mk-worker__words {
+    flex-grow: 1;
+    margin-left: 16px;
+}
+
+.mk-worker__words > .ds-pill {
+    align-self: flex-start;
+    margin-bottom: 4px;
+}
+
+.mk-worker__tags {
+    margin: 2px 0 10px 0;
+}
+
+.mk-worker__tags > .ds-tag {
+    margin-right: 8px;
+}
+
+.mk-worker__states > .ds-dot-label {
+    margin-bottom: 4px;
+}
+
+.mk-worker .ds-section-header {
+    margin-top: 10px;
+}
+
+/* ---- Booking ------------------------------------------------------------------------------------------- */
+
+.mk-show-strip {
+    margin-bottom: 12px;
+}
+
+.mk-booking-head {
+    align-items: stretch;
+}
+
+.mk-booking-status {
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-left: 16px;
+}
+
+.mk-booking-buttons > .ds-btn {
+    margin-right: 6px;
+}
+
+.mk-checklist {
+    flex-direction: row;
+    align-items: center;
+    height: 34px;
+    margin: 0;
+    padding: 0 10px 0 12px;
+    border-width: 1px;
+    border-radius: var(--ds-radius-pill);
+    border-color: var(--ds-state);
+    background-color: var(--ds-state-soft);
+}
+
+.mk-checklist:hover {
+    border-color: var(--ds-state);
+    background-color: var(--ds-state-soft);
+}
+
+.mk-checklist:focus {
+    border-color: var(--ds-focus);
+}
+
+.mk-checklist__icon,
+.mk-checklist__chevron {
+    color: var(--ds-state);
+}
+
+.mk-checklist__text {
+    -unity-text-align: middle-left;
+    margin: 0 8px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-state);
+}
+
+.mk-checklist-pop {
+    width: 420px;
+}
+
+.mk-checklist-pop > .mk-label {
+    margin-bottom: 6px;
+}
+
+.mk-check-line {
+    padding: 6px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line);
+    color: var(--ds-state);
+}
+
+.mk-check-line__icon {
+    margin-top: 2px;
+}
+
+.mk-check-line__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin: 0 10px;
+}
+
+.mk-check-line__text {
+    font-size: 13px;
+    color: var(--ds-text);
+}
+
+.mk-check-line__detail {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.mk-fight-card {
+    flex-grow: 1.7;
+    flex-basis: 0;
+    margin-right: 16px;
+}
+
+.mk-match-details {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 420px;
+}
+
+.mk-slot {
+    flex-shrink: 0;
+}
+
+.mk-slot__number {
+    width: 40px;
+    padding-top: 6px;
+    font-size: 22px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text-4);
+}
+
+.mk-slot__handle {
+    width: 24px;
+    height: 60px;
+    align-items: center;
+    justify-content: center;
+    margin-left: 4px;
+    color: var(--ds-text-4);
+}
+
+.mk-add-slot {
+    margin-left: 40px;
+}
+
+.mk-details-head {
+    margin-bottom: 4px;
+}
+
+.mk-details-head__slot {
+    font-size: 14px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-action-hover);
+}
+
+.mk-details-title {
+    font-size: 24px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.mk-expect {
+    margin: 14px 0 16px 0;
+    padding: 10px 12px;
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-2);
+}
+
+.mk-expect__word {
+    margin-left: 10px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-gold);
+}
+
+.mk-read {
+    margin: 12px 0 6px 0;
+}
+
+.mk-read > .ds-meter {
+    height: 22px;
+}
+
+.mk-more {
+    align-self: flex-start;
+    margin-top: 6px;
+}
+
+.mk-details-actions {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line);
+}
+
+.mk-details-actions > .ds-btn {
+    margin-right: 8px;
+}
+
+/* ---- Show night --------------------------------------------------------------------------------------- */
+
+.mk-live-bar {
+    padding: 8px 10px;
+    border-width: 1px;
+    border-color: rgba(255, 59, 29, 0.4);
+    border-radius: var(--ds-radius-lg);
+    background-color: var(--ds-elev-1);
+}
+
+.mk-live-pill {
+    height: 26px;
+    margin-right: 12px;
+}
+
+.mk-live-bar__title {
+    margin-left: 10px;
+}
+
+.mk-live-bar__name {
+    font-size: 26px;
+    letter-spacing: 0.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-scoreboard--live {
+    width: 760px;
+}
+
+.mk-stage {
+    flex-grow: 2.2;
+    flex-basis: 0;
+    margin-right: 16px;
+}
+
+.mk-now {
+    margin-bottom: 8px;
+}
+
+.mk-now__tag {
+    height: 26px;
+    padding: 0 18px 0 10px;
+    justify-content: center;
+    --skew-fill: #ff3b1d;
+}
+
+.mk-now__tag-text {
+    font-size: 15px;
+    letter-spacing: 1.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: #ffffff;
+}
+
+.mk-now__text {
+    margin-left: 10px;
+    font-size: 13px;
+    color: var(--ds-text-2);
+}
+
+.mk-stage > .ds-match {
+    margin-bottom: 12px;
+}
+
+.mk-momentum__sides {
+    margin-bottom: 6px;
+}
+
+.mk-momentum__name {
+    font-size: 15px;
+    letter-spacing: 1px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-2);
+}
+
+.mk-momentum__track {
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: var(--ds-elev-3);
+}
+
+.mk-momentum__left {
+    height: 100%;
+    background-color: var(--ds-heel);
+}
+
+.mk-momentum__right {
+    flex-grow: 1;
+    height: 100%;
+    background-color: var(--ds-face);
+}
+
+.mk-feed__line {
+    padding: 5px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.mk-feed__time {
+    width: 52px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+    color: var(--ds-text-4);
+}
+
+.mk-feed__text {
+    flex-shrink: 1;
+    font-size: 13px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.mk-feed__line--big .mk-feed__text {
+    font-size: 15px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.mk-controls > .ds-btn,
+.mk-controls > .ds-cta {
+    margin-right: 10px;
+}
+
+.mk-order {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 420px;
+}
+
+.mk-order__row {
+    height: 46px;
+    padding: 0 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+    border-left-width: 3px;
+    border-left-color: transparent;
+}
+
+.mk-order__row--done {
+    opacity: 0.75;
+}
+
+.mk-order__row--now {
+    border-left-color: var(--ds-live);
+    background-color: var(--ds-live-soft);
+}
+
+.mk-order__number {
+    width: 34px;
+    font-size: 16px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text-4);
+}
+
+.mk-order__name {
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.mk-order__title {
+    font-size: 11px;
+    color: var(--ds-gold);
+}
+
+.mk-order__slot {
+    font-size: 11px;
+    color: var(--ds-text-3);
+}
+
+.mk-order__row--now .ds-pill {
+    margin-right: 0;
+}
+
+/* ---- Results -------------------------------------------------------------------------------------------- */
+
+.mk-results-hero {
+    align-items: flex-end;
+    padding-bottom: 14px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line);
+}
+
+.mk-grade__stars {
+    margin: 4px 0 6px 0;
+}
+
+.mk-grade__word {
+    margin-left: 12px;
+    font-size: 24px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-gold);
+}
+
+.mk-results-board {
+    width: 780px;
+}
+
+.ds-scoreboard__cell > .ds-why {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+}
+
+.mk-reveals {
+    flex-grow: 2.2;
+    flex-basis: 0;
+    margin-right: 16px;
+}
+
+.mk-new-champ {
+    margin-bottom: 8px;
+}
+
+.mk-new-champ__tag {
+    flex-direction: row;
+    align-items: center;
+    height: 30px;
+    padding: 0 20px 0 12px;
+    --skew-fill: #facc15;
+}
+
+.mk-new-champ__icon {
+    color: var(--ds-text-inverse);
+    margin-right: 6px;
+}
+
+.mk-new-champ__tag-text {
+    font-size: 17px;
+    letter-spacing: 1.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text-inverse);
+}
+
+.mk-new-champ__text {
+    margin-left: 12px;
+    font-size: 20px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-gold);
+}
+
+.mk-reveal-grid {
+    margin-top: 4px;
+}
+
+.mk-reveal-cell {
+    width: 49.4%;
+    margin-right: 0.6%;
+}
+
+.mk-reveal {
+    opacity: 0;
+    translate: 0 12px;
+}
+
+.mk-reveals > .ds-match,
+.mk-reveal-cell {
+    transition-property: opacity, translate;
+    transition-duration: 300ms;
+    transition-timing-function: ease-out-cubic;
+}
+
+.mk-new-champ {
+    transition-property: opacity, translate;
+    transition-duration: 300ms;
+}
+
+.mk-change {
+    padding: 10px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.mk-star-night__words {
+    margin-left: 14px;
+}
+
+.mk-results-next {
+    margin-top: 4px;
+}
+
+/* ---- Style guide and components ------------------------------------------------------------------------- */
+
+.mk-swatch-group {
+    margin-bottom: 12px;
+}
+
+.mk-swatch-group > .mk-label {
+    margin-bottom: 6px;
+}
+
+.mk-swatch {
+    width: 92px;
+    margin: 0 8px 8px 0;
+}
+
+.mk-swatch__chip {
+    height: 40px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+    border-radius: var(--ds-radius-md);
+}
+
+.mk-swatch__name {
+    margin-top: 4px;
+    font-size: 12px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.mk-swatch__hex {
+    font-size: 11px;
+    color: var(--ds-text-4);
+}
+
+.mk-type-row {
+    min-height: 34px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.mk-type-row__label {
+    width: 110px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+}
+
+.mk-space {
+    align-items: center;
+    margin-right: 14px;
+}
+
+.mk-space__block {
+    background-color: var(--ds-action);
+    margin-bottom: 4px;
+}
+
+.mk-radius {
+    width: 56px;
+    height: 36px;
+    margin-bottom: 4px;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    background-color: var(--ds-elev-3);
+}
+
+.mk-elev {
+    width: 90px;
+    height: 60px;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+}
+
+.mk-elev--0 { background-color: var(--ds-elev-0); }
+.mk-elev--1 { background-color: var(--ds-elev-1); }
+.mk-elev--2 { background-color: var(--ds-elev-2); }
+.mk-elev--3 { background-color: var(--ds-elev-3); }
+.mk-elev--4 { background-color: var(--ds-elev-4); border-color: var(--ds-line-strong); }
+
+.mk-icon-grid {
+    margin-right: -6px;
+}
+
+.mk-icon-cell {
+    width: 84px;
+    height: 56px;
+    align-items: center;
+    justify-content: center;
+    margin: 0 6px 6px 0;
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-2);
+    color: var(--ds-text-2);
+}
+
+.mk-icon-cell__name {
+    margin-top: 5px;
+    font-size: 10px;
+    color: var(--ds-text-4);
+}
+
+.mk-details .ds-kv__row {
+    justify-content: flex-start;
+}
+
+.mk-details .ds-kv__key {
+    width: 80px;
+}
+
+.mk-time-used {
+    width: 420px;
+    margin-top: 8px;
+}
+
+.mk-time-used > .ds-meter {
+    flex-grow: 1;
+}
+
+.mk-time-used__value {
+    margin-left: 10px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text-2);
+}

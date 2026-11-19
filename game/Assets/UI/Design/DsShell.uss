@@ -1,0 +1,450 @@
+/*
+ * The redesigned app shell (AppShell.uxml / AppShell.cs, UNITY-11): a 216 px sidebar that
+ * collapses to a 60 px icon rail, a 48 px top bar with a scoreboard and the skewed CTA, and the
+ * scrolling screen host. Laid out for 1920×1080; fine at 1280×720 (drawn at 2/3) and above.
+ */
+
+.ds-root {
+    flex-grow: 1;
+    background-color: var(--ds-elev-0);
+}
+
+.ds-app {
+    flex-grow: 1;
+    flex-direction: row;
+    background-color: var(--ds-elev-0);
+}
+
+/* ---- Sidebar ----------------------------------------------------------------------------------------- */
+
+.ds-sidebar {
+    width: var(--ds-sidebar-width);
+    flex-shrink: 0;
+    flex-direction: column;
+    border-right-width: 1px;
+    border-right-color: var(--ds-line);
+    background-color: var(--ds-elev-1);
+    transition-property: width;
+    transition-duration: 180ms;
+    transition-timing-function: ease-out-cubic;
+}
+
+.ds-brand {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: var(--ds-topbar-height);
+    padding: 0 12px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line);
+}
+
+.ds-brand__mark {
+    flex-shrink: 0;
+}
+
+.ds-brand__mark-shape {
+    width: 38px;
+    height: 26px;
+    align-items: center;
+    justify-content: center;
+    --skew-fill: #d7301a;
+    --skew-edge: #ff3b1d;
+}
+
+.ds-brand__mark-text {
+    font-size: 15px;
+    letter-spacing: 0.5px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: #ffffff;
+}
+
+.ds-brand__words {
+    flex-direction: row;
+    margin-left: 10px;
+}
+
+.ds-brand__word {
+    font-size: 19px;
+    letter-spacing: 0.8px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-brand__word--accent {
+    margin-left: 4px;
+    color: var(--ds-action-hover);
+}
+
+.ds-promo {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin: 10px 8px 4px 8px;
+    padding: 7px 8px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-2);
+}
+
+.ds-promo__words {
+    flex-shrink: 1;
+    margin-left: 10px;
+}
+
+.ds-promo__name {
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.ds-promo__tagline {
+    font-size: 11px;
+    color: var(--ds-text-3);
+}
+
+.ds-nav {
+    flex-grow: 1;
+}
+
+.ds-nav__section {
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.ds-nav__heading {
+    height: 20px;
+    padding: 0 18px;
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-4);
+    -unity-text-align: middle-left;
+}
+
+.ds-nav__link {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 30px;
+    margin: 0 8px 1px 8px;
+    padding: 0 10px;
+    border-width: 0;
+    border-radius: var(--ds-radius-sm);
+    background-color: transparent;
+    transition-property: background-color;
+    transition-duration: 120ms;
+}
+
+.ds-nav__rail {
+    position: absolute;
+    left: -8px;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 2px;
+    background-color: transparent;
+}
+
+.ds-nav__icon {
+    color: var(--ds-text-3);
+}
+
+.ds-nav__label {
+    -unity-text-align: middle-left;
+    margin-left: 12px;
+    flex-grow: 1;
+    font-size: 15px;
+    letter-spacing: 0.8px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+    color: var(--ds-text-2);
+    white-space: nowrap;
+}
+
+.ds-nav__link:hover {
+    background-color: var(--ds-elev-3);
+}
+
+.ds-nav__link:hover .ds-nav__label,
+.ds-nav__link:hover .ds-nav__icon {
+    color: var(--ds-text);
+}
+
+.ds-nav__link:focus {
+    background-color: var(--ds-elev-3);
+}
+
+.ds-nav__link--current {
+    background-color: var(--ds-action-soft);
+}
+
+.ds-nav__link--current:hover {
+    background-color: var(--ds-action-soft);
+}
+
+.ds-nav__link--current .ds-nav__rail {
+    background-color: var(--ds-action-hover);
+}
+
+.ds-nav__link--current .ds-nav__icon {
+    color: var(--ds-action-hover);
+}
+
+.ds-nav__link--current .ds-nav__label {
+    color: var(--ds-text);
+}
+
+.ds-sidebar__footer {
+    flex-shrink: 0;
+    padding: 6px 0;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line);
+}
+
+/* Collapsed: a 60 px icon rail; labels become tooltips and badges become dots on the icon. */
+.ds-app--collapsed .ds-sidebar {
+    width: var(--ds-sidebar-rail);
+}
+
+.ds-app--collapsed .ds-brand__words,
+.ds-app--collapsed .ds-promo__words,
+.ds-app--collapsed .ds-nav__label,
+.ds-app--collapsed .ds-nav__heading {
+    display: none;
+}
+
+.ds-app--collapsed .ds-brand {
+    padding: 0 10px;
+}
+
+.ds-app--collapsed .ds-promo {
+    margin: 10px 8px 4px 8px;
+    padding: 4px;
+    justify-content: center;
+}
+
+.ds-app--collapsed .ds-nav__section {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line-subtle);
+}
+
+.ds-app--collapsed .ds-nav__link {
+    justify-content: center;
+    padding: 0;
+}
+
+.ds-app--collapsed .ds-nav__badge {
+    position: absolute;
+    top: 2px;
+    right: 6px;
+    min-width: 8px;
+    height: 8px;
+    padding: 0;
+    font-size: 1px;
+    color: rgba(0, 0, 0, 0);
+}
+
+/* ---- Top bar --------------------------------------------------------------------------------------------- */
+
+.ds-main {
+    flex-grow: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.ds-topbar {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: var(--ds-topbar-height);
+    padding: 0 10px 0 20px;
+    background-color: var(--ds-elev-1);
+}
+
+.ds-topbar__stripe {
+    flex-shrink: 0;
+    height: 2px;
+    background-color: var(--ds-line);
+}
+
+.ds-crumbs {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ds-crumbs__section {
+    font-size: 18px;
+    letter-spacing: 1px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+    color: var(--ds-text-3);
+}
+
+.ds-crumbs__sep {
+    margin: 0 6px;
+    color: var(--ds-text-4);
+}
+
+.ds-crumbs__page {
+    font-size: 18px;
+    letter-spacing: 1px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-topbar__board {
+    flex-direction: row;
+    align-items: stretch;
+    height: 38px;
+    margin-right: 10px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-0);
+    overflow: hidden;
+}
+
+.ds-score {
+    justify-content: center;
+    padding: 0 14px 0 12px;
+    border-left-width: 1px;
+    border-left-color: var(--ds-line);
+}
+
+.ds-score__top {
+    flex-direction: row;
+    align-items: center;
+    height: 14px;
+}
+
+.ds-score__top > .ds-why {
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+}
+
+.ds-score__label {
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-4);
+}
+
+.ds-score__bottom {
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+.ds-score__value {
+    font-size: 18px;
+    letter-spacing: 0.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-score__words {
+    margin: 0 0 3px 6px;
+    font-size: 11px;
+    color: var(--ds-text-3);
+}
+
+.ds-score.ds-state--good .ds-score__words,
+.ds-score.ds-state--bad .ds-score__words,
+.ds-score.ds-state--warn .ds-score__words {
+    color: var(--ds-state);
+}
+
+.ds-score.ds-state--info .ds-score__value {
+    color: var(--ds-data);
+}
+
+.ds-topbar__actions {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ds-topbar__bell {
+    margin-right: 8px;
+}
+
+.ds-topbar__bell-badge {
+    position: absolute;
+    top: -3px;
+    right: -4px;
+    min-width: 16px;
+    height: 16px;
+    font-size: 10px;
+}
+
+.ds-topbar__cta {
+    margin-right: 6px;
+}
+
+/* ---- Screen host --------------------------------------------------------------------------------------- */
+
+.ds-scroll {
+    flex-grow: 1;
+}
+
+.ds-content {
+    flex-shrink: 0;
+    padding: 18px 24px 32px 24px;
+}
+
+/* ---- The game's shell (ShellController on AppShell, UNITY-11 phase 2) --------------------------------- */
+
+.ds-topbar__actions > .day-control {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ds-topbar__actions > .day-control > .live-bug {
+    margin: 0 6px 0 2px;
+}
+
+/* The cash Why? from the engine bridge: quiet, in the cell's corner, shown on hover or focus. */
+.ds-score {
+    position: relative;
+}
+
+.ds-score > .status-chip__why {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    margin: 0;
+    font-size: 9px;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 120ms;
+}
+
+.ds-score:hover > .status-chip__why,
+.ds-score > .status-chip__why:focus {
+    opacity: 1;
+}
+
+.ds-ticker-slot {
+    flex-shrink: 0;
+    padding: 8px 24px 0 24px;
+}
+
+.ds-summary-slot,
+.ds-screen-host {
+    flex-shrink: 0;
+}
+
+.ds-promo__line {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ds-promo__line > .ds-tag {
+    margin-left: 6px;
+}

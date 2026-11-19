@@ -35,10 +35,9 @@ namespace RingsideBooker.UI.Shell
 
             primary = new LiveBugButton { name = "day-primary" };
             primary.Clicked += RunPrimary;
-            skip = Ui.Btn("»", () => this.openSkip(), null);
+            skip = Design.Ds.IconButton("fast-forward", "Skip days…", () => this.openSkip(), quiet: false);
             skip.name = "skip-days";
-            skip.AddToClassList("btn--icon");
-            skip.tooltip = "Skip days";
+            skip.AddToClassList("day-control__skip");
             container.Add(primary);
             container.Add(skip);
         }

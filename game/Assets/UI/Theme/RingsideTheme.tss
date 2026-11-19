@@ -10,3 +10,8 @@
 @import url("../Styles/Shell.uss");
 @import url("../Styles/Title.uss");
 @import url("../Screens/Screens.uss");
+/* UNITY-11 design system: ds- tokens and components (the redesign's style guide and component set). */
+@import url("../Design/DsTokens.uss");
+@import url("../Design/DsComponents.uss");
+@import url("../Design/DsShell.uss");
+@import url("../Design/DsMockups.uss");

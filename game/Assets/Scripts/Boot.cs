@@ -21,6 +21,13 @@ namespace RingsideBooker
                 return;
             }
 
+            // Dev: -rbMockups / -rbMockupShots <dir> open the UNITY-11 redesign mockups instead.
+            if (UI.Mockups.MockupShots.Requested)
+            {
+                UI.Mockups.MockupShots.OpenScene();
+                return;
+            }
+
             UI.SceneFlow.LoadTitle();
         }
     }
