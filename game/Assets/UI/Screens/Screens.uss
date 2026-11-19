@@ -233,3 +233,10 @@
 .rb-show-title > .rb-title { flex-shrink: 1; }
 .rb-show-chip { flex-direction: row; align-items: center; }
 .rb-show-chip__icon { width: 14px; height: 14px; min-width: 14px; flex-shrink: 0; margin-right: 4px; }
+
+/* Founding your own promotion (UNITY-20): colour swatches and the logo preview. */
+.rb-found-colours { flex-shrink: 0; margin-bottom: 6px; }
+.rb-swatch { width: 34px; height: 34px; min-width: 34px; margin: 0 8px 6px 0; padding: 0; border-width: 2px; border-color: transparent; border-radius: 6px; }
+.rb-swatch--selected { border-color: #f1f5f9; }
+.rb-found-preview { align-items: center; flex-shrink: 0; margin: 4px 0 8px 0; }
+.rb-found-preview__name { margin-left: 12px; }
