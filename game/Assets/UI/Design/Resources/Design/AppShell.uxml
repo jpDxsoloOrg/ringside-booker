@@ -1,0 +1,34 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!--
+        The redesigned in-game frame (UNITY-11): a collapsible icon sidebar, a slim top bar with a
+        scoreboard and the skewed call to action, and the screen host. AppShell.cs fills the named
+        parts. Sheets, modals, popovers, tooltips and toasts open into overlay-layer.
+    -->
+    <ui:VisualElement name="ds-app" class="ds-app">
+        <ui:VisualElement name="ds-sidebar" class="ds-sidebar">
+            <ui:VisualElement name="ds-brand" class="ds-brand">
+                <ui:VisualElement name="ds-brand-mark" class="ds-brand__mark" />
+                <ui:VisualElement class="ds-brand__words">
+                    <ui:Label text="RINGSIDE" class="ds-brand__word" />
+                    <ui:Label text="BOOKER" class="ds-brand__word ds-brand__word--accent" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="ds-promo" class="ds-promo" />
+            <ui:ScrollView name="ds-nav" class="ds-nav" horizontal-scroller-visibility="Hidden" />
+            <ui:VisualElement name="ds-sidebar-footer" class="ds-sidebar__footer" />
+        </ui:VisualElement>
+        <ui:VisualElement name="ds-main" class="ds-main">
+            <ui:VisualElement name="ds-topbar" class="ds-topbar">
+                <ui:VisualElement name="ds-crumbs" class="ds-crumbs" />
+                <ui:VisualElement class="ds-spacer" />
+                <ui:VisualElement name="ds-topbar-board" class="ds-topbar__board" />
+                <ui:VisualElement name="ds-topbar-actions" class="ds-topbar__actions" />
+            </ui:VisualElement>
+            <ui:VisualElement name="ds-topbar-stripe" class="ds-topbar__stripe" />
+            <ui:ScrollView name="ds-scroll" class="ds-scroll" horizontal-scroller-visibility="Hidden">
+                <ui:VisualElement name="ds-content" class="ds-content" />
+            </ui:ScrollView>
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="overlay-layer" class="overlay-layer" picking-mode="Ignore" />
+</ui:UXML>
