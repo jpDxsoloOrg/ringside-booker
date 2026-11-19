@@ -176,6 +176,7 @@
 .biz-tiles {
     flex-direction: row;
     flex-shrink: 0;
+    align-items: stretch;
     margin-bottom: 14px;
 }
 
@@ -320,6 +321,31 @@
     white-space: nowrap;
 }
 
+/* In key-value rows the "?" sits before the number, so the numbers line up on the right. */
+.biz-facts .biz-value {
+    flex-direction: row-reverse;
+}
+
+.biz-facts .biz-value > .unity-button.why-button.biz-why {
+    margin: 0 6px 0 0;
+}
+
+.biz-facts .biz-value__text {
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.biz-facts .biz-value__text.biz-bad {
+    color: var(--ds-bad);
+}
+
+.biz-health {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+}
+
 .biz-notice {
     flex-direction: row;
     align-items: center;
@@ -422,13 +448,23 @@
     margin-right: 8px;
 }
 
+.biz-offer-cell > .ds-cell__text {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0;
+}
+
 .biz-links {
     flex-direction: row;
     align-items: center;
 }
 
 .biz-row-button {
-    height: 24px;
+    height: 22px;
+    min-height: 22px;
+    margin: 0;
 }
 
 .biz-ledger-footer {
@@ -443,8 +479,8 @@
 }
 
 .biz-filters {
-    width: 460px;
-    padding: 4px 4px 0 4px;
+    width: 480px;
+    padding: 6px 10px 4px 10px;
 }
 
 /* ---- Policies ----------------------------------------------------------------------------------------- */
@@ -555,8 +591,9 @@
 }
 
 .biz-area__name {
-    width: 170px;
+    width: 190px;
     flex-shrink: 0;
+    margin-right: 14px;
 }
 
 .biz-area__label {
@@ -739,7 +776,7 @@
 
 .biz-preview__label,
 .biz-compare__label {
-    width: 190px;
+    width: 250px;
     flex-shrink: 0;
     font-size: 13px;
     color: var(--ds-text-2);
@@ -791,6 +828,24 @@
 
 .biz-modal {
     max-height: 90%;
+}
+
+.biz-modal .ds-overlay-header__words {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.biz-modal__title {
+    white-space: normal;
+}
+
+.biz-cancel__question {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+    font-size: 15px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
 }
 
 .biz-modal__scroll {

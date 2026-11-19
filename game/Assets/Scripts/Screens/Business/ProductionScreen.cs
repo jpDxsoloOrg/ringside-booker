@@ -279,7 +279,7 @@ namespace RingsideBooker.Screens.Business
             confirm.SetEnabled(false);
             footer.Add(confirm);
 
-            handle = BusinessUi.Modal(anchor, BusinessText.ChangeTitle(label, from, to), bodyRoot, footer, "production-change", 640f);
+            handle = BusinessUi.Modal(anchor, BusinessText.ChangeTitle(label, from, to), bodyRoot, footer, "production-change", 760f);
             title = handle?.Content.Q<Label>(className: "biz-modal__title");
             if (handle != null) handle.Closed += () =>
             {
@@ -315,7 +315,7 @@ namespace RingsideBooker.Screens.Business
             asked = level;
             if (title != null) title.text = TextFormat.Upper(BusinessText.ChangeTitle(label, from, level));
             confirm.SetEnabled(false);
-            confirm.text = "Working it out…";
+            BusinessUi.SetButtonText(confirm, "Working it out…");
             Draw(null, null);
             string promotionId = Kit.Game?.PromotionId;
             QueryResult<JToken> answer = await Kit.Game.Client.Query("production.changePreview", new JObject { ["promotionId"] = promotionId, ["area"] = area, ["level"] = level });
@@ -323,7 +323,7 @@ namespace RingsideBooker.Screens.Business
             preview = answer.Ok ? answer.Data : null;
             Draw(preview, answer.Ok ? null : Kit.Reasons(answer.Reasons));
             double? fee = Kit.Num(preview, "fee");
-            confirm.text = BusinessText.ConfirmLabel(from, level, fee);
+            BusinessUi.SetButtonText(confirm, BusinessText.ConfirmLabel(from, level, fee));
             confirm.SetEnabled(CanApply);
         }
 

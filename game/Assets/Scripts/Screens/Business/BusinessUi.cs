@@ -196,6 +196,13 @@ namespace RingsideBooker.Screens.Business
             return Tile("Cash runway", value, words, state, RunwayWhy(runway), unit, "tile-runway", "gauge");
         }
 
+        /// <summary>Sets a <see cref="Ds.Button"/>'s words (its label child; the button's own text stays empty).</summary>
+        public static void SetButtonText(Button button, string text)
+        {
+            Label label = button?.Q<Label>(className: "ds-btn__label");
+            if (label != null) label.text = TextFormat.Upper(text);
+        }
+
         /// <summary>Marks the last child of a row (USS has no <c>:last-child</c>), so it drops its right margin.</summary>
         public static T MarkLast<T>(T row) where T : VisualElement
         {
@@ -232,7 +239,10 @@ namespace RingsideBooker.Screens.Business
         public static Label Cell(string text, params string[] extra)
         {
             Label label = Ds.Text(text ?? BusinessText.NoValue, "ds-cell__text");
-            foreach (string className in extra) label.AddToClassList(className);
+            foreach (string className in extra)
+            {
+                if (!string.IsNullOrEmpty(className)) label.AddToClassList(className);
+            }
             return label;
         }
 

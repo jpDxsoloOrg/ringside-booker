@@ -395,7 +395,7 @@ namespace RingsideBooker.Screens.Business
             if (loadingOlder || ledgerCursor == null) return;
             loadingOlder = true;
             button.SetEnabled(false);
-            button.text = "Loading older rows…";
+            BusinessUi.SetButtonText(button, "Loading older rows…");
             try
             {
                 QueryResult<JToken> page = await Kit.Game.Client.Query("finance.ledger", LedgerArgs(PromotionId, ledgerCursor));

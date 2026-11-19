@@ -423,7 +423,7 @@ namespace RingsideBooker.Screens.Business
             confirm.name = "cancel-confirm";
             confirm.SetEnabled(false);
             footer.Add(confirm);
-            handle = BusinessUi.Modal(anchor, BusinessText.CancelTitle(networkName, null), body, footer, "cancel-deal", 600f);
+            handle = BusinessUi.Modal(anchor, "Cancel this deal?", body, footer, "cancel-deal", 600f);
             if (handle != null) handle.Closed += () =>
             {
                 if (Current == this) Current = null;
@@ -452,8 +452,7 @@ namespace RingsideBooker.Screens.Business
                 return;
             }
             double fee = Kit.Num(preview.Data, "exitFee") ?? 0;
-            Label title = handle.Content.Q<Label>(className: "biz-modal__title");
-            if (title != null) title.text = TextFormat.Upper(BusinessText.CancelTitle(networkName, BusinessText.Money(fee)));
+            content.Add(Ds.Text(BusinessText.CancelTitle(networkName, BusinessText.Money(fee)), "biz-cancel__question"));
             VisualElement feeRow = Ds.Row("biz-fee", "biz-fee--danger").Named("cancel-fee");
             feeRow.Add(Ds.Text("Exit fee", "biz-fee__label"));
             feeRow.Add(Ds.Spacer());

@@ -332,7 +332,7 @@ namespace RingsideBooker.Screens.Business
             string risk = Kit.Str(row, "risk");
             if (risk == null) return BusinessUi.Muted(BusinessText.EndReasonText(Kit.Str(row, "endedReason")));
             List<string> reasons = Kit.Arr(row, "riskReasons").Select(reason => (string)reason).ToList();
-            VisualElement cell = Ds.Row("biz-cell-why");
+            VisualElement cell = Ds.Row("biz-health");
             string label = BusinessText.RiskLabel(risk, reasons);
             VisualElement pill = Ds.Pill(label == BusinessText.MissedAiringLabel ? DsState.Bad : BusinessText.RiskState(risk), label, BusinessText.RiskIcon(risk));
             if (reasons.Count > 0) DsTooltip.Attach(pill, string.Join("\n", reasons), label);
@@ -380,8 +380,8 @@ namespace RingsideBooker.Screens.Business
                 return cell;
             })
             {
-                Grow = 1,
-                MinWidth = 220,
+                Grow = 0.7f,
+                MinWidth = 200,
                 Pinned = true,
                 SortKey = row => Kit.Str(row, "name"),
             };
@@ -421,12 +421,15 @@ namespace RingsideBooker.Screens.Business
                     cell.Add(pill);
                 }
                 bool loses = (Kit.Num(offer, "incomePerAiring") ?? 0) < 0;
-                Label text = BusinessUi.Cell(BusinessText.BestOfferText(Kit.Str(row, "kind"), offer), loses ? "biz-bad" : null);
+                string words = BusinessText.BestOfferText(Kit.Str(row, "kind"), offer);
+                Label text = loses ? BusinessUi.Cell(words, "biz-bad") : BusinessUi.Cell(words);
+                DsTooltip.Attach(text, words, "Best offer");
                 cell.Add(text);
                 return cell;
             })
             {
-                Width = 380,
+                Grow = 1.3f,
+                MinWidth = 340,
                 SortKey = row => Kit.Num(row, "bestOffer.incomePerAiring") ?? double.MinValue,
                 Help = "What the network would pay for your best show not yet on it, and whether it would sign today.",
             };
