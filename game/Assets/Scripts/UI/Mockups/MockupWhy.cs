@@ -40,7 +40,7 @@ namespace RingsideBooker.UI.Mockups
             new WhyLine("Crowd interest", "+1.2", DsState.Good, "The rematch has built for 4 weeks"),
             new WhyLine("Title on the line", "+0.6", DsState.Good),
             new WhyLine("Chemistry", "+0.5", DsState.Good, "Good: 3 matches together"),
-            new WhyLine("Time (25 min)", "+0.3", DsState.Good),
+            new WhyLine("Length: Long", "+0.3", DsState.Good, "Room to build a classic"),
             new WhyLine("Thackeray shrinks on a big stage", "−0.2", DsState.Bad));
 
         public static readonly WhyBreakdown ShowGrade = new WhyBreakdown(

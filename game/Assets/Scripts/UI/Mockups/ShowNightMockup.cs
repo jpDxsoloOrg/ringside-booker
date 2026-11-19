@@ -44,7 +44,7 @@ namespace RingsideBooker.UI.Mockups
             nowTag.AddToClassList("mk-now__tag");
             nowTag.Add(Ds.Text("NOW", "mk-now__tag-text"));
             now.Add(nowTag);
-            now.Add(Ds.Text("Co-main event · in progress · 11:40 of 18:00", "mk-now__text"));
+            now.Add(Ds.Text("Co-main event · in progress · Long match, into the closing stretch", "mk-now__text"));
             stage.Add(now);
             card[current].Stars = null; // no rating until it's over
             stage.Add(DsCards.MatchupCard(card[current], big: true));
@@ -68,10 +68,10 @@ namespace RingsideBooker.UI.Mockups
             VisualElement feed = Ds.Panel("Play by play", null, null, "mk-feed");
             (string time, string text, bool big)[] lines =
             {
-                ("11:40", "Takamori hits the spinning heel kick, Halvorsen kicks out at two!", true),
-                ("10:55", "Halvorsen works the arm, the crowd behind Takamori now.", false),
-                ("09:12", "Big dive to the floor from Takamori. Brackwater is on its feet.", false),
-                ("06:30", "Halvorsen cheats to take over: a thumb to the eye behind the referee's back.", false),
+                ("NOW", "Takamori hits the spinning heel kick, Halvorsen kicks out at two!", true),
+                ("", "Halvorsen works the arm, the crowd behind Takamori now.", false),
+                ("", "Big dive to the floor from Takamori. Brackwater is on its feet.", false),
+                ("", "Halvorsen cheats to take over: a thumb to the eye behind the referee's back.", false),
             };
             foreach ((string time, string text, bool big) in lines)
             {
@@ -143,8 +143,8 @@ namespace RingsideBooker.UI.Mockups
             List<Matchup> card = MockupData.ShowcaseCard();
             string[] finishes =
             {
-                "Pinfall · 7:48", "Pinfall · 11:52", "Submission · 9:30", "Pinfall · 15:10", "Pinfall · 12:05",
-                "Count-out · 13:20", "Submission · 16:44", "Pinfall · 18:31", "Pinfall · 24:12",
+                "Pinfall", "Pinfall", "Submission", "Pinfall", "Pinfall",
+                "Count-out", "Submission", "Pinfall", "Pinfall",
             };
             int[] winners = { 0, 0, 1, 0, 0, 1, 0, 0, 1 };
             for (int index = 0; index < card.Count; index++)

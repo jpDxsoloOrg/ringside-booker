@@ -293,6 +293,10 @@ namespace RingsideBooker.UI.Mockups
             Countdown = "In 20 days",
         };
 
+        /// <summary>Time used on the Showcase card (Short 1, Standard 2, Long 3 of the show's 20).</summary>
+        public const int ShowcaseTimeUsed = 19;
+        public const int ShowcaseTimeTotal = 20;
+
         /// <summary>The Showcase card (8 matches + a pre-show bout), main event last.</summary>
         public static List<Matchup> ShowcaseCard()
         {
@@ -307,33 +311,33 @@ namespace RingsideBooker.UI.Mockups
 
             return new List<Matchup>
             {
-                new Matchup { Slot = "Pre-show", MatchType = "Singles", A = S("The Buffalo"), B = S("Martín"), Length = "8 min", Stars = 2f },
-                new Matchup { Slot = "Opener", MatchType = "Singles", A = S("Brave Elizabeth", "Won last 3"), B = S("Maestro"), Length = "12 min", Stars = 3f },
-                new Matchup { Slot = "Midcard", MatchType = "Singles", A = S("Muhammad Sidhu"), B = S("Mean Kraken", "Feud: week 3"), Length = "10 min", Stars = 2.5f },
+                new Matchup { Slot = "Pre-show", MatchType = "Singles", A = S("The Buffalo"), B = S("Martín"), Length = "Short", Stars = 2f },
+                new Matchup { Slot = "Opener", MatchType = "Singles", A = S("Brave Elizabeth", "Won last 3"), B = S("Maestro"), Length = "Standard", Stars = 3f },
+                new Matchup { Slot = "Midcard", MatchType = "Singles", A = S("Muhammad Sidhu"), B = S("Mean Kraken", "Feud: week 3"), Length = "Short", Stars = 2.5f },
                 new Matchup
                 {
-                    Slot = "Midcard", MatchType = "Tag team", Title = "Altura Tag Team Championship", A = tag, B = challengers, Length = "15 min", Stars = 3.5f,
+                    Slot = "Midcard", MatchType = "Tag team", Title = "Altura Tag Team Championship", A = tag, B = challengers, Length = "Standard", Stars = 3.5f,
                 },
                 new Matchup
                 {
-                    Slot = "Midcard", MatchType = "Singles", Title = "Altura Breakout Championship", A = S("Kip Santangelo", "7 defences"), B = S("Agustín Giménez"), Length = "12 min", Stars = 3f,
+                    Slot = "Midcard", MatchType = "Singles", Title = "Altura Breakout Championship", A = S("Kip Santangelo", "7 defences"), B = S("Agustín Giménez"), Length = "Standard", Stars = 3f,
                 },
                 new Matchup
                 {
-                    Slot = "Upper card", MatchType = "Singles", A = S("The Cheetah"), B = S("Edward Harrison"), Length = "14 min", Stars = 3f,
+                    Slot = "Upper card", MatchType = "Singles", A = S("The Cheetah"), B = S("Edward Harrison"), Length = "Standard", Stars = 3f,
                     Flags = { (DsState.Warn, "The Cheetah is banged up"), },
                 },
                 new Matchup
                 {
-                    Slot = "Semi-main", MatchType = "Singles", Title = "Altura Women's Championship", A = S("Sable Whitcombe", "8 defences"), B = S("Sarah Arnold", "Earned the shot"), Length = "16 min", Stars = 3.5f,
+                    Slot = "Semi-main", MatchType = "Singles", Title = "Altura Women's Championship", A = S("Sable Whitcombe", "8 defences"), B = S("Sarah Arnold", "Earned the shot"), Length = "Long", Stars = 3.5f,
                 },
                 new Matchup
                 {
-                    Slot = "Co-main", MatchType = "Singles", Title = "Altura Keystone Championship", A = S("Rook Halvorsen", "3 defences"), B = S("Ren Takamori", "Unbeaten in January"), Length = "18 min", Stars = 4f,
+                    Slot = "Co-main", MatchType = "Singles", Title = "Altura Keystone Championship", A = S("Rook Halvorsen", "3 defences"), B = S("Ren Takamori", "Unbeaten in January"), Length = "Long", Stars = 4f,
                 },
                 new Matchup
                 {
-                    Slot = "Main event", MatchType = "Singles · No disqualification", Title = "Altura World Championship", A = S("Calder Voss", "Champion 300 days"), B = S("Ewan Thackeray", "Wants his rematch"), Length = "25 min", Stars = 4.5f,
+                    Slot = "Main event", MatchType = "Singles · No disqualification", Title = "Altura World Championship", A = S("Calder Voss", "Champion 300 days"), B = S("Ewan Thackeray", "Wants his rematch"), Length = "Long", Stars = 4.5f,
                 },
             };
         }

@@ -35,7 +35,7 @@ namespace RingsideBooker.UI.Mockups
             {
                 Kicker = "Showcase · Main event",
                 Headline = "Thackeray gets his rematch: Voss defends the World title on Sunday",
-                Dek = "No disqualification, 25 minutes, Brackwater Arena. The winner goes into Cold Front as champion.",
+                Dek = "No disqualification, a long match, Brackwater Arena. The winner goes into Cold Front as champion.",
                 When = "Booked yesterday",
                 Icon = "trophy",
                 State = DsState.Gold,

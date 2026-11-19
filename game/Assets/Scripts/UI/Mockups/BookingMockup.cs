@@ -46,6 +46,11 @@ namespace RingsideBooker.UI.Mockups
             live.AddToClassList("ds-cta--lg");
             buttons.Add(live);
             status.Add(buttons);
+            // Time used (EVT4-08): slot lengths against the show's budget, never minutes.
+            VisualElement time = Ds.Row("mk-time-used");
+            time.Add(Ds.Meter(MockupData.ShowcaseTimeUsed / (float)MockupData.ShowcaseTimeTotal, DsState.Info, "Time used"));
+            time.Add(Ds.Text($"{MockupData.ShowcaseTimeUsed} of {MockupData.ShowcaseTimeTotal}", "mk-time-used__value"));
+            show.Q<VisualElement>(className: "ds-show__words").Add(time);
             header.Add(status);
             page.Add(header);
 
@@ -149,7 +154,7 @@ namespace RingsideBooker.UI.Mockups
             panel.Add(Ds.KeyValues(
                 ("Winner", match.Slot == "Main event" ? "Ewan Thackeray (planned)" : $"{match.A.Name} (planned)"),
                 ("Finish", "Clean pinfall"),
-                ("Time", match.Length),
+                ("Length", match.Length),
                 ("Crowd interest", match.Slot == "Main event" ? "Red hot" : "Warm")));
             VisualElement read = Ds.Column("mk-read");
             read.Add(Ds.Meter(0.92f, DsState.Live, "Crowd"));

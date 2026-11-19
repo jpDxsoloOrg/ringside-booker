@@ -983,3 +983,19 @@
 .mk-details .ds-kv__key {
     width: 80px;
 }
+
+.mk-time-used {
+    width: 420px;
+    margin-top: 8px;
+}
+
+.mk-time-used > .ds-meter {
+    flex-grow: 1;
+}
+
+.mk-time-used__value {
+    margin-left: 10px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text-2);
+}
