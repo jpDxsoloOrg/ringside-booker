@@ -1145,3 +1145,11 @@
 .biz-monthly__zero {
     color: var(--ds-text-4);
 }
+
+.biz-monthly__cell.biz-good {
+    color: var(--ds-good);
+}
+
+.biz-monthly__cell.biz-bad {
+    color: var(--ds-bad);
+}
