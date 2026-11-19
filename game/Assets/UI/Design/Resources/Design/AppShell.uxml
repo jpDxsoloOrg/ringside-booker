@@ -25,8 +25,12 @@
                 <ui:VisualElement name="ds-topbar-actions" class="ds-topbar__actions" />
             </ui:VisualElement>
             <ui:VisualElement name="ds-topbar-stripe" class="ds-topbar__stripe" />
+            <ui:VisualElement name="ds-ticker-slot" class="ds-ticker-slot" />
             <ui:ScrollView name="ds-scroll" class="ds-scroll" horizontal-scroller-visibility="Hidden">
-                <ui:VisualElement name="ds-content" class="ds-content" />
+                <ui:VisualElement name="ds-content" class="ds-content">
+                    <ui:VisualElement name="ds-summary-slot" class="ds-summary-slot" />
+                    <ui:VisualElement name="ds-screen-host" class="ds-screen-host" />
+                </ui:VisualElement>
             </ui:ScrollView>
         </ui:VisualElement>
     </ui:VisualElement>

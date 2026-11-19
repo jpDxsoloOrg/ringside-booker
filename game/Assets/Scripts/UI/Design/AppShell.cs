@@ -39,9 +39,20 @@ namespace RingsideBooker.UI.Design
         private readonly VisualElement crumbs;
         private readonly VisualElement board;
         private readonly VisualElement actions;
+        private readonly VisualElement tickerSlot;
         private readonly Dictionary<string, Button> links = new Dictionary<string, Button>();
+        private readonly Dictionary<string, Label> badges = new Dictionary<string, Label>();
         private readonly Button collapseButton;
         private Action<string> navigate;
+        private Button bell;
+        private Label bellBadge;
+        private Action onBell;
+        private string tickerKey;
+
+        /// <summary>PlayerPrefs key that remembers the collapsed sidebar.</summary>
+        public const string CollapsedPref = "rb.ui.sidebarCollapsed";
+
+        private static readonly HashSet<string> FooterIds = new HashSet<string> { "settings", "main-menu", "collapse" };
 
         public AppShell(VisualElement root)
         {
@@ -58,6 +69,10 @@ namespace RingsideBooker.UI.Design
             board = root.Q<VisualElement>("ds-topbar-board");
             actions = root.Q<VisualElement>("ds-topbar-actions");
             Content = root.Q<VisualElement>("ds-content");
+            ScreenHost = root.Q<VisualElement>("ds-screen-host");
+            SummarySlot = root.Q<VisualElement>("ds-summary-slot");
+            tickerSlot = root.Q<VisualElement>("ds-ticker-slot");
+            tickerSlot.style.display = DisplayStyle.None;
             Scroll = root.Q<ScrollView>("ds-scroll");
             Overlay = new OverlayLayer(root.Q<VisualElement>(OverlayLayer.ElementName));
 
@@ -66,6 +81,7 @@ namespace RingsideBooker.UI.Design
             markShape.AddToClassList("ds-brand__mark-shape");
             markShape.Add(Ui.Text("RB", "ds-brand__mark-text"));
             mark.Add(markShape);
+            root.Q<VisualElement>("ds-brand").AddManipulator(new Clickable(() => navigate?.Invoke(NavigationModel.HomeItemId)));
 
             VisualElement footer = root.Q<VisualElement>("ds-sidebar-footer");
             footer.Add(Link("settings", "Settings", "settings", null, () => navigate?.Invoke("settings")));
@@ -74,10 +90,17 @@ namespace RingsideBooker.UI.Design
             footer.Add(collapseButton);
 
             root.Q<VisualElement>("ds-topbar-stripe").Add(GradientStripe.Flame(0.55f));
+            Collapsed = ReadCollapsed();
         }
 
         public VisualElement Root { get; }
         public VisualElement Content { get; }
+        /// <summary>Where the current screen goes (<see cref="Show"/>).</summary>
+        public VisualElement ScreenHost { get; }
+        /// <summary>Above the screen: the "what happened" summary after a day moves.</summary>
+        public VisualElement SummarySlot { get; }
+        /// <summary>The top bar's end, after the scoreboard: the bell, then the day control.</summary>
+        public VisualElement Actions => actions;
         public ScrollView Scroll { get; }
         public OverlayLayer Overlay { get; }
 
@@ -88,20 +111,94 @@ namespace RingsideBooker.UI.Design
             set
             {
                 app.EnableInClassList("ds-app--collapsed", value);
+                try
+                {
+                    PlayerPrefs.SetInt(CollapsedPref, value ? 1 : 0);
+                }
+                catch (Exception)
+                {
+                    // Preferences are a convenience; the sidebar works without them.
+                }
                 collapseButton.Q<Icon>().Glyph = value ? "sidebar-open" : "sidebar-close";
                 collapseButton.Q<Label>().text = TextFormat.Upper(value ? "Expand" : "Collapse");
             }
         }
 
-        public void SetPromotion(string name, string tagline, string monogram, string colorHex)
+        /// <summary>The promotion block: logo (picture or monogram plate), name and tagline; a SAMPLE tag for demo data.</summary>
+        public void SetPromotion(string name, string tagline, string monogram, string colorHex, Texture2D logo = null, bool sample = false)
         {
             promo.Clear();
-            promo.Add(DsCards.Logo(monogram, colorHex, "ds-logo--sm"));
+            promo.Add(DsCards.Logo(monogram, colorHex, "ds-logo--sm", logo));
             VisualElement words = Ui.El("ds-promo__words");
             words.Add(Ui.Text(TextFormat.Upper(name), "ds-promo__name"));
-            if (tagline != null) words.Add(Ui.Text(tagline, "ds-promo__tagline"));
+            VisualElement line = Ui.El("ds-promo__line");
+            if (!string.IsNullOrEmpty(tagline)) line.Add(Ui.Text(tagline, "ds-promo__tagline"));
+            if (sample) line.Add(Ds.Tag("Sample", "gold"));
+            words.Add(line);
             promo.Add(words);
-            DsTooltip.Attach(promo, tagline, name);
+            promo.tooltip = name;
+            if (!promo.ClassListContains("ds-promo--tipped"))
+            {
+                promo.AddToClassList("ds-promo--tipped");
+                DsTooltip.Attach(promo, null, name, () => Collapsed);
+            }
+        }
+
+        /// <summary>Badge counts by nav item id; 0 or missing hides the badge.</summary>
+        public void SetBadges(IReadOnlyDictionary<string, int> counts)
+        {
+            foreach (KeyValuePair<string, Label> pair in badges)
+            {
+                int count = 0;
+                counts?.TryGetValue(pair.Key, out count);
+                pair.Value.text = count > 99 ? "99+" : count.ToString();
+                pair.Value.style.display = count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+        }
+
+        /// <summary>The bell before the day control: how many things wait on the player. Created on first call.</summary>
+        public void SetBell(int count, Action onClick, string tooltip = "Needs attention")
+        {
+            onBell = onClick;
+            if (bell == null)
+            {
+                bell = Ds.IconButton("bell", tooltip, () => onBell?.Invoke());
+                bell.name = "ds-bell";
+                bell.AddToClassList("ds-topbar__bell");
+                bellBadge = Ds.Badge("0");
+                bellBadge.AddToClassList("ds-topbar__bell-badge");
+                bell.Add(bellBadge);
+                actions.Insert(0, bell);
+            }
+            bellBadge.text = count > 99 ? "99+" : count.ToString();
+            bellBadge.style.display = count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        /// <summary>The news ticker under the top bar; hidden with no headlines. Rebuilt only when they change.</summary>
+        public void SetTicker(IReadOnlyList<string> headlines, bool animate = true)
+        {
+            string key = headlines == null ? string.Empty : string.Join("\n", headlines);
+            if (key == tickerKey) return;
+            tickerKey = key;
+            tickerSlot.Clear();
+            bool any = headlines != null && headlines.Count > 0;
+            tickerSlot.style.display = any ? DisplayStyle.Flex : DisplayStyle.None;
+            if (any) tickerSlot.Add(DsCards.Ticker("Latest", headlines, animate));
+        }
+
+        /// <summary>A scoreboard cell by id ("date", "cash", "popularity"), or null.</summary>
+        public VisualElement ScoreCell(string id) => board.Q<VisualElement>("score-" + id);
+
+        private static bool ReadCollapsed()
+        {
+            try
+            {
+                return PlayerPrefs.GetInt(CollapsedPref, 0) == 1;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         /// <summary>Builds the nav from the model's visible sections. Badges by item id (0 hides).</summary>
@@ -109,6 +206,13 @@ namespace RingsideBooker.UI.Design
         {
             navigate = onNavigate;
             nav.Clear();
+            // Section links are rebuilt; the footer's links stay.
+            foreach (string id in new List<string>(links.Keys))
+            {
+                if (FooterIds.Contains(id)) continue;
+                links.Remove(id);
+                this.badges.Remove(id);
+            }
             foreach (NavSection section in sections)
             {
                 VisualElement block = Ui.El("ds-nav__section");
@@ -145,8 +249,8 @@ namespace RingsideBooker.UI.Design
         {
             board.Clear();
             board.Add(ScoreCell("date", "Date", score.Date, score.Season, DsState.Neutral, null));
-            board.Add(ScoreCell("cash", "Cash", score.Cash, score.CashWords, score.CashState, score.CashWhy));
-            board.Add(ScoreCell("popularity", "Popularity", score.Popularity, score.PopularityWords, DsState.Info, score.PopularityWhy));
+            if (score.Cash != null) board.Add(ScoreCell("cash", "Cash", score.Cash, score.CashWords, score.CashState, score.CashWhy));
+            if (score.Popularity != null) board.Add(ScoreCell("popularity", "Popularity", score.Popularity, score.PopularityWords, DsState.Info, score.PopularityWhy));
         }
 
         /// <summary>The top bar's end: notifications, the skewed CTA and the skip button.</summary>
@@ -175,8 +279,8 @@ namespace RingsideBooker.UI.Design
         public void Show(VisualElement screen)
         {
             DsTooltip.Hide();
-            Content.Clear();
-            Content.Add(screen);
+            ScreenHost.Clear();
+            ScreenHost.Add(screen);
             Scroll.scrollOffset = Vector2.zero;
         }
 
@@ -201,12 +305,11 @@ namespace RingsideBooker.UI.Design
             link.Add(Ui.El("ds-nav__rail"));
             link.Add(new Icon(IconLibrary.Has(icon) ? icon : "office", "ds-icon--md", "ds-nav__icon"));
             link.Add(Ui.Text(TextFormat.Upper(label), "ds-nav__label"));
-            if (badge.HasValue)
-            {
-                Label count = Ds.Badge(badge.Value > 99 ? "99+" : badge.Value.ToString());
-                count.AddToClassList("ds-nav__badge");
-                link.Add(count);
-            }
+            Label count = Ds.Badge(badge.HasValue ? (badge.Value > 99 ? "99+" : badge.Value.ToString()) : "0");
+            count.AddToClassList("ds-nav__badge");
+            count.style.display = badge.HasValue ? DisplayStyle.Flex : DisplayStyle.None;
+            link.Add(count);
+            badges[id] = count;
             DsTooltip.Attach(link, null, label, () => Collapsed);
             links[id] = link;
             return link;

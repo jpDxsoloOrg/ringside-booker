@@ -394,3 +394,57 @@
     flex-shrink: 0;
     padding: 18px 24px 32px 24px;
 }
+
+/* ---- The game's shell (ShellController on AppShell, UNITY-11 phase 2) --------------------------------- */
+
+.ds-topbar__actions > .day-control {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ds-topbar__actions > .day-control > .live-bug {
+    margin: 0 6px 0 2px;
+}
+
+/* The cash Why? from the engine bridge: quiet, in the cell's corner, shown on hover or focus. */
+.ds-score {
+    position: relative;
+}
+
+.ds-score > .status-chip__why {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    margin: 0;
+    font-size: 9px;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 120ms;
+}
+
+.ds-score:hover > .status-chip__why,
+.ds-score > .status-chip__why:focus {
+    opacity: 1;
+}
+
+.ds-ticker-slot {
+    flex-shrink: 0;
+    padding: 8px 24px 0 24px;
+}
+
+.ds-summary-slot,
+.ds-screen-host {
+    flex-shrink: 0;
+}
+
+.ds-promo__line {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ds-promo__line > .ds-tag {
+    margin-left: 6px;
+}
