@@ -222,7 +222,7 @@ namespace RingsideBooker.Screens.Dev
         /// Waits for the engine to go idle and the day control to read today's stops again (frame by
         /// frame, no fixed delays: UNITY-23 found the old 0.6 s per step was most of a run's time).
         /// </summary>
-        private static async Task Settle()
+        internal static async Task Settle()
         {
             EngineGame game = EngineGame.Current;
             if (game == null) return;
@@ -257,7 +257,7 @@ namespace RingsideBooker.Screens.Dev
         /// A stop other than the show: press the day button; when it opens "Needs attention", press
         /// that row's main button (else the button went to the stop's screen, which clears it).
         /// </summary>
-        private static async Task ClearStop(GateHit lead)
+        internal static async Task ClearStop(GateHit lead)
         {
             DayControlView control = ShellController.Current.DayControl;
             control.RunPrimary();
@@ -265,7 +265,9 @@ namespace RingsideBooker.Screens.Dev
             Sheet sheet = control.WaitingSheet;
             if (sheet == null)
             {
-                Debug.Log($"[SkipCheck] {lead.GateId}: \"{lead.Reason}\" → opened {ShellController.Current.Navigator.Current?.ScreenId}");
+                string screen = ShellController.Current.Navigator.Current?.ScreenId;
+                Debug.Log($"[SkipCheck] {lead.GateId}: \"{lead.Reason}\" → opened {screen}");
+                if (screen == Contracts.ContractsScreen.ScreenId) await ClearOnContracts(lead);
                 return;
             }
             Button button = sheet.Root.Q<Button>($"waiting-action-{lead.GateId}-0");
@@ -293,11 +295,48 @@ namespace RingsideBooker.Screens.Dev
         }
 
         /// <summary>
+        /// A contract stop on the Contracts screen (UNITY-17): press what a player would press there.
+        /// Expiring: Mark all seen. Wants to leave: Refuse in the contract sheet. Counter waiting: End
+        /// talks in the Negotiation sheet. Offer answered: opening the talks already marked it seen.
+        /// </summary>
+        internal static async Task ClearOnContracts(GateHit lead)
+        {
+            for (int wait = 0; wait < 50 && Contracts.ContractsScreen.Current?.Root.panel == null; wait++) await Task.Delay(100);
+            await Settle();
+            VisualElement root = ShellController.Current.GetComponent<UIDocument>().rootVisualElement;
+            string name = lead.GateId switch
+            {
+                EngineGateActions.ExpiringSoon => "contracts-mark-all-seen",
+                EngineGateActions.ReleaseRequested => "release-refuse",
+                EngineGateActions.CounterWaiting => "negotiation-end",
+                _ => null,
+            };
+            Button button = null;
+            for (int wait = 0; name != null && button == null && wait < 50; wait++)
+            {
+                button = root.Q<Button>(name) ?? (name == "contracts-mark-all-seen" ? root.Q<Button>("decision-expiring-go") : null);
+                if (button == null) await Task.Delay(100);
+            }
+            if (name != null && button == null) Debug.LogWarning($"[SkipCheck] {lead.GateId}: no {name} button on Contracts");
+            if (button != null)
+            {
+                Debug.Log($"[SkipCheck] {lead.GateId}: Contracts › {name}");
+                using (NavigationSubmitEvent submit = NavigationSubmitEvent.GetPooled())
+                {
+                    submit.target = button;
+                    button.SendEvent(submit);
+                }
+            }
+            await Settle();
+            ShellController.Current.Overlay.CloseAll();
+        }
+
+        /// <summary>
         /// Show night: open it from the day button, Auto-fill the card with Auto results, then go live
         /// (run one segment, sim the rest) or run it (auto shows). True for live, false for auto, null
         /// when it would not run.
         /// </summary>
-        private static async Task<bool?> ShowNight(EngineGame game, GateHit lead)
+        internal static async Task<bool?> ShowNight(EngineGame game, GateHit lead)
         {
             string eventId = lead.Subject?.Id;
             if (eventId == null) return null;
