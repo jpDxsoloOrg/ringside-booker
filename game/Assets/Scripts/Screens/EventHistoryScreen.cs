@@ -205,7 +205,6 @@ namespace RingsideBooker.Screens
             cell.Add(slot);
             VisualElement words = Ds.Column("wl-name-cell__words");
             words.Add(Ds.Text(Kit.Str(show, "name"), "ds-cell__text", "ds-cell__text--strong", "wl-name-cell__name"));
-            if (Kit.Str(show, "brand.name") is string brand && brand != Kit.Str(show, "name")) words.Add(Ds.Text(brand, "wl-name-cell__detail"));
             cell.Add(words);
             return cell;
         }

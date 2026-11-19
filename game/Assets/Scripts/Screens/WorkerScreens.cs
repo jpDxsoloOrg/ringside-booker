@@ -38,8 +38,7 @@ namespace RingsideBooker.Screens
             }
 
             JToken header = Kit.Obj(profile, "header");
-            QueryResult<JToken> titles = await Kit.Game.Client.Query("titles.list", new JObject { ["scope"] = "world", ["status"] = "active" });
-            string champion = RosterScreen.ChampionsByPerson(titles.Data).TryGetValue(personId, out string belt) ? belt : null;
+            string champion = (await RosterScreen.AllChampionsAsync()).TryGetValue(personId, out string belt) ? belt : null;
             body.Add(WorkerProfileScreen.Hero(header, champion, rosterRow, context, "ds-portrait--lg", compact: true));
 
             VisualElement tiles = Ds.Row("wl-tiles");
@@ -125,7 +124,7 @@ namespace RingsideBooker.Screens
                 id = Kit.Str(detail.Data, "personId") ?? id;
             }
             QueryResult<JToken> answer = id == null ? null : await client.Query("workers.profile", new JObject { ["personId"] = id });
-            QueryResult<JToken> titles = await client.Query("titles.list", new JObject { ["scope"] = "world", ["status"] = "active" });
+            Dictionary<string, string> champions = await RosterScreen.AllChampionsAsync();
             host.Clear();
             if (answer == null || !answer.Ok || answer.Data == null || answer.Data.Type == JTokenType.Null)
             {
@@ -137,7 +136,7 @@ namespace RingsideBooker.Screens
             JToken profile = answer.Data;
             JToken header = Kit.Obj(profile, "header");
             string personId = Kit.Str(header, "personId");
-            string champion = RosterScreen.ChampionsByPerson(titles.Data).TryGetValue(personId ?? string.Empty, out string belt) ? belt : null;
+            string champion = champions.TryGetValue(personId ?? string.Empty, out string belt) ? belt : null;
 
             VisualElement crumbs = Ds.Row("wl-crumbs");
             Button back = Ds.Button("Back", () => context.Navigator.Back(), DsButtonKind.Ghost, "chevron-left");
@@ -372,7 +371,7 @@ namespace RingsideBooker.Screens
             {
                 var columns = new List<DsColumn<JToken>>
                 {
-                    new DsColumn<JToken>("title", "Title", r => Ds.Row("wl-dot-num").With(new Icon("crown", "ds-icon--xs", "wl-name-cell__crown"), W.Cell(Kit.Str(r, "titleName"), strong: true))) { Grow = 2.2f, MinWidth = 220 },
+                    new DsColumn<JToken>("title", "Title", r => Ds.Row("wl-dot-num").With(new Icon("crown", "ds-icon--xs", "wl-crown-lead"), W.Cell(Kit.Str(r, "titleName"), strong: true))) { Grow = 2.2f, MinWidth = 220 },
                     new DsColumn<JToken>("promotion", "Promotion", r => W.Cell(Kit.Str(r, "promotionName"))) { Grow = 1.6f },
                     new DsColumn<JToken>("won", "Won", r => W.Cell(Kit.Date(Kit.Str(r, "wonOn")))) { Grow = 1f, SortKey = r => Kit.Str(r, "wonOn") },
                     new DsColumn<JToken>("lost", "Lost", r => Kit.Str(r, "lostOn") is string lost ? W.Cell(Kit.Date(lost)) : Ds.Pill(DsState.Gold, "Champion", "crown")) { Grow = 1f },
@@ -403,7 +402,7 @@ namespace RingsideBooker.Screens
                 return;
             }
             JToken health = answer.Data;
-            VisualElement tiles = Ds.Row("ds-row--wrap", "wl-profile-tiles", "wl-gap-bottom");
+            VisualElement tiles = Ds.Row("ds-row--wrap", "wl-tile-row");
             string band = Kit.Str(health, "fatigue.band");
             DsState bandState = band == "fresh" ? DsState.Good : band == "tired" ? DsState.Info : band == "weary" ? DsState.Warn : DsState.Bad;
             double fatigue = Kit.Num(health, "fatigue.value") ?? 0;

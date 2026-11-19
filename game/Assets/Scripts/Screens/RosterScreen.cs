@@ -58,6 +58,9 @@ namespace RingsideBooker.Screens
         /// <summary>The table drawn last (the screenshot tour expands a row and opens its column picker).</summary>
         public static DsTable<Entry> LastTable { get; private set; }
 
+        /// <summary>The entries drawn last, in their order.</summary>
+        public static List<Entry> LastShown { get; private set; }
+
         /// <summary>One roster row with what the other queries add.</summary>
         public sealed class Entry
         {
@@ -186,6 +189,17 @@ namespace RingsideBooker.Screens
             return image;
         }
 
+        /// <summary>Person id → the first title they hold anywhere (<c>titles.list</c> own and world scopes).</summary>
+        public static async Task<Dictionary<string, string>> AllChampionsAsync()
+        {
+            EngineClient client = Kit.Game.Client;
+            QueryResult<JToken> own = await client.Query("titles.list", new JObject { ["scope"] = "own", ["status"] = "active" });
+            QueryResult<JToken> world = await client.Query("titles.list", new JObject { ["scope"] = "world", ["status"] = "active" });
+            Dictionary<string, string> all = ChampionsByPerson(world.Data);
+            foreach (KeyValuePair<string, string> pair in ChampionsByPerson(own.Data)) all[pair.Key] = pair.Value;
+            return all;
+        }
+
         /// <summary>Person id → the first title they hold, from <c>titles.list</c>.</summary>
         public static Dictionary<string, string> ChampionsByPerson(JToken titles)
         {
@@ -264,6 +278,7 @@ namespace RingsideBooker.Screens
         {
             body.Clear();
             List<Entry> shown = Filtered(all).ToList();
+            LastShown = shown;
             body.Add(W.ActiveFilters(ActiveFilterPills(all, () => DrawBody(body, all, group, context)), () =>
             {
                 sideFilter = brandFilter = genderFilter = null;

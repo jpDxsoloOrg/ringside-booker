@@ -232,7 +232,7 @@
     overflow: hidden;
     background-color: var(--ds-elev-1);
 }
-.wl-month__week { flex-direction: row; flex-shrink: 0; }
+.wl-month__week { flex-direction: row; flex-shrink: 0; align-items: stretch; }
 .wl-month__head { background-color: var(--ds-elev-2); }
 .wl-month__cell {
     flex-grow: 1;
@@ -289,3 +289,10 @@
 }
 .wl-show-chip__icon { margin-left: 4px; color: var(--ds-text-3); flex-shrink: 0; }
 .wl-day-list > .wl-show-chip { height: 32px; }
+
+/* A row of stat tiles on its own line (Health tab, promotion profile). */
+.wl-tile-row { flex-shrink: 0; margin-bottom: 6px; }
+.wl-tile-row > .ds-stat { width: 220px; margin: 0 10px 10px 0; }
+.wl-crown-lead { margin-right: 6px; color: var(--ds-gold); flex-shrink: 0; }
+.wl-tab-body > .ds-section-header { margin-top: 14px; }
+.wl-tab-body > .ds-table { margin-bottom: 6px; }

@@ -194,8 +194,7 @@ namespace RingsideBooker.Screens
         {
             var columns = new List<DsColumn<JToken>>
             {
-                new DsColumn<JToken>("name", "Name", r => W.NameCell(Kit.Str(r, "ringName"), Kit.Str(r, "imageRef"), Kit.Str(r, "alignment"), false,
-                    Kit.Str(r, "legalName") != Kit.Str(r, "ringName") ? Kit.Str(r, "legalName") : null))
+                new DsColumn<JToken>("name", "Name", r => W.NameCell(Kit.Str(r, "ringName"), Kit.Str(r, "imageRef"), Kit.Str(r, "alignment")))
                     { Grow = 2.4f, MinWidth = 220, Pinned = true, SortKey = r => Kit.Str(r, "ringName") },
                 new DsColumn<JToken>("employer", "Works for", r => EmployerCell(r, promotions)) { Grow = 1.6f, MinWidth = 170, SortKey = r => Kit.Str(r, "employer.shortName") ?? "~" },
                 new DsColumn<JToken>("role", "Role", r => W.Cell(W.PushWord(Kit.Str(r, "push")) ?? W.RoleWord(Kit.Str(r, "mainRole")))) { Grow = 1.1f, MinWidth = 110, SortKey = r => W.PushRank(Kit.Str(r, "push")) * 10 + (Kit.Str(r, "mainRole") == "wrestler" ? 1 : 0), Help = "Their card position where they work, else their main role." },

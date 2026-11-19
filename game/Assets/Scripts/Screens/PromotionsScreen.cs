@@ -130,7 +130,6 @@ namespace RingsideBooker.Screens
             cell.Add(W.Logo(Kit.Str(promotion, "logoRef"), Kit.Str(promotion, "shortName"), Kit.Str(promotion, "color"), "wl-logo--row"));
             VisualElement words = Ds.Column("wl-name-cell__words");
             words.Add(Ds.Text(Kit.Str(promotion, "name"), "ds-cell__text", "ds-cell__text--strong", "wl-name-cell__name"));
-            words.Add(Ds.Text($"{Kit.Str(promotion, "shortName")} · {W.PromotionStyleWord(Kit.Str(promotion, "style"))}", "wl-name-cell__detail"));
             cell.Add(words);
             return cell;
         }
@@ -258,7 +257,7 @@ namespace RingsideBooker.Screens
             host.Add(hero);
 
             JToken kpis = Kit.Obj(profile, "kpis");
-            VisualElement tiles = Ds.Row("ds-row--wrap", "wl-profile-tiles", "wl-gap-bottom");
+            VisualElement tiles = Ds.Row("ds-row--wrap", "wl-tile-row");
             double home = Kit.Num(kpis, "popularityHome.value") ?? 0;
             double world = Kit.Num(kpis, "popularityWorld.value") ?? 0;
             tiles.Add(WorkerProfileScreen.Tile("Popularity at home", W.Int(home), W.Popularity(home).word, W.Popularity(home).state,
@@ -385,7 +384,7 @@ namespace RingsideBooker.Screens
             }
             var columns = new List<DsColumn<JToken>>
             {
-                new DsColumn<JToken>("name", "Title", t => Ds.Row("wl-dot-num").With(new Icon("crown", "ds-icon--xs", "wl-name-cell__crown"), W.Cell(Kit.Str(t, "name"), strong: true))) { Grow = 2.2f, MinWidth = 240, SortKey = t => Kit.Str(t, "name") },
+                new DsColumn<JToken>("name", "Title", t => Ds.Row("wl-dot-num").With(new Icon("crown", "ds-icon--xs", "wl-crown-lead"), W.Cell(Kit.Str(t, "name"), strong: true))) { Grow = 2.2f, MinWidth = 240, SortKey = t => Kit.Str(t, "name") },
                 new DsColumn<JToken>("holder", "Champion", t =>
                 {
                     List<string> holders = Kit.Arr(t, "holderNames").Select(h => (string)h).ToList();
