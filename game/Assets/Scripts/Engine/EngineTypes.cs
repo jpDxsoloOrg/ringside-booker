@@ -164,6 +164,12 @@ namespace RingsideBooker.Engine
         /// <summary>For <c>inspectSave</c>: the save's header (raw <c>SaveHeader</c>).</summary>
         public JToken Header { get; set; }
 
+        /// <summary>For <c>inspectSave</c>: the engine build that wrote the save.</summary>
+        public string EngineVersion { get; set; }
+
+        /// <summary>For <c>inspectSave</c>: the save's format version.</summary>
+        public int FormatVersion { get; set; }
+
         /// <summary>Everything that went wrong, as one line.</summary>
         public string ProblemText
         {
