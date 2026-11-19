@@ -1,0 +1,781 @@
+/*
+ * Contracts screen layout (UNITY-17). The look comes from the UNITY-11 ds- components; ct- classes
+ * only place things. Loaded at run time by ContractUi.Style (Resources "Contracts/Contracts").
+ * Rows never shrink (UNITY-13 layout rule); ellipsized labels keep letter-spacing 0.
+ */
+
+.ct-page {
+    flex-shrink: 0;
+    padding-bottom: 24px;
+}
+
+.ct-head {
+    margin-bottom: 14px;
+    align-items: flex-end;
+}
+
+.ct-head__title {
+    color: var(--ds-text);
+}
+
+.ct-head__counts-text {
+    margin-top: 2px;
+    color: var(--ds-text-3);
+}
+
+.ct-quiet {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.ct-gap-top {
+    margin-top: 12px;
+}
+
+.ct-gold {
+    color: var(--ds-gold);
+}
+
+.ct-data {
+    color: var(--ds-data);
+}
+
+.ct-bad {
+    color: var(--ds-bad);
+}
+
+/* ---- Needs your decision -------------------------------------------------------------------------- */
+
+.ct-decisions {
+    flex-shrink: 0;
+    margin-bottom: 8px;
+}
+
+.ct-decisions__cards {
+    margin-top: 8px;
+    margin-right: -12px;
+}
+
+.ct-decision {
+    width: 400px;
+    height: 84px;
+    margin: 0 12px 12px 0;
+    padding: 10px 12px 10px 0;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+    overflow: hidden;
+}
+
+.ct-decision__edge {
+    width: 4px;
+    align-self: stretch;
+    margin: -10px 12px -10px 0;
+    background-color: var(--ds-state);
+}
+
+.ct-decision__icon-box {
+    width: 52px;
+    height: 60px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-state-soft);
+}
+
+.ct-decision__icon {
+    color: var(--ds-state);
+}
+
+.ct-decision__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 0;
+    margin-left: 12px;
+    overflow: hidden;
+}
+
+.ct-decision__top {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ct-decision__eyebrow-icon {
+    margin-right: 4px;
+    color: var(--ds-state);
+}
+
+.ct-decision__eyebrow {
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-state);
+}
+
+.ct-decision__name {
+    margin-top: 2px;
+    font-size: 15px;
+    letter-spacing: 0;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ct-decision__line {
+    margin-top: 2px;
+    font-size: 12px;
+    letter-spacing: 0;
+    color: var(--ds-text-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ct-decision__actions {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: 10px;
+}
+
+.ct-decision__actions > .ds-btn {
+    margin-left: 6px;
+}
+
+/* ---- Tabs, toolbar, lists ------------------------------------------------------------------------- */
+
+.ct-tabs {
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.ct-tabs > .ds-tabs {
+    flex-grow: 1;
+}
+
+.ct-tab-count--urgent {
+    color: #ffffff;
+    background-color: var(--ds-action);
+    border-radius: 999px;
+    padding: 0 6px;
+}
+
+.ct-toolbar {
+    flex-shrink: 0;
+    margin: 12px 0 10px 0;
+}
+
+.ct-toolbar > * {
+    margin-right: 8px;
+}
+
+.ct-toolbar__shown {
+    color: var(--ds-text-3);
+}
+
+.ct-search {
+    flex-direction: row;
+    align-items: center;
+    width: 260px;
+    height: 30px;
+    padding-left: 8px;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-0);
+}
+
+.ct-search__icon {
+    color: var(--ds-text-3);
+}
+
+.ct-search__field {
+    flex-grow: 1;
+    margin: 0;
+}
+
+.ct-search__field > .unity-base-text-field__input,
+.ct-input__field > .unity-base-text-field__input {
+    margin: 0;
+    padding: 0 8px;
+    border-width: 0;
+    background-color: transparent;
+    font-size: 13px;
+    color: var(--ds-text);
+}
+
+.ct-list {
+    flex-shrink: 0;
+}
+
+.ct-table {
+    flex-shrink: 0;
+}
+
+.ct-name-cell {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.ct-name-cell__name {
+    flex-shrink: 1;
+    margin-left: 10px;
+    letter-spacing: 0;
+}
+
+.ct-name-cell__crown {
+    margin-left: 6px;
+    color: var(--ds-gold);
+}
+
+.ct-chips {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.ct-chips > * {
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+
+.ct-chips .ds-pill__label {
+    letter-spacing: 0;
+}
+
+.ct-chips__more {
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.ct-ends {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ct-ends__days {
+    margin-left: 8px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+    white-space: nowrap;
+}
+
+.ct-row-actions {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.ct-row-actions > * {
+    margin-left: 6px;
+}
+
+.ct-rating {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ct-grade {
+    margin-left: 6px;
+    padding: 0 5px;
+    font-size: 11px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-data);
+    border-width: 1px;
+    border-color: var(--ds-data);
+    border-radius: var(--ds-radius-xs);
+}
+
+.ct-value {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.ct-value__text {
+    white-space: nowrap;
+}
+
+.ct-value > .why-button {
+    margin-left: 4px;
+}
+
+.ct-choice-wrap {
+    flex-shrink: 0;
+}
+
+.ct-intro {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+}
+
+.ct-banner {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    border-width: 1px;
+    border-color: var(--ds-state);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-state-soft);
+}
+
+.ct-banner__icon {
+    color: var(--ds-state);
+    margin-right: 10px;
+}
+
+.ct-banner__text {
+    flex-shrink: 1;
+    font-size: 13px;
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.ct-answers {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+    padding: 10px 12px 4px 12px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-left-width: 3px;
+    border-left-color: var(--ds-action);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+}
+
+.ct-answers__title {
+    margin-bottom: 6px;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.ct-answers__item {
+    margin: 0 8px 6px 0;
+}
+
+/* ---- Filters popover ------------------------------------------------------------------------------ */
+
+.ct-filters {
+    width: 560px;
+    max-width: 90%;
+    padding: 12px 14px;
+}
+
+.ct-filter-numbers > .ct-field {
+    width: 150px;
+    margin-right: 12px;
+}
+
+/* ---- Fields --------------------------------------------------------------------------------------- */
+
+.ct-field {
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.ct-field__label {
+    margin-bottom: 4px;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.ct-field__hint {
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+    white-space: normal;
+}
+
+.ct-field__error {
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--ds-bad);
+    white-space: normal;
+}
+
+.ct-choices > * {
+    margin: 0 6px 6px 0;
+}
+
+.ct-input {
+    flex-direction: row;
+    align-items: center;
+    height: 32px;
+    padding-left: 8px;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-0);
+}
+
+.ct-input__prefix {
+    font-size: 13px;
+    color: var(--ds-text-3);
+}
+
+.ct-input__field {
+    flex-grow: 1;
+    margin: 0;
+}
+
+.ct-switch {
+    height: auto;
+    min-height: 34px;
+    padding: 4px 6px;
+    margin-top: 4px;
+    align-items: flex-start;
+}
+
+.ct-switch .ds-check__box {
+    margin-top: 2px;
+}
+
+.ct-switch__words {
+    flex-grow: 1;
+    margin-left: 10px;
+}
+
+.ct-switch__label {
+    margin-left: 0;
+}
+
+.ct-switch__hint {
+    margin-top: 1px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+.ct-notice {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 8px;
+    padding: 7px 10px;
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-state-soft);
+}
+
+.ct-notice__icon {
+    margin-right: 8px;
+    color: var(--ds-state);
+}
+
+.ct-notice__text {
+    flex-shrink: 1;
+    font-size: 13px;
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.ct-notice > .why-button {
+    margin-left: 6px;
+}
+
+/* ---- Contract sheet ------------------------------------------------------------------------------- */
+
+.ct-sheet,
+.ct-neg {
+    flex-shrink: 0;
+}
+
+.ct-sheet > .ds-section-header,
+.ct-neg .ds-section-header {
+    margin-top: 16px;
+    margin-bottom: 6px;
+}
+
+.ct-hero {
+    flex-shrink: 0;
+    margin-bottom: 6px;
+}
+
+.ct-hero__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-left: 14px;
+}
+
+.ct-hero__words > * {
+    margin-bottom: 4px;
+}
+
+.ct-hero__name {
+    color: var(--ds-text);
+}
+
+.ct-facts__row {
+    min-height: 26px;
+    height: auto;
+}
+
+.ct-plain {
+    color: var(--ds-text);
+}
+
+.ct-sheet__footer > .ds-btn,
+.ct-neg__footer > .ds-btn {
+    margin-left: 8px;
+}
+
+.ct-request {
+    flex-shrink: 0;
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-width: 1px;
+    border-color: var(--ds-state);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-state-soft);
+}
+
+.ct-request__headline {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.ct-request__line {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--ds-text-2);
+}
+
+.ct-outcomes {
+    margin-top: 10px;
+}
+
+.ct-outcome {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-right: 10px;
+    padding: 10px 12px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+}
+
+.ct-outcome > .ds-btn {
+    margin-top: 10px;
+    align-self: flex-start;
+}
+
+.ct-outcome__title {
+    font-size: 12px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.ct-outcome__line {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.ct-outcome__value {
+    margin-top: 2px;
+    font-size: 18px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text);
+}
+
+.ct-modal__text {
+    font-size: 13px;
+    color: var(--ds-text-2);
+    margin-bottom: 4px;
+}
+
+/* ---- Negotiation sheet ---------------------------------------------------------------------------- */
+
+.ct-neg__columns {
+    margin-top: 10px;
+}
+
+.ct-neg__ask {
+    width: 360px;
+    flex-shrink: 0;
+    margin-right: 24px;
+}
+
+.ct-neg__offer {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+}
+
+.ct-neg__patience {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--ds-text-2);
+}
+
+.ct-meter-host {
+    flex-shrink: 0;
+    padding: 12px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+}
+
+.ct-meter__head {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ct-meter__reaction {
+    flex-direction: row;
+    align-items: center;
+    margin: 4px 0 8px 0;
+}
+
+.ct-meter__icon {
+    margin-right: 8px;
+    color: var(--ds-state);
+}
+
+.ct-meter__label {
+    font-size: 24px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-state);
+}
+
+.ct-meter__reaction > .why-button {
+    margin-left: 8px;
+}
+
+.ct-meter__note {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--ds-text-2);
+}
+
+.ct-ask {
+    flex-shrink: 0;
+}
+
+.ct-offer {
+    flex-shrink: 0;
+}
+
+.ct-offer__head {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ct-offer__head > .ds-section-header {
+    flex-grow: 1;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.ct-offer__money > .ct-field {
+    width: 220px;
+    margin-right: 16px;
+}
+
+.ct-offer > .ds-btn--ghost {
+    margin-top: 12px;
+    align-self: flex-start;
+}
+
+.ct-offer__more {
+    flex-shrink: 0;
+    margin-top: 6px;
+    padding: 4px 12px 12px 12px;
+    border-left-width: 2px;
+    border-left-color: var(--ds-line-strong);
+}
+
+.ct-on-table {
+    flex-shrink: 0;
+    padding: 12px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+}
+
+.ct-on-table__text {
+    font-size: 14px;
+    color: var(--ds-text);
+}
+
+.ct-neg__footer-reaction {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-state);
+}
+
+.ct-history {
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.ct-history__row {
+    flex-direction: row;
+    align-items: flex-start;
+    flex-shrink: 0;
+    padding: 8px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.ct-history__icon {
+    margin: 2px 10px 0 0;
+    color: var(--ds-text-3);
+}
+
+.ct-history__row--worker .ct-history__icon {
+    color: var(--ds-data);
+}
+
+.ct-history__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.ct-history__line {
+    font-size: 13px;
+    color: var(--ds-text);
+}
+
+.ct-history__meta {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ct-history__meta > .ct-quiet {
+    margin-top: 0;
+}
+
+.ct-history__reaction {
+    margin-left: 10px;
+    font-size: 12px;
+    color: var(--ds-text-2);
+}
+
+.ct-history__meta > .why-button {
+    margin-left: 6px;
+}
