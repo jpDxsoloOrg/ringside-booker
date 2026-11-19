@@ -6,6 +6,6 @@
     "rootDir": "..",
     "outDir": "../dist/test-types"
   },
-  "include": ["**/*.ts", "../vitest.config.ts"],
+  "include": ["**/*.ts", "../vitest.config.ts", "../scripts/**/*.ts"],
   "references": [{ "path": ".." }, { "path": "../../engine" }]
 }

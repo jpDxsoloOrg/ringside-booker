@@ -726,11 +726,16 @@ function checkRef(ref: TraceRef): void {
   }
 }
 
+/**
+ * Freezes a stored entry and everything in it. Entries are plain JSON (the record check copies
+ * them), so their values are read directly: no getters to step around (POL4-12: this walk ran
+ * over every recorded trace).
+ */
 function deepFreeze<T>(value: T): T {
   if (typeof value === 'object' && value !== null && !Object.isFrozen(value)) {
     Object.freeze(value);
-    for (const key of Object.keys(value)) {
-      deepFreeze(Object.getOwnPropertyDescriptor(value, key)?.value as unknown);
+    for (const item of Object.values(value)) {
+      deepFreeze(item);
     }
   }
   return value;

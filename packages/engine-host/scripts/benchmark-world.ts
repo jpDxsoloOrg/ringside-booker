@@ -71,8 +71,22 @@ async function readTables(path: string): Promise<Record<string, Record<string, u
   return tables;
 }
 
-function parse(json: string): Record<string, unknown> {
-  return JSON.parse(json) as Record<string, unknown>;
+type Json = Record<string, unknown>;
+
+function isJson(value: unknown): value is Json {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** A field of a host answer that is itself an object ({} when it is missing). */
+function field(value: unknown, key: string): Json {
+  const inner = isJson(value) ? value[key] : undefined;
+  return isJson(inner) ? inner : {};
+}
+
+function parse(json: string): Json {
+  const value: unknown = JSON.parse(json);
+  if (!isJson(value)) throw new Error(`not a JSON object: ${json.slice(0, 80)}`);
+  return value;
 }
 
 const host = createEmbeddedHost({ content: readContent() });
@@ -85,7 +99,7 @@ if (dbPath !== undefined) {
   );
   importMs = performance.now() - started;
   if (imported['ok'] !== true) throw new Error(`import failed at ${String(imported['stage'])}`);
-  rootPackId = String((imported['manifest'] as Record<string, unknown>)['id']);
+  rootPackId = String(field(imported, 'manifest')['id']);
 }
 
 let started = performance.now();
@@ -113,23 +127,17 @@ const created = parse(
   ),
 );
 const newGameMs = performance.now() - started;
-if (created['ok'] !== true) throw new Error(`newGame failed: ${JSON.stringify(created['reasons'])}`);
+if (created['ok'] !== true)
+  throw new Error(`newGame failed: ${JSON.stringify(created['reasons'])}`);
 const exported = parse(host.exportState());
-const state = exported['state'] as { world: { tables: Record<string, unknown[]> } };
-const tables = state.world.tables;
+const tables = field(field(exported, 'state'), 'world')['tables'];
 const counts = Object.fromEntries(
-  [
-    'people',
-    'promotions',
-    'employments',
-    'titles',
-    'eventInstances',
-    'regions',
-    'countries',
-  ].map((name) => [
-    name,
-    tables[name]?.length ?? 0,
-  ]),
+  ['people', 'promotions', 'employments', 'titles', 'eventInstances', 'regions', 'countries'].map(
+    (name) => {
+      const rows = isJson(tables) ? tables[name] : undefined;
+      return [name, Array.isArray(rows) ? rows.length : 0];
+    },
+  ),
 );
 
 const timePhases = !process.argv.includes('--no-phases');
@@ -143,9 +151,10 @@ while (remaining > 0) {
   if (outcome['ok'] !== true) throw new Error(`advanceDays failed: ${JSON.stringify(outcome)}`);
   const advanced = Number(outcome['daysAdvanced']);
   remaining -= advanced;
-  const stoppedBy = outcome['stoppedBy'] as { kind: string; hits?: { gateId: string }[] };
-  if (stoppedBy.kind !== 'gate') continue;
-  const gates = (stoppedBy.hits ?? []).map((hit) => hit.gateId);
+  const stoppedBy = field(outcome, 'stoppedBy');
+  if (stoppedBy['kind'] !== 'gate') continue;
+  const hits = Array.isArray(stoppedBy['hits']) ? (stoppedBy['hits'] as unknown[]) : [];
+  const gates = hits.map((hit) => String(isJson(hit) ? hit['gateId'] : hit));
   for (const gate of gates) stops[gate] = (stops[gate] ?? 0) + 1;
   if (gates.every((gate) => gate === 'news.alert')) {
     host.command('news.ackAlerts', '{}');

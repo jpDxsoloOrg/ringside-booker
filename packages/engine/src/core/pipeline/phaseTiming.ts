@@ -25,7 +25,7 @@ export function startPhaseTiming(now: () => number): void {
 }
 
 /** Stops timing and returns the totals, slowest first. */
-export function stopPhaseTiming(): Array<{ readonly id: string } & PhaseTimingEntry> {
+export function stopPhaseTiming(): ({ readonly id: string } & PhaseTimingEntry)[] {
   clock = null;
   const entries = [...totals.entries()].map(([id, entry]) => ({ id, ...entry }));
   totals.clear();

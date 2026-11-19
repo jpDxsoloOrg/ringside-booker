@@ -25,7 +25,7 @@ import {
 import { tableOf, type WorldView } from '../../model/world';
 
 /** The design doc section the aggregation traces point at. */
-const AGGREGATION_DOC_REF = 'geography.md#aggregation';
+export const AGGREGATION_DOC_REF = 'geography.md#aggregation';
 
 /** The map's rows, as read from a world or built by hand in a test. */
 export interface GeographySource {
