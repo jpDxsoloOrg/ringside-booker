@@ -338,7 +338,7 @@ namespace RingsideBooker.Screens.Creative
             VisualElement belongs = Ds.Row("cr-hero__belongs");
             PromotionLogos.Prepend(belongs, Kit.Str(title, "promotionId"), Kit.Str(title, "promotionName"), "rb-logo--sm");
             belongs.Add(CreativeUi.Promotion(Kit.Str(title, "promotionName"), Kit.Str(title, "promotionId"), "cr-hero__line"));
-            belongs.Add(CreativeUi.Clip($" · {Kit.Str(title, "brandName") ?? TitleText.PromotionWideLabel}", "cr-hero__line"));
+            belongs.Add(CreativeUi.Clip($"\u00a0· {Kit.Str(title, "brandName") ?? TitleText.PromotionWideLabel}", "cr-hero__line"));
             words.Add(belongs);
             VisualElement chips = Ds.Row("cr-chips");
             bool active = Kit.Str(title, "status") == "active";
