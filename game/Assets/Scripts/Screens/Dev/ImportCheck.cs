@@ -125,6 +125,19 @@ namespace RingsideBooker.Screens.Dev
                     Debug.LogError($"[ImportCheck] item {mod.ItemId}: FAILED {(result == null ? "no result" : result.ReasonCodes)}");
                 }
             }
+            // The failure screen: an add-on mod (no people or promotions) forced through the import.
+            WorkshopMod addOn = mods.FirstOrDefault(mod => !mod.IsWorld);
+            if (shots != null && addOn != null)
+            {
+                Task<IReadOnlyList<WorkshopMod>> reopen = wizard.OpenImportAndScan();
+                yield return Await(reopen);
+                wizard.PickMod(addOn.ItemId);
+                Task<WorldModImportResult> run = wizard.RunImport(evenIfNotAWorld: true);
+                yield return Await(run);
+                yield return new WaitForSecondsRealtime(0.5f);
+                yield return Capture("import-failed-add-on");
+                Debug.Log($"[ImportCheck] add-on item {addOn.ItemId} forced (expected to fail): {(run.Result == null ? "no result" : run.Result.Ok ? "imported" : run.Result.ReasonCodes)}");
+            }
             Debug.Log($"[ImportCheck] {(failed == 0 ? "PASSED" : "FAILED")}: {passed} imported, {failed} failed");
             Application.Quit(failed == 0 ? 0 : 1);
         }

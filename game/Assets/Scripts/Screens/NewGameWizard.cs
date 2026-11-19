@@ -179,6 +179,7 @@ namespace RingsideBooker.Screens
             Button import = Ui.Btn("Import a workshop world…", OpenImport, "btn--ghost");
             import.name = "wizard-import-workshop";
             import.AddToClassList("rb-gap-top");
+            import.style.alignSelf = Align.FlexStart;
             body.Add(import);
             body.Add(Kit.Note("Turns an installed workshop world mod into a world you can start here."));
             Button next = Ui.Btn("NEXT", async () =>
@@ -354,9 +355,10 @@ namespace RingsideBooker.Screens
         public string SelectedWorldId => world?.Id;
 
         /// <summary>Imports the picked mod (the import screen's IMPORT button; the tours call it too).</summary>
-        public async Task<WorldModImportResult> RunImport()
+        /// <param name="evenIfNotAWorld">Import an add-on mod anyway (the import check uses it to show a failure).</param>
+        public async Task<WorldModImportResult> RunImport(bool evenIfNotAWorld = false)
         {
-            if (importRunning || client == null || pickedMod == null || !pickedMod.IsWorld) return null;
+            if (importRunning || client == null || pickedMod == null || (!pickedMod.IsWorld && !evenIfNotAWorld)) return null;
             WorkshopMod mod = pickedMod;
             importRunning = true;
             importStage = WorldModImporter.StageReading;
