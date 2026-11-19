@@ -1,0 +1,1008 @@
+/*
+ * Finances, Production and Networks layout (UNITY-18). The look comes from the UNITY-11 ds- components;
+ * biz- classes only place things. Loaded at run time by BusinessUi.Style (Resources "Business/Business").
+ * Rows never shrink (UNITY-13 layout rule); ellipsized labels keep letter-spacing 0.
+ */
+
+.biz-page {
+    flex-shrink: 0;
+    padding-bottom: 24px;
+}
+
+.biz-head {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+    align-items: flex-end;
+}
+
+.biz-head__titles {
+    flex-shrink: 1;
+}
+
+.biz-head__title {
+    color: var(--ds-text);
+}
+
+.biz-head__lead {
+    margin-top: 2px;
+    font-size: 14px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+.biz-tabs {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+}
+
+.biz-body {
+    flex-shrink: 0;
+}
+
+.biz-body > * {
+    flex-shrink: 0;
+}
+
+.biz-summary {
+    flex-shrink: 0;
+}
+
+.biz-quiet {
+    flex-shrink: 0;
+    margin: 2px 0 8px 0;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.biz-quiet-text {
+    color: var(--ds-text-3);
+}
+
+.biz-good {
+    color: var(--ds-good);
+}
+
+.biz-bad {
+    color: var(--ds-bad);
+}
+
+.biz-num {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.biz-subheading {
+    flex-shrink: 0;
+    margin: 16px 0 6px 0;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+/* ---- The quiet engine Why? (a WhyButton dressed as the ds-why) ------------------------------------- */
+
+.unity-button.why-button.biz-why {
+    width: 18px;
+    min-width: 18px;
+    height: 18px;
+    margin: 0 0 0 4px;
+    padding: 0;
+    border-radius: 9px;
+    border-color: transparent;
+    background-color: transparent;
+    font-size: 11px;
+    color: var(--ds-text-3);
+    -unity-text-align: middle-center;
+}
+
+.unity-button.why-button.biz-why:hover {
+    background-color: var(--ds-data-soft);
+    color: var(--ds-data);
+}
+
+.unity-button.why-button.biz-why:focus {
+    border-color: var(--ds-focus);
+    opacity: 1;
+}
+
+/* ---- Money verdict banner ---------------------------------------------------------------------------- */
+
+.biz-verdict {
+    flex-shrink: 0;
+    align-items: center;
+    min-height: 76px;
+    margin-bottom: 14px;
+    padding: 10px 16px 10px 0;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+    overflow: hidden;
+}
+
+.biz-verdict__edge {
+    width: 5px;
+    align-self: stretch;
+    margin: -10px 14px -10px 0;
+    background-color: var(--ds-state);
+}
+
+.biz-verdict__icon-box {
+    width: 52px;
+    height: 52px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-state-soft);
+}
+
+.biz-verdict__icon {
+    color: var(--ds-state);
+}
+
+.biz-verdict__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 14px;
+}
+
+.biz-verdict__top {
+    flex-direction: row;
+    align-items: center;
+}
+
+.biz-verdict__top > .ds-pill {
+    margin-left: 10px;
+}
+
+.biz-verdict__title {
+    font-size: 24px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-state);
+}
+
+.biz-verdict__text {
+    margin-top: 2px;
+    font-size: 14px;
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+/* ---- Tiles --------------------------------------------------------------------------------------------- */
+
+.biz-tiles {
+    flex-direction: row;
+    flex-shrink: 0;
+    align-items: stretch;
+    margin-bottom: 14px;
+}
+
+.biz-tiles > .ds-stat {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 10px;
+}
+
+.biz-tiles > .ds-stat.biz-last {
+    margin-right: 0;
+}
+
+.biz-tile__icon {
+    margin-right: 6px;
+    color: var(--ds-text-3);
+}
+
+.biz-tile__label {
+    flex-shrink: 1;
+}
+
+.biz-tile__value {
+    flex-shrink: 1;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.biz-tile__unit {
+    margin: 0 0 5px 4px;
+    align-self: flex-end;
+    font-size: 13px;
+    color: var(--ds-text-3);
+}
+
+.biz-tile__words {
+    white-space: normal;
+}
+
+/* ---- Two columns on the overview ---------------------------------------------------------------------- */
+
+.biz-columns {
+    flex-direction: row;
+    flex-shrink: 0;
+    align-items: flex-start;
+}
+
+.biz-columns > .ds-panel {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 14px;
+}
+
+.biz-columns > .ds-panel.biz-last {
+    margin-right: 0;
+}
+
+.biz-line {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 30px;
+    margin: 0;
+    padding: 0 6px;
+    border-width: 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+    border-radius: 0;
+    background-color: transparent;
+}
+
+.biz-line--link:hover {
+    background-color: var(--ds-elev-2);
+}
+
+.biz-line > .ds-dot {
+    margin-right: 8px;
+}
+
+.biz-line__label {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--ds-text);
+    -unity-text-align: middle-left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0;
+}
+
+.biz-line__amount {
+    flex-shrink: 0;
+    margin-left: 12px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    -unity-text-align: middle-right;
+}
+
+.biz-line__chevron {
+    margin-left: 6px;
+    color: var(--ds-text-4);
+}
+
+.biz-line--total {
+    height: 34px;
+    border-bottom-width: 0;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line-strong);
+}
+
+.biz-line--total > .biz-line__label {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+/* ---- Facts, values, notices -------------------------------------------------------------------------- */
+
+.biz-facts {
+    flex-shrink: 0;
+}
+
+.biz-facts__row {
+    min-height: 28px;
+    height: auto;
+}
+
+.biz-facts__key {
+    flex-shrink: 1;
+    margin-right: 12px;
+}
+
+.biz-value {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.biz-value__text {
+    white-space: nowrap;
+}
+
+/* In key-value rows the "?" sits before the number, so the numbers line up on the right. */
+.biz-facts .biz-value {
+    flex-direction: row-reverse;
+}
+
+.biz-facts .biz-value > .unity-button.why-button.biz-why {
+    margin: 0 6px 0 0;
+}
+
+.biz-facts .biz-value__text {
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.biz-facts .biz-value__text.biz-bad {
+    color: var(--ds-bad);
+}
+
+.biz-health {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+}
+
+.biz-notice {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin: 0 0 8px 0;
+    padding: 7px 10px;
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-state-soft);
+}
+
+.biz-notice__icon {
+    margin-right: 8px;
+    color: var(--ds-state);
+}
+
+.biz-notice__text {
+    flex-shrink: 1;
+    font-size: 13px;
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.biz-notice--action {
+    min-height: 40px;
+}
+
+.biz-refusals {
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+/* ---- Toolbars, tables, cells --------------------------------------------------------------------------- */
+
+.biz-toolbar {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-bottom: 8px;
+}
+
+.biz-toolbar > * {
+    margin-left: 8px;
+}
+
+.biz-toolbar > .biz-quiet {
+    margin: 0;
+    flex-shrink: 1;
+}
+
+.biz-filter-pill {
+    flex-shrink: 0;
+}
+
+.biz-table {
+    flex-shrink: 0;
+}
+
+.biz-name-cell {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.biz-name-cell__name {
+    flex-shrink: 1;
+    margin-left: 4px;
+    letter-spacing: 0;
+}
+
+.biz-cat-cell {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.biz-cat-cell > .ds-dot {
+    margin-right: 8px;
+}
+
+.biz-cell-why {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.biz-offer-cell {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.biz-offer-cell > .ds-pill {
+    flex-shrink: 0;
+    margin-right: 8px;
+}
+
+.biz-offer-cell > .ds-cell__text {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0;
+}
+
+.biz-links {
+    flex-direction: row;
+    align-items: center;
+}
+
+.biz-row-button {
+    height: 22px;
+    min-height: 22px;
+    margin: 0;
+}
+
+.biz-ledger-footer {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.biz-ledger-footer > .biz-quiet {
+    margin: 0 12px 0 0;
+}
+
+.biz-filters {
+    width: 480px;
+    padding: 6px 10px 4px 10px;
+}
+
+/* ---- Policies ----------------------------------------------------------------------------------------- */
+
+.biz-policy {
+    margin-bottom: 14px;
+}
+
+.biz-policy__now {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-bottom: 4px;
+}
+
+.biz-policy__now-text {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.biz-levels {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.biz-level {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+    min-height: 92px;
+    margin: 0 10px 0 0;
+    padding: 10px 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-2);
+}
+
+.biz-level:hover {
+    border-color: var(--ds-line-strong);
+    background-color: var(--ds-elev-3);
+}
+
+.biz-level--current {
+    border-color: var(--ds-data);
+}
+
+.biz-level:disabled {
+    opacity: 1;
+}
+
+.biz-level__top {
+    flex-direction: row;
+    align-items: center;
+    align-self: stretch;
+    justify-content: space-between;
+}
+
+.biz-level__name {
+    font-size: 16px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text);
+    -unity-text-align: middle-left;
+}
+
+.biz-level__cost,
+.biz-level__delta,
+.biz-level__effect {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--ds-text-2);
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+.biz-level__delta.biz-bad {
+    color: var(--ds-bad);
+}
+
+.biz-level__delta.biz-good,
+.biz-level__effect.biz-good {
+    color: var(--ds-good);
+}
+
+.biz-level__effect.biz-bad {
+    color: var(--ds-bad);
+}
+
+/* ---- Production areas ---------------------------------------------------------------------------------- */
+
+.biz-areas {
+    margin-bottom: 14px;
+}
+
+.biz-area {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 56px;
+    padding: 8px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.biz-area__name {
+    width: 190px;
+    flex-shrink: 0;
+    margin-right: 14px;
+}
+
+.biz-area__label {
+    font-size: 18px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text);
+}
+
+.biz-area__floor {
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--ds-warn);
+    white-space: normal;
+}
+
+.biz-stepper {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    width: 290px;
+}
+
+.biz-stepper--big {
+    width: auto;
+    margin-bottom: 10px;
+}
+
+.biz-stepper > .ds-icon-btn,
+.biz-stepper > .unity-button {
+    flex-shrink: 0;
+}
+
+.biz-stepper__level {
+    width: 64px;
+    margin-left: 6px;
+    font-size: 18px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+    -unity-text-align: middle-left;
+}
+
+.biz-stepper > .biz-stepper__level {
+    width: 28px;
+}
+
+.biz-stepper--big > .biz-stepper__level {
+    width: 80px;
+}
+
+.biz-segments {
+    flex-direction: row;
+    align-items: center;
+    margin: 0 6px;
+}
+
+.biz-segment {
+    width: 14px;
+    height: 12px;
+    margin-right: 3px;
+    border-radius: 2px;
+    background-color: var(--ds-elev-3);
+}
+
+.biz-segments--big > .biz-segment {
+    width: 26px;
+    height: 16px;
+}
+
+.biz-segment--on {
+    background-color: var(--ds-data);
+}
+
+.biz-segment--floor {
+    border-bottom-width: 2px;
+    border-bottom-color: var(--ds-warn);
+}
+
+.biz-segment--new {
+    background-color: var(--ds-good);
+}
+
+.biz-segment--was {
+    background-color: var(--ds-bad-soft);
+    border-width: 1px;
+    border-color: var(--ds-bad);
+}
+
+.biz-area__cost {
+    width: 200px;
+    flex-shrink: 0;
+    margin-left: 12px;
+}
+
+.biz-area__amount {
+    font-size: 16px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.biz-area__basis {
+    font-size: 11px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.biz-area__effects {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 0;
+    margin-left: 16px;
+}
+
+.biz-area__effect-row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.biz-area__effect {
+    flex-shrink: 1;
+    font-size: 12px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+/* ---- Change dialog ------------------------------------------------------------------------------------ */
+
+.biz-change,
+.biz-cancel {
+    flex-shrink: 0;
+}
+
+.biz-change__content,
+.biz-cancel__content {
+    flex-shrink: 0;
+}
+
+.biz-fee {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 40px;
+    margin-bottom: 8px;
+    padding: 6px 12px;
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-2);
+}
+
+.biz-fee--danger {
+    background-color: var(--ds-bad-soft);
+}
+
+.biz-fee__label {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.biz-fee__amount {
+    font-size: 20px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.biz-preview,
+.biz-compare {
+    flex-shrink: 0;
+}
+
+.biz-preview__row,
+.biz-compare__row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 30px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.biz-preview__label,
+.biz-compare__label {
+    width: 250px;
+    flex-shrink: 0;
+    font-size: 13px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+.biz-preview__before,
+.biz-compare__now {
+    width: 110px;
+    flex-shrink: 0;
+    font-size: 13px;
+    color: var(--ds-text-3);
+    -unity-text-align: middle-right;
+}
+
+.biz-preview__arrow {
+    margin: 0 8px;
+    color: var(--ds-text-4);
+}
+
+.biz-preview__row > .biz-value,
+.biz-compare__row > .biz-value {
+    width: 120px;
+}
+
+.biz-preview__after,
+.biz-compare__next {
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.biz-preview__chip,
+.biz-compare__chips {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+    justify-content: flex-end;
+}
+
+.biz-compare__chips > * {
+    margin-left: 6px;
+}
+
+.biz-preview__chip > .biz-quiet,
+.biz-compare__chips > .biz-quiet {
+    margin: 0;
+}
+
+.biz-modal {
+    max-height: 90%;
+}
+
+.biz-modal .ds-overlay-header__words {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.biz-modal__title {
+    white-space: normal;
+}
+
+.biz-cancel__question {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+    font-size: 15px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.biz-modal__scroll {
+    flex-shrink: 1;
+}
+
+.biz-modal-footer > .ds-btn {
+    margin-left: 8px;
+}
+
+/* ---- Sheets -------------------------------------------------------------------------------------------- */
+
+.biz-sheet {
+    flex-shrink: 0;
+}
+
+.biz-sheet__head {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-bottom: 12px;
+}
+
+.biz-sheet__head-words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-left: 14px;
+}
+
+.biz-sheet__head-words > * {
+    margin-bottom: 2px;
+}
+
+.biz-sheet__head-words > .biz-cell-why {
+    justify-content: flex-start;
+}
+
+.biz-sheet__head-title {
+    font-size: 15px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.biz-sheet-footer > .ds-btn {
+    margin-left: 8px;
+}
+
+.biz-targets {
+    flex-shrink: 0;
+}
+
+.biz-targets__row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 26px;
+}
+
+.biz-targets__row > .ds-dot {
+    margin-right: 8px;
+}
+
+.biz-targets__text {
+    flex-shrink: 1;
+    font-size: 13px;
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.biz-verdict-line {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 36px;
+    margin: 6px 0 10px 0;
+}
+
+.biz-verdict-line > .ds-pill {
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+.biz-verdict-line__text {
+    flex-shrink: 1;
+    font-size: 13px;
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.biz-tiles--sheet {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.biz-tiles--compact > .ds-stat {
+    max-width: 420px;
+}
+
+/* ---- Forms --------------------------------------------------------------------------------------------- */
+
+.biz-form {
+    flex-shrink: 0;
+    margin-bottom: 8px;
+}
+
+.biz-field {
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.biz-field__label {
+    margin-bottom: 4px;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.biz-choices {
+    flex-wrap: wrap;
+}
+
+.biz-choices > * {
+    margin: 0 6px 6px 0;
+}
+
+.biz-switch {
+    height: auto;
+    min-height: 34px;
+    padding: 4px 6px;
+    margin-top: 4px;
+    align-items: flex-start;
+    flex-shrink: 0;
+}
+
+.biz-switch .ds-check__box {
+    margin-top: 2px;
+}
+
+.biz-switch__words {
+    flex-shrink: 1;
+    margin-left: 10px;
+}
+
+.biz-switch__label {
+    margin-left: 0;
+    -unity-text-align: middle-left;
+}
+
+.biz-switch__hint {
+    margin-top: 1px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+.biz-toolbar > .biz-switch {
+    margin-top: 0;
+}
