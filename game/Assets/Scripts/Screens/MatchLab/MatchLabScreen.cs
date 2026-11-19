@@ -51,7 +51,7 @@ namespace RingsideBooker.Screens.MatchLab
             }
             var view = new LabView(host, context, State);
             Current = view;
-            host.RegisterCallback<AttachToPanelEvent>(_ => _ = view.LoadAsync());
+            host.RegisterCallback<AttachToPanelEvent>(evt => { _ = view.LoadAsync(); });
             host.RegisterCallback<DetachFromPanelEvent>(_ =>
             {
                 if (Current == view) Current = null;

@@ -1,0 +1,517 @@
+/* Match lab (UNITY-21): three columns, setup | who's in it | results. */
+
+.lab {
+    flex-shrink: 0;
+}
+
+.lab-modebar {
+    flex-shrink: 0;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.lab-modebar__hint {
+    margin-left: 16px;
+    font-size: 13px;
+    color: var(--ds-text-3);
+}
+
+.lab-columns {
+    flex-shrink: 0;
+}
+
+.lab-setup {
+    width: 360px;
+    flex-shrink: 0;
+    margin-right: 16px;
+}
+
+.lab-build {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 320px;
+    margin-right: 16px;
+}
+
+.lab-results {
+    flex-grow: 1.3;
+    flex-basis: 0;
+    min-width: 520px;
+}
+
+.lab-panel {
+    flex-shrink: 0;
+    margin-bottom: 16px;
+}
+
+.lab-quiet {
+    flex-shrink: 0;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+    white-space: normal;
+}
+
+.lab-label {
+    flex-shrink: 0;
+    margin: 6px 0 6px 0;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.lab-gap-top {
+    margin-top: 14px;
+}
+
+.lab-more {
+    align-self: flex-start;
+}
+
+.lab-more__body {
+    flex-shrink: 0;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line-subtle);
+}
+
+.lab-sides {
+    flex-shrink: 0;
+}
+
+.lab-side {
+    width: 250px;
+    flex-shrink: 0;
+    margin: 0 12px 12px 0;
+    padding: 10px 12px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-2);
+}
+
+.lab-side__head {
+    flex-shrink: 0;
+    height: 24px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.lab-side__label {
+    font-size: 13px;
+    letter-spacing: 1.2px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-data);
+}
+
+.lab-side__add {
+    align-self: flex-start;
+    margin-top: 4px;
+}
+
+.lab-person {
+    flex-shrink: 0;
+    height: 40px;
+    align-items: center;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.lab-person__words {
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 8px;
+}
+
+.lab-person__name {
+    font-size: 13px;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.lab-person__detail {
+    font-size: 11px;
+    color: var(--ds-text-3);
+}
+
+.lab-beat {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-2);
+}
+
+.lab-beat__head {
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.lab-beat__number {
+    width: 24px;
+    font-size: 20px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text-4);
+}
+
+.lab-beat__description {
+    flex-shrink: 0;
+    margin: 6px 0;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.lab-beat__group {
+    flex-shrink: 0;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.lab-beat__group > * {
+    margin: 0 6px 4px 0;
+}
+
+.lab-beat__group-label {
+    width: 90px;
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.lab-beat__stats {
+    font-size: 11px;
+    color: var(--ds-text-4);
+}
+
+.lab-runbar__row {
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.lab-runbar__label {
+    margin-right: 10px;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.lab-runbar .rb-ds-choices > .ds-chip {
+    margin-bottom: 0;
+}
+
+.lab-flags {
+    flex-shrink: 0;
+    margin-bottom: 8px;
+}
+
+.lab-flags > .ds-pill {
+    margin: 0 6px 4px 0;
+}
+
+.lab-result .ds-match {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+}
+
+.lab-multi {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+}
+
+.lab-multi__row {
+    flex-shrink: 0;
+    height: 28px;
+    align-items: center;
+}
+
+.lab-multi__crown {
+    color: var(--ds-gold);
+    margin-right: 8px;
+}
+
+.lab-multi__icon {
+    color: var(--ds-text-4);
+    margin-right: 8px;
+}
+
+.lab-multi__winner {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-gold);
+}
+
+.lab-multi__name {
+    font-size: 14px;
+    color: var(--ds-text-2);
+}
+
+.lab-verdict {
+    flex-shrink: 0;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.lab-verdict__text {
+    font-size: 22px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.lab-score {
+    flex-shrink: 0;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.lab-score__block {
+    margin-right: 18px;
+}
+
+.lab-score__top {
+    flex-direction: row;
+    align-items: center;
+    height: 18px;
+}
+
+.lab-score__label {
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.lab-score__value {
+    font-size: 54px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-gold);
+}
+
+.lab-score__word {
+    font-size: 20px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text);
+}
+
+.lab-score__stars {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.lab-score__stars-text {
+    margin-left: 8px;
+    font-size: 13px;
+    color: var(--ds-text-2);
+}
+
+.lab-tiles {
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+.lab-tiles > .ds-stat {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 8px;
+}
+
+.lab-warnings {
+    flex-shrink: 0;
+    margin-top: 8px;
+}
+
+.lab-warning {
+    align-self: flex-start;
+    margin-bottom: 4px;
+}
+
+.lab-odds__row {
+    flex-shrink: 0;
+    height: 30px;
+    align-items: center;
+}
+
+.lab-odds__name {
+    width: 220px;
+    font-size: 13px;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--ds-text);
+}
+
+.lab-odds__meter {
+    flex-grow: 1;
+    margin: 0 10px;
+}
+
+.lab-odds__share {
+    width: 48px;
+    font-size: 16px;
+    -unity-text-align: middle-right;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.lab-odds__stats {
+    font-size: 13px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+.lab-finishes > .ds-chip {
+    margin: 0 6px 6px 0;
+}
+
+.lab-cell {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.lab-whatif {
+    padding: 6px 0 8px 0;
+}
+
+.lab-whatif .ds-chip {
+    margin: 4px 6px 0 0;
+}
+
+.lab-aftermath__regions {
+    padding: 4px 0 8px 0;
+}
+
+.lab-aftermath__region {
+    flex-shrink: 0;
+    height: 22px;
+    align-items: center;
+}
+
+.lab-aftermath__region-name {
+    width: 160px;
+    font-size: 12px;
+    color: var(--ds-text);
+}
+
+.lab-aftermath__region > .lab-quiet {
+    margin-top: 0;
+}
+
+.lab-aftermath__region-value {
+    font-size: 12px;
+    color: var(--ds-text-2);
+}
+
+.lab-beat-score {
+    flex-shrink: 0;
+    padding: 8px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.lab-beat-score__head {
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.lab-beat-score__head > .ds-tag,
+.lab-beat-score__head > .ds-pill {
+    margin-left: 8px;
+}
+
+.lab-beat-score__name {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.lab-beat-score__meter {
+    width: 160px;
+    margin: 0 10px;
+}
+
+.lab-beat-score__value {
+    width: 32px;
+    font-size: 18px;
+    -unity-text-align: middle-right;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.lab-beat-score__people {
+    margin: 4px 0 0 24px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.lab-picker__count {
+    flex-shrink: 0;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+}
+
+.lab-picker .rb-ds-choices {
+    margin-bottom: 6px;
+}
+
+.lab-picker__row {
+    flex-direction: row;
+    flex-shrink: 0;
+    height: 44px;
+    margin: 0;
+    padding: 0 8px;
+    align-items: center;
+    border-width: 0;
+    border-bottom-width: 1px;
+    border-color: var(--ds-line-subtle);
+    border-radius: 0;
+    background-color: transparent;
+    -unity-text-align: middle-left;
+}
+
+.lab-picker__row:hover {
+    background-color: var(--ds-elev-3);
+}
+
+.lab-picker__row--muted {
+    opacity: 0.6;
+}
+
+.lab-picker__words {
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 10px;
+}
+
+.lab-picker__name {
+    font-size: 13px;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -unity-text-align: middle-left;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.lab-picker__detail {
+    font-size: 11px;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -unity-text-align: middle-left;
+    color: var(--ds-text-3);
+}

@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using RingsideBooker.Engine;
 using RingsideBooker.UI;
 using RingsideBooker.UI.Design;
+using RingsideBooker.UI.Shell;
 using RingsideBooker.UI.Widgets;
 using UnityEngine.UIElements;
 

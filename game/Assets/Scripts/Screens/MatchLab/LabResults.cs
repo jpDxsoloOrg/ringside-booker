@@ -47,7 +47,7 @@ namespace RingsideBooker.Screens.MatchLab
             if (run.Batch != null) panel.Add(Ds.Text($"The last of {LabText.RunsText(run.Runs)}, in full. The odds for all of them are below.", "lab-quiet"));
 
             List<List<string>> sides = (run.Args?["sides"] as JArray)?.Select(side => side.Select(id => (string)id).ToList()).ToList() ?? new List<List<string>>();
-            int? winner = Kit.Num(simulation, "winningSide") is double won ? (int)won : (int?)null;
+            int? winner = Kit.Num(simulation, "winningSide") is double winningSide ? (int)winningSide : (int?)null;
             string outcome = Kit.Str(simulation, "outcome.kind");
             string finishText = outcome == "draw" ? "Draw" : outcome == "noContest" ? "No contest"
                 : string.Join(" · ", new[] { Kit.Str(simulation, "finish.name"), Kit.Str(simulation, "method.name") }.Where(text => text != null));

@@ -5,6 +5,7 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using RingsideBooker.UI;
 using RingsideBooker.UI.Design;
+using RingsideBooker.UI.Shell;
 using RingsideBooker.UI.Widgets;
 using RingsideBooker.UI.Why;
 using UnityEngine;
@@ -191,6 +192,8 @@ namespace RingsideBooker.Screens
         /// <summary>Adds a stylesheet from Resources once per element (screens own their layout styles).</summary>
         public static void Style(VisualElement element, string resource)
         {
+            var shared = Resources.Load<StyleSheet>("Screens/ScreenDs");
+            if (shared != null) element.styleSheets.Add(shared);
             var sheet = Resources.Load<StyleSheet>(resource);
             if (sheet != null) element.styleSheets.Add(sheet);
             else Debug.LogWarning($"[Screens] stylesheet {resource} is missing");
