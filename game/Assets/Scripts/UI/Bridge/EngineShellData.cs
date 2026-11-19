@@ -27,6 +27,7 @@ namespace RingsideBooker.UI.Bridge
             this.game = game;
             Snapshot = new ShellSnapshot(default, null, 0);
             game.Client.OnStateChanged += OnStateChanged;
+            NewsSeen.Changed += Refresh;
         }
 
         public ShellSnapshot Snapshot { get; private set; }
@@ -63,11 +64,21 @@ namespace RingsideBooker.UI.Bridge
                     // One trip: sim.status and news.top (the ticker), plus promotions.list the first time a promotion shows up
                     // (a promotion's logo never changes in a game).
                     string knownLogoFor = logoFor;
-                    (QueryResult<SimStatus> status, QueryResult<JToken> list, QueryResult<JToken> news) = await game.Client.Read("shell.status", reader =>
+                    (string date, int count)? seen = NewsSeen.Marker;
+                    JObject unreadArgs = NewsSeen.CountArgs(seen);
+                    // The sidebar badges come in the same trip (UNITY-19): stops waiting, workers who
+                    // want to leave (with a promotion) and the news since the player last looked.
+                    (QueryResult<SimStatus> status, QueryResult<JToken> list, QueryResult<JToken> news, BadgeReads badgeReads) = await game.Client.Read("shell.status", reader =>
                     {
                         QueryResult<SimStatus> read = reader.Query<SimStatus>(EngineQueries.SimStatus);
                         string id = read.Data?.Promotion?.PromotionId;
-                        return (read, id != null && id != knownLogoFor ? reader.Query("promotions.list") : null, reader.Query("news.top"));
+                        var badges = new BadgeReads
+                        {
+                            Gates = reader.Query<PendingGates>(EngineQueries.PendingGates),
+                            Contracts = id != null ? reader.Query("contracts.counts") : null,
+                            Unread = reader.Query("news.feed", unreadArgs),
+                        };
+                        return (read, id != null && id != knownLogoFor ? reader.Query("promotions.list") : null, reader.Query("news.top"), badges);
                     });
                     if (!attached) return;
                     string promotionId = status.Data?.Promotion?.PromotionId;
@@ -80,7 +91,7 @@ namespace RingsideBooker.UI.Bridge
                     if (status.Ok && status.Data != null)
                     {
                         Status = status.Data;
-                        Snapshot = Build(status.Data, logoRef);
+                        Snapshot = Build(status.Data, logoRef, BadgesFrom(badgeReads, seen));
                         Changed?.Invoke();
                     }
                 }
@@ -100,23 +111,21 @@ namespace RingsideBooker.UI.Bridge
         {
             attached = false;
             game.Client.OnStateChanged -= OnStateChanged;
+            NewsSeen.Changed -= Refresh;
         }
 
-        /// <summary>
-        /// The ticker's lines: each top story as "Kind: the names it involves" (the web's message
-        /// catalogue is not in Unity yet, as on the Office page). Empty on any failure.
-        /// </summary>
+        /// <summary>The ticker's lines: each top story's headline in words (UNITY-19's port of the web's news wire). Empty on any failure.</summary>
         private static IReadOnlyList<string> HeadlinesFrom(QueryResult<JToken> news)
         {
             try
             {
                 if (!news.Ok || !(news.Data is JObject data)) return Array.Empty<string>();
-                JToken names = data["names"];
+                Dictionary<string, Screens.News.NewsName> names = Screens.News.NewsText.NamesFrom(data["names"]);
                 IEnumerable<JToken> stories = (data["hero"] as JArray ?? new JArray()).Concat(data["ticker"] as JArray ?? new JArray());
                 return stories
                     .GroupBy(story => (string)story["id"])
-                    .Select(group => Headline(group.First(), names))
-                    .Where(line => line != null)
+                    .Select(group => Screens.News.NewsText.Render(group.First()["headline"], names))
+                    .Where(line => line != Screens.News.NewsText.MissingText)
                     .Take(TickerSize)
                     .ToList();
             }
@@ -127,30 +136,45 @@ namespace RingsideBooker.UI.Bridge
             }
         }
 
-        private static string Headline(JToken story, JToken names)
+        /// <summary>The badge queries read in the shell's trip.</summary>
+        private sealed class BadgeReads
         {
-            var parts = new List<string>();
-            void Add(string id)
+            public QueryResult<PendingGates> Gates;
+            public QueryResult<JToken> Contracts;
+            public QueryResult<JToken> Unread;
+        }
+
+        /// <summary>
+        /// The sidebar's counts (UNITY-19): Dashboard = stops waiting on the player other than news
+        /// alerts (News has its own badge); Contracts = workers who want to leave
+        /// (<c>contracts.counts</c>); News = stories since the player last had News open
+        /// (<see cref="NewsSeen"/>). Inbox stays 0 until the inbox lands (SOC1).
+        /// </summary>
+        private static IReadOnlyDictionary<NavBadgeKey, int> BadgesFrom(BadgeReads reads, (string date, int count)? seen)
+        {
+            var badges = new Dictionary<NavBadgeKey, int>();
+            try
             {
-                string name = id == null ? null : (string)names?[id.Trim()]?["name"];
-                if (!string.IsNullOrEmpty(name) && !parts.Contains(name)) parts.Add(name);
-            }
-            if (story["headline"]?["params"] is JObject parameters)
-            {
-                foreach (JProperty parameter in parameters.Properties())
+                if (reads?.Gates != null && reads.Gates.Ok && reads.Gates.Data != null)
                 {
-                    foreach (string id in parameter.Value.ToString().Split(',')) Add(id);
+                    badges[NavBadgeKey.PendingDecisions] = reads.Gates.Data.Hits.Count(hit => hit.ActionHint != Day.GateHints.News);
+                }
+                if (reads?.Contracts != null && reads.Contracts.Ok && reads.Contracts.Data?["wantsToLeave"] is JValue leaving &&
+                    (leaving.Type == JTokenType.Integer || leaving.Type == JTokenType.Float))
+                {
+                    badges[NavBadgeKey.WantsToLeave] = (int)leaving;
+                }
+                if (reads?.Unread != null && reads.Unread.Ok && reads.Unread.Data?["total"] is JValue total &&
+                    (total.Type == JTokenType.Integer || total.Type == JTokenType.Float))
+                {
+                    badges[NavBadgeKey.UnreadNews] = NewsSeen.Unread((int)total, seen);
                 }
             }
-            if (story["refs"]?["personIds"] is JArray people)
+            catch (Exception exception)
             {
-                foreach (JToken id in people) Add((string)id);
+                Debug.LogWarning($"[EngineShellData] badges: {exception.GetType().Name}");
             }
-            Add((string)story["refs"]?["eventInstanceId"]);
-            // A story with no names reads as a bare label ("Season"): leave it to the News page.
-            if (parts.Count == 0) return null;
-            string kind = (string)story["kindLabel"] ?? "News";
-            return $"{kind}: {string.Join(" · ", parts.Take(3))}";
+            return badges;
         }
 
         /// <summary>The promotion's logo ref in a <c>promotions.list</c> answer, or null.</summary>
@@ -164,12 +188,12 @@ namespace RingsideBooker.UI.Bridge
             return null;
         }
 
-        private static ShellSnapshot Build(SimStatus status, string logoRef)
+        private static ShellSnapshot Build(SimStatus status, string logoRef, IReadOnlyDictionary<NavBadgeKey, int> badges)
         {
             GameDate.TryParse(status.Date, out GameDate date);
             string season = status.Season == null ? null : $"Season {status.Season.Number}";
             PromotionStatus promotion = status.Promotion;
-            if (promotion == null) return new ShellSnapshot(date, null, 0, season);
+            if (promotion == null) return new ShellSnapshot(date, null, 0, season, badges: badges);
 
             JToken popularity = promotion.Popularity;
             double? headline = (double?)popularity?["headline"];
@@ -184,7 +208,7 @@ namespace RingsideBooker.UI.Bridge
                 season,
                 headline.HasValue ? (int?)Math.Round(headline.Value) : null,
                 prestige.HasValue ? (int?)Math.Round(prestige.Value) : null,
-                null,
+                badges,
                 cashRef);
         }
     }

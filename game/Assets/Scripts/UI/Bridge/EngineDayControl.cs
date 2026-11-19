@@ -80,15 +80,11 @@ namespace RingsideBooker.UI.Bridge
         }
 
         /// <summary>
-        /// Screens the Unity game does not have yet still have to clear their stops: opening News
-        /// (where a news alert sends the player) marks the alerts seen, as the web's alert sheet does.
+        /// Nothing to do on navigation now: the News screen (UNITY-19) clears the news alert stop
+        /// itself when it opens, as the web's News screen does.
         /// </summary>
         public void OnNavigated(ShellRoute route)
         {
-            if (route.ScreenId == "news" && gates.Any(hit => hit.ActionHint == GateHints.News))
-            {
-                game.Client.Command(EngineCommands.AckNewsAlerts).Then(_ => { }, error => Debug.LogWarning(error.Message));
-            }
         }
 
         /// <summary>Reads the gates waiting today again and raises <see cref="Changed"/>.</summary>

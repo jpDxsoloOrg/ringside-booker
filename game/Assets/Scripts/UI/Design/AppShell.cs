@@ -144,8 +144,14 @@ namespace RingsideBooker.UI.Design
             }
         }
 
-        /// <summary>Badge counts by nav item id; 0 or missing hides the badge.</summary>
-        public void SetBadges(IReadOnlyDictionary<string, int> counts)
+        /// <summary>
+        /// Badge counts by nav item id; 0 or missing hides the badge. <paramref name="states"/>
+        /// (optional, by item id) picks a badge's colour token (default <see cref="DsState.Live"/>;
+        /// news uses a quieter one), <paramref name="words"/> what the count means ("3 new stories"),
+        /// shown as the badge's tooltip. Badge labels are named <c>nav-badge-&lt;item id&gt;</c>.
+        /// </summary>
+        public void SetBadges(IReadOnlyDictionary<string, int> counts, IReadOnlyDictionary<string, DsState> states = null,
+            IReadOnlyDictionary<string, string> words = null)
         {
             foreach (KeyValuePair<string, Label> pair in badges)
             {
@@ -153,6 +159,12 @@ namespace RingsideBooker.UI.Design
                 counts?.TryGetValue(pair.Key, out count);
                 pair.Value.text = count > 99 ? "99+" : count.ToString();
                 pair.Value.style.display = count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+                DsState state = DsState.Live;
+                states?.TryGetValue(pair.Key, out state);
+                foreach (DsState each in (DsState[])Enum.GetValues(typeof(DsState))) pair.Value.EnableInClassList(Ds.StateClass(each), each == state);
+                string text = null;
+                words?.TryGetValue(pair.Key, out text);
+                pair.Value.userData = text;
             }
         }
 
@@ -307,6 +319,12 @@ namespace RingsideBooker.UI.Design
             link.Add(Ui.Text(TextFormat.Upper(label), "ds-nav__label"));
             Label count = Ds.Badge(badge.HasValue ? (badge.Value > 99 ? "99+" : badge.Value.ToString()) : "0");
             count.AddToClassList("ds-nav__badge");
+            count.name = "nav-badge-" + id;
+            count.RegisterCallback<PointerEnterEvent>(_ =>
+            {
+                if (count.userData is string text && !Collapsed) DsTooltip.ShowNow(count, text);
+            });
+            count.RegisterCallback<PointerLeaveEvent>(_ => DsTooltip.Hide());
             count.style.display = badge.HasValue ? DisplayStyle.Flex : DisplayStyle.None;
             link.Add(count);
             badges[id] = count;

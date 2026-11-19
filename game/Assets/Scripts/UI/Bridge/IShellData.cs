@@ -3,12 +3,30 @@ using System.Collections.Generic;
 
 namespace RingsideBooker.UI.Bridge
 {
-    /// <summary>Counts a nav item can show in a badge (the web's <c>NavBadgeKey</c>).</summary>
+    /// <summary>
+    /// Counts a nav item can show in a badge (the web's <c>NavBadgeKey</c>, plus unread news from
+    /// UNITY-19). A <see cref="Navigation.NavItem"/> names its key; the bridge fills
+    /// <see cref="ShellSnapshot.Badges"/>; the sidebar draws them by item id.
+    /// </summary>
     public enum NavBadgeKey
     {
         UnreadMail,
         PendingDecisions,
         WantsToLeave,
+        UnreadNews,
+    }
+
+    /// <summary>What a badge means in words, as the web's <c>NAV_BADGE_LABELS</c> ("3 unread"): the badge's tooltip.</summary>
+    public static class NavBadgeWords
+    {
+        public static string For(NavBadgeKey key, int count) => key switch
+        {
+            NavBadgeKey.UnreadMail => $"{count} unread",
+            NavBadgeKey.PendingDecisions => $"{count} waiting on you",
+            NavBadgeKey.WantsToLeave => $"{count} {(count == 1 ? "wants" : "want")} to leave",
+            NavBadgeKey.UnreadNews => $"{count} new {(count == 1 ? "story" : "stories")}",
+            _ => count.ToString(),
+        };
     }
 
     /// <summary>The promotion the player runs, for the sidebar's crest block.</summary>
