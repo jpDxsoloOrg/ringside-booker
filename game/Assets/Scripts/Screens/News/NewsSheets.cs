@@ -15,7 +15,7 @@ using WhyEntityRef = RingsideBooker.UI.Why.EntityRef;
 namespace RingsideBooker.Screens.News
 {
     /// <summary>
-    /// One story (the web's NewsStorySheet) in a side sheet: the headline names it; under it the
+    /// One story (the web's NewsStorySheet) in a side sheet: the headline leads; with it the
     /// kind and date, the full story, who is in it (each a link where a screen exists), importance,
     /// buzz with its quiet Why?, a link to the show's results, and how long the archive keeps it.
     /// A story that has left the archive says so.
@@ -52,6 +52,7 @@ namespace RingsideBooker.Screens.News
             meta.Add(Ds.Text(GameDate.TryParse(Kit.Str(item, "date"), out GameDate date) ? date.Long : Kit.Str(item, "date"), "nw-sheet__date"));
             body.Add(meta);
 
+            body.Add(Ds.Text(headline, "nw-sheet__headline").Named("news-story-headline"));
             body.Add(Ds.Text(NewsText.Render(item["body"], names), "nw-sheet__body"));
 
             List<NewsName> entities = NewsModel.EntitiesOf(item, names);
@@ -82,7 +83,8 @@ namespace RingsideBooker.Screens.News
                 body.Add(Ds.Row("nw-sheet__links").With(results));
             }
             body.Add(Ds.Text(NewsModel.ArchiveText(item), "nw-sheet__archive"));
-            Current = handle = DsOverlay.SideSheet(anchor, headline, body, TextFormat.Upper(NewsModel.When(Kit.Str(item, "date"), today)), null, 520f);
+            // The headline wraps in the body: the sheet's title line is one line and would run under the close button.
+            Current = handle = DsOverlay.SideSheet(anchor, "Story", body, TextFormat.Upper("News · " + NewsModel.When(Kit.Str(item, "date"), today)), null, 520f);
             if (handle != null) handle.Entry.name = "news-story-sheet";
         }
 

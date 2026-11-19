@@ -268,9 +268,18 @@
     color: var(--ds-text-3);
 }
 
+.nw-sheet__headline {
+    flex-shrink: 0;
+    margin-top: 12px;
+    font-size: 30px;
+    color: var(--ds-text);
+    white-space: normal;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+}
+
 .nw-sheet__body {
     flex-shrink: 0;
-    margin-top: 14px;
+    margin-top: 10px;
     font-size: 15px;
     color: var(--ds-text-2);
     white-space: normal;
