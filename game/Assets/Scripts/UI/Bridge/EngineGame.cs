@@ -99,6 +99,9 @@ namespace RingsideBooker.UI.Bridge
             WhyPanelHost.DefaultLinks = new WhyLinks(OpenEntity, entity => EntityRoute(entity) != null && ShellController.Current != null);
             Day.DayControlLogic.RosterInjuriesTabAvailable = true;
             TopBarView.CashChipDecorator = DecorateCashChip;
+            // UNITY-05's saves share this client and enter games through this bridge.
+            Saves.SaveEngine.Provider = EngineRuntime.GetClientAsync;
+            Title.GameEntry.Handler = (client, seat) => Enter(client, seat);
         }
 
         private static void OpenEntity(WhyEntityRef entity)

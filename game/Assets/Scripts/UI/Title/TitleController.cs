@@ -104,16 +104,11 @@ namespace RingsideBooker.UI.Title
         private void ShowNewGame()
         {
             VisualElement inner = ResetPanel("New game");
-            VisualElement card = Ui.El("card", "placeholder__card").With(
-                Ui.Text(TextFormat.Upper("Not built yet"), "section-label"),
-                Ui.Text("Choosing a world (built-in or a workshop world mod) and the promotion you run arrives with the new-game wizard. Until then, start a default-world game (a new promotion in California, saved to its own slot), or the demo game to see the shell with sample data.", "placeholder__body"));
-            saves.AddQuickStart(card);
-            Button demo = Ui.Btn("START DEMO GAME", StartDemo, "btn--primary");
+            inner.Add(RingsideBooker.Screens.NewGameWizard.Build());
+            Button demo = Ui.Btn("Or look around the demo game (sample data)", StartDemo, "btn--link");
             demo.name = "start-demo";
-            demo.style.alignSelf = Align.FlexStart;
-            demo.style.marginTop = 20;
-            card.Add(demo);
-            inner.Add(card);
+            demo.style.marginTop = 16;
+            inner.Add(demo);
         }
 
         private void ShowSettings()
