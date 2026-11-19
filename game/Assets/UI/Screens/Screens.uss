@@ -138,6 +138,10 @@
 .rb-option { flex-direction: column; align-items: flex-start; margin: 0 0 6px 0; padding: 6px 10px; min-height: 0; flex-grow: 0; }
 .rb-option .choice-chip__detail { white-space: normal; }
 .rb-promo-list { max-height: 360px; }
+.rb-world-list { max-height: 380px; flex-shrink: 1; }
+.rb-mod-list { max-height: 420px; flex-shrink: 1; }
+.rb-import-warnings { max-height: 260px; flex-shrink: 1; }
+.rb-import-progress { margin-top: 10px; color: var(--color-text-subtle); }
 .rb-setting { flex-direction: column; margin-bottom: 6px; }
 
 /* The cash chip's Why? button. */

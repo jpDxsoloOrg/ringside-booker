@@ -51,7 +51,10 @@ namespace RingsideBooker.UI.Title
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape)) overlay?.CloseTop();
+            if (!Input.GetKeyDown(KeyCode.Escape)) return;
+            // An open sheet first; then the New game import sub-screen goes back to the world list.
+            if (overlay != null && overlay.Count > 0) overlay.CloseTop();
+            else RingsideBooker.Screens.NewGameWizard.Active?.HandleBack();
         }
 
         private void Wire(VisualElement root, string name, Action show)
