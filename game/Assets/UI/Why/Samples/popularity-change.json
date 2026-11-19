@@ -1,0 +1,591 @@
+{
+  "ref": {
+    "kind": "promoPop.rivalShowChange",
+    "id": "evi_s5t192d5tb/reg_smrh2zwz3t"
+  },
+  "date": "2027-08-19",
+  "trace": {
+    "label": "Popularity change in Ireland",
+    "unit": "points",
+    "docRef": "promotion-popularity.md#show-popularity-change",
+    "children": [
+      {
+        "label": "No change yet",
+        "unit": "points",
+        "kind": "input",
+        "value": 0
+      },
+      {
+        "label": "Beat expectations by 25.52",
+        "children": [
+          {
+            "label": "Beat expectations by 25.52",
+            "unit": "points",
+            "children": [
+              {
+                "label": "Strength of the result",
+                "unit": "ratio",
+                "children": [
+                  {
+                    "label": "Size of the margin either way",
+                    "children": [
+                      {
+                        "label": "Scored 46 against an expected 20.48: +25.52",
+                        "unit": "points",
+                        "children": [
+                          {
+                            "label": "Show score",
+                            "unit": "points",
+                            "kind": "input",
+                            "value": 46
+                          },
+                          {
+                            "label": "Less what fans here expected",
+                            "children": [
+                              {
+                                "label": "What fans in Ireland expected",
+                                "unit": "points",
+                                "docRef": "promotion-popularity.md#region-expectation",
+                                "children": [
+                                  {
+                                    "label": "Nothing expected yet",
+                                    "unit": "points",
+                                    "kind": "input",
+                                    "value": 0
+                                  },
+                                  {
+                                    "label": "Popularity here 16.8, Regular show",
+                                    "children": [
+                                      {
+                                        "label": "Expected because of popularity here",
+                                        "unit": "points",
+                                        "children": [
+                                          {
+                                            "label": "Popularity here",
+                                            "unit": "points",
+                                            "kind": "input",
+                                            "value": 16.8
+                                          },
+                                          {
+                                            "label": "Popularity here 16.8 × 0.6",
+                                            "children": [
+                                              {
+                                                "label": "Popularity weight",
+                                                "unit": "ratio",
+                                                "docRef": "promotion-popularity.md#region-expectation",
+                                                "kind": "tunable",
+                                                "key": "promoPop.expect.popularityWeight",
+                                                "value": 0.6,
+                                                "defaultValue": 0.6,
+                                                "overridden": false
+                                              }
+                                            ],
+                                            "kind": "multiply",
+                                            "value": 10.08,
+                                            "operand": 0.6,
+                                            "before": 16.8,
+                                            "after": 10.08
+                                          },
+                                          {
+                                            "label": "Event size: Regular × 1",
+                                            "children": [
+                                              {
+                                                "label": "Event size effect",
+                                                "unit": "multiplier",
+                                                "docRef": "promotion-popularity.md#region-expectation",
+                                                "kind": "tunable",
+                                                "key": "promoPop.expect.importance.regular",
+                                                "value": 1,
+                                                "defaultValue": 1,
+                                                "overridden": false
+                                              }
+                                            ],
+                                            "kind": "multiply",
+                                            "value": 10.08,
+                                            "operand": 1,
+                                            "before": 10.08,
+                                            "after": 10.08
+                                          }
+                                        ],
+                                        "kind": "formula",
+                                        "value": 10.08
+                                      }
+                                    ],
+                                    "kind": "add",
+                                    "value": 10.08,
+                                    "operand": 10.08,
+                                    "before": 0,
+                                    "after": 10.08
+                                  },
+                                  {
+                                    "label": "Prestige 52",
+                                    "children": [
+                                      {
+                                        "label": "Expected because of prestige",
+                                        "unit": "points",
+                                        "children": [
+                                          {
+                                            "label": "Prestige",
+                                            "unit": "points",
+                                            "kind": "input",
+                                            "value": 52
+                                          },
+                                          {
+                                            "label": "Prestige 52 × 0.2",
+                                            "children": [
+                                              {
+                                                "label": "Prestige weight",
+                                                "unit": "ratio",
+                                                "docRef": "promotion-popularity.md#region-expectation",
+                                                "kind": "tunable",
+                                                "key": "promoPop.expect.prestigeWeight",
+                                                "value": 0.2,
+                                                "defaultValue": 0.2,
+                                                "overridden": false
+                                              }
+                                            ],
+                                            "kind": "multiply",
+                                            "value": 10.4,
+                                            "operand": 0.2,
+                                            "before": 52,
+                                            "after": 10.4
+                                          }
+                                        ],
+                                        "kind": "formula",
+                                        "value": 10.4
+                                      }
+                                    ],
+                                    "kind": "add",
+                                    "value": 20.48,
+                                    "operand": 10.4,
+                                    "before": 10.08,
+                                    "after": 20.48
+                                  },
+                                  {
+                                    "label": "Hype isn't tracked yet",
+                                    "kind": "note",
+                                    "value": null
+                                  },
+                                  {
+                                    "label": "Expectations stay within 0–100",
+                                    "kind": "clamp",
+                                    "value": 20.48,
+                                    "min": 0,
+                                    "max": 100,
+                                    "before": 20.48,
+                                    "after": 20.48,
+                                    "applied": false
+                                  }
+                                ],
+                                "kind": "formula",
+                                "value": 20.48
+                              }
+                            ],
+                            "kind": "subtract",
+                            "value": 25.52,
+                            "operand": 20.48,
+                            "before": 46,
+                            "after": 25.52
+                          }
+                        ],
+                        "kind": "formula",
+                        "value": 25.52
+                      }
+                    ],
+                    "kind": "input",
+                    "value": 25.52
+                  },
+                  {
+                    "label": "Less the dead zone",
+                    "children": [
+                      {
+                        "label": "Dead zone",
+                        "unit": "points",
+                        "docRef": "promotion-popularity.md#show-popularity-change",
+                        "kind": "tunable",
+                        "key": "promoPop.deadZone",
+                        "value": 3,
+                        "defaultValue": 3,
+                        "overridden": false
+                      }
+                    ],
+                    "kind": "subtract",
+                    "value": 22.52,
+                    "operand": 3,
+                    "before": 25.52,
+                    "after": 22.52
+                  },
+                  {
+                    "label": "Share of the way to a blowout",
+                    "children": [
+                      {
+                        "label": "From the dead zone to a blowout",
+                        "unit": "points",
+                        "children": [
+                          {
+                            "label": "Nothing yet",
+                            "unit": "points",
+                            "kind": "input",
+                            "value": 0
+                          },
+                          {
+                            "label": "Blowout margin",
+                            "children": [
+                              {
+                                "label": "Blowout margin",
+                                "unit": "points",
+                                "docRef": "promotion-popularity.md#show-popularity-change",
+                                "kind": "tunable",
+                                "key": "promoPop.blowoutMargin",
+                                "value": 25,
+                                "defaultValue": 25,
+                                "overridden": false
+                              }
+                            ],
+                            "kind": "add",
+                            "value": 25,
+                            "operand": 25,
+                            "before": 0,
+                            "after": 25
+                          },
+                          {
+                            "label": "Less the dead zone",
+                            "children": [
+                              {
+                                "label": "Dead zone",
+                                "unit": "points",
+                                "docRef": "promotion-popularity.md#show-popularity-change",
+                                "kind": "tunable",
+                                "key": "promoPop.deadZone",
+                                "value": 3,
+                                "defaultValue": 3,
+                                "overridden": false
+                              }
+                            ],
+                            "kind": "subtract",
+                            "value": 22,
+                            "operand": 3,
+                            "before": 25,
+                            "after": 22
+                          }
+                        ],
+                        "kind": "formula",
+                        "value": 22
+                      }
+                    ],
+                    "kind": "divide",
+                    "value": 1.0236363636363637,
+                    "operand": 22,
+                    "before": 22.52,
+                    "after": 1.0236363636363637
+                  },
+                  {
+                    "label": "A blowout or more counts in full",
+                    "kind": "clamp",
+                    "value": 1,
+                    "min": 0,
+                    "max": 1,
+                    "before": 1.0236363636363637,
+                    "after": 1,
+                    "applied": true
+                  }
+                ],
+                "kind": "formula",
+                "value": 1
+              },
+              {
+                "label": "Most one show can win",
+                "children": [
+                  {
+                    "label": "Most gain per show",
+                    "unit": "points",
+                    "docRef": "promotion-popularity.md#show-popularity-change",
+                    "kind": "tunable",
+                    "key": "promoPop.maxGainPerShow",
+                    "value": 3,
+                    "defaultValue": 3,
+                    "overridden": false
+                  }
+                ],
+                "kind": "multiply",
+                "value": 3,
+                "operand": 3,
+                "before": 1,
+                "after": 3
+              }
+            ],
+            "kind": "formula",
+            "value": 3
+          }
+        ],
+        "kind": "add",
+        "value": 3,
+        "operand": 3,
+        "before": 0,
+        "after": 3
+      },
+      {
+        "label": "Event size: Regular × 1",
+        "children": [
+          {
+            "label": "Event size effect",
+            "unit": "multiplier",
+            "docRef": "promotion-popularity.md#show-popularity-change",
+            "kind": "tunable",
+            "key": "promoPop.impact.regular",
+            "value": 1,
+            "defaultValue": 1,
+            "overridden": false
+          }
+        ],
+        "kind": "multiply",
+        "value": 3,
+        "operand": 1,
+        "before": 3,
+        "after": 3
+      },
+      {
+        "label": "Seen here as: TV: Larkspur Stream",
+        "children": [
+          {
+            "label": "Reach in Ireland",
+            "unit": "ratio",
+            "docRef": "promotion-popularity.md#show-reach",
+            "children": [
+              {
+                "label": "Not reached",
+                "kind": "constant",
+                "value": 0,
+                "reason": "A region the show did not reach saw none of it"
+              },
+              {
+                "label": "TV: Larkspur Stream, reach tier 1 × 0.2",
+                "children": [
+                  {
+                    "label": "TV reach, tier 1",
+                    "unit": "ratio",
+                    "docRef": "promotion-popularity.md#show-reach",
+                    "kind": "tunable",
+                    "key": "promoPop.tvReach.tier1",
+                    "value": 0.2,
+                    "defaultValue": 0.2,
+                    "overridden": false
+                  }
+                ],
+                "kind": "max",
+                "value": 0.2,
+                "limit": 0.2,
+                "before": 0,
+                "after": 0.2,
+                "applied": true
+              },
+              {
+                "label": "Full reach",
+                "children": [
+                  {
+                    "label": "Full reach",
+                    "kind": "constant",
+                    "value": 1,
+                    "reason": "A region can't see a show more than fully"
+                  }
+                ],
+                "kind": "min",
+                "value": 0.2,
+                "limit": 1,
+                "before": 0.2,
+                "after": 0.2,
+                "applied": false
+              }
+            ],
+            "kind": "formula",
+            "value": 0.2
+          }
+        ],
+        "kind": "multiply",
+        "value": 0.6000000000000001,
+        "operand": 0.2,
+        "before": 3,
+        "after": 0.6000000000000001
+      },
+      {
+        "label": "Diminishing returns at popularity 16.8",
+        "children": [
+          {
+            "label": "Share of a gain that still lands",
+            "unit": "ratio",
+            "children": [
+              {
+                "label": "All fans",
+                "kind": "constant",
+                "value": 1,
+                "reason": "Popularity runs up to 100, the whole region"
+              },
+              {
+                "label": "Fans already won",
+                "children": [
+                  {
+                    "label": "Share of fans already won",
+                    "unit": "ratio",
+                    "children": [
+                      {
+                        "label": "Popularity here",
+                        "unit": "points",
+                        "kind": "input",
+                        "value": 16.8
+                      },
+                      {
+                        "label": "Out of 100",
+                        "children": [
+                          {
+                            "label": "Popularity scale",
+                            "kind": "constant",
+                            "value": 100,
+                            "reason": "Popularity runs from 0 to 100"
+                          }
+                        ],
+                        "kind": "divide",
+                        "value": 0.168,
+                        "operand": 100,
+                        "before": 16.8,
+                        "after": 0.168
+                      }
+                    ],
+                    "kind": "formula",
+                    "value": 0.168
+                  }
+                ],
+                "kind": "subtract",
+                "value": 0.832,
+                "operand": 0.168,
+                "before": 1,
+                "after": 0.832
+              },
+              {
+                "label": "Fans left to win stay within 0–1",
+                "kind": "clamp",
+                "value": 0.832,
+                "min": 0,
+                "max": 1,
+                "before": 0.832,
+                "after": 0.832,
+                "applied": false
+              },
+              {
+                "label": "Diminishing power",
+                "children": [
+                  {
+                    "label": "Diminishing power",
+                    "unit": "ratio",
+                    "docRef": "promotion-popularity.md#show-popularity-change",
+                    "kind": "tunable",
+                    "key": "promoPop.diminishingPower",
+                    "value": 1.5,
+                    "defaultValue": 1.5,
+                    "overridden": false
+                  }
+                ],
+                "kind": "power",
+                "value": 0.7589007629459862,
+                "operand": 1.5,
+                "before": 0.832,
+                "after": 0.7589007629459862
+              }
+            ],
+            "kind": "formula",
+            "value": 0.7589007629459862
+          }
+        ],
+        "kind": "multiply",
+        "value": 0.4553404577675918,
+        "operand": 0.7589007629459862,
+        "before": 0.6000000000000001,
+        "after": 0.4553404577675918
+      },
+      {
+        "label": "Monthly gain cap: 0.92 of 3 used",
+        "children": [
+          {
+            "label": "Gain left this month",
+            "unit": "points",
+            "docRef": "promotion-popularity.md#monthly-cap",
+            "children": [
+              {
+                "label": "Nothing yet",
+                "unit": "points",
+                "kind": "input",
+                "value": 0
+              },
+              {
+                "label": "Monthly gain cap",
+                "children": [
+                  {
+                    "label": "Monthly gain cap",
+                    "unit": "points",
+                    "docRef": "promotion-popularity.md#monthly-cap",
+                    "kind": "tunable",
+                    "key": "promoPop.monthlyGainCap",
+                    "value": 3,
+                    "defaultValue": 3,
+                    "overridden": false
+                  }
+                ],
+                "kind": "add",
+                "value": 3,
+                "operand": 3,
+                "before": 0,
+                "after": 3
+              },
+              {
+                "label": "Already gained here this month",
+                "kind": "subtract",
+                "value": 2.08,
+                "operand": 0.92,
+                "before": 3,
+                "after": 2.08
+              },
+              {
+                "label": "Never below 0",
+                "children": [
+                  {
+                    "label": "Nothing left",
+                    "kind": "constant",
+                    "value": 0,
+                    "reason": "A cap cannot take back gains"
+                  }
+                ],
+                "kind": "max",
+                "value": 2.08,
+                "limit": 0,
+                "before": 2.08,
+                "after": 2.08,
+                "applied": false
+              }
+            ],
+            "kind": "formula",
+            "value": 2.08
+          }
+        ],
+        "kind": "min",
+        "value": 0.4553404577675918,
+        "limit": 2.08,
+        "before": 0.4553404577675918,
+        "after": 0.4553404577675918,
+        "applied": false
+      },
+      {
+        "label": "Popularity stays within 0–100",
+        "kind": "clamp",
+        "value": 0.4553404577675918,
+        "min": -16.8,
+        "max": 83.2,
+        "before": 0.4553404577675918,
+        "after": 0.4553404577675918,
+        "applied": false
+      }
+    ],
+    "kind": "formula",
+    "value": 0.4553404577675918
+  },
+  "value": 0.4553404577675918,
+  "seq": 53850
+}

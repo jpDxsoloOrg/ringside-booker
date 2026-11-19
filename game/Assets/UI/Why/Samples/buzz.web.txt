@@ -1,0 +1,34 @@
+Story buzz: 24.3
+  Nothing yet: 0
+  +10 Base for a milestone story · 0 → 10
+    Buzz every milestone story starts with (0 = none): 10 · Game setting · news.buzz.kindBase.milestone
+  +12 Importance 1 × points per level · 10 → 22
+    Buzz from importance: 12
+      Importance: 1
+      ×12 Points per level of importance · 1 → 12
+        Points per level of importance: 12 · Game setting · news.buzz.importancePoints
+  +2 Popularity of Hammering Prince · 22 → 24
+    Buzz from Hammering Prince: 2
+      Popularity of Hammering Prince: 1.6
+        Popularity worldwide: 1.6
+      ×40 Most buzz popularity can add · 1.6 → 63.1
+        Most buzz popularity can add: 40 · Game setting · news.buzz.popularityMax
+      ÷31.578 Popularity 1.58 plus the soft cap · 63.1 → 2
+        Popularity plus the soft cap: 31.6
+          Popularity: 1.58
+          +30 Soft cap: the popularity that earns half the most buzz · 1.58 → 31.58
+            Popularity soft cap: 30 · Game setting · news.buzz.popularitySoftCap
+  +0.3 Popularity of Eisenwerk Wrestling · 24 → 24.3
+    Buzz from Eisenwerk Wrestling: 0.3
+      Popularity of Eisenwerk Wrestling: 1
+        Popularity worldwide: 1
+      ×40 Most buzz popularity can add · 1 → 38.2
+        Most buzz popularity can add: 40 · Game setting · news.buzz.popularityMax
+      ÷30.954 Popularity 0.95 plus the soft cap · 38.2 → 1.2
+        Popularity plus the soft cap: 31
+          Popularity: 0.95
+          +30 Soft cap: the popularity that earns half the most buzz · 0.95 → 30.95
+            Popularity soft cap: 30 · Game setting · news.buzz.popularitySoftCap
+      ×0.25 Each further subject counts 0.25 · 1.2 → 0.3
+        Share for each further subject: 0.25 · Game setting · news.buzz.extraSubjectShare
+  Checked 24.3 against 0–100: already in range · Kept between 0 and 100

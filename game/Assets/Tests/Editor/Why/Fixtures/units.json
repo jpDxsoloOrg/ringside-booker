@@ -1,0 +1,289 @@
+{
+  "ref": { "kind": "test.units", "id": "units-1" },
+  "date": "2027-03-14",
+  "seq": 1,
+  "value": 12543050,
+  "trace": {
+    "kind": "formula",
+    "label": "Gate takings",
+    "unit": "money",
+    "value": 12543050,
+    "children": [
+      {
+        "kind": "input",
+        "label": "Tickets sold",
+        "value": 8361,
+        "unit": "count",
+        "ref": { "kind": "eventInstance", "id": "evi_test" }
+      },
+      {
+        "kind": "multiply",
+        "label": "Ticket price",
+        "operand": 1500.5,
+        "before": 8361,
+        "after": 12545680.5,
+        "value": 12545680.5,
+        "children": [
+          {
+            "kind": "tunable",
+            "label": "Price per head",
+            "key": "boxOffice.price",
+            "value": 1500.5,
+            "defaultValue": 1200,
+            "overridden": true,
+            "unit": "money"
+          }
+        ]
+      },
+      {
+        "kind": "subtract",
+        "label": "Card fees",
+        "operand": 2630.5,
+        "before": 12545680.5,
+        "after": 12543050,
+        "value": 12543050,
+        "reason": "Paid to the card company"
+      },
+      {
+        "kind": "add",
+        "label": "Tiny change",
+        "operand": 0.0001,
+        "before": 12543050,
+        "after": 12543050.0001,
+        "value": 12543050.0001
+      },
+      {
+        "kind": "power",
+        "label": "Cost curve",
+        "operand": 3,
+        "before": 0.4,
+        "after": 0.064,
+        "value": 0.064
+      },
+      { "kind": "divide", "label": "Split", "operand": 4, "before": 100, "after": 25, "value": 25 },
+      {
+        "kind": "min",
+        "label": "Ceiling",
+        "limit": 20,
+        "before": 25,
+        "after": 20,
+        "applied": true,
+        "value": 20
+      },
+      {
+        "kind": "max",
+        "label": "Floor",
+        "limit": 30,
+        "before": 20,
+        "after": 30,
+        "applied": true,
+        "value": 30
+      },
+      {
+        "kind": "clamp",
+        "label": "Range",
+        "min": -5,
+        "max": 5000,
+        "before": 30,
+        "after": 30,
+        "applied": false,
+        "value": 30
+      },
+      {
+        "kind": "round",
+        "label": "Rounded down",
+        "mode": "floor",
+        "before": 30.75,
+        "after": 30,
+        "value": 30
+      },
+      {
+        "kind": "round",
+        "label": "To whole cents",
+        "mode": "ceil",
+        "before": 29.2,
+        "after": 30,
+        "value": 30
+      },
+      { "kind": "note", "label": "3 more steps not shown", "value": 1250, "hiddenSteps": 3 },
+      { "kind": "note", "label": "Just a note", "value": null },
+      { "kind": "input", "label": "Wage", "value": -125000, "unit": "money/month" },
+      { "kind": "input", "label": "Injury odds", "value": 0.00082, "unit": "probability" },
+      { "kind": "input", "label": "Share", "value": 15.25, "unit": "percent" },
+      { "kind": "input", "label": "Small share", "value": 0.5, "unit": "percent" },
+      { "kind": "input", "label": "Boost", "value": 1.15, "unit": "multiplier" },
+      { "kind": "input", "label": "Rating", "value": 3.75, "unit": "stars" },
+      { "kind": "input", "label": "Rest", "value": 1, "unit": "days" },
+      { "kind": "input", "label": "Length", "value": 2.5, "unit": "months" },
+      { "kind": "input", "label": "Age", "value": 31, "unit": "years" },
+      { "kind": "input", "label": "Weight", "value": 95.25, "unit": "kilograms" },
+      { "kind": "input", "label": "Learning", "value": 0.0425, "unit": "attribute" },
+      { "kind": "input", "label": "Popularity", "value": 70.25, "unit": "points" },
+      { "kind": "input", "label": "Drift", "value": -0.004, "unit": "points/day" },
+      { "kind": "input", "label": "Crowd", "value": 1234567.891 },
+      { "kind": "input", "label": "Negative zero", "value": -0.001 },
+      { "kind": "input", "label": "Main event?", "value": true },
+      { "kind": "input", "label": "Venue", "value": "The Hall" },
+      { "kind": "input", "label": "Nothing", "value": null },
+      { "kind": "input", "label": "Half", "value": 1.005 },
+      { "kind": "input", "label": "Half two", "value": 2.675 },
+      { "kind": "input", "label": "Small money", "value": 1250, "unit": "money" },
+      { "kind": "input", "label": "Small money fraction", "value": 1250.5, "unit": "money" },
+      { "kind": "input", "label": "Negative money", "value": -49, "unit": "money" },
+      {
+        "kind": "constant",
+        "label": "Percent scale",
+        "value": 100,
+        "reason": "percentages are stored as 0 to 100"
+      },
+      {
+        "kind": "tunable",
+        "label": "Pacing",
+        "key": "sim.pacing",
+        "value": "slowBurn",
+        "defaultValue": "standard",
+        "overridden": true,
+        "unit": "choice"
+      },
+      {
+        "kind": "tunable",
+        "label": "Draws allowed",
+        "key": "aip.draws",
+        "value": false,
+        "defaultValue": false,
+        "overridden": false,
+        "unit": "flag"
+      },
+      {
+        "kind": "roll",
+        "label": "Injury check",
+        "value": false,
+        "roll": {
+          "stream": "health.injury",
+          "kind": "chance",
+          "label": "Injury check",
+          "odds": 0.035,
+          "result": false
+        }
+      },
+      {
+        "kind": "roll",
+        "label": "Upset",
+        "value": true,
+        "roll": {
+          "stream": "match.upset",
+          "kind": "oneIn",
+          "label": "Upset",
+          "options": 20,
+          "odds": 0.05,
+          "result": true
+        }
+      },
+      {
+        "kind": "roll",
+        "label": "Walk-up",
+        "value": 212,
+        "roll": {
+          "stream": "attendance.walkUp",
+          "kind": "int",
+          "label": "Walk-up",
+          "min": -500,
+          "max": 500,
+          "result": 212
+        }
+      },
+      {
+        "kind": "roll",
+        "label": "Swing",
+        "value": 0.42,
+        "roll": {
+          "stream": "s.float",
+          "kind": "float",
+          "label": "Swing",
+          "min": 0,
+          "max": 1,
+          "result": 0.42
+        }
+      },
+      {
+        "kind": "roll",
+        "label": "Bell",
+        "value": 1.3,
+        "roll": { "stream": "s.normal", "kind": "normal", "label": "Bell", "result": 1.3 }
+      },
+      {
+        "kind": "roll",
+        "label": "Pick",
+        "value": "Kai",
+        "roll": {
+          "stream": "s.pick",
+          "kind": "pick",
+          "label": "Pick",
+          "options": 4,
+          "result": "Kai"
+        }
+      },
+      {
+        "kind": "roll",
+        "label": "Weighted",
+        "value": "mainEvent",
+        "roll": {
+          "stream": "s.w",
+          "kind": "weighted",
+          "label": "Weighted",
+          "options": 3,
+          "odds": 0.6,
+          "result": "mainEvent"
+        }
+      },
+      {
+        "kind": "branch",
+        "label": "Title match",
+        "condition": "Title match",
+        "taken": false,
+        "value": false
+      },
+      {
+        "kind": "branch",
+        "label": "Home crowd",
+        "condition": "Show is in the home region",
+        "taken": true,
+        "value": true
+      },
+      {
+        "kind": "decision",
+        "label": "Who wins: Kai Moreno vs Rex Hale",
+        "value": "side:1",
+        "chosen": "side:1",
+        "reason": "Higher value",
+        "considered": [
+          { "option": "side:0", "score": 51.8, "reason": "Kai Moreno" },
+          { "option": "side:1", "score": 64.2, "reason": "Rex Hale" }
+        ]
+      },
+      {
+        "kind": "decision",
+        "label": "Best stat",
+        "value": "mic:manager",
+        "chosen": "mic:manager",
+        "reason": "Highest",
+        "considered": [
+          { "option": "ringwork", "score": 50 },
+          { "option": "mic:manager", "score": 61.25 }
+        ]
+      },
+      {
+        "kind": "decision",
+        "label": "Finish",
+        "value": "method.count-out",
+        "chosen": "method.count-out",
+        "reason": "Picked",
+        "considered": [
+          { "option": "method.count-out", "score": 4, "reason": "Count out" },
+          { "option": "lightHeavyweight", "score": 2 },
+          { "option": true, "score": 1 }
+        ]
+      }
+    ]
+  }
+}

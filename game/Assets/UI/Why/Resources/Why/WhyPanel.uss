@@ -1,0 +1,377 @@
+/*
+ * The Why? panel, button and explained value (game/Assets/Scripts/UI/Why).
+ * An office-register breakdown in a right-hand sheet: the headline (what the number is and its
+ * value) stays at the top while the rows scroll under it. Rows wrap rather than truncate.
+ * Tone colours always come with a sign or a word in the text, never colour alone.
+ */
+
+.why-overlay,
+.why-why-button,
+.why-value {
+    --why-surface: #1d2127;
+    --why-surface-raised: #252a31;
+    --why-hover: #2e343c;
+    --why-pressed: #3a4250;
+    --why-border: #3a414b;
+    --why-text: #e7e9ec;
+    --why-muted: #9aa4b0;
+    --why-data: #7cc4ff;
+    --why-positive: #5ccb8f;
+    --why-negative: #f2786d;
+    --why-badge: #e8b84a;
+    --why-badge-text: #1d2127;
+    --why-link: #8fc8ff;
+    --why-focus: #f2c14e;
+    --why-scrim: rgba(0, 0, 0, 0.45);
+}
+
+/* The overlay: dims the screen and holds the sheet on the right. */
+.why-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: row;
+    justify-content: flex-end;
+    background-color: var(--why-scrim);
+}
+
+.why-sheet {
+    width: 480px;
+    max-width: 100%;
+    height: 100%;
+    flex-direction: column;
+    background-color: var(--why-surface);
+    border-left-width: 1px;
+    border-left-color: var(--why-border);
+    color: var(--why-text);
+}
+
+.why-sheet__header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 12px 12px 20px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--why-border);
+    flex-shrink: 0;
+}
+
+.why-sheet__title {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: var(--why-text);
+    flex-shrink: 1;
+    white-space: normal;
+}
+
+.why-sheet__body {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-direction: column;
+    padding: 16px 20px 0 20px;
+    min-height: 0;
+}
+
+.why-sheet__footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 10px 20px;
+    border-top-width: 1px;
+    border-top-color: var(--why-border);
+    flex-shrink: 0;
+}
+
+.why-copy__status {
+    color: var(--why-muted);
+    margin-right: 10px;
+    font-size: 12px;
+}
+
+/* Trace view: headline, toolbar, then the scrolling rows. */
+.why-trace {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.why-headline {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    margin-bottom: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--why-border);
+    flex-shrink: 0;
+}
+
+.why-headline__label {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: var(--why-muted);
+    white-space: normal;
+    flex-shrink: 1;
+    margin-right: 12px;
+}
+
+.why-headline__value {
+    font-size: 30px;
+    -unity-font-style: bold;
+    color: var(--why-data);
+    white-space: normal;
+}
+
+.why-toolbar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.why-tree-scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.why-tree {
+    flex-direction: column;
+    padding-bottom: 16px;
+}
+
+.why-item {
+    flex-direction: column;
+    margin-bottom: 2px;
+}
+
+.why-row {
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 3px 6px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+.why-item:focus > .why-row {
+    border-color: var(--why-focus);
+}
+
+.why-item--group > .why-row:hover {
+    background-color: var(--why-hover);
+}
+
+.why-row__chevron {
+    width: 14px;
+    flex-shrink: 0;
+    color: var(--why-muted);
+    -unity-text-align: upper-left;
+    padding: 0;
+    margin: 0;
+}
+
+.why-row__content {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-direction: column;
+}
+
+.why-line {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.why-line__text {
+    white-space: normal;
+    color: var(--why-text);
+    flex-shrink: 1;
+    padding: 0;
+    margin: 0 6px 0 0;
+}
+
+.why-line__text--formula {
+    -unity-font-style: bold;
+}
+
+.why-tone--positive {
+    color: var(--why-positive);
+}
+
+.why-tone--negative {
+    color: var(--why-negative);
+}
+
+.why-badge {
+    background-color: var(--why-badge);
+    color: var(--why-badge-text);
+    border-radius: 3px;
+    padding: 0 6px;
+    margin: 0 6px 0 0;
+    font-size: 11px;
+    -unity-font-style: bold;
+}
+
+.why-detail {
+    color: var(--why-muted);
+    font-size: 12px;
+    white-space: normal;
+    padding: 0;
+    margin: 1px 8px 0 0;
+}
+
+.why-options {
+    flex-direction: column;
+    margin: 2px 0 0 8px;
+}
+
+.why-option {
+    color: var(--why-muted);
+    font-size: 12px;
+    white-space: normal;
+    padding: 0;
+    margin: 0;
+}
+
+.why-children {
+    flex-direction: column;
+    margin: 2px 0 0 6px;
+    padding-left: 10px;
+    border-left-width: 1px;
+    border-left-color: var(--why-border);
+}
+
+.why-link {
+    color: var(--why-link);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--why-link);
+    padding: 0;
+    margin: 0;
+}
+
+.why-link:hover {
+    color: var(--why-text);
+}
+
+.why-link:focus {
+    border-bottom-color: var(--why-focus);
+}
+
+.why-notice {
+    color: var(--why-muted);
+    white-space: normal;
+    margin-bottom: 8px;
+}
+
+.why-error {
+    color: var(--why-negative);
+    white-space: normal;
+    margin-bottom: 8px;
+}
+
+.why-summary__heading {
+    -unity-font-style: bold;
+    margin: 8px 0 4px 0;
+    color: var(--why-text);
+}
+
+/* Buttons. Two classes, so a theme's .unity-button rules do not win. */
+.unity-button.why-button {
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 1px;
+    border-color: var(--why-border);
+    border-radius: 4px;
+    color: var(--why-text);
+    font-size: 12px;
+    padding: 3px 10px;
+    margin: 0 6px 4px 0;
+    -unity-font-style: normal;
+}
+
+.unity-button.why-button:hover {
+    background-color: var(--why-hover);
+}
+
+.unity-button.why-button:focus {
+    border-color: var(--why-focus);
+}
+
+.unity-button.why-button--ghost {
+    border-color: rgba(0, 0, 0, 0);
+    color: var(--why-link);
+}
+
+.unity-button.why-button--pressed {
+    background-color: var(--why-pressed);
+    border-color: var(--why-border);
+}
+
+.unity-button.why-button--secondary {
+    background-color: var(--why-surface-raised);
+    margin: 0;
+}
+
+.unity-button.why-button--icon {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    margin: 0;
+    font-size: 20px;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+/* The "?" beside a number. */
+.unity-button.why-why-button {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    padding: 0;
+    margin: 0 0 0 4px;
+    border-radius: 9px;
+    font-size: 11px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: var(--why-muted);
+    border-color: var(--why-muted);
+}
+
+.unity-button.why-why-button:hover {
+    color: var(--why-text);
+    border-color: var(--why-text);
+}
+
+.why-value {
+    flex-direction: row;
+    align-items: center;
+}
+
+.why-value__number {
+    -unity-font-style: bold;
+}
+
+/* The rows' scroll bar, in the panel's colours. */
+.why-tree-scroll .unity-scroller {
+    background-color: var(--why-surface);
+    border-width: 0;
+}
+
+.why-tree-scroll .unity-scroller__low-button,
+.why-tree-scroll .unity-scroller__high-button {
+    display: none;
+}
+
+.why-tree-scroll .unity-base-slider__tracker {
+    background-color: var(--why-surface-raised);
+    border-width: 0;
+}
+
+.why-tree-scroll .unity-base-slider__dragger {
+    background-color: var(--why-pressed);
+    border-width: 0;
+    border-radius: 3px;
+}

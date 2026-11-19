@@ -1,0 +1,49 @@
+Segment score: 63
+  Nothing yet: 0
+  Semi-main (standard)
+  Slot weight ×1.25
+  +39.8 Beats delivered × 0.65 · 0 → 39.8
+    Beats delivered's share: 39.8
+      Beats delivered: 61.3
+        Nothing delivered yet: 0
+        +61.3 Pull-Apart (beat 1) × 1 · 0 → 61.3
+          Pull-Apart (beat 1): 61.3
+        ÷1 Total weight of the beats · 61.3 → 61.3 · Delivered is the weighted mean of the beats
+      ×0.65 What the crowd leaves · 61.3 → 39.8
+  +20.6 Crowd × 0.35 · 39.8 → 60.5
+    Crowd's share: 20.6
+      Crowd: 59
+        Nothing yet: 0
+        +53.8 Delivered 53.84 · 0 → 53.8
+          Delivered: 53.8
+        +4.1 Above expectation +4.08 · 53.8 → 57.9
+          Surprise: 4.1
+        ×1 Attack crowd factor · 57.9 → 57.9
+          Attack crowd factor: 1 · Fixed: Set by the Attack type
+        Crowd on the night: rolled 1.07 on a bell curve · Random stream match.angle
+          Crowd variance spread: 3 · Game setting · match.crowd.varianceSd
+        +1.1 Crowd on the night · 57.9 → 59
+        Checked 59 against a minimum of 0: not reached · Never below 0
+        Did not apply: Above the knee at 85
+          Compression knee: 85 · Game setting · match.compression.knee
+        Checked 59 against a maximum of 100: not reached · At most 100
+        Checked 59 against a minimum of 0: not reached · At least 0
+      ×0.35 Crowd blend · 59 → 20.6
+        Crowd blend: 0.35 · Game setting · match.angle.crowdBlend
+  Checked 60.5 against 0–75: already in range · Writing team (level 0): floor 0, ceiling 75
+    Floor per level: 3 · Game setting · match.angle.writingFloorPerLevel
+    Ceiling with no writing team: 75 · Game setting · match.angle.writingCeilingAtZero
+    Ceiling per level: 2.5 · Game setting · match.angle.writingCeilingPerLevel
+  +3 Rival shortcut: Score bonus +3 · 60.5 → 63.5
+    Rival score bonus: 3
+      No bonus: 0
+      Because Run by the computer
+      Because Level playing field is off
+      +3 Rival shortcut · 0 → 3
+        Points added to every rival segment score: 3 · Game setting · ai.scoreBonus
+  Did not apply: Above the knee at 85
+    Compression knee: 85 · Game setting · match.compression.knee
+  Checked 63.5 against a maximum of 100: not reached · At most 100
+  Checked 63.5 against a minimum of 0: not reached · At least 0
+  Rounded 63.5 → 63 · Rounded to a whole number
+  Checked 63 against 0–100: already in range · Kept between 0 and 100

@@ -1,0 +1,135 @@
+{
+  "ref": {
+    "kind": "test.plain",
+    "id": "p"
+  },
+  "date": "2027-01-01",
+  "seq": 2,
+  "value": -1.496,
+  "trace": {
+    "kind": "formula",
+    "label": "Plain numbers",
+    "value": -1.496,
+    "children": [
+      {
+        "kind": "input",
+        "label": "v0",
+        "value": 1.005
+      },
+      {
+        "kind": "input",
+        "label": "v1",
+        "value": 2.675
+      },
+      {
+        "kind": "input",
+        "label": "v2",
+        "value": 1.115
+      },
+      {
+        "kind": "input",
+        "label": "v3",
+        "value": 0.125
+      },
+      {
+        "kind": "input",
+        "label": "v4",
+        "value": -0.001
+      },
+      {
+        "kind": "input",
+        "label": "v5",
+        "value": -0.005
+      },
+      {
+        "kind": "input",
+        "label": "v6",
+        "value": 0
+      },
+      {
+        "kind": "input",
+        "label": "v7",
+        "value": 0
+      },
+      {
+        "kind": "input",
+        "label": "v8",
+        "value": 1234567.891
+      },
+      {
+        "kind": "input",
+        "label": "v9",
+        "value": 0.30000000000000004
+      },
+      {
+        "kind": "input",
+        "label": "v10",
+        "value": 1e21
+      },
+      {
+        "kind": "input",
+        "label": "v11",
+        "value": 123456789012.345
+      },
+      {
+        "kind": "input",
+        "label": "v12",
+        "value": 0.0005
+      },
+      {
+        "kind": "input",
+        "label": "v13",
+        "value": 0.0015
+      },
+      {
+        "kind": "input",
+        "label": "v14",
+        "value": -2.5
+      },
+      {
+        "kind": "input",
+        "label": "v15",
+        "value": 99.995
+      },
+      {
+        "kind": "input",
+        "label": "v16",
+        "value": 1e-7
+      },
+      {
+        "kind": "input",
+        "label": "ratio",
+        "value": 0.8855,
+        "unit": "ratio"
+      },
+      {
+        "kind": "input",
+        "label": "pct",
+        "value": -0.0004,
+        "unit": "percent"
+      },
+      {
+        "kind": "input",
+        "label": "people",
+        "value": 1,
+        "unit": "count"
+      },
+      {
+        "kind": "add",
+        "label": "Gain",
+        "operand": 0.004,
+        "before": 1,
+        "after": 1.004,
+        "value": 1.004
+      },
+      {
+        "kind": "subtract",
+        "label": "Loss",
+        "operand": 2.5,
+        "before": 1.004,
+        "after": -1.496,
+        "value": -1.496
+      }
+    ]
+  }
+}
