@@ -1,0 +1,21 @@
+# Normalise line endings so WSL git and Windows git (core.autocrlf=true) agree.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files: never diffed or normalised. The Unity project adds Git LFS rules
+# in game/.gitattributes (scoped there so existing web assets are not rewritten).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.db binary
+*.sqlite binary
+*.rbsave binary

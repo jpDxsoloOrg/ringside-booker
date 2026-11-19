@@ -17,3 +17,10 @@ content/worlds/default/people.json
 content/worlds/default/employments.json
 content/worlds/default/teams.json
 content/worlds/default/reigns.json
+
+# Unity: generated project files and assets (UNITY-01)
+game/ProjectSettings/
+game/Packages/
+game/Assets/**/*.meta
+game/Assets/**/*.unity
+game/Assets/**/*.asset
