@@ -207,7 +207,8 @@ namespace RingsideBooker.Screens
                 item = new NewsItem
                 {
                     Kicker = story == null ? "Your world" : Kit.Str(story, "kindLabel") ?? "News",
-                    Headline = line != null ? $"{Kit.Str(story, "kindLabel") ?? "News"}: {line}"
+                    Headline = story != null && global::RingsideBooker.Screens.News.NewsText.Render(story["headline"], global::RingsideBooker.Screens.News.NewsText.NamesFrom(Kit.Obj(data.News, "names"))) is string words && words != global::RingsideBooker.Screens.News.NewsText.MissingText ? words
+                        : line != null ? $"{Kit.Str(story, "kindLabel") ?? "News"}: {line}"
                         : top.Count >= 2 ? $"{top[0].Name} and {top[1].Name} lead the way" : "A new season starts",
                     Dek = "The first shows decide who the fans talk about next.",
                     When = story == null ? null : Kit.Date(Kit.Str(story, "date")),
@@ -429,7 +430,8 @@ namespace RingsideBooker.Screens
                 var item = new NewsItem
                 {
                     Kicker = mine ? "Your promotion" : Kit.Str(story, "kindLabel") ?? "News",
-                    Headline = OfficeLogic.StoryLine(story, names) is string line ? $"{Kit.Str(story, "kindLabel") ?? "News"}: {line}" : OfficeLogic.HeadlineFromKey(story),
+                    Headline = global::RingsideBooker.Screens.News.NewsText.Render(story["headline"], global::RingsideBooker.Screens.News.NewsText.NamesFrom(names)) is string words && words != global::RingsideBooker.Screens.News.NewsText.MissingText ? words
+                        : OfficeLogic.StoryLine(story, names) is string line ? $"{Kit.Str(story, "kindLabel") ?? "News"}: {line}" : OfficeLogic.HeadlineFromKey(story),
                     When = Kit.Date(Kit.Str(story, "date")),
                     Icon = mine ? "trend-up" : Kit.Bool(story, "frontPage") ? "newspaper" : "building",
                     State = mine ? DsState.Live : Kit.Bool(story, "frontPage") ? DsState.Info : DsState.Neutral,

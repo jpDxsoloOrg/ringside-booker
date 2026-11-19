@@ -58,15 +58,32 @@ namespace RingsideBooker.UI.Shell
             }
 
             var counts = new Dictionary<string, int>();
+            var states = new Dictionary<string, DsState>();
+            var words = new Dictionary<string, string>();
             foreach (NavSection section in NavigationModel.Sections)
             {
                 foreach (NavItem item in section.Items)
                 {
-                    if (item.BadgeKey != null) counts[item.Id] = snapshot.Badge(item.BadgeKey.Value);
+                    if (item.BadgeKey == null) continue;
+                    int count = snapshot.Badge(item.BadgeKey.Value);
+                    counts[item.Id] = count;
+                    states[item.Id] = BadgeState(item.BadgeKey.Value);
+                    words[item.Id] = NavBadgeWords.For(item.BadgeKey.Value, count);
                 }
             }
-            shell.SetBadges(counts);
+            shell.SetBadges(counts, states, words);
         }
+
+        /// <summary>
+        /// A badge's colour token: things waiting on the player and workers who want to leave in the
+        /// shell's live red; unread news and mail in the quieter info blue (UNITY-19).
+        /// </summary>
+        public static DsState BadgeState(NavBadgeKey key) => key switch
+        {
+            NavBadgeKey.UnreadNews => DsState.Info,
+            NavBadgeKey.UnreadMail => DsState.Info,
+            _ => DsState.Live,
+        };
 
         /// <summary>Marks the link for <paramref name="screenId"/> as the current page.</summary>
         public void SetCurrent(string screenId)

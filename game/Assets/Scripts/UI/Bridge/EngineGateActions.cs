@@ -11,9 +11,9 @@ namespace RingsideBooker.UI.Bridge
     /// The engine commands that clear each stop the Unity game has no screen for yet (UNITY-10), the
     /// same ones the web's screens send. Contract stops (<c>contracts.expiringSoon</c>,
     /// <c>contracts.releaseRequested</c>, <c>contracts.counterWaiting</c>, <c>contracts.offerAnswered</c>)
-    /// are no longer here: the Contracts screen (UNITY-17) clears them.
+    /// are no longer here: the Contracts screen (UNITY-17) clears them, and the News screen (UNITY-19)
+    /// clears <c>news.alert</c>.
     /// <list type="bullet">
-    /// <item><c>news.alert</c>: OK → <c>news.ackAlerts</c> (News).</item>
     /// <item><c>health.ownWorkerInjured</c>: Mark as seen → <c>health.acknowledgeInjuries</c> for every injury waiting (the roster's Injuries tab does the same when it opens).</item>
     /// </list>
     /// Show night (<c>shows.tonight</c>) has its screens (Booking, Show night) and no action here.
@@ -37,12 +37,8 @@ namespace RingsideBooker.UI.Bridge
             {
                 // Contract stops (expiring, release request, counter waiting, offer answered) are
                 // cleared on the Contracts screen (UNITY-17), which the day button opens.
-                case NewsAlert:
-                    return new[]
-                    {
-                        new GateAction("OK", () => Run(client, EngineCommands.AckNewsAlerts, new JObject()),
-                            "Marks the news alert as seen.", primary: true),
-                    };
+                // The news alert (news.alert) is cleared on the News screen (UNITY-19), which the
+                // day button opens with the story.
                 case OwnWorkerInjured:
                     return new[]
                     {

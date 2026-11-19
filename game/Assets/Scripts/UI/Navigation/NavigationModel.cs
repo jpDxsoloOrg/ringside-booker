@@ -56,7 +56,7 @@ namespace RingsideBooker.UI.Navigation
             new NavSection("office", "Office", false,
                 new NavItem("dashboard", "Dashboard", "office", NavBadgeKey.PendingDecisions),
                 new NavItem("inbox", "Inbox", "inbox", NavBadgeKey.UnreadMail),
-                new NavItem("news", "News", "newspaper")),
+                new NavItem("news", "News", "newspaper", NavBadgeKey.UnreadNews)),
             new NavSection("world", "World", false,
                 new NavItem("workers", "Workers", "user-search"),
                 new NavItem("promotions", "Promotions", "building"),

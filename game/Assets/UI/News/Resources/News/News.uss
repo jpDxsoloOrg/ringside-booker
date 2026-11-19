@@ -1,0 +1,435 @@
+/*
+ * News screen layout (UNITY-19). The look comes from the UNITY-11 ds- components; nw- classes only
+ * place things. Loaded at run time by NewsScreen.Style (Resources "News/News"); sheets in the
+ * overlay layer add it themselves. Rows never shrink (UNITY-13 layout rule); ellipsized labels keep
+ * letter-spacing 0.
+ */
+
+.nw-page {
+    flex-shrink: 0;
+    padding-bottom: 24px;
+}
+
+.nw-head {
+    flex-shrink: 0;
+    margin-bottom: 14px;
+    align-items: flex-end;
+}
+
+.nw-head__title {
+    color: var(--ds-text);
+}
+
+.nw-head__date {
+    margin-top: 2px;
+    color: var(--ds-text-3);
+}
+
+/* ---- Front page ------------------------------------------------------------------------------------ */
+
+.nw-front {
+    flex-shrink: 0;
+    align-items: stretch;
+    margin-bottom: 22px;
+}
+
+.nw-lead {
+    flex-grow: 2;
+    flex-basis: 0;
+    flex-shrink: 1;
+    min-width: 560px;
+    height: 360px;
+    margin-bottom: 0;
+}
+
+.nw-lead .ds-news__headline {
+    font-size: 36px;
+}
+
+.nw-lead .ds-news__dek {
+    max-height: 64px;
+    overflow: hidden;
+}
+
+.nw-lead__faces {
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+.nw-lead__faces > .ds-portrait {
+    margin-left: 10px;
+    border-bottom-width: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.nw-lead__logo {
+    flex-direction: row;
+    align-items: center;
+    padding-bottom: 90px;
+}
+
+.nw-top {
+    flex-grow: 1;
+    flex-basis: 0;
+    flex-shrink: 1;
+    min-width: 380px;
+    max-width: 640px;
+    margin-left: 16px;
+}
+
+.nw-story {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 72px;
+    padding-left: 10px;
+}
+
+.nw-story__art {
+    flex-shrink: 0;
+    width: 52px;
+    align-items: center;
+    justify-content: center;
+}
+
+.nw-story__icon-box {
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-state-soft);
+}
+
+.nw-story__icon {
+    color: var(--ds-state);
+}
+
+.nw-story__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.nw-story__headline {
+    font-size: 15px;
+}
+
+.nw-clickable:hover {
+    border-color: var(--ds-line-strong);
+    background-color: var(--ds-elev-2);
+}
+
+.nw-clickable:focus {
+    border-color: var(--ds-focus);
+}
+
+/* ---- Feed ------------------------------------------------------------------------------------------ */
+
+.nw-feed-head {
+    flex-shrink: 0;
+}
+
+.nw-feed-head > .ds-section-header {
+    flex-grow: 1;
+    margin-bottom: 8px;
+}
+
+.nw-toolbar {
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.nw-toolbar > .ds-chip,
+.nw-toolbar > .ds-btn {
+    margin-right: 6px;
+}
+
+.nw-chips {
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+.nw-chips > .ds-chip {
+    margin-right: 4px;
+}
+
+.nw-toolbar__gap {
+    width: 14px;
+    flex-shrink: 0;
+}
+
+.nw-count {
+    flex-shrink: 0;
+    margin-right: 8px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    letter-spacing: 0;
+}
+
+.nw-table-host {
+    flex-shrink: 0;
+}
+
+.nw-more {
+    flex-shrink: 0;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.nw-headline-cell {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.nw-headline-cell__star {
+    flex-shrink: 0;
+    margin-right: 6px;
+    color: var(--ds-gold);
+}
+
+.nw-cell {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: 0;
+}
+
+.nw-value {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.nw-value__text {
+    white-space: nowrap;
+}
+
+/* The quiet Why?: faint until its row or value is hovered, or it has focus. */
+.unity-button.why-why-button.nw-why {
+    opacity: 0.35;
+    margin-left: 6px;
+}
+
+.ds-table__row:hover .nw-why,
+.nw-value:hover .nw-why,
+.unity-button.why-why-button.nw-why:focus {
+    opacity: 1;
+}
+
+/* ---- Kinds popover --------------------------------------------------------------------------------- */
+
+.nw-kinds {
+    width: 420px;
+    padding: 12px 14px;
+}
+
+.nw-kinds__title {
+    font-size: 12px;
+    letter-spacing: 1.2px;
+    color: var(--ds-text-2);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+}
+
+.nw-kinds__hint {
+    margin-top: 2px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+}
+
+.nw-kinds__chips > .ds-chip {
+    margin: 0 6px 6px 0;
+}
+
+/* ---- Story sheet ----------------------------------------------------------------------------------- */
+
+.nw-sheet {
+    flex-shrink: 0;
+}
+
+.nw-sheet__meta {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.nw-sheet__date {
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.nw-sheet__headline {
+    flex-shrink: 0;
+    margin-top: 12px;
+    font-size: 30px;
+    color: var(--ds-text);
+    white-space: normal;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+}
+
+.nw-sheet__body {
+    flex-shrink: 0;
+    margin-top: 10px;
+    font-size: 15px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+.nw-sheet__section {
+    flex-shrink: 0;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    letter-spacing: 1.2px;
+    color: var(--ds-text-3);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+}
+
+.nw-who {
+    flex-shrink: 0;
+}
+
+.nw-who__chip {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 36px;
+    max-width: 230px;
+    margin: 0 6px 6px 0;
+    padding: 0 10px 0 4px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-2);
+}
+
+.nw-who__chip:hover {
+    border-color: var(--ds-line-strong);
+}
+
+.nw-who__icon {
+    margin: 0 4px;
+    color: var(--ds-text-3);
+}
+
+.nw-who__name {
+    margin-left: 6px;
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: 0;
+    font-size: 13px;
+    color: var(--ds-text);
+    -unity-text-align: middle-left;
+}
+
+.nw-facts {
+    flex-shrink: 0;
+    margin-top: 18px;
+}
+
+.nw-facts__row {
+    flex-shrink: 0;
+}
+
+.nw-sheet__links {
+    flex-shrink: 0;
+    margin-top: 12px;
+}
+
+.nw-sheet__archive {
+    flex-shrink: 0;
+    margin-top: 18px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+}
+
+/* ---- Alert settings -------------------------------------------------------------------------------- */
+
+.nw-alerts {
+    flex-shrink: 0;
+}
+
+.nw-alerts__note {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.nw-alerts__notice {
+    flex-shrink: 0;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--ds-warn);
+}
+
+.nw-alerts__error {
+    flex-shrink: 0;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--ds-bad);
+    white-space: normal;
+}
+
+.nw-alerts__stop {
+    flex-shrink: 0;
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top-width: 1px;
+    border-color: var(--ds-line);
+}
+
+.nw-alerts__footer {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.nw-alerts__footer > .ds-btn {
+    margin-left: 8px;
+}
+
+.nw-switch {
+    height: auto;
+    min-height: 34px;
+    padding: 4px 6px;
+    margin-top: 4px;
+    align-items: flex-start;
+    flex-shrink: 0;
+}
+
+.nw-switch .ds-check__box {
+    margin-top: 2px;
+}
+
+.nw-switch__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-left: 10px;
+}
+
+.nw-switch__label {
+    margin-left: 0;
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+.nw-switch__hint {
+    margin-top: 1px;
+    font-size: 12px;
+    color: var(--ds-text-4);
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
