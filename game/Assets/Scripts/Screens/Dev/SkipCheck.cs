@@ -210,7 +210,7 @@ namespace RingsideBooker.Screens.Dev
         /// Waits for the engine to go idle and the day control to read today's stops again (frame by
         /// frame, no fixed delays: UNITY-23 found the old 0.6 s per step was most of a run's time).
         /// </summary>
-        private static async Task Settle()
+        internal static async Task Settle()
         {
             EngineGame game = EngineGame.Current;
             if (game == null) return;
@@ -245,7 +245,7 @@ namespace RingsideBooker.Screens.Dev
         /// A stop other than the show: press the day button; when it opens "Needs attention", press
         /// that row's main button (else the button went to the stop's screen, which clears it).
         /// </summary>
-        private static async Task ClearStop(GateHit lead)
+        internal static async Task ClearStop(GateHit lead)
         {
             DayControlView control = ShellController.Current.DayControl;
             control.RunPrimary();
@@ -285,7 +285,7 @@ namespace RingsideBooker.Screens.Dev
         /// (run one segment, sim the rest) or run it (auto shows). True for live, false for auto, null
         /// when it would not run.
         /// </summary>
-        private static async Task<bool?> ShowNight(EngineGame game, GateHit lead)
+        internal static async Task<bool?> ShowNight(EngineGame game, GateHit lead)
         {
             string eventId = lead.Subject?.Id;
             if (eventId == null) return null;
