@@ -451,15 +451,21 @@ namespace RingsideBooker.Engine
             cancelRequested = false;
             advancing = true;
             AdvanceReport report;
+            bool timing = EnginePerf.Enabled;
+            long callbackTicks = 0;
+            int days = 0;
+            long advanceStarted = timing ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
             try
             {
                 string json = engine.CallAsync("advanceDays", optionsJson, progressJson =>
                 {
+                    long callbackStarted = timing ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
+                    days++;
                     try
                     {
                         var day = ParseToken(progressJson).ToObject<AdvanceProgress>(Serializer);
                         ObserveRevision(day.Revision, false);
-                        Post(() =>
+                        Post("main.OnAdvanceProgress", () =>
                         {
                             progress?.Report(day);
                             OnAdvanceProgress?.Invoke(day);
@@ -476,7 +482,17 @@ namespace RingsideBooker.Engine
                     }
 
                     RunQueuedReads(engine);
+                    if (timing) callbackTicks += System.Diagnostics.Stopwatch.GetTimestamp() - callbackStarted;
                 });
+                if (timing)
+                {
+                    double callMs = (System.Diagnostics.Stopwatch.GetTimestamp() - advanceStarted) * EnginePerf.MsPerTick;
+                    double callbackMs = callbackTicks * EnginePerf.MsPerTick;
+                    EnginePerf.Record("advance.dayPipeline (V8)", callMs - callbackMs);
+                    EnginePerf.Record("advance.progressCallbacks", callbackMs);
+                    EnginePerf.Count("advance.days", days);
+                }
+
                 report = ParseResult<AdvanceReport>(json);
                 report.DaysRequested = daysRequested;
             }
@@ -486,7 +502,7 @@ namespace RingsideBooker.Engine
                 cancelRequested = false;
             }
 
-            Post(() => OnAdvanceFinished?.Invoke(report));
+            Post("main.OnAdvanceFinished", () => OnAdvanceFinished?.Invoke(report));
             return report;
         }
 
@@ -522,7 +538,7 @@ namespace RingsideBooker.Engine
 
             if (becameBusy)
             {
-                Post(() => OnBusyChanged?.Invoke(true));
+                Post("main.OnBusyChanged", () => OnBusyChanged?.Invoke(true));
             }
 
             return completion.Task;
@@ -605,6 +621,10 @@ namespace RingsideBooker.Engine
                 {
                     item.Cancel();
                 }
+                else if (EnginePerf.Enabled)
+                {
+                    RunMeasured(item);
+                }
                 else
                 {
                     item.Run(host);
@@ -625,8 +645,25 @@ namespace RingsideBooker.Engine
 
                 if (becameIdle)
                 {
-                    Post(() => OnBusyChanged?.Invoke(false));
+                    Post("main.OnBusyChanged", () => OnBusyChanged?.Invoke(false));
                 }
+            }
+        }
+
+        // Dev timing (EnginePerf): queue wait, then the call's time, its V8 share and JSON sizes.
+        private void RunMeasured(WorkItem item)
+        {
+            long started = System.Diagnostics.Stopwatch.GetTimestamp();
+            double waitMs = (started - item.EnqueuedAt) * EnginePerf.MsPerTick;
+            EnginePerf.CallCounters outer = EnginePerf.BeginCall();
+            try
+            {
+                item.Run(host);
+            }
+            finally
+            {
+                double totalMs = (System.Diagnostics.Stopwatch.GetTimestamp() - started) * EnginePerf.MsPerTick;
+                EnginePerf.EndCall(item.Label, outer, totalMs, waitMs);
             }
         }
 
@@ -669,7 +706,7 @@ namespace RingsideBooker.Engine
             }
 
             notifiedRevision = newRevision;
-            Post(() => OnStateChanged?.Invoke(newRevision));
+            Post("main.OnStateChanged", () => OnStateChanged?.Invoke(newRevision));
         }
 
         // A query/command result is { revision, result: { ok, data | reasons } }; a host refusal
@@ -738,22 +775,33 @@ namespace RingsideBooker.Engine
             }
         }
 
-        private void Post(Action action)
+        // Raises an event on the main thread; with timing on, the handlers' time is recorded under label.
+        private void Post(string label, Action action)
         {
             if (mainContext == null)
             {
-                Invoke(action);
+                Invoke(label, action);
                 return;
             }
 
-            mainContext.Post(state => Invoke((Action)state), action);
+            mainContext.Post(state => Invoke(label, (Action)state), action);
         }
 
-        private static void Invoke(Action action)
+        private static void Invoke(string label, Action action)
         {
             try
             {
-                action();
+                if (EnginePerf.Enabled)
+                {
+                    using (EnginePerf.Measure(label))
+                    {
+                        action();
+                    }
+                }
+                else
+                {
+                    action();
+                }
             }
             catch (Exception error)
             {
@@ -781,9 +829,13 @@ namespace RingsideBooker.Engine
                 this.run = run;
                 this.fail = fail;
                 this.cancel = cancel;
+                EnqueuedAt = EnginePerf.Enabled ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
             }
 
             public string Label { get; }
+
+            /// <summary>When it was queued (Stopwatch ticks; 0 when timing is off).</summary>
+            public long EnqueuedAt { get; }
 
             /// <summary>A read that may run between days of an advance.</summary>
             public bool ReadOnly { get; }

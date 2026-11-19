@@ -107,6 +107,7 @@ namespace RingsideBooker.UI.Shell
 
         private void RenderData()
         {
+            using var timing = Engine.EnginePerf.Measure("ui.shell.renderData");
             ShellSnapshot snapshot = data.Snapshot;
             sidebar.Render(snapshot);
             topBar.Render(snapshot);
@@ -120,6 +121,7 @@ namespace RingsideBooker.UI.Shell
 
         private void RenderDay()
         {
+            using var timing = Engine.EnginePerf.Measure("ui.shell.renderDay");
             dayControl.Render(day);
             summary.Render(day);
             progressOverlay.Render(day);
@@ -127,6 +129,7 @@ namespace RingsideBooker.UI.Shell
 
         private void ShowScreen(ShellRoute route)
         {
+            using var timing = Engine.EnginePerf.Measure("ui.shell.showScreen");
             screenHost.Clear();
             screenHost.Add(ScreenRegistry.Build(new ScreenContext(route, Navigator, Overlay)));
             sidebar.SetCurrent(route.ScreenId);

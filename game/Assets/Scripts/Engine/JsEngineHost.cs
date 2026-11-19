@@ -156,7 +156,11 @@ namespace RingsideBooker.Engine
             {
                 ThrowIfDisposed();
                 object[] scriptArguments = Array.ConvertAll(arguments ?? Array.Empty<string>(), ToScript);
-                return AsResult(function, api.InvokeMethod(function, scriptArguments));
+                if (!EnginePerf.Enabled) return AsResult(function, api.InvokeMethod(function, scriptArguments));
+                long started = System.Diagnostics.Stopwatch.GetTimestamp();
+                string json = AsResult(function, api.InvokeMethod(function, scriptArguments));
+                EnginePerf.NoteV8(System.Diagnostics.Stopwatch.GetTimestamp() - started, arguments, json);
+                return json;
             }
         }
 
@@ -175,6 +179,7 @@ namespace RingsideBooker.Engine
             {
                 ThrowIfDisposed();
                 object progress = onProgress == null ? (object)Undefined.Value : onProgress;
+                long started = EnginePerf.Enabled ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
                 var box = (ScriptObject)helper.InvokeMethod("callAsync", function, ToScript(argument), progress);
                 if (!(box.GetProperty("done") is bool done) || !done)
                 {
@@ -188,7 +193,9 @@ namespace RingsideBooker.Engine
                     throw new JsEngineException($"RingsideEngine.{function} rejected: {message}");
                 }
 
-                return AsResult(function, box.GetProperty("value"));
+                string json = AsResult(function, box.GetProperty("value"));
+                if (started != 0) EnginePerf.NoteV8(System.Diagnostics.Stopwatch.GetTimestamp() - started, new[] { argument }, json);
+                return json;
             }
         }
 

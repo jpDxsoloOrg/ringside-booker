@@ -294,7 +294,9 @@ namespace RingsideBooker.Screens
                     do
                     {
                         again = false;
+                        long started = System.Diagnostics.Stopwatch.GetTimestamp();
                         await render();
+                        EnginePerf.Record("ui.screen.draw (wall)", (System.Diagnostics.Stopwatch.GetTimestamp() - started) * EnginePerf.MsPerTick);
                     }
                     while (again && host.panel != null);
                 }

@@ -137,6 +137,7 @@ namespace RingsideBooker.Screens.Dev
             GameDate start = await Today(game);
             GameDate target = start.AddDays(days);
             Debug.Log($"[SkipCheck] new game on {start.Iso}; skipping {days} days to {target.Iso}");
+            SkipProfile profile = SkipProfile.Asked ? SkipProfile.Begin() : null;
 
             var stops = new SortedDictionary<string, int>();
             int skips = 0;
@@ -158,6 +159,10 @@ namespace RingsideBooker.Screens.Dev
                         Debug.Log($"[SkipCheck] PASSED: {start.Iso} → {today.Iso} ({start.DaysUntil(today)} days) in {skips} skips, " +
                                   $"{liveShows} live and {autoShows} auto show nights; stops: {(summary.Length == 0 ? "none" : summary)}; " +
                                   $"{clock.Elapsed.TotalSeconds:0.0} s");
+                        if (profile != null)
+                        {
+                            await profile.Finish("SkipCheck", game, $"{start.DaysUntil(today)} days in {skips} skips, {liveShows} live and {autoShows} auto show nights");
+                        }
                         return true;
                     }
                     int remaining = today.DaysUntil(target);

@@ -43,6 +43,9 @@ namespace RingsideBooker.UI.Bridge
 
         public event Action Changed;
 
+        /// <summary>True while the stops are being read again (dev tools wait for it).</summary>
+        public bool Refreshing => refreshing;
+
         /// <summary>Raised after an advance finished and its report is ready (the screenshot tour waits on it).</summary>
         public event Action<AdvanceReport> AdvanceFinished;
 
@@ -103,6 +106,7 @@ namespace RingsideBooker.UI.Bridge
                 do
                 {
                     refreshAgain = false;
+                    EnginePerf.Count("ui.dayControl.refresh");
                     QueryResult<PendingGates> pending = await game.Client.Query<PendingGates>(EngineQueries.PendingGates);
                     if (!attached) return;
                     List<GateHit> hits = pending.Ok && pending.Data != null

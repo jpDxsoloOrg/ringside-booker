@@ -29,6 +29,9 @@ namespace RingsideBooker.UI.Bridge
 
         public event Action Changed;
 
+        /// <summary>True while a refresh is reading the engine (dev tools wait for it).</summary>
+        public bool Refreshing => refreshing;
+
         /// <summary>The last <c>sim.status</c>, raw, or null before the first answer.</summary>
         public SimStatus Status { get; private set; }
 
@@ -49,6 +52,7 @@ namespace RingsideBooker.UI.Bridge
                 do
                 {
                     refreshAgain = false;
+                    EnginePerf.Count("ui.shellData.refresh");
                     QueryResult<SimStatus> status = await game.Client.Query<SimStatus>(EngineQueries.SimStatus);
                     if (!attached) return;
                     string promotionId = status.Data?.Promotion?.PromotionId;
