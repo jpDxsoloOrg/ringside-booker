@@ -1,0 +1,144 @@
+/*
+ * The core loop screens (UNITY-09): Office, Roster, Calendar, Booking, Show night, Results, the
+ * segment editor and the New game wizard. PC-game density at the 1920×1080 reference: 14 px body
+ * text, 28-32 px table rows, tight padding.
+ */
+
+.rb-screen { flex-direction: column; font-size: 14px; }
+.rb-screen > .screen-heading { font-size: 26px; margin-bottom: 4px; }
+.rb-subtitle { margin-bottom: 10px; }
+.rb-note { color: var(--color-text-muted); font-size: 13px; white-space: normal; }
+.rb-error { color: var(--color-negative); font-size: 13px; white-space: normal; margin: 4px 0; }
+.rb-warning { color: var(--color-warning); }
+.rb-gap-top { margin-top: 10px; }
+.rb-spacer { flex-grow: 1; }
+.rb-stack { flex-direction: column; }
+
+.rb-row { flex-direction: row; align-items: center; flex-wrap: wrap; }
+.rb-row > * { margin-right: 12px; }
+.rb-row--tight > * { margin-right: 6px; }
+.rb-columns { flex-direction: row; align-items: flex-start; }
+.rb-column { flex-grow: 1; flex-basis: 0; flex-direction: column; margin-right: 12px; min-width: 260px; }
+.rb-column:last-child { margin-right: 0; }
+.rb-column--wide { flex-grow: 1.8; }
+.rb-cell-stack { flex-direction: column; flex-shrink: 1; }
+
+.rb-panel { padding: 10px 12px; margin-bottom: 12px; }
+.rb-panel__title { margin-bottom: 6px; }
+.rb-panel__body { flex-direction: column; }
+.rb-panel__action { align-self: flex-start; margin-top: 8px; }
+.rb-title {
+    font-size: 18px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    white-space: normal;
+}
+
+.rb-stat { flex-direction: column; margin-right: 18px; }
+.rb-stat__label { font-size: 11px; color: var(--color-text-muted); letter-spacing: 0.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf"); }
+.rb-stat__line { flex-direction: row; align-items: center; }
+.rb-stat__value { font-size: 22px; -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf"); margin-right: 4px; }
+
+.rb-line { flex-direction: row; align-items: center; min-height: 24px; }
+.rb-line__label { width: 120px; color: var(--color-text-muted); font-size: 13px; }
+.rb-line__value { flex-shrink: 1; font-size: 13px; white-space: normal; margin-right: 4px; }
+
+.rb-badge { margin-right: 6px; }
+.rb-chips { flex-wrap: wrap; margin-bottom: 6px; }
+.rb-chips > .choice-chip { flex-grow: 0; min-width: 0; margin: 0 6px 6px 0; padding: 4px 10px; min-height: 28px; }
+.rb-chips .choice-chip__label { font-size: 13px; }
+.rb-chips .choice-chip__detail { font-size: 11px; }
+
+/* Tables: compact rows. */
+.rb-table { flex-direction: column; border-width: 1px; border-color: var(--color-border); border-radius: 6px; margin-bottom: 12px; }
+.rb-table__row { flex-direction: row; align-items: center; min-height: 30px; padding: 2px 8px; border-bottom-width: 1px; border-color: var(--color-border); }
+.rb-table__row:hover { background-color: var(--color-surface-hover); }
+.rb-table__head { background-color: var(--color-surface-raised); min-height: 26px; }
+.rb-table__head:hover { background-color: var(--color-surface-raised); }
+.rb-table__cell { flex-direction: row; align-items: center; overflow: hidden; padding-right: 6px; }
+.rb-table__heading { font-size: 11px; color: var(--color-text-muted); letter-spacing: 0.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf"); }
+.rb-table__text { font-size: 13px; }
+.rb-table .btn--link { font-size: 12px; min-height: 18px; }
+
+/* Office. */
+.rb-kpis { flex-direction: row; flex-wrap: wrap; margin-bottom: 4px; }
+.rb-kpi { padding: 8px 12px; margin: 0 10px 10px 0; min-width: 170px; flex-grow: 1; }
+.rb-story { flex-direction: column; padding: 6px 0; }
+.rb-story__date { margin-left: 6px; }
+
+/* Calendar. */
+.rb-toolbar { margin-bottom: 8px; }
+.rb-toolbar__title { min-width: 180px; -unity-text-align: middle-center; }
+.rb-month { flex-direction: column; border-width: 1px; border-color: var(--color-border); border-radius: 6px; }
+.rb-month__week { flex-direction: row; }
+.rb-month__cell { flex-grow: 1; flex-basis: 0; min-height: 92px; padding: 4px; border-right-width: 1px; border-bottom-width: 1px; border-color: var(--color-border); overflow: hidden; }
+.rb-month__cell--head { min-height: 24px; }
+.rb-month__cell--outside { opacity: 0.45; }
+.rb-month__cell--today { background-color: var(--color-surface-raised); border-color: var(--color-data); }
+.rb-month__day { font-size: 12px; color: var(--color-text-muted); margin-bottom: 2px; }
+.rb-show-chip { margin: 0 0 2px 0; padding: 1px 6px; min-height: 20px; border-width: 0; border-left-width: 3px; border-color: var(--color-border-strong);
+    background-color: var(--color-surface-sunken); border-radius: 3px; justify-content: flex-start; }
+.rb-show-chip:hover { background-color: var(--color-surface-hover); }
+.rb-show-chip--own { border-color: var(--color-action-bright); }
+.rb-show-chip--major { border-color: var(--color-prestige); }
+.rb-show-chip--done { opacity: 0.7; }
+.rb-show-chip__label { font-size: 11px; overflow: hidden; }
+
+/* Booking. */
+.rb-show-picker { flex-direction: row; flex-wrap: wrap; margin-bottom: 8px; }
+.rb-show-pick { flex-grow: 0; min-width: 0; margin: 0 6px 6px 0; padding: 4px 10px; flex-direction: column; align-items: flex-start; }
+.rb-show-pick .choice-chip__label { font-size: 13px; }
+.rb-showbar { flex-direction: row; align-items: center; padding: 10px 14px; margin-bottom: 10px; }
+.rb-showbar__info { flex-grow: 1; flex-shrink: 1; flex-direction: column; }
+.rb-showbar__actions > .btn { margin-left: 8px; margin-right: 0; min-height: 32px; font-size: 14px; }
+.rb-broadcast { border-left-width: 4px; border-color: var(--color-action); }
+.rb-scorebug { flex-wrap: nowrap; }
+.rb-slot { flex-direction: row; padding: 6px 0; border-bottom-width: 1px; border-color: var(--color-border); min-height: 48px; }
+.rb-slot__head { flex-direction: row; width: 190px; align-items: flex-start; }
+.rb-slot__number { width: 26px; font-size: 20px; color: var(--color-text-subtle);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf"); }
+.rb-slot__content { flex-grow: 1; flex-shrink: 1; flex-direction: column; }
+.rb-slot__actions { margin-top: 2px; }
+.rb-slot .btn--link { font-size: 12px; min-height: 18px; }
+.rb-check { flex-direction: row; align-items: flex-start; padding: 3px 0; }
+.rb-check__mark { width: 18px; font-size: 13px; }
+.rb-controls { margin-bottom: 8px; }
+.rb-controls > .btn { min-height: 32px; font-size: 14px; }
+
+/* Show night. */
+.rb-order-row { flex-direction: row; align-items: center; justify-content: flex-start; margin: 0 0 2px 0; padding: 4px 6px;
+    border-width: 1px; border-color: transparent; background-color: transparent; border-radius: 4px; min-height: 30px; }
+.rb-order-row:hover { background-color: var(--color-surface-hover); }
+.rb-order-row--next { border-color: var(--color-action-bright); }
+.rb-order-row--shown { background-color: var(--color-surface-raised); }
+.rb-order-row__mark { width: 18px; color: var(--color-data); }
+.rb-order-row > .rb-cell-stack { flex-grow: 1; }
+.rb-report .rb-stat { margin-top: 6px; }
+
+/* Segment editor and picker. */
+.rb-editor { width: 560px; }
+.rb-side { border-width: 1px; border-color: var(--color-border); border-radius: 6px; padding: 6px 8px; margin-bottom: 6px; }
+.rb-side .btn--link { font-size: 12px; min-height: 18px; }
+.rb-picker { width: 640px; height: 640px; }
+.rb-picker__list { margin-top: 8px; }
+.rb-pick-row { flex-direction: row; align-items: center; justify-content: flex-start; margin: 0; padding: 3px 8px; min-height: 30px;
+    border-width: 0; border-bottom-width: 1px; border-color: var(--color-border); background-color: transparent; border-radius: 0; }
+.rb-pick-row:hover { background-color: var(--color-surface-hover); }
+.rb-pick-row__name { width: 200px; font-size: 13px; }
+.rb-pick-row__cell { width: 100px; }
+
+/* New game wizard. */
+.rb-wizard { flex-direction: column; font-size: 14px; }
+.rb-wizard__steps { flex-direction: row; margin-bottom: 10px; }
+.rb-wizard__step { margin-right: 14px; color: var(--color-text-subtle); font-size: 13px; }
+.rb-wizard__step--current { color: var(--color-text); -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-Bold.ttf"); }
+.rb-wizard__nav { flex-direction: row; margin-top: 12px; }
+.rb-wizard__nav > .btn { margin-right: 8px; }
+.rb-option { flex-direction: column; align-items: flex-start; margin: 0 0 6px 0; padding: 6px 10px; min-height: 0; flex-grow: 0; }
+.rb-option .choice-chip__detail { white-space: normal; }
+.rb-promo-list { max-height: 360px; }
+.rb-setting { flex-direction: column; margin-bottom: 6px; }
+
+/* The cash chip's Why? button. */
+.status-chip__why { margin-left: 4px; }

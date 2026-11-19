@@ -5,15 +5,19 @@ namespace RingsideBooker.UI.Settings
 {
     /// <summary>
     /// Scales a UIDocument's panel to the window and the player's UI scale. The layout is designed for
-    /// 1280×720 logical pixels: the panel scales with the screen (Shrink, so at least 1280×720 always
-    /// fits at 100%), and the UI scale setting divides the reference size. Works on a runtime copy
+    /// 1920×1080 logical pixels at PC-game density, so 1080p renders 1:1; other windows scale with the
+    /// screen (match width and height halfway: 1280×720 draws at 2/3, 4K at 2×), and the UI scale
+    /// setting divides the reference size. Works on a runtime copy
     /// of the PanelSettings asset so play mode never edits the asset.
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
     [DefaultExecutionOrder(-200)]
     public sealed class UiScale : MonoBehaviour
     {
-        public static readonly Vector2Int ReferenceResolution = new Vector2Int(1280, 720);
+        public static readonly Vector2Int ReferenceResolution = new Vector2Int(1920, 1080);
+
+        /// <summary>How far the panel follows the window's height rather than its width (0 = width, 1 = height).</summary>
+        public const float MatchWidthOrHeight = 0.5f;
 
         private PanelSettings runtimeSettings;
 
@@ -47,7 +51,8 @@ namespace RingsideBooker.UI.Settings
             if (runtimeSettings == null) return;
             float scale = UiSettings.Scale;
             runtimeSettings.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-            runtimeSettings.screenMatchMode = PanelScreenMatchMode.Shrink;
+            runtimeSettings.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
+            runtimeSettings.match = MatchWidthOrHeight;
             runtimeSettings.referenceResolution = new Vector2Int(
                 Mathf.RoundToInt(ReferenceResolution.x / scale),
                 Mathf.RoundToInt(ReferenceResolution.y / scale));
