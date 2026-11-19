@@ -98,6 +98,20 @@ namespace RingsideBooker.Import
             }
         }
 
+        /// <summary>Rows in <paramref name="table"/>, or -1 when the database has no such table.</summary>
+        public long CountRows(string table)
+        {
+            if (!Database.TableNames().Contains(table))
+            {
+                return -1;
+            }
+
+            using (var statement = Database.Prepare("SELECT COUNT(*) FROM \"" + table.Replace("\"", "\"\"") + "\""))
+            {
+                return statement.Step() ? statement.GetInt64(0) : 0;
+            }
+        }
+
         public void Dispose()
         {
             Database.Dispose();

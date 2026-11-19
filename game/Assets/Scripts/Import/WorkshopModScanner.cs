@@ -10,7 +10,16 @@ namespace RingsideBooker.Import
     public sealed class WorkshopMod
     {
         public WorkshopMod(string itemId, string folder, string databasePath, string worldName, string startDate, string pictureFolderName)
+            : this(itemId, folder, databasePath, worldName, startDate, pictureFolderName, -1, -1, -1)
         {
+        }
+
+        public WorkshopMod(string itemId, string folder, string databasePath, string worldName, string startDate, string pictureFolderName,
+            long sizeBytes, long peopleCount, long promotionCount)
+        {
+            SizeBytes = sizeBytes;
+            PeopleCount = peopleCount;
+            PromotionCount = promotionCount;
             ItemId = itemId;
             Folder = folder;
             DatabasePath = databasePath;
@@ -36,6 +45,21 @@ namespace RingsideBooker.Import
 
         /// <summary>The picture folder's name inside <see cref="Folder"/> (<c>gameworld.imageFolder</c>), or null.</summary>
         public string PictureFolderName { get; }
+
+        /// <summary>The database file's size in bytes, or -1 when unknown.</summary>
+        public long SizeBytes { get; }
+
+        /// <summary>Rows in the database's <c>workers</c> table, or -1 when unknown (no table or unreadable).</summary>
+        public long PeopleCount { get; }
+
+        /// <summary>Rows in the database's <c>promotions</c> table, or -1 when unknown.</summary>
+        public long PromotionCount { get; }
+
+        /// <summary>
+        /// False for a mod with no people or no promotions (an add-on such as random events, not a
+        /// world); true when it has both or the counts are unknown (the import then says what is wrong).
+        /// </summary>
+        public bool IsWorld => PeopleCount != 0 && PromotionCount != 0;
 
         /// <summary>The full path of the picture folder, or null when the mod names none.</summary>
         public string PictureFolder => PictureFolderName == null ? null : Path.Combine(Folder, PictureFolderName);
@@ -102,11 +126,17 @@ namespace RingsideBooker.Import
             string worldName = null;
             string startDate = null;
             string imageFolder = null;
+            long people = -1;
+            long promotions = -1;
+            long size = -1;
             try
             {
+                size = new FileInfo(database).Length;
                 using (var copy = WorldModDatabase.OpenCopy(database))
                 {
                     (worldName, startDate, imageFolder) = copy.ReadWorldInfo();
+                    people = copy.CountRows("workers");
+                    promotions = copy.CountRows("promotions");
                 }
             }
             catch (SqliteException)
@@ -118,7 +148,8 @@ namespace RingsideBooker.Import
             }
 
             var itemId = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-            return new WorkshopMod(itemId, folder, database, worldName ?? Path.GetFileNameWithoutExtension(database), startDate, imageFolder);
+            return new WorkshopMod(itemId, folder, database, worldName ?? Path.GetFileNameWithoutExtension(database), startDate, imageFolder,
+                size, people, promotions);
         }
 
         /// <summary>The first <c>.db</c> file directly in <paramref name="folder"/>, by name, or null.</summary>

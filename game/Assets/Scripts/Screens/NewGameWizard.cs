@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using RingsideBooker.Engine;
+using RingsideBooker.Import;
 using RingsideBooker.Saves;
 using RingsideBooker.UI;
 using RingsideBooker.UI.Bridge;
@@ -17,7 +18,8 @@ namespace RingsideBooker.Screens
     /// <summary>
     /// The New game wizard on the title screen (the web's NewGameScreen, a working subset): pick a
     /// world (the bundled ones from <c>listWorlds</c>, then each <see cref="IWorldSource"/>, such as
-    /// "Workshop mods"), the promotion you take over (<c>previewWorld</c>), the options (save and
+    /// the workshop worlds imported this session; "Import a workshop world…" opens a sub-screen that
+    /// lists the installed mods, imports one and comes back with it selected), the promotion you take over (<c>previewWorld</c>), the options (save and
     /// booker names, seed, season length and every new-game setting including Show night Live/Auto),
     /// then Start: <c>newGame</c>, the first save (<see cref="GameSession.BeginNewAsync"/>) and the
     /// Game scene (<see cref="EngineGame.Enter"/>).
@@ -46,6 +48,15 @@ namespace RingsideBooker.Screens
         private int step;
         private bool busy;
 
+        // The "Import a workshop world" sub-screen (UNITY-12).
+        private bool importing;
+        private List<WorkshopMod> mods;
+        private WorkshopMod pickedMod;
+        private WorldModImportResult importResult;
+        private WorkshopMod importedMod;
+        private volatile string importStage;
+        private bool importRunning;
+
         private NewGameWizard()
         {
             root = Ui.El("rb-wizard").Named("new-game-wizard");
@@ -69,6 +80,23 @@ namespace RingsideBooker.Screens
 
         /// <summary>The live wizard for the screenshot tour: picks the defaults and starts a game.</summary>
         public static NewGameWizard Last { get; private set; }
+
+        /// <summary>The wizard on screen now (attached to a panel), or null.</summary>
+        public static NewGameWizard Active => Last != null && Last.root.panel != null ? Last : null;
+
+        /// <summary>True while the import sub-screen is open.</summary>
+        public bool InImport => importing;
+
+        /// <summary>
+        /// Escape / Back: leaves the import sub-screen for the world list (not while an import
+        /// runs). Returns true when it handled the key.
+        /// </summary>
+        public bool HandleBack()
+        {
+            if (!importing || importRunning) return false;
+            CloseImport(selectImported: false);
+            return true;
+        }
 
         private async void Start()
         {
@@ -125,6 +153,11 @@ namespace RingsideBooker.Screens
             body.Clear();
             nav.Clear();
             feedback.SetShown(false);
+            if (importing)
+            {
+                DrawImport();
+                return;
+            }
             switch (step)
             {
                 case 0: DrawWorlds(); break;
@@ -135,23 +168,20 @@ namespace RingsideBooker.Screens
 
         private void DrawWorlds()
         {
+            var list = new ScrollView(ScrollViewMode.Vertical) { name = "world-list" };
+            list.AddToClassList("rb-world-list");
             foreach (IGrouping<string, (string group, WorldChoice world)> group in worlds.GroupBy(entry => entry.group))
             {
-                body.Add(Ui.Text(TextFormat.Upper(group.Key), "field-label", "rb-gap-top"));
-                foreach ((string _, WorldChoice choice) in group) body.Add(WorldOption(choice));
+                list.Add(Ui.Text(TextFormat.Upper(group.Key), "field-label", "rb-gap-top"));
+                foreach ((string _, WorldChoice choice) in group) list.Add(WorldOption(choice));
             }
-            if (!worlds.Any(entry => entry.group == "Workshop mods"))
-            {
-                body.Add(Ui.Text(TextFormat.Upper("Workshop mods"), "field-label", "rb-gap-top"));
-                body.Add(Kit.Note("No workshop world mods are installed. Subscribed world mods are listed here."));
-            }
-            else
-            {
-                body.Add(Ui.Text(TextFormat.Upper("Workshop mod import"), "field-label", "rb-gap-top"));
-                body.Add(Kit.Chips(new[] { (false, "With pictures"), (true, "Roster only (no pictures)") }, WorkshopWorlds.RosterOnly,
-                    picked => WorkshopWorlds.RosterOnly = picked, "wizard-roster-only"));
-                body.Add(Kit.Note("Picking a workshop world mod imports it when you press Next; a big world takes a few seconds."));
-            }
+            body.Add(list);
+            Button import = Ui.Btn("Import a workshop world…", OpenImport, "btn--ghost");
+            import.name = "wizard-import-workshop";
+            import.AddToClassList("rb-gap-top");
+            import.style.alignSelf = Align.FlexStart;
+            body.Add(import);
+            body.Add(Kit.Note("Turns an installed workshop world mod into a world you can start here."));
             Button next = Ui.Btn("NEXT", async () =>
             {
                 if (world == null) return;
@@ -160,6 +190,241 @@ namespace RingsideBooker.Screens
             next.name = "wizard-next";
             next.SetEnabled(world != null);
             nav.Add(next);
+        }
+
+        // ---- Import a workshop world (sub-screen) ---------------------------------------------------
+
+        private void OpenImport()
+        {
+            if (busy) return;
+            importing = true;
+            importResult = null;
+            importedMod = null;
+            Draw();
+            if (mods == null) _ = Scan();
+        }
+
+        private async Task Scan()
+        {
+            mods = await WorkshopWorlds.ScanAsync();
+            pickedMod ??= mods.FirstOrDefault(mod => mod.IsWorld);
+            if (importing && !importRunning) Draw();
+        }
+
+        private void CloseImport(bool selectImported)
+        {
+            importing = false;
+            if (selectImported && importedMod != null) _ = ReturnWithImported(importedMod.PackId);
+            else Draw();
+        }
+
+        /// <summary>Back on the world list with the imported world listed and selected.</summary>
+        private async Task ReturnWithImported(string packId)
+        {
+            body.Clear();
+            nav.Clear();
+            body.Add(Kit.Note("Loading the worlds…"));
+            try
+            {
+                worlds = await ListWorlds(client);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[NewGame] listing worlds failed ({exception.GetType().Name})");
+            }
+            world = worlds.Select(entry => entry.world).FirstOrDefault(choice => choice.Id == packId) ?? world;
+            step = 0;
+            Draw();
+        }
+
+        private void DrawImport()
+        {
+            steps.Clear();
+            steps.Add(Ui.Text("New game", "rb-wizard__step"));
+            steps.Add(Ui.Text("› Import a workshop world", "rb-wizard__step", "rb-wizard__step--current"));
+
+            if (importResult != null && !importRunning)
+            {
+                DrawImportReport();
+                return;
+            }
+            if (mods == null)
+            {
+                body.Add(Kit.Note("Looking for installed workshop world mods…"));
+                nav.Add(BackButton());
+                return;
+            }
+            if (mods.Count == 0)
+            {
+                body.Add(Kit.Note("No workshop world mods are installed. Subscribe to world mods in the Steam workshop; they show up here."));
+                nav.Add(BackButton());
+                return;
+            }
+
+            body.Add(Kit.Note($"{mods.Count} installed workshop {(mods.Count == 1 ? "mod" : "mods")}. Pick a world to import; a big world takes a few seconds."));
+            var list = new ScrollView(ScrollViewMode.Vertical) { name = "workshop-mod-list" };
+            list.AddToClassList("rb-mod-list");
+            foreach (WorkshopMod mod in mods) list.Add(ModOption(mod));
+            body.Add(list);
+
+            body.Add(Ui.Text(TextFormat.Upper("Pictures"), "field-label", "rb-gap-top"));
+            body.Add(Kit.Chips(new[] { (false, "With pictures"), (true, "Roster only (no pictures)") }, WorkshopWorlds.RosterOnly,
+                picked => WorkshopWorlds.RosterOnly = picked, "import-roster-only"));
+
+            if (importRunning)
+            {
+                Label progress = Ui.Text(ImportProgressText(0), "rb-import-progress").Named("import-progress");
+                body.Add(progress);
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                progress.schedule.Execute(() => progress.text = ImportProgressText(clock.Elapsed.TotalSeconds)).Every(250);
+            }
+
+            Button back = BackButton();
+            back.SetEnabled(!importRunning);
+            nav.Add(back);
+            Button import = Ui.Btn(importRunning ? "IMPORTING…" : "IMPORT", async () => await RunImport(), "btn--primary");
+            import.name = "import-start";
+            import.SetEnabled(!importRunning && pickedMod != null && pickedMod.IsWorld);
+            nav.Add(import);
+        }
+
+        private string ImportProgressText(double seconds)
+        {
+            string stage = importStage == WorldModImporter.StageConverting
+                ? "Converting and checking the world"
+                : "Reading the mod's database";
+            return $"{stage}… {seconds:0} s";
+        }
+
+        private Button BackButton()
+        {
+            Button back = Ui.Btn("BACK", () => CloseImport(selectImported: false), "btn--ghost");
+            back.name = "import-back";
+            return back;
+        }
+
+        private VisualElement ModOption(WorkshopMod mod)
+        {
+            Button option = Ui.Button(string.Empty, () =>
+            {
+                if (importRunning) return;
+                pickedMod = mod;
+                Draw();
+            }, "choice-chip", "rb-option");
+            option.name = $"mod-{mod.ItemId}";
+            option.Add(Ui.Text(mod.WorldName ?? $"Workshop item {mod.ItemId}", "choice-chip__label"));
+            option.Add(Ui.Text(ModDetail(mod), "choice-chip__detail"));
+            option.EnableInClassList("choice-chip--selected", mod == pickedMod);
+            option.SetEnabled(mod.IsWorld);
+            return option;
+        }
+
+        private static string ModDetail(WorkshopMod mod)
+        {
+            if (!mod.IsWorld) return "Not a world: no people or promotions to import (an add-on mod)";
+            var parts = new List<string>();
+            if (mod.StartDate != null) parts.Add($"starts {mod.StartDate}");
+            if (mod.PeopleCount > 0) parts.Add($"{mod.PeopleCount:N0} people");
+            if (mod.PromotionCount > 0) parts.Add($"{mod.PromotionCount:N0} promotions");
+            if (mod.SizeBytes > 0) parts.Add($"{mod.SizeBytes / (1024.0 * 1024.0):0.#} MB");
+            if (WorkshopWorlds.IsImported(mod, WorkshopWorlds.RosterOnly)) parts.Add("imported");
+            parts.Add($"item {mod.ItemId}");
+            return string.Join(" · ", parts);
+        }
+
+        /// <summary>Opens the import sub-screen and waits for the mod list (the import check drives it).</summary>
+        public async Task<IReadOnlyList<WorkshopMod>> OpenImportAndScan()
+        {
+            while (client == null) await Task.Yield();
+            OpenImport();
+            while (mods == null) await Task.Yield();
+            return mods;
+        }
+
+        /// <summary>Selects the installed mod with this workshop item id on the import sub-screen.</summary>
+        public bool PickMod(string itemId)
+        {
+            WorkshopMod mod = mods?.FirstOrDefault(candidate => candidate.ItemId == itemId);
+            if (mod == null) return false;
+            pickedMod = mod;
+            Draw();
+            return true;
+        }
+
+        /// <summary>The world selected on the World step (its pack id), or null.</summary>
+        public string SelectedWorldId => world?.Id;
+
+        /// <summary>Imports the picked mod (the import screen's IMPORT button; the tours call it too).</summary>
+        /// <param name="evenIfNotAWorld">Import an add-on mod anyway (the import check uses it to show a failure).</param>
+        public async Task<WorldModImportResult> RunImport(bool evenIfNotAWorld = false)
+        {
+            if (importRunning || client == null || pickedMod == null || (!pickedMod.IsWorld && !evenIfNotAWorld)) return null;
+            WorkshopMod mod = pickedMod;
+            importRunning = true;
+            importStage = WorldModImporter.StageReading;
+            importResult = null;
+            Draw();
+            try
+            {
+                importResult = await WorkshopWorlds.ImportAsync(client, mod, WorkshopWorlds.RosterOnly, stage => importStage = stage);
+                importedMod = importResult.Ok ? mod : null;
+            }
+            finally
+            {
+                importRunning = false;
+                if (importing) Draw();
+            }
+            return importResult;
+        }
+
+        private void DrawImportReport()
+        {
+            WorkshopMod mod = pickedMod;
+            body.Add(Ui.Text(mod?.WorldName ?? "Workshop world", "t-ui-semibold"));
+            if (importResult.Ok)
+            {
+                body.Add(Kit.Note(WorkshopWorlds.Summary(importResult)).Named("import-report"));
+                JArray warnings = importResult.Response?["report"]?["warnings"] as JArray;
+                if (warnings != null && warnings.Count > 0)
+                {
+                    body.Add(Ui.Text(TextFormat.Upper("What was skipped or adjusted"), "field-label", "rb-gap-top"));
+                    var list = new ScrollView(ScrollViewMode.Vertical) { name = "import-warnings" };
+                    list.AddToClassList("rb-import-warnings");
+                    foreach (JToken warning in warnings.OrderByDescending(entry => (int?)entry["count"] ?? 0))
+                    {
+                        list.Add(Ui.Text($"{Kit.Num(warning, "count"):N0} × {Kit.Str(warning, "message")}", "t-sm", "t-wrap"));
+                    }
+                    body.Add(list);
+                }
+            }
+            else
+            {
+                body.Add(Kit.Error("Import failed. " + WorkshopWorlds.FailureText(importResult)).Named("import-failure"));
+                body.Add(Kit.Note("Use Copy details to share what went wrong (it lists the problems the game found, no mod pictures or files)."));
+            }
+
+            Button back = Ui.Btn("BACK", () =>
+            {
+                importResult = null;
+                Draw();
+            }, "btn--ghost");
+            back.name = "import-back";
+            nav.Add(back);
+            Button copy = Ui.Btn("Copy details", () =>
+            {
+                GUIUtility.systemCopyBuffer = WorkshopWorlds.Details(mod, importResult);
+                feedback.text = "Details copied.";
+                feedback.SetShown(true);
+            }, "btn--ghost");
+            copy.name = "import-copy-details";
+            nav.Add(copy);
+            if (importResult.Ok)
+            {
+                Button use = Ui.Btn("USE THIS WORLD", () => CloseImport(selectImported: true), "btn--primary");
+                use.name = "import-use";
+                nav.Add(use);
+                use.schedule.Execute(() => use.Focus());
+            }
         }
 
         private VisualElement WorldOption(WorldChoice choice)
@@ -186,7 +451,6 @@ namespace RingsideBooker.Screens
             feedback.SetShown(true);
             try
             {
-                world.Notice = null;
                 WorldPreviewResult answer = await world.RunPreview(client);
                 if (!answer.Ok || answer.Value == null)
                 {
@@ -349,19 +613,44 @@ namespace RingsideBooker.Screens
             }
         }
 
-        /// <summary>Goes straight to the last step with the defaults (the screenshot tour).</summary>
-        public async Task UseDefaults(bool workshop = false)
+        /// <summary>
+        /// Goes straight to the last step with the defaults (the screenshot tour and the skip
+        /// check). With <paramref name="workshop"/>, it first imports an installed workshop world
+        /// through the import sub-screen (<paramref name="itemId"/>, or the first world mod) and uses
+        /// it. Returns false when that import failed (the default world is used then).
+        /// </summary>
+        public async Task<bool> UseDefaults(bool workshop = false, string itemId = null)
         {
             while (client == null || world == null) await Task.Yield();
+            bool ok = true;
             if (workshop)
             {
-                WorldChoice mod = worlds.Where(entry => entry.group == "Workshop mods").Select(entry => entry.world).FirstOrDefault();
-                if (mod == null) Debug.LogWarning("[NewGame] no workshop world mod installed; using the default world");
-                else world = mod;
+                OpenImport();
+                while (mods == null) await Task.Yield();
+                WorkshopMod mod = itemId == null
+                    ? mods.FirstOrDefault(candidate => candidate.IsWorld)
+                    : mods.FirstOrDefault(candidate => candidate.ItemId == itemId);
+                if (mod == null)
+                {
+                    Debug.LogWarning("[NewGame] no such workshop world mod installed; using the default world");
+                    ok = false;
+                    CloseImport(selectImported: false);
+                }
+                else
+                {
+                    pickedMod = mod;
+                    WorldModImportResult result = await RunImport();
+                    ok = result != null && result.Ok;
+                    importing = false;
+                    if (ok) await ReturnWithImported(mod.PackId);
+                    else Draw();
+                    ok = ok && world?.Id == mod.PackId;
+                }
             }
             await LoadPreview();
             step = 2;
             Draw();
+            return ok;
         }
 
         private static string NewSeed() =>

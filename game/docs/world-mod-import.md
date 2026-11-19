@@ -88,6 +88,18 @@ once as `unknown-<field>`.
 | `networks`, `networkAvailability` | network           | type → tv/ppv/streaming; size → reach tier; coverage by continent, country and region                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `networkDeals`                    | deal              | live deals only; income per show/viewer, cost per show; airday → weekday                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 
+**Rows the engine's checks refuse (UNITY-12).** Installed mods carry data the engine's
+cross-record rules do not allow. The converter fixes the shapes seen so far, each reported as a
+warning: a second contract between the same person and promotion is left out
+(`duplicate-contract`); an exclusive contract held next to other contracts becomes non-exclusive
+(`exclusive-alongside-other-contracts`); an active tag team with a member who has died is imported
+inactive (`team-member-deceased`). Anything else the pack loader refuses is handled by the import
+check (`packages/engine-host/src/worldMod/check.ts`): every error that names a record of the mod's
+pack drops that record (warning `check-<rule>`, e.g. `check-teams.deceasedMember`, with
+`kind:key` examples) and the pack is loaded again (up to 8 rounds, so records that pointed at a
+dropped one fall out too). Only a problem not tied to a mod record (manifest, pack resolution, no
+start date) fails the import; the failure carries `ruleCounts` (rule → count).
+
 **Not imported** (listed once in the report): stables, relationships, chemistry, alter egos,
 gimmicks, match gimmicks, angle templates, random events, future pictures and owners, promotion
 relationships, worker descriptions and other fields with no engine home, and any saved-game state
@@ -106,11 +118,31 @@ npx vitest run --config packages/engine-host/vitest.config.ts packages/engine-ho
 Editor menu: **Ringside Booker → Import Workshop World Mod…** (folder picker) and **List Installed
 Workshop World Mods**. Logs from the smoke path carry counts and timings only.
 
+## In the game (UNITY-12)
+
+New game lists the bundled world and the workshop worlds imported this session (the engine keeps an
+imported pack until the game quits), plus **Import a workshop world…**: a sub-screen with the
+installed mods in a scrollable list (world name, start date, people and promotion counts, database
+size; add-on mods with no people or promotions are shown greyed out as "not a world"), the
+**Roster only (no pictures)** toggle, **Import** with progress (reading, then converting and
+checking), and the report (what was skipped or adjusted, by count). **Use this world** goes back to
+New game with it selected; **Back** and Esc return to the world list. A failed import shows a
+readable reason and **Copy details** (outcome, reason codes, the engine's first problems, warning
+codes, counts, timings) for the player's clipboard. Player.log gets one line per import:
+`[WorkshopWorlds] import ok|failed (item <id>): <reason codes or warning codes>; counts…` — item
+ids, codes and counts only, never names.
+
+Dev flags on the player: `-rbImportCheck [all|<id>,<id>…] [-rbImportCheckShots <folder>]` imports
+every installed world mod (logs `[ImportCheck]` per item, exit 0 when all import; with shots the
+first goes through the real sub-screen and an add-on mod is forced through to capture the failure
+screen); `-rbSkipCheck 30 -rbSkipCheckWorkshop <item id>` imports that mod and plays it. Screenshots
+and the skip check's log show mod names: keep them local.
+
 ## Known gaps
 
 - Simulation is slower in a big imported world: the test mod (3,576 people) plays about 60 days in
   30 s in Node, against a year in about 20 s for the shipped world. Engine performance work, not
   import work.
 - Stables have no engine record kind yet; relationships and chemistry are not imported.
-- The UI (mod list, report screen, roster-only toggle, remembering the mod folder per save) is for
-  the UI tickets; this ticket ships the importer and the smoke path.
+- Imported worlds last for the session; after a restart the world is imported again (saves of it
+  load without the mod).

@@ -35,6 +35,10 @@ namespace RingsideBooker.Screens.Dev
 
         public const string ShotsArgument = "-rbSkipCheckShots";
 
+        /// <summary><c>-rbSkipCheckWorkshop &lt;item id&gt;</c>: import that workshop world mod first and play it (UNITY-12).</summary>
+        public const string WorkshopArgument = "-rbSkipCheckWorkshop";
+        private static string workshopItem;
+
         private int days = 90;
         private static string shots;
         private static int shotCount;
@@ -53,6 +57,8 @@ namespace RingsideBooker.Screens.Dev
                 if (i + 1 < args.Length && int.TryParse(args[i + 1], out int asked) && asked > 0) check.days = asked;
                 int shotsAt = Array.FindIndex(args, arg => string.Equals(arg, ShotsArgument, StringComparison.OrdinalIgnoreCase));
                 if (shotsAt >= 0 && shotsAt + 1 < args.Length) shots = args[shotsAt + 1];
+                int workshopAt = Array.FindIndex(args, arg => string.Equals(arg, WorkshopArgument, StringComparison.OrdinalIgnoreCase));
+                if (workshopAt >= 0 && workshopAt + 1 < args.Length) workshopItem = args[workshopAt + 1];
                 return;
             }
         }
@@ -77,7 +83,15 @@ namespace RingsideBooker.Screens.Dev
             while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != SceneFlow.TitleScene) await Task.Yield();
             while (NewGameWizard.Last == null) await Task.Yield();
             await Task.Delay(1000);
-            await NewGameWizard.Last.UseDefaults(false);
+            if (workshopItem != null)
+            {
+                if (!await NewGameWizard.Last.UseDefaults(true, workshopItem)) return Fail($"workshop item {workshopItem} did not import");
+                Debug.Log($"[SkipCheck] playing imported workshop item {workshopItem}");
+            }
+            else
+            {
+                await NewGameWizard.Last.UseDefaults(false);
+            }
             await NewGameWizard.Last.StartGame();
             while (EngineGame.Current == null || ShellController.Current == null) await Task.Yield();
             await Settle();
