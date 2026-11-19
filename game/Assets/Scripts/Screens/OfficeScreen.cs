@@ -336,7 +336,7 @@ namespace RingsideBooker.Screens
             var card = new ShowCardData
             {
                 Name = Kit.Str(show, "name"),
-                Logo = Kit.Str(show, "promotion.shortName") ?? "?",
+                Logo = SidebarView.Monogram(Kit.Str(show, "promotion.shortName") ?? Kit.Str(show, "promotion.name") ?? "?"),
                 LogoColor = Kit.Str(show, "promotion.color") ?? "#2b6cb0",
                 When = Kit.Date(Kit.Str(show, "date"), true),
                 Venue = venue == null ? Kit.Str(show, "region.name") : $"{venue}, {Kit.Str(show, "region.name")}",
@@ -412,7 +412,7 @@ namespace RingsideBooker.Screens
             JToken names = Kit.Obj(data.News, "names");
             List<JToken> stories = Kit.Arr(data.News, "hero").Concat(Kit.Arr(data.News, "ticker"))
                 .GroupBy(story => Kit.Str(story, "id")).Select(group => group.First())
-                .Where(story => OfficeLogic.StoryLine(story, names) != null).Take(3).ToList();
+                .OrderBy(story => OfficeLogic.StoryLine(story, names) == null ? 1 : 0).Take(3).ToList();
             if (stories.Count == 0)
             {
                 panel.Add(Ds.Text("Quiet so far. Stories land here as the world moves.", "oh-quiet"));
@@ -424,7 +424,7 @@ namespace RingsideBooker.Screens
                 var item = new NewsItem
                 {
                     Kicker = mine ? "Your promotion" : Kit.Str(story, "kindLabel") ?? "News",
-                    Headline = $"{Kit.Str(story, "kindLabel") ?? "News"}: {OfficeLogic.StoryLine(story, names)}",
+                    Headline = OfficeLogic.StoryLine(story, names) is string line ? $"{Kit.Str(story, "kindLabel") ?? "News"}: {line}" : OfficeLogic.HeadlineFromKey(story),
                     When = Kit.Date(Kit.Str(story, "date")),
                     Icon = mine ? "trend-up" : Kit.Bool(story, "frontPage") ? "newspaper" : "building",
                     State = mine ? DsState.Live : Kit.Bool(story, "frontPage") ? DsState.Info : DsState.Neutral,
@@ -550,7 +550,7 @@ namespace RingsideBooker.Screens
                 new DsColumn<Standing>("name", "Promotion", row =>
                 {
                     VisualElement cell = Ds.Row("oh-promo-cell");
-                    cell.Add(DsCards.Logo(Kit.Str(row.Row, "shortName") ?? "?", Kit.Str(row.Row, "color") ?? "#334155", "ds-logo--sm", ScreenDs.Picture(Kit.Str(row.Row, "logoRef"))));
+                    cell.Add(DsCards.Logo(SidebarView.Monogram(Kit.Str(row.Row, "shortName") ?? Kit.Str(row.Row, "name") ?? "?"), Kit.Str(row.Row, "color") ?? "#334155", "ds-logo--sm", ScreenDs.Picture(Kit.Str(row.Row, "logoRef"))));
                     bool mine = Kit.Str(row.Row, "promotionId") == data.PromotionId;
                     cell.Add(Ds.Text(Kit.Str(row.Row, "name"), "ds-cell__text", mine ? "ds-cell__text--strong" : "ds-cell__text--plain"));
                     if (mine) cell.Add(Ds.Tag("You", "live"));

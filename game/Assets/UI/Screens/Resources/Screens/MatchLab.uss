@@ -515,3 +515,7 @@
     -unity-text-align: middle-left;
     color: var(--ds-text-3);
 }
+
+.lab-gap-bottom {
+    margin-bottom: 10px;
+}

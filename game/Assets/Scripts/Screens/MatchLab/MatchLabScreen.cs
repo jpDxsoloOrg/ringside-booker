@@ -73,6 +73,7 @@ namespace RingsideBooker.Screens.MatchLab
         private JToken catalog;
         private string today;
         private readonly Dictionary<string, List<JToken>> finishes = new Dictionary<string, List<JToken>>();
+        private readonly Dictionary<string, JToken> rosterRows = new Dictionary<string, JToken>();
 
         public LabView(VisualElement host, ScreenContext context, LabState state)
         {
@@ -101,6 +102,15 @@ namespace RingsideBooker.Screens.MatchLab
             options = optionsAnswer.Data;
             catalog = catalogAnswer.Data;
             today = clock.Ok ? Kit.Str(clock.Data, "date") : null;
+            string promotionId = Kit.Str(optionsAnswer.Data, "promotion.id");
+            if (promotionId != null)
+            {
+                QueryResult<JToken> roster = await client.Query("roster.rows", new JObject { ["promotionId"] = promotionId });
+                foreach (JToken row in roster.Ok ? Kit.Arr(roster.Data, "rows") : Enumerable.Empty<JToken>())
+                {
+                    if (Kit.Str(row, "personId") is string id) rosterRows[id] = row;
+                }
+            }
             if (!Kit.Bool(options, "available") || !Kit.Bool(catalog, "available"))
             {
                 host.Add(Ds.Empty("lab", "No match types in this save", "This save was started before match types existed. Start a new game to use the Match lab."));
@@ -175,14 +185,14 @@ namespace RingsideBooker.Screens.MatchLab
             {
                 build.Add(BeatsPanel());
                 results.Add(RunBar());
-                LabResults.Angle(results, state, this, today);
+                LabResults.Angle(results, build, state, this, today);
             }
             else
             {
                 build.Add(SidesPanel());
                 build.Add(PlanPanel());
                 results.Add(RunBar());
-                LabResults.Match(results, state, this, today, MatchType(state.TypeKey));
+                LabResults.Match(results, build, state, this, today, MatchType(state.TypeKey));
             }
         }
 
@@ -356,7 +366,8 @@ namespace RingsideBooker.Screens.MatchLab
                 {
                     string id = personId;
                     VisualElement row = Ds.Row("lab-person");
-                    row.Add(DsCards.PortraitBox(null, Alignment.Tweener, "ds-portrait--xs"));
+                    (Alignment alignment, Texture2D picture) face = Face(id);
+                    row.Add(DsCards.PortraitBox(face.picture, face.alignment, "ds-portrait--xs"));
                     VisualElement words = Ds.Column("lab-person__words");
                     words.Add(Ds.Text(state.NameOf(id), "lab-person__name"));
                     if (state.People.TryGetValue(id, out LabPerson person) && person.PromotionShortName != null)
@@ -630,6 +641,13 @@ namespace RingsideBooker.Screens.MatchLab
         {
             await task;
             if (host.panel != null) Render();
+        }
+
+        /// <summary>A person's side colour and workshop picture, for people on your roster (others are neutral).</summary>
+        public (Alignment alignment, Texture2D picture) Face(string personId)
+        {
+            if (personId == null || !rosterRows.TryGetValue(personId, out JToken row)) return (Alignment.Tweener, null);
+            return (ScreenDs.AlignmentOf(Kit.Str(row, "alignment")), ScreenDs.Picture(Kit.Str(row, "imageRef")));
         }
 
         /// <summary>Opens a worker's screen from a result line, when the game has one.</summary>

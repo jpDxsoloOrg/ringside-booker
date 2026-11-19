@@ -119,7 +119,7 @@ namespace RingsideBooker.Screens.Office
                     State = DsState.Live,
                     Icon = "live",
                     Title = $"{Kit.Str(show, "name")} is tonight",
-                    Detail = full ? "The card is set. Time to go live." : $"{slots - booked} of {slots} slots still open",
+                    Detail = full ? "The card is set. Time to go live." : booked == 0 ? $"Nothing booked yet: {slots} slots to fill" : $"{slots - booked} of {slots} slots still open",
                     Action = full ? "Go to the show" : "Book it",
                     Primary = true,
                     Route = full ? ShellRoute.With(ScreenIds.ShowNight, "event", id) : ShellRoute.With("booking", "event", id),
@@ -233,6 +233,21 @@ namespace RingsideBooker.Screens.Office
                 case GateHints.CounterWaitingGateId: return items.Any(item => item.Id == "offers");
                 default: return false;
             }
+        }
+
+        /// <summary>
+        /// A headline from the story's message key when it names nobody ("news.season-start.headline"
+        /// → "Season start", with a number when it has one: "Season 1 starts" is the web's wording).
+        /// </summary>
+        public static string HeadlineFromKey(JToken story)
+        {
+            string key = Kit.Str(story, "headline.key") ?? string.Empty;
+            string[] parts = key.Split('.');
+            string topic = parts.Length >= 2 ? parts[parts.Length - 2].Replace('-', ' ') : Kit.Str(story, "kindLabel") ?? "News";
+            string number = Kit.Obj(story, "headline.params")?.Children<JProperty>().Select(p => p.Value)
+                .FirstOrDefault(value => value.Type == JTokenType.Integer)?.ToString();
+            string text = Kit.Capital(topic);
+            return number == null ? text : $"{text}: {number}";
         }
 
         /// <summary>The story in a line from the names it involves (the web's message catalogue is not in Unity).</summary>

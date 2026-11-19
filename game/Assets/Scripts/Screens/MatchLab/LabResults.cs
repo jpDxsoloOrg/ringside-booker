@@ -27,10 +27,11 @@ namespace RingsideBooker.Screens.MatchLab
 
         // ---- Match --------------------------------------------------------------------------------
 
-        public static void Match(VisualElement column, LabState state, LabView view, string today, JToken matchType)
+        public static void Match(VisualElement column, VisualElement details, LabState state, LabView view, string today, JToken matchType)
         {
             LabRun run = state.LastRun;
-            VisualElement panel = Ds.Panel("Result", null, null, "lab-panel", "lab-result").Named("lab-result");
+            if (run?.Batch != null) column.Add(Odds(run.Batch));
+            VisualElement panel = Ds.Panel(run?.Batch != null ? "The last night in full" : "Result", null, null, "lab-panel", "lab-result").Named("lab-result");
             column.Add(panel);
             if (run == null)
             {
@@ -44,7 +45,7 @@ namespace RingsideBooker.Screens.MatchLab
             if (state.IsOutOfDate(run)) flags.Add(Ds.Pill(DsState.Warn, "Changed since this run: run again", "reset"));
             if (run.Date != null && today != null && run.Date != today) flags.Add(Ds.Pill(DsState.Neutral, $"Rated on {Kit.Date(run.Date)}", "calendar"));
             if (flags.childCount > 0) panel.Add(flags);
-            if (run.Batch != null) panel.Add(Ds.Text($"The last of {LabText.RunsText(run.Runs)}, in full. The odds for all of them are below.", "lab-quiet"));
+            if (run.Batch != null) panel.Add(Ds.Text($"The last of {LabText.RunsText(run.Runs)}, played out in full.", "lab-quiet", "lab-gap-bottom"));
 
             List<List<string>> sides = (run.Args?["sides"] as JArray)?.Select(side => side.Select(id => (string)id).ToList()).ToList() ?? new List<List<string>>();
             int? winner = Kit.Num(simulation, "winningSide") is double winningSide ? (int)winningSide : (int?)null;
@@ -53,14 +54,19 @@ namespace RingsideBooker.Screens.MatchLab
                 : string.Join(" · ", new[] { Kit.Str(simulation, "finish.name"), Kit.Str(simulation, "method.name") }.Where(text => text != null));
 
             string SideNames(int side) => side < sides.Count ? ScreenDs.JoinNames(sides[side].Select(state.NameOf)) : LabText.SideLabel(side);
+            MatchupSide Side(int side)
+            {
+                (Alignment alignment, UnityEngine.Texture2D picture) face = view.Face(sides.ElementAtOrDefault(side)?.FirstOrDefault());
+                return new MatchupSide(SideNames(side), face.alignment, null, null, face.picture);
+            }
             if (sides.Count == 2)
             {
                 var matchup = new Matchup
                 {
                     Slot = LabText.SlotWord(Kit.Str(preview, "slot.role")),
                     MatchType = Kit.Str(matchType, "name") ?? "Match",
-                    A = new MatchupSide(SideNames(0), Alignment.Face),
-                    B = new MatchupSide(SideNames(1), Alignment.Heel),
+                    A = Side(0),
+                    B = Side(1),
                     Length = LabText.TimeWord(Kit.Str(preview, "slot.durationClass")),
                     Stars = (float?)Kit.Num(preview, "stars.value"),
                     Winner = outcome == "win" ? winner : null,
@@ -105,12 +111,11 @@ namespace RingsideBooker.Screens.MatchLab
             panel.Add(Ds.Text($"{LabText.ExpectationGap(score, expected)} · {Kit.Str(preview, "policy.label") ?? "Full rules"}", "lab-quiet"));
             Warnings(panel, preview);
 
-            if (run.Batch != null) column.Add(Odds(run.Batch));
-            column.Add(WorkerLines(preview));
+            details.Add(WorkerLines(preview));
             JToken physical = Kit.Obj(simulation, "extensions.physical");
-            if (physical != null && physical.Type == JTokenType.Object) column.Add(Physical(physical, run.Batch, state, view));
+            if (physical != null && physical.Type == JTokenType.Object) details.Add(Physical(physical, run.Batch, state, view));
             JToken aftermath = Kit.Obj(simulation, "aftermath");
-            if (aftermath != null && aftermath.Type == JTokenType.Object) column.Add(Aftermath(aftermath, view));
+            if (aftermath != null && aftermath.Type == JTokenType.Object) details.Add(Aftermath(aftermath, view));
         }
 
         private static VisualElement ScoreRow(JToken rated, string scoreLabel)
@@ -357,7 +362,7 @@ namespace RingsideBooker.Screens.MatchLab
 
         // ---- Angle --------------------------------------------------------------------------------
 
-        public static void Angle(VisualElement column, LabState state, LabView view, string today)
+        public static void Angle(VisualElement column, VisualElement details, LabState state, LabView view, string today)
         {
             LabAngleRun run = state.LastAngle;
             VisualElement panel = Ds.Panel("Result", null, null, "lab-panel", "lab-result").Named("lab-result");
@@ -413,7 +418,7 @@ namespace RingsideBooker.Screens.MatchLab
             }
             column.Add(beats);
             JToken aftermath = Kit.Obj(result, "aftermath");
-            if (aftermath != null && aftermath.Type == JTokenType.Object) column.Add(Aftermath(aftermath, view));
+            if (aftermath != null && aftermath.Type == JTokenType.Object) details.Add(Aftermath(aftermath, view));
         }
     }
 }

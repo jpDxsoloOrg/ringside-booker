@@ -204,6 +204,13 @@ namespace RingsideBooker.Tests.Screens
         }
 
         [Test]
+        public void StoriesWithoutNamesReadFromTheirKey()
+        {
+            JToken story = JObject.Parse(@"{ ""headline"": { ""key"": ""news.season-start.headline"", ""params"": { ""seasonNumber"": 1 } } }");
+            Assert.AreEqual("Season start: 1", OfficeLogic.HeadlineFromKey(story));
+        }
+
+        [Test]
         public void NothingNeededWhenTheDayIsClear()
         {
             Assert.IsEmpty(OfficeLogic.NeedsToday(new List<GateHit>(), JObject.Parse(@"{ ""daysUntil"": 3, ""show"": { ""name"": ""X"" } }"), null, new JArray(), null, new JArray()));
