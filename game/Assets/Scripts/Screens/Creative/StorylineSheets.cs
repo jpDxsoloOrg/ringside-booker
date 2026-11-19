@@ -79,9 +79,8 @@ namespace RingsideBooker.Screens.Creative
                 body.Add(picker);
             }
             VisualElement general = CreativeUi.Problem("storyline-form-problem");
+            body.Insert(0, general);
 
-            VisualElement footer = Ds.Column("cr-footer-stack");
-            footer.Add(general);
             VisualElement buttons = Ds.Row("cr-footer");
             OverlayHandle handle = null;
             buttons.Add(Ds.Button("Cancel", () => handle?.Close(), DsButtonKind.Ghost));
@@ -100,9 +99,8 @@ namespace RingsideBooker.Screens.Creative
             }, DsButtonKind.Primary, create ? "add" : "check");
             save.name = "storyline-form-save";
             buttons.Add(save);
-            footer.Add(buttons);
 
-            handle = CreativeUi.Sheet(anchor, create ? "New storyline" : "Edit storyline", body, footer, "Storylines", create ? 640f : 520f, "storyline-form-sheet");
+            handle = CreativeUi.Sheet(anchor, create ? "New storyline" : "Edit storyline", body, buttons, "Storylines", create ? 640f : 520f, "storyline-form-sheet");
             Current = handle;
             Picker = picker;
 
@@ -188,8 +186,7 @@ namespace RingsideBooker.Screens.Creative
             VisualElement body = Ds.Column("cr-form").Named("storyline-add");
             body.Add(picker);
             VisualElement problem = CreativeUi.Problem("storyline-add-problem");
-            VisualElement footer = Ds.Column("cr-footer-stack");
-            footer.Add(problem);
+            body.Insert(0, problem);
             VisualElement buttons = Ds.Row("cr-footer");
             OverlayHandle handle = null;
             buttons.Add(Ds.Button("Cancel", () => handle?.Close(), DsButtonKind.Ghost));
@@ -213,8 +210,7 @@ namespace RingsideBooker.Screens.Creative
             }, DsButtonKind.Primary, "user-plus");
             add.name = "storyline-add-save";
             buttons.Add(add);
-            footer.Add(buttons);
-            handle = CreativeUi.Sheet(anchor, "Add people", body, footer, Kit.Str(story, "name"), 600f, "storyline-add-sheet");
+            handle = CreativeUi.Sheet(anchor, "Add people", body, buttons, Kit.Str(story, "name"), 600f, "storyline-add-sheet");
             Current = handle;
             Picker = picker;
         }

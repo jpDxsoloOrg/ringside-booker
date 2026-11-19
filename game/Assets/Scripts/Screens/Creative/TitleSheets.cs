@@ -456,6 +456,7 @@ namespace RingsideBooker.Screens.Creative
             row.name = name;
             row.AddToClassList("cr-pick");
             row.EnableInClassList("cr-pick--on", on);
+            row.EnableInClassList("ds-check--on", on);
             VisualElement box = Ds.El("ds-check__box", radio ? "cr-pick__radio" : "cr-pick__box");
             if (on) box.Add(new Icon("check", "ds-icon--xs", "ds-check__tick"));
             row.Add(box);
