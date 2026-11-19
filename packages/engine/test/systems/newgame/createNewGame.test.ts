@@ -667,6 +667,7 @@ describe('createNewGame: summary', () => {
       rerollPotential: false,
       randomWinners: false,
       showNight: 'live',
+      bigWorldSpeed: 'full',
     });
     expect(weekday(summary.startDate)).toBe(weekday(PACK_START));
   });

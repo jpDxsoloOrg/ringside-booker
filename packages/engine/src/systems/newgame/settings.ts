@@ -98,6 +98,24 @@ export const SETTING_KEY_PATTERN = /^[a-z][a-zA-Z0-9]*$/;
 
 const registry = new Map<string, NewGameSettingDef>();
 
+/**
+ * Settings a world stores only once they differ from the default (POL4-13). A world on the default
+ * then has exactly the settings it had before the setting existed, so adding one changes no world.
+ * `getSetting` gives the default for a missing value either way.
+ */
+const storedOnlyWhenChanged = new Set<string>();
+
+/** Options for {@link registerNewGameSetting}. */
+export interface RegisterSettingOptions {
+  /** Store the value only when it is not the default (see `storedOnlyWhenChanged`). */
+  readonly storeDefault?: boolean;
+}
+
+/** True when a world stores this value of this setting; false for a default left unstored. */
+export function storesSettingValue(key: string, value: NewGameSettingValue): boolean {
+  return !(storedOnlyWhenChanged.has(key) && registry.get(key)?.default === value);
+}
+
 function copyDef(def: NewGameSettingDef): NewGameSettingDef {
   return {
     key: def.key,
@@ -152,13 +170,20 @@ function checkDef(def: NewGameSettingDef): void {
  *
  * @throws RegistryError for a malformed definition or a key that is already taken.
  */
-export function registerNewGameSetting(def: NewGameSettingDef): () => void {
+export function registerNewGameSetting(
+  def: NewGameSettingDef,
+  options: RegisterSettingOptions = {},
+): () => void {
   checkDef(def);
   const stored = copyDef(def);
   registry.set(def.key, stored);
+  if (options.storeDefault === false) {
+    storedOnlyWhenChanged.add(def.key);
+  }
   return () => {
     if (registry.get(def.key) === stored) {
       registry.delete(def.key);
+      storedOnlyWhenChanged.delete(def.key);
     }
   };
 }
@@ -255,7 +280,8 @@ function generationLevelOf(settings: ResolvedNewGameSettings): GenerationLevel {
 
 /**
  * The `WorldMeta.settings` a world stores for these settings and season length: the four typed
- * settings in their own fields, every other registered setting in `extra` (sorted by key).
+ * settings in their own fields, every other registered setting in `extra` (sorted by key), except
+ * a setting registered with `storeDefault: false` that is on its default.
  */
 export function worldSettingsFrom(
   settings: ResolvedNewGameSettings,
@@ -264,7 +290,7 @@ export function worldSettingsFrom(
   const extra: Record<string, NewGameSettingValue> = {};
   for (const key of Object.keys(settings).sort()) {
     const value = settings[key];
-    if (!isWorldSettingKey(key) && value !== undefined) {
+    if (!isWorldSettingKey(key) && value !== undefined && storesSettingValue(key, value)) {
       extra[key] = value;
     }
   }

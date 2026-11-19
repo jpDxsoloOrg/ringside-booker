@@ -56,6 +56,11 @@ declare module '../../core/events/types' {
       rawScore: number;
       offscreen: boolean;
       segmentCount: number;
+      /**
+       * True for a distant rival show run on Big world speed's light path (POL4-13): later
+       * reactions keep their work to the show's region. Absent on every other show.
+       */
+      light?: true;
     };
     /** A title changed hands in a segment. `fromReignId` is null when the title was vacant. */
     'title.changed': {

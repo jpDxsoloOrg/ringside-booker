@@ -16,7 +16,13 @@
 import type { Reason } from '../../core/api/result';
 import { InvalidArgumentError } from '../../core/errors';
 import { fastPathsEnabled } from '../../core/fastPaths';
-import type { EmploymentId, PersonId, PromotionId, RegionId } from '../../core/ids';
+import {
+  isId,
+  type EmploymentId,
+  type PersonId,
+  type PromotionId,
+  type RegionId,
+} from '../../core/ids';
 import type { StepContext } from '../../core/pipeline/context';
 import {
   startCalc,
@@ -43,6 +49,7 @@ import type { Person, PersonRole } from '../../model/entities/person';
 import { compareIds } from '../../model/table';
 import type { GameWorldView } from '../../model/tables';
 import { geographyOf } from '../world/geography';
+import { LIGHT_TRACE_KEPT, lightSummary } from '../shows/lightPath';
 import {
   createPopularityRoller,
   type RegionalPopularity,
@@ -878,6 +885,114 @@ export function applyPopularityChange(
     worldBefore,
     worldAfter,
     regionsChanged,
+    byRegion,
+  };
+}
+
+/** What {@link applyPopularityChangeInRegion} takes: one region and the change asked for there. */
+export interface RegionPopularityChangeArgs {
+  subject: PopularitySubject;
+  regionId: RegionId;
+  /** Points asked for in the region, before the taper, the clamp and the rounding. */
+  delta: number;
+  source: DoorSource;
+  reason: DoorReason;
+}
+
+/**
+ * Big world speed's light door (POL4-13): {@link applyPopularityChange} for one region at weight
+ * 1, with the same taper, clamp, rounding and drop rule, the same write and the same
+ * `popularity.changed` event, but without building the working: the trace it records is a
+ * one-line summary. For distant rival shows in a Fast world only; the full door is unchanged.
+ */
+export function applyPopularityChangeInRegion(
+  ctx: DoorContext,
+  args: RegionPopularityChangeArgs,
+): PopularityDoorResult {
+  requireReason('applyPopularityChange', args.reason);
+  requireFinite('delta', args.delta);
+  const region = ctx.read.tables.regions.require(args.regionId);
+  const target = popularityTarget(ctx.read, ctx.tunables, args.subject);
+  const before = target.regionalPop;
+  const regionBefore = before[region.id] ?? 0;
+  const value = popularityChangeValue(
+    {
+      subjectKind: args.subject.kind,
+      regionName: region.name,
+      before: regionBefore,
+      delta: args.delta,
+      weight: 1,
+      anchor: target.anchor,
+    },
+    { tunables: ctx.tunables },
+  );
+  const changedValue = value ?? regionBefore;
+  const dropBelow = ctx.tunables.get('workers.popularity.dropBelow');
+  const regionAfter = changedValue !== 0 && changedValue < dropBelow ? 0 : changedValue;
+  const byRegion = { [region.id]: { before: regionBefore, after: regionAfter } };
+
+  const roller = createPopularityRoller(geographyOf(ctx.read));
+  const worldBefore = roller.rollWorld(before);
+  if (regionAfter === regionBefore) {
+    return {
+      ...unchanged(before),
+      worldBefore,
+      worldAfter: worldBefore,
+      regionsChanged: [],
+      byRegion,
+    };
+  }
+  // Kept in region id order, as the full door stores it; a region that ends at 0 is left out.
+  const stored = new Map<RegionId, number>();
+  for (const [regionId, value] of Object.entries(before)) {
+    if (value !== undefined && regionId !== region.id && isId('region', regionId)) {
+      stored.set(regionId, value);
+    }
+  }
+  if (regionAfter !== 0) {
+    stored.set(region.id, regionAfter);
+  }
+  // The cast names the key type `Object.fromEntries` widens to string.
+  const after = Object.fromEntries(
+    [...stored].sort(([left], [right]) => compareIds(left, right)),
+  ) as Record<RegionId, number>;
+  const worldAfter = roller.rollWorld(after);
+  if (args.subject.kind === 'person') {
+    ctx.tx.update('people', args.subject.id, { regionalPop: after });
+  } else {
+    ctx.tx.update('promotions', args.subject.id, { regionalPop: after });
+  }
+  const traceRef: TraceRef = {
+    kind:
+      args.subject.kind === 'person'
+        ? DOOR_TRACE_KINDS.personPopularity
+        : DOOR_TRACE_KINDS.promotionPopularity,
+    id: args.subject.id,
+  };
+  ctx.recordTrace(
+    traceRef,
+    ctx.date,
+    lightSummary(`Popularity in ${region.name}: ${args.reason.label}`, regionAfter),
+    LIGHT_TRACE_KEPT,
+  );
+  ctx.publish('popularity.changed', {
+    subjectKind: args.subject.kind,
+    subjectId: args.subject.id,
+    worldBefore,
+    worldAfter,
+    regionsChanged: 1,
+    source: args.source,
+    reasonKey: args.reason.key,
+    light: true,
+  });
+  return {
+    changed: true,
+    before,
+    after,
+    traceRef,
+    worldBefore,
+    worldAfter,
+    regionsChanged: [region.id],
     byRegion,
   };
 }

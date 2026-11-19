@@ -4,11 +4,13 @@
  * way the benchmarks do, and prints the time with the slowest phases and reactions.
  *
  *   npx tsx packages/engine-host/scripts/benchmark-world.ts [--days 90] [--db <path to mod .db>]
- *     [--top 25] [--slow] [--no-phases] [--json]
+ *     [--top 25] [--slow] [--no-phases] [--json] [--speed full|fast] [--tunable key=number ...]
  *
  * `--db` reads a mod database from the local disk (nothing from a mod is ever committed); without
  * it the default world is used. `--slow` turns the engine's fast paths off, for comparison;
- * `--no-phases` leaves the per-phase timing map off, for the cleanest total.
+ * `--no-phases` leaves the per-phase timing map off, for the cleanest total. `--speed` picks the
+ * Big world speed setting (POL4-13): `full` (the default) or `fast`; `--tunable` overrides a number
+ * tunable at new game (for example `bigWorld.regionPopularity=40`).
  * Run it under `node --cpu-prof` (via `npx tsx --cpu-prof` is not supported: use
  * `node --cpu-prof --import tsx packages/engine-host/scripts/benchmark-world.ts ...`) for a V8 profile.
  * Prints counts and timings only, never names from the mod.
@@ -33,6 +35,18 @@ const days = Number(argValue('--days') ?? 90);
 const dbPath = argValue('--db');
 const top = Number(argValue('--top') ?? 25);
 const asJson = process.argv.includes('--json');
+const speed = argValue('--speed') ?? 'full';
+if (speed !== 'full' && speed !== 'fast') throw new Error('--speed must be full or fast');
+/** `--tunable key=value` (repeatable): number overrides set at new game, e.g. for tuning. */
+const overrides: Record<string, number> = {};
+process.argv.forEach((arg, index) => {
+  if (arg !== '--tunable') return;
+  const [key, value] = (process.argv[index + 1] ?? '').split('=');
+  if (key === undefined || value === undefined || !Number.isFinite(Number(value))) {
+    throw new Error('--tunable takes key=number');
+  }
+  overrides[key] = Number(value);
+});
 if (process.argv.includes('--slow')) setFastPaths(false);
 
 function readContent(): Record<string, unknown> {
@@ -122,7 +136,8 @@ const created = parse(
         starterKit: false,
         weeklyShowDay: 3,
       },
-      settings: {},
+      settings: speed === 'full' ? {} : { bigWorldSpeed: speed },
+      ...(Object.keys(overrides).length === 0 ? {} : { tunableOverrides: overrides }),
     }),
   ),
 );
@@ -170,6 +185,7 @@ const hash = String(parse(host.worldHash())['hash']);
 const summary = {
   world: dbPath === undefined ? 'default' : 'imported',
   fastPaths: !process.argv.includes('--slow'),
+  speed,
   counts,
   importMs: Math.round(importMs),
   newGameMs: Math.round(newGameMs),

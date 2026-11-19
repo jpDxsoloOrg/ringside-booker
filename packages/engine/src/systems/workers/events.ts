@@ -44,6 +44,11 @@ declare module '../../core/events/types' {
       regionsChanged: number;
       source: DoorSource;
       reasonKey: string;
+      /**
+       * True when Big world speed's light door made the change (POL4-13): a distant rival show in a
+       * Fast world. Absent on every other change.
+       */
+      light?: true;
     };
     /** A worker's momentum changed. `before` is null on their first appearance. */
     'momentum.changed': EmploymentChange & { before: number | null; after: number };
