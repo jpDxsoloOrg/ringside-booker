@@ -133,6 +133,8 @@ namespace RingsideBooker.UI.Shell
 
         private void GoToMainMenu()
         {
+            // Save first: the final save is queued on the engine thread before the bridge unloads the world.
+            Saves.GameSession.EndCurrent();
             ShellServices.Clear();
             SceneFlow.LoadTitle();
         }
