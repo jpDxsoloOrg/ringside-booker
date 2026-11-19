@@ -58,6 +58,10 @@ namespace RingsideBooker.Screens
         private WorkshopMod importedMod;
         private volatile string importStage;
         private bool importRunning;
+        // "Manage imported worlds" inside the import sub-screen (UNITY-14).
+        private bool managing;
+        private string confirmRemove;
+        private bool removing;
 
         private NewGameWizard()
         {
@@ -98,7 +102,12 @@ namespace RingsideBooker.Screens
         /// </summary>
         public bool HandleBack()
         {
-            if (!importing || importRunning) return false;
+            if (!importing || importRunning || removing) return false;
+            if (managing)
+            {
+                CloseManage();
+                return true;
+            }
             CloseImport(selectImported: false);
             return true;
         }
@@ -156,13 +165,14 @@ namespace RingsideBooker.Screens
                 steps.Add(label);
             }
             // Redrawing the same page (picking an option, opening Advanced) keeps the scroll position.
-            string page = importing ? "import" : $"step-{step}";
+            string page = importing ? (managing ? "manage" : "import") : $"step-{step}";
             Vector2 offset = page == drawnPage ? body.scrollOffset : Vector2.zero;
             drawnPage = page;
             body.Clear();
             nav.Clear();
             feedback.SetShown(false);
-            if (importing) DrawImport();
+            if (importing && managing) DrawManage();
+            else if (importing) DrawImport();
             else
             {
                 switch (step)
@@ -220,6 +230,7 @@ namespace RingsideBooker.Screens
         {
             if (busy) return;
             importing = true;
+            managing = false;
             importResult = null;
             importedMod = null;
             Draw();
@@ -236,6 +247,7 @@ namespace RingsideBooker.Screens
         private void CloseImport(bool selectImported)
         {
             importing = false;
+            managing = false;
             if (selectImported && importedMod != null) _ = ReturnWithImported(importedMod.PackId);
             else Draw();
         }
@@ -300,6 +312,16 @@ namespace RingsideBooker.Screens
                 progress.schedule.Execute(() => progress.text = ImportProgressText(clock.Elapsed.TotalSeconds)).Every(250);
             }
 
+            if (WorkshopWorlds.Store.List().Count > 0)
+            {
+                Button manage = Ui.Btn("Manage imported worlds…", OpenManage, "btn--ghost");
+                manage.name = "import-manage";
+                manage.AddToClassList("rb-gap-top");
+                manage.style.alignSelf = Align.FlexStart;
+                manage.SetEnabled(!importRunning);
+                body.Add(manage);
+            }
+
             Button back = BackButton();
             back.SetEnabled(!importRunning);
             nav.Add(back);
@@ -311,9 +333,11 @@ namespace RingsideBooker.Screens
 
         private string ImportProgressText(double seconds)
         {
-            string stage = importStage == WorldModImporter.StageConverting
-                ? "Converting and checking the world"
-                : "Reading the mod's database";
+            string stage = importStage == WorkshopWorlds.StageStoring
+                ? "Keeping the world for next time"
+                : importStage == WorldModImporter.StageConverting
+                    ? "Converting and checking the world"
+                    : "Reading the mod's database";
             return $"{stage}… {seconds:0} s";
         }
 
@@ -348,9 +372,130 @@ namespace RingsideBooker.Screens
             if (mod.PeopleCount > 0) parts.Add($"{mod.PeopleCount:N0} people");
             if (mod.PromotionCount > 0) parts.Add($"{mod.PromotionCount:N0} promotions");
             if (mod.SizeBytes > 0) parts.Add($"{mod.SizeBytes / (1024.0 * 1024.0):0.#} MB");
-            if (WorkshopWorlds.IsImported(mod, WorkshopWorlds.RosterOnly)) parts.Add("imported");
+            if (WorkshopWorlds.IsImported(mod, WorkshopWorlds.RosterOnly))
+            {
+                StoredWorld stored = WorkshopWorlds.StoredFor(mod);
+                parts.Add(stored != null && ImportedWorldStore.ModState(stored) == StoredModState.Updated ? "imported, updated since" : "imported");
+            }
             parts.Add($"item {mod.ItemId}");
             return string.Join(" · ", parts);
+        }
+
+        // ---- Manage imported worlds (UNITY-14) ------------------------------------------------------
+
+        /// <summary>Opens "Manage imported worlds" (from the import sub-screen; the tours call it too).</summary>
+        public void OpenManage()
+        {
+            if (importRunning) return;
+            importing = true;
+            managing = true;
+            confirmRemove = null;
+            importResult = null;
+            Draw();
+            if (mods == null) _ = Scan();
+        }
+
+        private void CloseManage()
+        {
+            managing = false;
+            confirmRemove = null;
+            Draw();
+        }
+
+        private void DrawManage()
+        {
+            steps.Clear();
+            steps.Add(Ui.Text("New game", "rb-wizard__step"));
+            steps.Add(Ui.Text("› Import a workshop world", "rb-wizard__step"));
+            steps.Add(Ui.Text("› Manage imported worlds", "rb-wizard__step", "rb-wizard__step--current"));
+
+            IReadOnlyList<StoredWorld> stored = WorkshopWorlds.Store.List();
+            body.Add(Kit.Note("Imported worlds are kept, so New game lists them after a restart. Removing one does not touch your saves: a save carries its world."));
+            if (stored.Count == 0)
+            {
+                body.Add(Kit.Note("No imported worlds are kept."));
+            }
+            else
+            {
+                VisualElement list = Ui.El("rb-mod-list").Named("stored-world-list");
+                foreach (StoredWorld world in stored) list.Add(StoredOption(world));
+                body.Add(list);
+            }
+            if (mods == null) body.Add(Kit.Note("Looking for installed workshop world mods…"));
+
+            Button back = Ui.Btn("BACK", CloseManage, "btn--ghost");
+            back.name = "manage-back";
+            back.SetEnabled(!removing);
+            nav.Add(back);
+        }
+
+        private VisualElement StoredOption(StoredWorld world)
+        {
+            VisualElement option = Ui.El("choice-chip", "rb-option").Named($"stored-{world.ItemId}");
+            option.Add(Ui.Text(world.Name ?? $"Workshop item {world.ItemId}", "choice-chip__label"));
+            option.Add(Ui.Text($"{WorkshopWorlds.StoredDetail(world)} · item {world.ItemId}", "choice-chip__detail", "t-wrap"));
+            if (WorkshopWorlds.ModNote(world) is string note) option.Add(Ui.Text(note, "choice-chip__detail", "t-wrap"));
+
+            WorkshopMod installed = mods?.FirstOrDefault(mod => mod.ItemId == world.ItemId && mod.IsWorld);
+            VisualElement buttons = Ui.El("rb-row", "rb-row--wrap", "rb-gap-top");
+            Button reimport = Ui.Btn("Re-import", () => _ = Reimport(installed, world.RosterOnly), "btn--ghost");
+            reimport.name = $"stored-reimport-{world.ItemId}";
+            reimport.tooltip = installed == null ? "The mod is not installed." : "Import the mod again (after it updated).";
+            reimport.SetEnabled(installed != null && !removing);
+            buttons.Add(reimport);
+            bool confirming = confirmRemove == world.PackId;
+            Button remove = Ui.Btn(confirming ? "Remove: are you sure?" : "Remove", () => _ = Remove(world), confirming ? "btn--primary" : "btn--ghost");
+            remove.name = $"stored-remove-{world.ItemId}";
+            remove.SetEnabled(!removing);
+            buttons.Add(remove);
+            option.Add(buttons);
+            return option;
+        }
+
+        /// <summary>Imports a stored world's mod again with the roster-only choice it had (shows the import report).</summary>
+        private async Task Reimport(WorkshopMod mod, bool rosterOnly)
+        {
+            if (mod == null || importRunning) return;
+            managing = false;
+            pickedMod = mod;
+            WorkshopWorlds.RosterOnly = rosterOnly;
+            await RunImport();
+        }
+
+        /// <summary>Removes a stored world (first press asks, the second removes).</summary>
+        public async Task Remove(StoredWorld world)
+        {
+            if (removing) return;
+            if (confirmRemove != world.PackId)
+            {
+                confirmRemove = world.PackId;
+                Draw();
+                return;
+            }
+            removing = true;
+            Draw();
+            try
+            {
+                await WorkshopWorlds.RemoveStoredAsync(client, world.PackId);
+                worlds.RemoveAll(entry => entry.world.Id == world.PackId);
+                if (this.world?.Id == world.PackId) this.world = worlds.Select(entry => entry.world).FirstOrDefault();
+                feedback.text = "Removed.";
+                feedback.SetShown(true);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[NewGame] removing {world.PackId} failed ({exception.GetType().Name})");
+            }
+            finally
+            {
+                removing = false;
+                confirmRemove = null;
+                if (importing && managing)
+                {
+                    Draw();
+                    feedback.SetShown(true);
+                }
+            }
         }
 
         /// <summary>Opens the import sub-screen and waits for the mod list (the import check drives it).</summary>
