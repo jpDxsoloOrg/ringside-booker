@@ -208,6 +208,9 @@ export {
   type StepStatus,
   type StepTiming,
   type SystemPhaseGroup,
+  startPhaseTiming,
+  stopPhaseTiming,
+  type PhaseTimingEntry,
 } from './core/pipeline';
 
 export {
