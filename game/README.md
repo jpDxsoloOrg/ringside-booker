@@ -6,12 +6,12 @@ UI first (UI Toolkit), 3D later. Windows only.
 
 ## Workspace
 
-| What | Where |
-| --- | --- |
+| What                      | Where                                                                |
+| ------------------------- | -------------------------------------------------------------------- |
 | Repo clone for Unity work | `F:\source\ringside-booker` = `/mnt/f/source/ringside-booker` in WSL |
-| Unity project | `game/` in that clone |
-| Unity editor | `C:\Program Files\Unity\Hub\Editor\6000.6.9f1\Editor\Unity.exe` |
-| Web app / engine home | `/home/jpdev/source/ringside-booker` (WSL filesystem) |
+| Unity project             | `game/` in that clone                                                |
+| Unity editor              | `C:\Program Files\Unity\Hub\Editor\6000.6.9f1\Editor\Unity.exe`      |
+| Web app / engine home     | `/home/jpdev/source/ringside-booker` (WSL filesystem)                |
 
 Why F: and not the WSL filesystem: the Unity editor is a Windows program. It is slow and
 unreliable on `\\wsl$\...` paths (file watching, the asset database, symlinks), so the
@@ -37,10 +37,10 @@ Assets are serialized as text (`ProjectSettings/EditorSettings.asset`).
 Both scripts convert paths with `wslpath -w`, run Unity with `-batchmode -nographics -quit`,
 and return a non-zero exit code on failure. Set `UNITY_EXE` to use another editor path.
 
-| Script | What it does | Log |
-| --- | --- | --- |
-| `game/tools/unity-compile.sh` | Opens the project so every script compiles, prints any `error CS....` lines | `game/Logs/compile.log` |
-| `game/tools/unity-build-windows.sh` | Runs `BuildScripts.BuildWindows` (StandaloneWindows64) | `game/Logs/build.log` |
+| Script                              | What it does                                                                | Log                     |
+| ----------------------------------- | --------------------------------------------------------------------------- | ----------------------- |
+| `game/tools/unity-compile.sh`       | Opens the project so every script compiles, prints any `error CS....` lines | `game/Logs/compile.log` |
+| `game/tools/unity-build-windows.sh` | Runs `BuildScripts.BuildWindows` (StandaloneWindows64)                      | `game/Logs/build.log`   |
 
 The build writes `game/Builds/Windows/RingsideBooker.exe`. To smoke-test it headless:
 
