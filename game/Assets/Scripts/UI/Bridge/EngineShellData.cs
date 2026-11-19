@@ -138,8 +138,10 @@ namespace RingsideBooker.UI.Bridge
                 foreach (JToken id in people) Add((string)id);
             }
             Add((string)story["refs"]?["eventInstanceId"]);
+            // A story with no names reads as a bare label ("Season"): leave it to the News page.
+            if (parts.Count == 0) return null;
             string kind = (string)story["kindLabel"] ?? "News";
-            return parts.Count == 0 ? kind : $"{kind}: {string.Join(" · ", parts.Take(3))}";
+            return $"{kind}: {string.Join(" · ", parts.Take(3))}";
         }
 
         /// <summary>The promotion's logo ref (from <c>promotions.list</c>; a logo never changes in a game), or null.</summary>

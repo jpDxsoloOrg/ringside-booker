@@ -143,3 +143,29 @@ To take the screenshot tour, build the player, then run `game/tools/mockup-shots
 Why? hover, Roster cards, the Roster table with an expanded row and a Why? preview, the column picker,
 the worker side sheet, Booking, the checklist with a problem, Show night, Results, the Results Why?
 sheet, the style guide, components, and a modal with a toast.
+
+## The game's shell (phase 2a)
+
+The Game scene now uses the approved shell. `ShellController` clears the document root and builds an
+`AppShell`. `Shell.uxml` is left as an empty tree asset. The old views are adapters onto it:
+
+- `SidebarView(AppShell, …)` draws the promotion block (logo picture via `SidebarView.LogoTexture`,
+  else a monogram plate; a SAMPLE tag for demo data). It also builds the icon nav from
+  `NavigationModel.Visible(hasPromotion)` and sets the badges from `NavItem.BadgeKey`.
+- `TopBarView(AppShell)` sets the crumbs and the scoreboard. The cash cell is named `cash-chip`,
+  holds the exact amount as a tooltip and the trace ref as `userData`, and still gets
+  `TopBarView.CashChipDecorator`, which adds a quiet Why? in its corner.
+- `DayControlView` is unchanged apart from its skip button, which is now an icon button. It sits in
+  `AppShell.Actions` after the bell.
+- The bell (`AppShell.SetBell`) counts the day's stops. Clicking it opens Needs attention, or the
+  inbox when nothing is waiting.
+- The news ticker (`AppShell.SetTicker`) shows the headlines of an `IShellData` that also implements
+  `IShellNews`. `EngineShellData` reads `news.top` (stories with names only) and `DemoGame` has
+  sample lines. With no headlines, the ticker hides.
+- The sidebar collapses with the Collapse link or Ctrl+B. The choice is remembered in PlayerPrefs
+  as `rb.ui.sidebarCollapsed`.
+
+Screens put their content in `AppShell.ScreenHost`, as before through `ScreenRegistry`. The
+advance summary goes in `AppShell.SummarySlot`. Every `Ds*` component and `ds-` class is available
+to screens, because `RingsideTheme.tss` imports the design system for all panels. The screen
+restyles belong to the screen tickets.
