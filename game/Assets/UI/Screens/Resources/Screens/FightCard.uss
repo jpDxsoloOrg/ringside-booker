@@ -1,0 +1,1167 @@
+/*
+ * The fight card screens (UNITY-20): Booking, the segment editor, the venue picker, Show night and
+ * Results, on the UNITY-11 design system. fc- classes are layout and small pieces only; the look
+ * comes from the ds- components. Loaded in code by FightCardStyles.Apply (Resources/Screens/FightCard).
+ */
+
+.fc-page {
+    flex-shrink: 0;
+}
+
+.fc-page > * {
+    flex-shrink: 0;
+}
+
+.fc-label {
+    margin-right: 10px;
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-4);
+}
+
+.fc-label--block {
+    margin-top: 12px;
+    margin-bottom: 6px;
+}
+
+.fc-hint {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.fc-hint--warn {
+    color: var(--ds-warn);
+}
+
+.fc-refusal {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--ds-bad);
+    white-space: normal;
+}
+
+.fc-wrap {
+    white-space: normal;
+}
+
+.fc-note {
+    margin-top: 8px;
+}
+
+.fc-chip-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.fc-chip-row > * {
+    margin-right: 6px;
+    margin-bottom: 6px;
+}
+
+.fc-more {
+    align-self: flex-start;
+    margin-top: 8px;
+}
+
+.fc-more-body {
+    margin-top: 4px;
+    padding: 4px 0 8px 12px;
+    border-left-width: 2px;
+    border-left-color: var(--ds-line);
+}
+
+/* ---- Booking: show strip and header ----------------------------------------------------------------- */
+
+.fc-show-strip {
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.fc-show-strip > .ds-chip {
+    margin-right: 6px;
+    margin-bottom: 4px;
+}
+
+.fc-show-chip--needs {
+    border-color: var(--ds-action);
+}
+
+.fc-head {
+    align-items: stretch;
+}
+
+.fc-show {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.fc-show__words {
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+.fc-show__name {
+    letter-spacing: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fc-countdown {
+    margin-left: 8px;
+}
+
+.fc-quiet-tag {
+    margin-left: 8px;
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-4);
+}
+
+.fc-venue-text {
+    margin-right: 6px;
+}
+
+.fc-venue-change {
+    height: 22px;
+    margin-right: 14px;
+}
+
+.fc-time {
+    margin-top: 8px;
+}
+
+.fc-time__row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.fc-time__meter {
+    width: 380px;
+    flex-shrink: 1;
+}
+
+.fc-time__value {
+    margin: 0 8px 0 10px;
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text);
+}
+
+.fc-time__note {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.fc-time__note--warn {
+    color: var(--ds-warn);
+}
+
+.fc-time__note--bad {
+    color: var(--ds-bad);
+}
+
+.fc-status {
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-left: 16px;
+    flex-shrink: 0;
+}
+
+.fc-status__buttons {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.fc-status__buttons > .ds-btn {
+    margin-right: 6px;
+}
+
+.fc-runs-later {
+    margin-left: 8px;
+    font-size: 13px;
+    color: var(--ds-text-3);
+}
+
+.fc-cta--blocked {
+    opacity: 0.6;
+}
+
+.fc-checklist {
+    flex-direction: row;
+    align-items: center;
+    height: 34px;
+    margin: 0;
+    padding: 0 10px 0 12px;
+    border-width: 1px;
+    border-radius: var(--ds-radius-pill);
+    border-color: var(--ds-state);
+    background-color: var(--ds-state-soft);
+}
+
+.fc-checklist:hover {
+    border-color: var(--ds-state);
+    background-color: var(--ds-state-soft);
+}
+
+.fc-checklist:focus {
+    border-color: var(--ds-focus);
+}
+
+.fc-checklist__icon,
+.fc-checklist__chevron {
+    color: var(--ds-state);
+}
+
+.fc-checklist__text {
+    -unity-text-align: middle-left;
+    margin: 0 8px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-state);
+}
+
+.fc-checklist-pop {
+    width: 440px;
+}
+
+.fc-check {
+    padding: 6px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line);
+    color: var(--ds-state);
+    align-items: flex-start;
+}
+
+.fc-check__icon {
+    margin-top: 2px;
+}
+
+.fc-check__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin: 0 10px;
+}
+
+.fc-check__text {
+    font-size: 13px;
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.fc-check__detail {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+/* ---- Booking: fight card ---------------------------------------------------------------------------- */
+
+.fc-columns {
+    margin-top: 14px;
+    align-items: flex-start;
+}
+
+.fc-fight {
+    flex-grow: 1.7;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 16px;
+}
+
+.fc-details {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 400px;
+}
+
+.fc-slot {
+    flex-shrink: 0;
+    align-items: flex-start;
+    border-top-width: 2px;
+    border-top-color: transparent;
+}
+
+.fc-slot--dragging {
+    opacity: 0.55;
+}
+
+.fc-slot--target {
+    border-top-color: var(--ds-data);
+}
+
+.fc-slot__number {
+    width: 40px;
+    padding-top: 6px;
+    font-size: 22px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text-4);
+}
+
+.fc-slot__card {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+}
+
+.fc-slot__handle {
+    width: 24px;
+    height: 60px;
+    align-items: center;
+    justify-content: center;
+    margin-left: 4px;
+    color: var(--ds-text-3);
+}
+
+.fc-slot__handle:hover {
+    color: var(--ds-data);
+}
+
+.fc-slot__handle--idle {
+    opacity: 0.3;
+}
+
+.fc-empty {
+    border-style: solid;
+    border-color: var(--ds-line);
+    background-color: var(--ds-elev-0);
+}
+
+.fc-empty__add {
+    flex-direction: row;
+    align-items: center;
+    min-height: 44px;
+    padding: 6px 12px;
+}
+
+.fc-empty__add > .ds-btn {
+    margin-left: 6px;
+}
+
+/* ---- Booking: details panel -------------------------------------------------------------------------- */
+
+.fc-details-panel {
+    flex-shrink: 0;
+}
+
+.fc-details-head {
+    margin-bottom: 4px;
+    align-items: center;
+}
+
+.fc-details-head > .ds-pill {
+    margin-left: 6px;
+}
+
+.fc-details-head__slot {
+    font-size: 14px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-action-hover);
+}
+
+.fc-details-title {
+    font-size: 24px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.fc-expect {
+    align-items: center;
+    margin: 12px 0 14px 0;
+    padding: 10px 12px;
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-2);
+}
+
+.fc-expect__word {
+    margin-left: 10px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-gold);
+}
+
+.fc-read {
+    margin: 10px 0 4px 0;
+}
+
+.fc-read > .ds-meter {
+    height: 22px;
+}
+
+.fc-length {
+    align-items: center;
+    margin-top: 12px;
+}
+
+.fc-details-actions {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line);
+}
+
+.fc-details-actions > .ds-btn {
+    margin-right: 8px;
+}
+
+.fc-beat-line {
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.fc-beat-line__number {
+    width: 22px;
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text-4);
+}
+
+.fc-beat-line__name {
+    width: 130px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.fc-beat-line__people {
+    flex-shrink: 1;
+    font-size: 12px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+/* ---- Storylines -------------------------------------------------------------------------------------- */
+
+.fc-story__row {
+    flex-direction: row;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.fc-story__row > .ds-chip,
+.fc-story__row > .ds-btn,
+.fc-story__row > .ds-pill {
+    margin-left: 6px;
+}
+
+.fc-story__icon {
+    color: var(--ds-data);
+    margin-right: 8px;
+}
+
+.fc-story__words {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.fc-story__name {
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.fc-story__note {
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+/* ---- Segment editor ---------------------------------------------------------------------------------- */
+
+.fc-editor > .ds-section-header {
+    margin-top: 14px;
+}
+
+.fc-editor__footer {
+    flex-direction: row;
+    align-items: center;
+}
+
+.fc-editor__footer > .ds-btn {
+    margin-left: 8px;
+}
+
+.fc-sides {
+    flex-wrap: wrap;
+}
+
+.fc-side {
+    width: 48%;
+    margin: 0 2% 8px 0;
+    padding: 8px 10px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-2);
+}
+
+.fc-side__head {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.fc-side__buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.fc-side__buttons > .ds-btn {
+    margin-right: 4px;
+}
+
+.fc-person {
+    flex-direction: row;
+    align-items: center;
+    height: 34px;
+    flex-shrink: 0;
+}
+
+.fc-person__name {
+    margin-left: 8px;
+    flex-shrink: 1;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fc-person__crown {
+    margin-left: 6px;
+    color: var(--ds-gold);
+}
+
+.fc-person__parts {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0 0 6px 36px;
+}
+
+.fc-parts {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.fc-parts > .ds-chip {
+    margin-right: 4px;
+    margin-bottom: 2px;
+}
+
+.fc-beats {
+    flex-shrink: 0;
+}
+
+.fc-beat {
+    flex-shrink: 0;
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-left-width: 3px;
+    border-left-color: var(--ds-data);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-2);
+}
+
+.fc-beat__head {
+    flex-direction: row;
+    align-items: center;
+}
+
+.fc-beat__number {
+    width: 24px;
+    font-size: 18px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text-3);
+}
+
+.fc-beat__group {
+    flex-direction: row;
+    align-items: flex-start;
+    margin-top: 6px;
+}
+
+.fc-beat__group-label {
+    width: 110px;
+    padding-top: 6px;
+    font-size: 11px;
+    letter-spacing: 0;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.fc-beat__people {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.fc-pop-list {
+    min-width: 240px;
+}
+
+.fc-pop-list > .ds-btn {
+    margin-bottom: 2px;
+}
+
+.fc-pop-list__item {
+    justify-content: flex-start;
+}
+
+/* ---- Roster picker ----------------------------------------------------------------------------------- */
+
+.fc-picker {
+    width: 620px;
+    height: 560px;
+}
+
+.fc-search {
+    margin: 0 0 8px 0;
+}
+
+.fc-picker__filters {
+    flex-shrink: 0;
+}
+
+.fc-picker__list {
+    flex-grow: 1;
+}
+
+.fc-pick {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 46px;
+    margin: 0 0 2px 0;
+    padding: 4px 8px;
+    border-width: 0;
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-2);
+    -unity-text-align: middle-left;
+}
+
+.fc-pick:hover {
+    background-color: var(--ds-elev-3);
+}
+
+.fc-pick--disabled {
+    opacity: 0.5;
+}
+
+.fc-pick__team-icon {
+    width: 28px;
+    color: var(--ds-text-3);
+}
+
+.fc-pick__words {
+    margin-left: 10px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.fc-pick__top {
+    flex-direction: row;
+    align-items: center;
+}
+
+.fc-pick__top > .ds-tag,
+.fc-pick__top > .ds-pill {
+    margin-left: 6px;
+}
+
+.fc-pick__name {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    -unity-text-align: middle-left;
+}
+
+.fc-pick__facts {
+    font-size: 12px;
+    color: var(--ds-text-3);
+    -unity-text-align: middle-left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0;
+}
+
+.fc-pick__reason {
+    font-size: 12px;
+    color: var(--ds-bad);
+    -unity-text-align: middle-left;
+}
+
+/* ---- Venue picker ------------------------------------------------------------------------------------ */
+
+.fc-venues > .ds-section-header {
+    margin-top: 12px;
+}
+
+.fc-venues__switch {
+    margin-top: 10px;
+}
+
+.fc-venues__footer {
+    flex-direction: row;
+}
+
+.fc-venues__footer > .ds-btn {
+    margin-right: 8px;
+}
+
+.fc-venue {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin: 0 0 4px 0;
+    padding: 8px 10px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-2);
+    -unity-text-align: middle-left;
+}
+
+.fc-venue:hover {
+    border-color: var(--ds-line-strong);
+}
+
+.fc-venue--selected {
+    border-color: var(--ds-data);
+}
+
+.fc-venue--disabled {
+    opacity: 0.55;
+}
+
+.fc-venue__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.fc-venue__name-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.fc-venue__name-row > .ds-pill {
+    margin-left: 6px;
+}
+
+.fc-venue__name {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    -unity-text-align: middle-left;
+}
+
+.fc-venue__facts,
+.fc-venue__expected {
+    font-size: 12px;
+    color: var(--ds-text-3);
+    -unity-text-align: middle-left;
+}
+
+.fc-venue__crowd {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.fc-venue__crowd > .ds-pill {
+    margin-left: 8px;
+}
+
+.fc-venue__reason {
+    font-size: 12px;
+    color: var(--ds-bad);
+    -unity-text-align: middle-left;
+}
+
+/* ---- Show night ------------------------------------------------------------------------------------- */
+
+.fc-live-bar {
+    align-items: center;
+    padding: 8px 10px;
+    border-width: 1px;
+    border-color: rgba(255, 59, 29, 0.4);
+    border-radius: var(--ds-radius-lg);
+    background-color: var(--ds-elev-1);
+}
+
+.fc-live-pill {
+    height: 26px;
+    margin-right: 12px;
+}
+
+.fc-live-bar__title {
+    margin-left: 10px;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.fc-live-bar__name {
+    font-size: 26px;
+    letter-spacing: 0;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fc-board {
+    width: 700px;
+    flex-shrink: 1;
+}
+
+.fc-stage {
+    flex-grow: 2.2;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 16px;
+}
+
+.fc-stage > .ds-match,
+.fc-stage > .ds-panel {
+    margin-bottom: 12px;
+}
+
+.fc-now {
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.fc-now__tag {
+    height: 26px;
+    padding: 0 18px 0 10px;
+    justify-content: center;
+    --skew-fill: #ff3b1d;
+}
+
+.fc-now__tag-text {
+    font-size: 15px;
+    letter-spacing: 1.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: #ffffff;
+}
+
+.fc-now__text {
+    margin-left: 10px;
+    font-size: 13px;
+    color: var(--ds-text-2);
+}
+
+.fc-feed__line {
+    flex-direction: row;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.fc-feed__mark {
+    width: 52px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+    color: var(--ds-text-4);
+}
+
+.fc-feed__mark--good {
+    color: var(--ds-good);
+}
+
+.fc-feed__mark--bad {
+    color: var(--ds-bad);
+}
+
+.fc-feed__text {
+    flex-shrink: 1;
+    font-size: 13px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+.fc-feed__line--big .fc-feed__text {
+    font-size: 15px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.fc-controls {
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.fc-controls > .ds-btn,
+.fc-controls > .ds-cta {
+    margin-right: 10px;
+}
+
+.fc-order {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 400px;
+}
+
+.fc-order__row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 46px;
+    margin: 0;
+    padding: 0 8px;
+    border-width: 0;
+    border-radius: 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+    border-left-width: 3px;
+    border-left-color: transparent;
+    background-color: transparent;
+    -unity-text-align: middle-left;
+}
+
+.fc-order__row:hover {
+    background-color: var(--ds-elev-2);
+}
+
+.fc-order__row--done {
+    opacity: 0.8;
+}
+
+.fc-order__row--now {
+    border-left-color: var(--ds-live);
+    background-color: var(--ds-live-soft);
+}
+
+.fc-order__row--shown {
+    border-left-color: var(--ds-data);
+}
+
+.fc-order__number {
+    width: 34px;
+    font-size: 16px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text-4);
+    -unity-text-align: middle-left;
+}
+
+.fc-order__words {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.fc-order__name {
+    font-size: 13px;
+    letter-spacing: 0;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    -unity-text-align: middle-left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fc-order__title {
+    font-size: 11px;
+    color: var(--ds-gold);
+    -unity-text-align: middle-left;
+}
+
+.fc-order__slot {
+    font-size: 11px;
+    color: var(--ds-text-3);
+    -unity-text-align: middle-left;
+}
+
+.fc-order__meta {
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+/* ---- Results ----------------------------------------------------------------------------------------- */
+
+.fc-results-hero {
+    align-items: flex-end;
+    padding-bottom: 14px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line);
+}
+
+.fc-grade {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.fc-grade__name {
+    letter-spacing: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fc-grade__stars {
+    align-items: center;
+    margin: 4px 0 6px 0;
+}
+
+.fc-grade__word {
+    margin: 0 8px 0 12px;
+    font-size: 24px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-gold);
+}
+
+.fc-results-board {
+    width: 780px;
+    flex-shrink: 1;
+    margin-left: 16px;
+}
+
+.fc-reveals {
+    flex-grow: 2.2;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 16px;
+}
+
+.fc-new-champ {
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.fc-new-champ__tag {
+    flex-direction: row;
+    align-items: center;
+    height: 30px;
+    padding: 0 20px 0 12px;
+    --skew-fill: #facc15;
+}
+
+.fc-new-champ__icon {
+    color: var(--ds-text-inverse);
+    margin-right: 6px;
+}
+
+.fc-new-champ__tag-text {
+    font-size: 17px;
+    letter-spacing: 1.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text-inverse);
+}
+
+.fc-new-champ__text {
+    margin-left: 12px;
+    flex-shrink: 1;
+    font-size: 20px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-gold);
+    white-space: normal;
+}
+
+.fc-reveal-grid {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-top: 4px;
+}
+
+.fc-reveal-cell {
+    width: 49.4%;
+    margin-right: 0.6%;
+}
+
+.fc-reveal {
+    opacity: 0;
+    translate: 0 12px;
+}
+
+.fc-reveal-cell,
+.fc-reveal-main {
+    transition-property: opacity, translate;
+    transition-duration: 300ms;
+    transition-timing-function: ease-out-cubic;
+}
+
+.fc-side-col {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 400px;
+}
+
+.fc-side-col > .ds-panel {
+    margin-bottom: 16px;
+}
+
+.fc-change {
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.fc-change__icon {
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-state-soft);
+    color: var(--ds-state);
+}
+
+.fc-change__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-left: 12px;
+}
+
+.fc-change__title {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.fc-change__detail {
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.fc-star-night__words {
+    margin-left: 14px;
+    flex-shrink: 1;
+}
+
+.fc-results-next {
+    align-items: center;
+    margin-top: 4px;
+}
+
+.fc-kv-why {
+    flex-direction: row;
+    align-items: center;
+}

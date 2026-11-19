@@ -48,6 +48,7 @@ namespace RingsideBooker.Screens.Dev
         {
             Invoke(nameof(GiveUp), workshop ? 600f : 240f);
             Directory.CreateDirectory(folder);
+            ResultsScreen.InstantReveal = true;
             while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != SceneFlow.TitleScene) yield return null;
             yield return Wait(1.5f);
             yield return Capture("title-new-game");
@@ -65,6 +66,14 @@ namespace RingsideBooker.Screens.Dev
             wizard.ShowStep(1);
             yield return Wait(0.5f);
             yield return Capture("new-game-promotion");
+            wizard.ShowFoundExample();
+            yield return Wait(0.5f);
+            yield return Capture("new-game-found");
+            yield return ScrollToEnd(wizard.Body);
+            yield return Capture("new-game-found-end");
+            bool foundGame = Array.Exists(Environment.GetCommandLineArgs(), arg => string.Equals(arg, "-rbLoopFound", StringComparison.OrdinalIgnoreCase));
+            if (!foundGame) wizard.ShowTakeOver();
+            yield return Wait(0.3f);
             wizard.ShowStep(2);
             yield return Wait(0.5f);
             yield return Capture("new-game-options");
@@ -88,6 +97,16 @@ namespace RingsideBooker.Screens.Dev
             while (EngineGame.Current == null || ShellController.Current == null) yield return null;
             yield return Wait(2f);
             yield return Capture("office");
+            if (Array.Exists(Environment.GetCommandLineArgs(), arg => string.Equals(arg, "-rbLoopFound", StringComparison.OrdinalIgnoreCase)))
+            {
+                // A founded promotion (UNITY-20): its office and its first show's empty card, then stop.
+                Go(ShellRoute.To("booking"));
+                yield return Wait(2f);
+                yield return Capture("found-booking");
+                Debug.Log($"[LoopScreenshots] done (founded promotion {EngineGame.Current?.PromotionId}): {folder}");
+                Application.Quit(0);
+                yield break;
+            }
 
             Go(ShellRoute.To("roster"));
             yield return Wait(1.5f);
@@ -104,25 +123,59 @@ namespace RingsideBooker.Screens.Dev
             Go(ShellRoute.To("booking"));
             yield return Wait(1.5f);
             yield return Capture("booking-empty");
-            Click(Q<Button>(button => button.name == "booking-autofill"));
+            ClickNamed("booking-venue");
+            yield return WaitIdle(2f);
+            yield return Capture("booking-venue-picker");
+            ShellController.Current.Overlay.CloseAll();
+            ClickNamed("booking-autofill");
             yield return WaitIdle(4f);
             yield return Capture("booking-filled");
-            Click(Q<Button>(button => button.name == "edit-0"));
-            yield return Wait(1.2f);
-            yield return Capture("segment-editor");
+            ClickNamed("booking-checklist");
+            yield return Wait(0.8f);
+            yield return Capture("booking-checklist");
             ShellController.Current.Overlay.CloseAll();
+            ClickNamed("slot-card-main-0");
+            yield return Wait(0.6f);
+            ClickNamed("booking-more");
+            yield return WaitIdle(1.5f);
+            yield return Capture("booking-more-options");
+            ClickNamed("booking-edit");
+            yield return WaitIdle(1.5f);
+            yield return Capture("segment-editor");
+            if (SegmentEditor.Current != null)
+            {
+                ClickNamed("editor-add-team-0");
+                yield return Wait(0.8f);
+                yield return Capture("team-picker");
+                ShellController.Current.Overlay.CloseAll();
+            }
+            ShellController.Current.Overlay.CloseAll();
+            // A talking segment's beats editor, on the first talking segment the card has.
+            VisualElement angleCard = Q<VisualElement>(element => element.name != null && element.name.StartsWith("slot-card-") &&
+                element.Q<VisualElement>(className: "ds-match__segment-gap") != null);
+            if (angleCard != null)
+            {
+                ClickNamed(angleCard.name);
+                yield return Wait(0.6f);
+                yield return Capture("booking-angle-details");
+                ClickNamed("booking-edit");
+                yield return WaitIdle(2f);
+                yield return Capture("angle-editor");
+                ShellController.Current.Overlay.CloseAll();
+            }
+            yield return Wait(0.5f);
 
-            Click(Q<Button>(button => button.name == "booking-run"));
+            ClickNamed("booking-run");
             yield return Wait(1.5f);
             yield return Capture("show-night-ready");
-            Click(Q<Button>(button => button.name == "show-run-next"));
+            ClickNamed("show-run-next");
             yield return WaitIdle(2f);
             yield return Capture("show-night-live");
-            Click(Q<Button>(button => button.name == "show-sim-rest"));
+            ClickNamed("show-sim-rest");
             yield return WaitIdle(3f);
             yield return Capture("show-over");
-            Click(Q<Button>(button => button.name == "show-see-results"));
-            yield return Wait(2.5f);
+            ClickNamed("show-see-results");
+            yield return WaitIdle(3f);
             yield return Capture("results");
             Q<WhyButton>(button => true)?.OpenPanel();
             yield return Wait(1f);
@@ -178,6 +231,23 @@ namespace RingsideBooker.Screens.Dev
             });
             if (found == null) Debug.LogWarning($"[LoopScreenshots] no {typeof(T).Name} found");
             return found;
+        }
+
+        /// <summary>Presses any element by name (buttons, skewed CTAs, cards) with a submit event.</summary>
+        private static void ClickNamed(string name)
+        {
+            VisualElement element = Q<VisualElement>(candidate => candidate.name == name);
+            if (element == null) return;
+            if (element is Button button)
+            {
+                Click(button);
+                return;
+            }
+            using (NavigationSubmitEvent submit = NavigationSubmitEvent.GetPooled())
+            {
+                submit.target = element;
+                element.SendEvent(submit);
+            }
         }
 
         private static void Click(Button button)

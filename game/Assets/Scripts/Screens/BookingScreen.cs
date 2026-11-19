@@ -177,7 +177,7 @@ namespace RingsideBooker.Screens
             VisualElement head = Ds.Row("fc-head");
 
             VisualElement panel = Ds.Row("ds-show", "ds-show--wide", "fc-show").Named("booking-showbar");
-            PromotionLogos.PrependShow(panel, page.EventId, null, Kit.Str(show, "promotionId"), "rb-logo--lg");
+            PromotionLogos.PrependShow(panel, page.EventId, null, Kit.Str(show, "promotionId"), "rb-logo--xl");
             VisualElement words = Ds.Column("ds-show__words", "fc-show__words");
             VisualElement kicker = Ds.Row("ds-show__kicker");
             string importance = Kit.Str(show, "importance");
