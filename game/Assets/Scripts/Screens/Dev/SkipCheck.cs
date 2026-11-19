@@ -268,6 +268,7 @@ namespace RingsideBooker.Screens.Dev
                 string screen = ShellController.Current.Navigator.Current?.ScreenId;
                 Debug.Log($"[SkipCheck] {lead.GateId}: \"{lead.Reason}\" → opened {screen}");
                 if (screen == Contracts.ContractsScreen.ScreenId) await ClearOnContracts(lead);
+                else if (screen == News.NewsScreen.ScreenId) await ClearOnNews();
                 return;
             }
             Button button = sheet.Root.Q<Button>($"waiting-action-{lead.GateId}-0");
@@ -327,6 +328,18 @@ namespace RingsideBooker.Screens.Dev
                     button.SendEvent(submit);
                 }
             }
+            await Settle();
+            ShellController.Current.Overlay.CloseAll();
+        }
+
+        /// <summary>
+        /// The news alert on the News screen (UNITY-19): the day button opened the story with
+        /// <c>alert=1</c>, and the screen clears the stop itself; wait for it, then close the story.
+        /// </summary>
+        internal static async Task ClearOnNews()
+        {
+            for (int wait = 0; wait < 50 && News.NewsScreen.Current?.Root.panel == null; wait++) await Task.Delay(100);
+            await Settle();
             await Settle();
             ShellController.Current.Overlay.CloseAll();
         }

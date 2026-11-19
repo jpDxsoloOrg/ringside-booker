@@ -120,12 +120,12 @@ namespace RingsideBooker.UI.Bridge
             try
             {
                 if (!news.Ok || !(news.Data is JObject data)) return Array.Empty<string>();
-                Dictionary<string, Screens.News.NewsName> names = Screens.News.NewsText.NamesFrom(data["names"]);
+                Dictionary<string, global::RingsideBooker.Screens.News.NewsName> names = global::RingsideBooker.Screens.News.NewsText.NamesFrom(data["names"]);
                 IEnumerable<JToken> stories = (data["hero"] as JArray ?? new JArray()).Concat(data["ticker"] as JArray ?? new JArray());
                 return stories
                     .GroupBy(story => (string)story["id"])
-                    .Select(group => Screens.News.NewsText.Render(group.First()["headline"], names))
-                    .Where(line => line != Screens.News.NewsText.MissingText)
+                    .Select(group => global::RingsideBooker.Screens.News.NewsText.Render(group.First()["headline"], names))
+                    .Where(line => line != global::RingsideBooker.Screens.News.NewsText.MissingText)
                     .Take(TickerSize)
                     .ToList();
             }
