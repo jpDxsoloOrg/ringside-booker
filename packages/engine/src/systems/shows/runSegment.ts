@@ -28,6 +28,7 @@ import {
   type MatchOutcomeResolution,
   type SegmentResult,
 } from './registries';
+import { LIGHT_TRACE_KEPT, lightSummary } from './lightPath';
 import { matchResultTraceRef, segmentScoreTraceRef } from './traces';
 
 /** Who won, lost and drew: competitors only, each list by id. */
@@ -192,6 +193,7 @@ export function runSegment(
   stepCtx: PhaseContext,
   show: ShowContext,
   entry: ShowSegment,
+  { light = false }: { light?: boolean } = {},
 ): number | null {
   const { segment } = entry;
   // Already run (BRW3's aired draft): keep its rating, and let it count toward the show score.
@@ -217,13 +219,31 @@ export function runSegment(
 
   const ref = segmentScoreTraceRef(segment.id, show.humanShow);
   ctx.tx.update('segments', segment.id, { rating: storedRating(rated.data, refKey(ref)) });
-  ctx.recordTrace(ref, ctx.date, withOutcomeLine(rated.data.score, resolution?.trace ?? null));
-  if (resolution !== null) {
-    // The result line's winner Why? on the results page (EVT3-07).
-    ctx.recordTrace(matchResultTraceRef(segment.id, show.humanShow), ctx.date, {
-      value: resolution.outcome.kind,
-      trace: resolution.trace,
-    });
+  if (light) {
+    // A light show (POL4-13) keeps a one-line summary of its segment traces.
+    ctx.recordTrace(
+      ref,
+      ctx.date,
+      lightSummary('Segment score', rated.data.score.value),
+      LIGHT_TRACE_KEPT,
+    );
+    if (resolution !== null) {
+      ctx.recordTrace(
+        matchResultTraceRef(segment.id, show.humanShow),
+        ctx.date,
+        lightSummary('Result', resolution.outcome.kind),
+        LIGHT_TRACE_KEPT,
+      );
+    }
+  } else {
+    ctx.recordTrace(ref, ctx.date, withOutcomeLine(rated.data.score, resolution?.trace ?? null));
+    if (resolution !== null) {
+      // The result line's winner Why? on the results page (EVT3-07).
+      ctx.recordTrace(matchResultTraceRef(segment.id, show.humanShow), ctx.date, {
+        value: resolution.outcome.kind,
+        trace: resolution.trace,
+      });
+    }
   }
 
   const outcome = resolution?.outcome ?? null;
@@ -257,6 +277,7 @@ export function runSegment(
     titleCanChange: resolution?.titleCanChange ?? null,
     score: rated.data.score.value,
     stars: rated.data.stars.value,
+    ...(light ? { light: true as const } : {}),
   };
   for (const applier of listSegmentResultAppliers()) {
     applier.apply(ctx, result);

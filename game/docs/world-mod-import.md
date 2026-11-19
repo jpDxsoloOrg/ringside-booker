@@ -135,8 +135,47 @@ ids, codes and counts only, never names.
 Dev flags on the player: `-rbImportCheck [all|<id>,<id>…] [-rbImportCheckShots <folder>]` imports
 every installed world mod (logs `[ImportCheck]` per item, exit 0 when all import; with shots the
 first goes through the real sub-screen and an add-on mod is forced through to capture the failure
-screen); `-rbSkipCheck 30 -rbSkipCheckWorkshop <item id>` imports that mod and plays it. Screenshots
+screen); `-rbSkipCheck 30 -rbSkipCheckWorkshop <item id>` imports that mod and plays it, and
+`-rbSkipCheckSpeed full|fast` starts that game with the Big world speed setting (POL4-13). Screenshots
 and the skip check's log show mod names: keep them local.
+
+## Kept across restarts (UNITY-14)
+
+After an import the game stores the converted world: the engine's `exportImportedWorld` answer,
+gzipped, at `persistentDataPath/Worlds/<pack id>/pack.json.gz`, plus `Worlds/index.json` (world name,
+start date, workshop item id, mod folder, database and picture folder, roster only, import date, the
+database's last write time, counts, the import summary). Code: `Saves/ImportedWorldStore.cs`
+(`StoredWorld`, `List`, `Save`, `ReadPack`, `Remove`, `ModState`, `StoreFromEngineAsync`,
+`RegisterAsync`) and `Screens/WorkshopWorlds.cs` (`Store`, `EnsureRegisteredAsync`,
+`RemoveStoredAsync`, `StoredDetail`, `ModNote`).
+
+- **Why the pack and not a silent re-import.** Measured on the owner's test mod (3,576 people) in the
+  packaged player: re-importing reads the database in 185 ms and converts and checks it in 804 ms,
+  needs the mod installed, and would silently change the world when the mod updates. The stored pack
+  is 5.3 MB of JSON, 0.6 MB on disk (export 25 ms, gzip and write 115 ms after an import); putting it
+  back takes 30 ms to read and 41 ms to register. Previewing the world (the full checks) takes about
+  0.8 s either way.
+- **Start-up does no work.** New game reads only the index; a stored world goes back into the engine
+  when it is picked (Next / preview, or a new game), so the title screen never waits on it.
+- New game lists stored worlds under "Imported workshop worlds" with "Imported <date> · starts … ·
+  people · promotions · roster only" and the import summary as the notice.
+- **Manage imported worlds…** (`import-manage` on the import sub-screen; elements
+  `stored-world-list`, `stored-<item id>`, `stored-reimport-<item id>`, `stored-remove-<item id>`
+  (press twice), `manage-back`): each kept world with its detail, a note when the mod has updated
+  since the import (the database's last write time changed) or is no longer installed, **Re-import**
+  (when the mod is installed: imports it again with the same roster-only choice and replaces the
+  stored world) and **Remove** (deletes the files and forgets it in the engine; saves of it still
+  load, a save carries its world).
+- **Pictures** still load in place from the mod folder. When the mod moved to another library, the
+  scan updates the stored folders (by item id) and saves follow them through the stored world. When
+  it is gone, portraits and logos show placeholders, New game notes it and Roster shows a note
+  (`roster-pictures-note`, `WorkshopWorlds.CurrentPicturesNote`).
+- `WorkshopWorlds.ImportAsync(..., keep: false)` imports without storing (the import check uses it).
+- Dev flag: `-rbSkipCheck 7 -rbSkipCheckStored <item id> [-rbSkipCheckShots <folder>]` plays a stored
+  world after a restart without importing (with shots: the world list and Manage imported worlds).
+- Test: `game/tools/unity-test-editmode.sh RingsideBooker.Saves.Tests.ImportedWorldStoreTests` (a
+  generated fictional world mod, `Assets/Tests/Saves/Fixtures/fictional-world-mod.json`, from
+  `packages/engine-host/test/worldModFixture.ts`).
 
 ## Known gaps
 
@@ -144,5 +183,5 @@ and the skip check's log show mod names: keep them local.
   30 s in Node, against a year in about 20 s for the shipped world. Engine performance work, not
   import work.
 - Stables have no engine record kind yet; relationships and chemistry are not imported.
-- Imported worlds last for the session; after a restart the world is imported again (saves of it
-  load without the mod).
+- A stored world converted by an older build is not converted again when the converter improves;
+  Re-import picks up converter fixes as well as mod updates.

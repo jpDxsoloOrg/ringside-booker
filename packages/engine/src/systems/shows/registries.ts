@@ -86,6 +86,11 @@ export interface SegmentResult {
   readonly score: number;
   /** The segment's stars, 0 to 5 in quarter steps. */
   readonly stars: number;
+  /**
+   * True on a distant rival show run on Big world speed's light path (POL4-13): appliers keep
+   * their work to the show's region and their traces to summaries. Absent on every other show.
+   */
+  readonly light?: true;
 }
 
 /** What a system writes to react to every segment's result inside the shows phase. */

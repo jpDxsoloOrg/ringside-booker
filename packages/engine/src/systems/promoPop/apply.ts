@@ -20,7 +20,8 @@ import type { PopularityShowRegion } from '../../model/entities/popularity-show-
 import type { Promotion } from '../../model/entities/promotion';
 import { compareIds } from '../../model/table';
 import type { DeepReadonly } from '../../model/world';
-import { applyPopularityChange } from '../workers/doors';
+import { LIGHT_TRACE_KEPT, lightSummary } from '../shows/lightPath';
+import { applyPopularityChange, applyPopularityChangeInRegion } from '../workers/doors';
 import { createPopularityRoller } from '../world/formulas/popularityRollup';
 import { geographyOf, type Geography } from '../world/geography';
 import { regionExpectation } from './formulas/regionExpectation';
@@ -102,6 +103,11 @@ function skip(ctx: StepContext, eventInstanceId: EventInstanceId, reason: string
 export function applyShowPopularity(
   ctx: StepContext,
   eventInstanceId: EventInstanceId,
+  /**
+   * Big world speed's light path (POL4-13): only the show's own region moves, through the
+   * one-region door, and its trace is a one-line summary. Off by default.
+   */
+  { showRegionOnly = false }: { showRegionOnly?: boolean } = {},
 ): ApplyShowPopularityResult {
   const { read, tunables } = ctx;
   const instance = read.tables.eventInstances.get(eventInstanceId);
@@ -127,8 +133,11 @@ export function applyShowPopularity(
   const gains = gainsForMonth(promotion, instance.date);
   const score = instance.result.score;
 
+  const reachedRegions = showRegionOnly
+    ? reach.regions.filter((reached) => reached.regionId === instance.regionId)
+    : reach.regions;
   const plans: RegionPlan[] = [];
-  for (const reached of byPopulation(reach.regions, geography)) {
+  for (const reached of byPopulation(reachedRegions, geography)) {
     const before = promotion.regionalPop[reached.regionId] ?? 0;
     const expectation = regionExpectation(
       {
@@ -162,15 +171,21 @@ export function applyShowPopularity(
       regionDeltas[plan.reached.regionId] = plan.change.value;
     }
   }
+  const subject = { kind: 'promotion', id: promotion.id } as const;
+  const reason = { key: SHOW_RESULT_REASON_KEY, label: instance.name };
+  const lightPlan = showRegionOnly ? plans[0] : undefined;
   const door =
     Object.keys(regionDeltas).length === 0
       ? null
-      : applyPopularityChange(ctx, {
-          subject: { kind: 'promotion', id: promotion.id },
-          regionDeltas,
-          source: 'system',
-          reason: { key: SHOW_RESULT_REASON_KEY, label: instance.name },
-        });
+      : lightPlan !== undefined
+        ? applyPopularityChangeInRegion(ctx, {
+            subject,
+            regionId: lightPlan.reached.regionId,
+            delta: lightPlan.change.value,
+            source: 'system',
+            reason,
+          })
+        : applyPopularityChange(ctx, { subject, regionDeltas, source: 'system', reason });
 
   const humanShow = promotion.controller.kind === 'human';
   const nextGains: Record<RegionId, number> = { ...gains };
@@ -200,7 +215,17 @@ export function applyShowPopularity(
       after,
       capped: plan.capped,
     };
-    ctx.recordTrace(showChangeTraceRef(instance.id, regionId, humanShow), ctx.date, plan.change);
+    const changeRef = showChangeTraceRef(instance.id, regionId, humanShow);
+    if (showRegionOnly) {
+      ctx.recordTrace(
+        changeRef,
+        ctx.date,
+        lightSummary(`Change in ${plan.reached.regionName}`, plan.change.value),
+        LIGHT_TRACE_KEPT,
+      );
+    } else {
+      ctx.recordTrace(changeRef, ctx.date, plan.change);
+    }
   }
 
   ctx.tx.update('promotions', promotion.id, {

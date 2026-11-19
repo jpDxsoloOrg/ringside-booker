@@ -48,8 +48,8 @@ namespace RingsideBooker.Screens
         private static async Task RenderGroup(VisualElement host, string group, ScreenContext context)
         {
             EngineClient client = Kit.Game.Client;
-            QueryResult<JToken> rows = await client.Query("roster.rows", new JObject { ["group"] = group });
-            QueryResult<JToken> summary = await client.Query("roster.summary");
+            (QueryResult<JToken> rows, QueryResult<JToken> summary) = await client.Read("roster",
+                reader => (reader.Query("roster.rows", new JObject { ["group"] = group }), reader.Query("roster.summary")));
             host.Clear();
             if (!rows.Ok)
             {
@@ -76,6 +76,7 @@ namespace RingsideBooker.Screens
 
             bool wrestlers = group == "wrestlers";
             Import.Pictures.PictureProvider pictures = WorkshopWorlds.CurrentPictures;
+            if (WorkshopWorlds.CurrentPicturesNote is string picturesNote) host.Add(Kit.Note(picturesNote).Named("roster-pictures-note"));
             var table = new Kit.Table(host,
                 new[] { "Name", "Brand", "Push", "Expects", "Overall", "Popularity", "Momentum", "Morale", "Availability", "Contract ends" },
                 new[] { 2.2f, 1.4f, 1.6f, 1.1f, 1f, 1.1f, 0.9f, 0.8f, 1.3f, 1.2f });

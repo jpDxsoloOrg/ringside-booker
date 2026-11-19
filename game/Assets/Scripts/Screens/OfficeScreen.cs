@@ -61,46 +61,51 @@ namespace RingsideBooker.Screens
             public string Today;
         }
 
-        private static async Task<JToken> Get(string name, JObject args = null)
+        /// <summary>
+        /// Everything the homepage shows, in one trip to the engine (UNITY-23's <c>EngineClient.Read</c>):
+        /// the reader runs on the engine thread, so the follow-up queries that depend on earlier
+        /// answers (the next card, the people who want to leave) stay in the same trip.
+        /// </summary>
+        private static Task<Data> Load() => Kit.Game.Client.Read("office", reader =>
         {
-            QueryResult<JToken> answer = await Kit.Game.Client.Query(name, args);
-            return answer.Ok ? answer.Data : null;
-        }
+            JToken Get(string name, JObject args = null)
+            {
+                QueryResult<JToken> answer = reader.Query(name, args);
+                return answer.Ok ? answer.Data : null;
+            }
 
-        private static async Task<Data> Load()
-        {
-            var data = new Data { Dashboard = await Get("office.dashboard") };
+            var data = new Data { Dashboard = Get("office.dashboard") };
             data.PromotionId = Kit.Str(data.Dashboard, "promotion.promotionId");
             data.Today = Kit.Str(data.Dashboard, "date");
-            data.News = await Get("news.top");
-            data.Promotions = await Get("promotions.list");
-            JToken gates = await Get("sim.pendingGates");
+            data.News = Get("news.top");
+            data.Promotions = Get("promotions.list");
+            JToken gates = Get("sim.pendingGates");
             data.Gates = Kit.Arr(gates, "hits").Select(hit => new BridgeGateHit(
                 Kit.Str(hit, "gateId"), Kit.Str(hit, "reason"), Kit.Str(hit, "actionHint"),
                 Kit.Obj(hit, "subject") is JToken subject && subject.Type == JTokenType.Object ? new GateSubject(Kit.Str(subject, "kind"), Kit.Str(subject, "id")) : null)).ToList();
             if (data.PromotionId == null) return data;
 
             var promotion = new JObject { ["promotionId"] = data.PromotionId };
-            data.NextShow = await Get("calendar.nextShow", new JObject { ["scope"] = "mine" });
+            data.NextShow = Get("calendar.nextShow", new JObject { ["scope"] = "mine" });
             string nextId = Kit.Str(data.NextShow, "show.eventInstanceId");
             if (nextId != null && (Kit.Num(data.NextShow, "show.segmentCount") ?? 0) > 0)
             {
-                data.Card = await Get("booking.card", new JObject { ["eventInstanceId"] = nextId });
+                data.Card = Get("booking.card", new JObject { ["eventInstanceId"] = nextId });
             }
             if (data.Today != null && DateTime.TryParse(data.Today, out DateTime today))
             {
-                data.Week = await Get("calendar.range", new JObject { ["from"] = data.Today, ["to"] = today.AddDays(7).ToString("yyyy-MM-dd"), ["scope"] = "mine" });
+                data.Week = Get("calendar.range", new JObject { ["from"] = data.Today, ["to"] = today.AddDays(7).ToString("yyyy-MM-dd"), ["scope"] = "mine" });
             }
-            data.LastShow = await Get("shows.lastCompleted", new JObject { ["scope"] = "mine" });
-            data.Finance = await Get("finance.overview", promotion);
-            data.Roster = await Get("roster.rows", promotion);
-            data.Titles = await Get("titles.list", new JObject { ["scope"] = "own", ["status"] = "active" });
-            data.Counts = await Get("contracts.counts");
-            data.Expiring = await Get("contracts.list", new JObject { ["tab"] = "expiring" });
-            if ((Kit.Num(data.Counts, "wantsToLeave") ?? 0) > 0) data.Active = await Get("contracts.list", new JObject { ["tab"] = "active" });
-            data.Offers = await Get("contracts.offers", new JObject { ["promotionId"] = data.PromotionId, ["status"] = "open" });
+            data.LastShow = Get("shows.lastCompleted", new JObject { ["scope"] = "mine" });
+            data.Finance = Get("finance.overview", promotion);
+            data.Roster = Get("roster.rows", promotion);
+            data.Titles = Get("titles.list", new JObject { ["scope"] = "own", ["status"] = "active" });
+            data.Counts = Get("contracts.counts");
+            data.Expiring = Get("contracts.list", new JObject { ["tab"] = "expiring" });
+            if ((Kit.Num(data.Counts, "wantsToLeave") ?? 0) > 0) data.Active = Get("contracts.list", new JObject { ["tab"] = "active" });
+            data.Offers = Get("contracts.offers", new JObject { ["promotionId"] = data.PromotionId, ["status"] = "open" });
             return data;
-        }
+        });
 
         private static async Task Render(VisualElement host, ScreenContext context)
         {

@@ -24,6 +24,7 @@ import {
 } from '../core/tunables/resolver';
 import { promoPopTunables } from './promoPop/tunables';
 import { showsTunables } from './shows/tunables';
+import { bigWorldTunables } from './shows/bigWorldTunables';
 import { workersTunables } from './workers/tunables';
 import { worldTunables } from './world/tunables';
 import { momentumTunables } from './match/aftermath/momentumTunables';
@@ -57,6 +58,7 @@ export const ALL_TUNABLES = mergeTunables(
   matchTunables,
   bookingTunables,
   showsTunables,
+  bigWorldTunables,
   aftermathTunables,
   momentumTunables,
   promoPopTunables,
