@@ -14,6 +14,12 @@ namespace RingsideBooker.UI.Shell
         /// <summary>The cash chip's element name: a Why? panel (UNITY-08) can attach to it; its userData is the cash trace ref.</summary>
         public const string CashChipName = "cash-chip";
 
+        /// <summary>
+        /// Called after the cash chip is drawn, to add to it (the engine bridge adds the cash Why?
+        /// button, UNITY-09). Null draws the chip alone.
+        /// </summary>
+        public static System.Action<VisualElement, ShellSnapshot> CashChipDecorator { get; set; }
+
         private readonly Label crumbSection;
         private readonly Label crumbSeparator;
         private readonly Label crumbPage;
@@ -50,6 +56,7 @@ namespace RingsideBooker.UI.Shell
             cash.userData = snapshot.CashTraceRef;
             if (snapshot.CashCents < 0) cash.Q<Label>(className: "status-chip__value").AddToClassList("status-chip__value--negative");
             chips.Add(cash);
+            CashChipDecorator?.Invoke(cash, snapshot);
 
             if (snapshot.Popularity.HasValue)
             {
