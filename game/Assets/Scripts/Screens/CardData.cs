@@ -116,6 +116,10 @@ namespace RingsideBooker.Screens
             return parts.Length > 1 && parts[0] != "The" && !name.Contains("&") ? parts.Last() : name;
         }
 
+        /// <summary>"Altura World Championship" → "Altura World Champion" (who holds it).</summary>
+        public static string Champion(string titleName) =>
+            titleName == null ? null : titleName.EndsWith("Championship") ? titleName.Substring(0, titleName.Length - "ship".Length) : $"{titleName} champion";
+
         public static string Title(string titleName) =>
             titleName == null ? null : titleName.EndsWith(" Championship") ? titleName.Replace(" Championship", " title") : titleName;
     }

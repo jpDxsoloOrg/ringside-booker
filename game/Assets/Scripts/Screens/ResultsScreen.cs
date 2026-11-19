@@ -111,7 +111,7 @@ namespace RingsideBooker.Screens
                     shape.Add(new Icon("crown", "ds-icon--sm", "fc-new-champ__icon"));
                     shape.Add(Ds.Text("AND NEW", "fc-new-champ__tag-text"));
                     banner.Add(shape);
-                    banner.Add(Ds.Text($"{string.Join(" & ", Kit.Arr(title, "newHolderNames").Select(name => (string)name))} {(Kit.Arr(title, "newHolderNames").Count() > 1 ? "are" : "is")} the new {Kit.Str(title, "name")}", "fc-new-champ__text"));
+                    banner.Add(Ds.Text($"{string.Join(" & ", Kit.Arr(title, "newHolderNames").Select(name => (string)name))} {(Kit.Arr(title, "newHolderNames").Count() > 1 ? "are" : "is")} the new {CardWords.Champion(Kit.Str(title, "name"))}", "fc-new-champ__text"));
                     reveals.Add(banner);
                     order.Add(banner);
                 }
@@ -229,7 +229,7 @@ namespace RingsideBooker.Screens
                 {
                     string outcome = Kit.Str(title, "outcome");
                     if (outcome != "newChampion") continue;
-                    changes.Add(Change(DsState.Gold, "crown", $"New {Kit.Str(title, "name")}",
+                    changes.Add(Change(DsState.Gold, "crown", $"New {CardWords.Champion(Kit.Str(title, "name"))}",
                         $"{string.Join(" & ", Kit.Arr(title, "newHolderNames").Select(name => (string)name))} won it in the {Kit.Str(segment, "roleLabel")?.ToLowerInvariant()}.",
                         Kit.WhyRef(Kit.Str(title, "name"), 0, Kit.Obj(title, "outcomeTraceRef"), null, "Title outcome")));
                     count++;

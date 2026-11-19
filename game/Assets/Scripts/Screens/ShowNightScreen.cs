@@ -293,7 +293,7 @@ namespace RingsideBooker.Screens
                 string titleOutcome = Kit.Str(title, "outcome");
                 if (titleOutcome == "none") continue;
                 string text = titleOutcome == "newChampion"
-                    ? $"And new {Kit.Str(title, "name")}: {string.Join(" & ", Kit.Arr(title, "newHolderNames").Select(holder => (string)holder))}"
+                    ? $"And new {CardWords.Champion(Kit.Str(title, "name"))}: {string.Join(" & ", Kit.Arr(title, "newHolderNames").Select(holder => (string)holder))}"
                     : titleOutcome == "retained" ? $"{Kit.Str(title, "name")} retained" : $"{Kit.Str(title, "name")} is still vacant";
                 VisualElement line = Line("TITLE", text, titleOutcome == "newChampion", "good");
                 line.AddOpt(Kit.WhyRef(Kit.Str(title, "name"), 0, Kit.Obj(title, "outcomeTraceRef"), null, "Title outcome"));
