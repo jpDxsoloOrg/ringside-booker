@@ -73,6 +73,13 @@ namespace RingsideBooker.Screens.Dev
             yield return Capture("finances-overview");
             yield return ScrollToBottom();
             yield return Capture("finances-overview-bottom");
+            // "Last 12 months" opened (closed at first; UNITY-22), then closed again for the owner.
+            FinancesView.MonthlyOpen = true;
+            Go(ShellRoute.To(FinancesScreen.ScreenId));
+            yield return WaitIdle(1.5f);
+            yield return ScrollToBottom();
+            yield return Capture("finances-last-12-months");
+            FinancesView.MonthlyOpen = false;
 
             FinancesView finances = FinancesScreen.Current;
             finances.SelectTab(FinancesScreen.TabLedger);

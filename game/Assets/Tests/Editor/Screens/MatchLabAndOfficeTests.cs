@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using RingsideBooker.Screens;
 using RingsideBooker.Screens.MatchLab;
 using RingsideBooker.Screens.Office;
 using RingsideBooker.UI.Bridge;
@@ -214,6 +215,23 @@ namespace RingsideBooker.Tests.Screens
         public void NothingNeededWhenTheDayIsClear()
         {
             Assert.IsEmpty(OfficeLogic.NeedsToday(new List<GateHit>(), JObject.Parse(@"{ ""daysUntil"": 3, ""show"": { ""name"": ""X"" } }"), null, new JArray(), null, new JArray()));
+        }
+
+        [Test]
+        public void AFoundedPromotionWithNobodyIsToldToSignWrestlersFirst()
+        {
+            JToken tonight = JObject.Parse(@"{ ""daysUntil"": 0, ""show"": { ""name"": ""HCW Weekly"", ""eventInstanceId"": ""evt_1"", ""segmentCount"": 0, ""format"": { ""slots"": 5 } } }");
+            List<NeedItem> items = OfficeLogic.NeedsToday(new List<GateHit>(), tonight, null, new JArray(), null, new JArray(), 0);
+            Assert.AreEqual("sign-wrestlers", items[0].Id);
+            Assert.AreEqual("Sign some wrestlers first", items[0].Title);
+            Assert.AreEqual("Find free agents", items[0].Action);
+            Assert.AreEqual("contracts", items[0].Route.ScreenId);
+            Assert.AreEqual("free-agents", items[0].Route.Param("tab"));
+            Assert.IsFalse(items[1].Primary, "the show waits for signings, so it isn't the main action");
+            Assert.AreEqual("Nobody is under contract yet. Free agents are waiting for an offer.", items[0].Detail);
+            Assert.AreEqual("Only 1 wrestler is under contract: not enough to fill a card.", Signing.Detail(1));
+            Assert.IsFalse(OfficeLogic.NeedsToday(new List<GateHit>(), tonight, null, new JArray(), null, new JArray(), 12).Any(item => item.Id == "sign-wrestlers"));
+            Assert.AreEqual(3, Signing.Wrestlers(JObject.Parse(@"{ ""rows"": [ { ""group"": ""wrestlers"" }, { ""group"": ""wrestlers"" }, { ""group"": ""managers"" }, { ""group"": ""wrestlers"" } ] }")));
         }
     }
 }

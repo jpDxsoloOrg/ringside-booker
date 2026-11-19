@@ -103,6 +103,18 @@ namespace RingsideBooker.Screens.Dev
                 Go(ShellRoute.To("booking"));
                 yield return Wait(2f);
                 yield return Capture("found-booking");
+                // Nobody under contract yet (UNITY-22): the card check says so, Auto-fill says so,
+                // and "Find free agents" opens Contracts › Free agents.
+                ClickNamed("booking-checklist");
+                yield return Wait(0.8f);
+                yield return Capture("found-card-check");
+                ShellController.Current.Overlay.CloseAll();
+                ClickNamed("booking-autofill");
+                yield return Wait(0.6f);
+                yield return Capture("found-autofill");
+                ClickNamed("booking-sign-wrestlers");
+                yield return Wait(2f);
+                yield return Capture("found-free-agents");
                 Debug.Log($"[LoopScreenshots] done (founded promotion {EngineGame.Current?.PromotionId}): {folder}");
                 Application.Quit(0);
                 yield break;
@@ -158,7 +170,10 @@ namespace RingsideBooker.Screens.Dev
             }
             yield return Wait(0.5f);
 
-            ClickNamed("booking-run");
+            // A live show goes on air from the day button (Booking has no Go live of its own); an Auto
+            // show runs from Booking's Run the show.
+            if (Q<VisualElement>(candidate => candidate.name == "booking-run") != null) ClickNamed("booking-run");
+            else ShellController.Current.DayControl.RunPrimary();
             yield return Wait(1.5f);
             yield return Capture("show-night-ready");
             ClickNamed("show-run-next");

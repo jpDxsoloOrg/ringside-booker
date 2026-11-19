@@ -6,6 +6,7 @@ using RingsideBooker.Engine;
 using RingsideBooker.UI.Bridge;
 using RingsideBooker.Import.Pictures;
 using RingsideBooker.UI.Design;
+using RingsideBooker.UI.Navigation;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -66,6 +67,30 @@ namespace RingsideBooker.Screens
     }
 
     /// <summary>Plain words the fight card screens share. Never minutes (D-10): lengths are Short, Standard or Long.</summary>
+    /// <summary>
+    /// A founded promotion starts with nobody under contract: signing people is part of the
+    /// challenge (owner, UNITY-22). Until there are enough wrestlers to fill a card, Booking, its
+    /// Auto-fill and the Office say so in plain words and offer one way to Contracts › Free agents.
+    /// </summary>
+    public static class Signing
+    {
+        /// <summary>Fewer wrestlers than this can't fill a card (two matches, say an opener and a main event).</summary>
+        public const int MinWrestlers = 4;
+        public const string Title = "Sign some wrestlers first";
+        public const string Action = "Find free agents";
+
+        public static ShellRoute Route => ShellRoute.With("contracts", "tab", "free-agents");
+
+        /// <summary>The wrestlers in a <c>roster.rows</c> answer.</summary>
+        public static int Wrestlers(JToken rosterRows) => Kit.Arr(rosterRows, "rows").Count(row => Kit.Str(row, "group") == "wrestlers");
+
+        public static bool Needed(int wrestlers) => wrestlers < MinWrestlers;
+
+        public static string Detail(int wrestlers) => wrestlers == 0
+            ? "Nobody is under contract yet. Free agents are waiting for an offer."
+            : $"Only {wrestlers} {(wrestlers == 1 ? "wrestler is" : "wrestlers are")} under contract: not enough to fill a card.";
+    }
+
     public static class CardWords
     {
         public static readonly string[] Lengths = { "short", "standard", "long" };

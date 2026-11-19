@@ -278,7 +278,7 @@ namespace RingsideBooker.Screens
 
         private static VisualElement NeedsYou(Data data, ScreenContext context)
         {
-            List<NeedItem> items = OfficeLogic.NeedsToday(data.Gates, data.NextShow, data.Counts, data.Expiring, data.Active, data.Offers);
+            List<NeedItem> items = OfficeLogic.NeedsToday(data.Gates, data.NextShow, data.Counts, data.Expiring, data.Active, data.Offers, data.Roster != null ? Signing.Wrestlers(data.Roster) : (int?)null);
             VisualElement panel = Ds.Panel("Needs you today", null, null, "oh-needs").Named("office-needs");
             if (items.Count == 0)
             {

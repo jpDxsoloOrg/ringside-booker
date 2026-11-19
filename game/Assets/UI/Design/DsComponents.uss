@@ -672,8 +672,21 @@
     border-bottom-color: var(--ds-line);
 }
 
+/*
+ * The words take what the close button leaves and wrap a long title onto more lines (UNITY-22: a
+ * long sheet title ran under the close button). The right margin covers the title's letter-spacing,
+ * which Unity leaves out when it measures where to wrap.
+ */
 .ds-overlay-header__words {
     flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 0;
+    margin-right: 12px;
+}
+
+.ds-overlay-header > .ds-icon-btn {
+    flex-shrink: 0;
 }
 
 .ds-overlay-header__eyebrow {
@@ -684,6 +697,7 @@
 }
 
 .ds-overlay-header__title {
+    white-space: normal;
     font-size: 22px;
     letter-spacing: 0.6px;
     -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
@@ -955,6 +969,11 @@
 .ds-table__sort {
     margin-left: 4px;
     color: var(--ds-text-4);
+}
+
+.ds-table__sort--lead {
+    margin-left: 0;
+    margin-right: 4px;
 }
 
 .ds-table__sort--active {
