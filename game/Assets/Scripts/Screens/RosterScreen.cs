@@ -76,6 +76,7 @@ namespace RingsideBooker.Screens
 
             bool wrestlers = group == "wrestlers";
             Import.Pictures.PictureProvider pictures = WorkshopWorlds.CurrentPictures;
+            if (WorkshopWorlds.CurrentPicturesNote is string picturesNote) host.Add(Kit.Note(picturesNote).Named("roster-pictures-note"));
             var table = new Kit.Table(host,
                 new[] { "Name", "Brand", "Push", "Expects", "Overall", "Popularity", "Momentum", "Morale", "Availability", "Contract ends" },
                 new[] { 2.2f, 1.4f, 1.6f, 1.1f, 1f, 1.1f, 0.9f, 0.8f, 1.3f, 1.2f });

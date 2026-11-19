@@ -368,6 +368,26 @@ namespace RingsideBooker.Engine
             return Enqueue("removeImportedWorld", false, engine => engine.Call("removeImportedWorld", packId));
         }
 
+        /// <summary>
+        /// Host API v3 (UNITY-14): an imported world pack as JSON text (<c>{"ok":true,"pack":{manifest,files}}</c>,
+        /// several MB for a big world), to store it. Pass this answer back to
+        /// <see cref="RegisterImportedWorld"/> after a restart.
+        /// </summary>
+        public Task<string> ExportImportedWorld(string packId)
+        {
+            return Enqueue("exportImportedWorld", true, engine => engine.Call("exportImportedWorld", packId));
+        }
+
+        /// <summary>
+        /// Host API v3: makes a stored world pack (<c>{pack}</c> JSON, e.g. an
+        /// <see cref="ExportImportedWorld"/> answer) an imported world again without converting
+        /// anything (raw JSON answer, <c>{ok, manifest}</c>). The full checks run at preview and new game.
+        /// </summary>
+        public Task<string> RegisterImportedWorld(string inputJson)
+        {
+            return Enqueue("registerImportedWorld", false, engine => engine.Call("registerImportedWorld", inputJson));
+        }
+
         /// <summary>Any host function by name, with JSON-text arguments; the raw JSON answer (tools, new host calls).</summary>
         public Task<string> CallRaw(string function, params string[] jsonArgs)
         {
