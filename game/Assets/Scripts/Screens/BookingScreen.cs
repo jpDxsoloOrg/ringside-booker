@@ -81,9 +81,9 @@ namespace RingsideBooker.Screens
             }
 
             var args = new JObject { ["eventInstanceId"] = eventId };
-            (QueryResult<JToken> cardAnswer, QueryResult<JToken> validation, QueryResult<JToken> venue, QueryResult<JToken> liveRead) = await client.Read("booking.card",
+            (QueryResult<JToken> cardAnswer, QueryResult<JToken> validation, QueryResult<JToken> venue, QueryResult<JToken> liveRead, QueryResult<JToken> roster) = await client.Read("booking.card",
                 reader => (reader.Query("booking.card", args), reader.Query("booking.validate", args), reader.Query("boxOffice.showVenue", args),
-                    reader.Query("shows.liveState", args)));
+                    reader.Query("shows.liveState", args), reader.Query("roster.summary")));
             state.People ??= await CardPeople.LoadAsync();
             if (!cardAnswer.Ok)
             {
@@ -107,11 +107,13 @@ namespace RingsideBooker.Screens
             Label feedback = Kit.Feedback();
             feedback.name = "booking-feedback";
             var page = new BookingPage(context, state, card, checks, feedback, eventId, host);
+            if (roster.Ok && Kit.Num(roster.Data, "byGroup.wrestlers") is double wrestlerCount) page.Wrestlers = (int)wrestlerCount;
 
             host.Clear();
             host.Add(ShowStrip(rows, eventId, context));
             host.Add(Header(page, Kit.Obj(venue.Ok ? venue.Data : null, "venue"), live));
             host.Add(feedback);
+            if (page.MustSign && Kit.Bool(card, "canEdit")) host.Add(SigningNote(page));
 
             bool canEdit = Kit.Bool(card, "canEdit");
             if (!canEdit && Kit.Obj(card, "editBlock") is JToken block)
@@ -216,11 +218,20 @@ namespace RingsideBooker.Screens
             {
                 Button fill = Ds.Button("Auto-fill", async () =>
                 {
+                    if (page.Wrestlers is int few && few < 2)
+                    {
+                        // Nobody to book: say what to do instead of a refusal (UNITY-22).
+                        DsOverlay.Toast(page.Feedback, $"{Signing.Title}: Auto-fill needs people under contract", DsState.Warn);
+                        return;
+                    }
                     CommandResult<JToken> result = await Kit.Run("aip.autoFillCard", new JObject { ["eventInstanceId"] = page.EventId, ["keepFilledSlots"] = true }, page.Feedback);
                     if (result.Ok) await PlanAutoResults(page.EventId);
+                    if (page.MustSign) DsOverlay.Toast(page.Feedback, $"{Signing.Title}: there aren't enough to fill the card", DsState.Warn);
                 }, DsButtonKind.Ghost, "sparkles");
                 fill.name = "booking-autofill";
-                DsTooltip.Attach(fill, "Fill the empty slots the way the computer would book them. Matches get an Auto result.");
+                DsTooltip.Attach(fill, page.MustSign
+                    ? $"{Signing.Title}. Auto-fill can only book the people you have under contract."
+                    : "Fill the empty slots the way the computer would book them. Matches get an Auto result.");
                 buttons.Add(fill);
                 Button clear = Ds.Button("Clear", () => ConfirmClear(page), DsButtonKind.Ghost, "trash");
                 clear.name = "booking-clear";
@@ -298,6 +309,18 @@ namespace RingsideBooker.Screens
             return run;
         }
 
+        /// <summary>Too few wrestlers to fill a card (a founded promotion starts with nobody): one plain line and one way to sign people.</summary>
+        private static VisualElement SigningNote(BookingPage page)
+        {
+            VisualElement note = Ds.Row("fc-note", "fc-signing").Named("booking-signing");
+            note.Add(Ds.Pill(DsState.Warn, Signing.Title, "contracts"));
+            note.Add(Ds.Text(Signing.Detail(page.Wrestlers ?? 0), "fc-runs-later", "fc-signing__words"));
+            Button go = Ds.Button(Signing.Action, () => page.Context.Navigator.Go(Signing.Route), DsButtonKind.Secondary, "contracts");
+            go.name = "booking-sign-wrestlers";
+            note.Add(go);
+            return note;
+        }
+
         private static void ConfirmClear(BookingPage page)
         {
             VisualElement body = Ds.Column();
@@ -316,6 +339,7 @@ namespace RingsideBooker.Screens
             int warnings = Kit.Arr(checks, "warnings").Count();
             DsState state = checks == null ? DsState.Neutral : errors > 0 ? DsState.Bad : warnings > 0 ? DsState.Warn : DsState.Good;
             string text = checks == null ? "The card check could not be read"
+                : errors > 0 && page.MustSign ? $"Not ready: {Signing.Title.ToLowerInvariant()}"
                 : errors > 0 ? $"Not ready: {errors} {(errors == 1 ? "problem" : "problems")}"
                 : warnings > 0 ? $"Ready, but {warnings} {(warnings == 1 ? "thing" : "things")} to check"
                 : Kit.Bool(page.Card, "runsTonight") ? "Ready to go live" : "The card looks good";
@@ -336,6 +360,24 @@ namespace RingsideBooker.Screens
             VisualElement list = FightCardStyles.Apply(Ds.Column("fc-checklist-pop")).Named("booking-checklist-pop");
             list.Add(Ds.Text("CARD CHECK", "fc-label"));
             UI.Shell.OverlayHandle handle = null;
+            if (page.MustSign)
+            {
+                // The founded promotion's first problem: nobody (or too few) to book.
+                VisualElement sign = Ds.Row("ds-row--top", "fc-check", Ds.StateClass(DsState.Bad)).Named("check-signing");
+                sign.Add(new Icon("problem", "ds-icon--sm", "fc-check__icon"));
+                VisualElement signWords = Ds.Column("fc-check__words");
+                signWords.Add(Ds.Text(Signing.Title, "fc-check__text"));
+                signWords.Add(Ds.Text(Signing.Detail(page.Wrestlers ?? 0), "fc-check__detail"));
+                sign.Add(signWords);
+                Button go = Ds.Button(Signing.Action, () =>
+                {
+                    handle?.Close();
+                    page.Context.Navigator.Go(Signing.Route);
+                }, DsButtonKind.Secondary);
+                go.name = "check-fix-signing";
+                sign.Add(go);
+                list.Add(sign);
+            }
             foreach (JToken item in Kit.Arr(checks, "checklist"))
             {
                 bool passed = Kit.Bool(item, "passed");
@@ -598,6 +640,10 @@ namespace RingsideBooker.Screens
         public JToken Checks { get; }
         public Label Feedback { get; }
         public string EventId { get; }
+        /// <summary>Wrestlers under contract (<c>roster.summary</c>), or null when it couldn't be read.</summary>
+        public int? Wrestlers { get; internal set; }
+        /// <summary>Too few wrestlers to fill a card: Booking says "Sign some wrestlers first".</summary>
+        public bool MustSign => Wrestlers is int count && Signing.Needed(count);
         public IReadOnlyList<JToken> Slots { get; }
         public bool CanEdit => Kit.Bool(Card, "canEdit");
         public bool MoreOpen => State.MoreOpen;

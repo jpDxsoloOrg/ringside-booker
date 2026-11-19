@@ -101,10 +101,26 @@ namespace RingsideBooker.Screens.Office
         /// people who want to leave and offers waiting come from their queries; any other stop the day
         /// is held at comes from the pending gates with the day control's own destination.
         /// </summary>
-        public static List<NeedItem> NeedsToday(IReadOnlyList<GateHit> gates, JToken nextShow, JToken counts, JToken expiring, JToken active, JToken offers)
+        public static List<NeedItem> NeedsToday(IReadOnlyList<GateHit> gates, JToken nextShow, JToken counts, JToken expiring, JToken active, JToken offers, int? wrestlers = null)
         {
             var items = new List<NeedItem>();
             gates ??= Array.Empty<GateHit>();
+            bool mustSign = wrestlers is int wrestlerCount && Signing.Needed(wrestlerCount);
+            if (mustSign)
+            {
+                items.Add(new NeedItem
+                {
+                    Id = "sign-wrestlers",
+                    State = DsState.Warn,
+                    Icon = "contracts",
+                    Title = Signing.Title,
+                    Detail = Signing.Detail(wrestlers.Value),
+                    Action = Signing.Action,
+                    Primary = true,
+                    Route = Signing.Route,
+                    Rank = -1,
+                });
+            }
 
             JToken show = Kit.Obj(nextShow, "show");
             if (show != null && show.Type == JTokenType.Object && (Kit.Num(nextShow, "daysUntil") ?? 1) <= 0)
@@ -119,9 +135,9 @@ namespace RingsideBooker.Screens.Office
                     State = DsState.Live,
                     Icon = "live",
                     Title = $"{Kit.Str(show, "name")} is tonight",
-                    Detail = full ? "The card is set. Time to go live." : booked == 0 ? $"Nothing booked yet: {slots} slots to fill" : $"{slots - booked} of {slots} slots still open",
+                    Detail = full ? "The card is set. Time to go live." : mustSign ? $"{Signing.Title}: the card needs people" : booked == 0 ? $"Nothing booked yet: {slots} slots to fill" : $"{slots - booked} of {slots} slots still open",
                     Action = full ? "Go to the show" : "Book it",
-                    Primary = true,
+                    Primary = !mustSign,
                     Route = full ? ShellRoute.With(ScreenIds.ShowNight, "event", id) : ShellRoute.With("booking", "event", id),
                     Gate = gates.FirstOrDefault(gate => gate.GateId == "shows.tonight"),
                     Rank = 0,

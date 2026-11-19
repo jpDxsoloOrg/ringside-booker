@@ -971,6 +971,11 @@
     color: var(--ds-text-4);
 }
 
+.ds-table__sort--lead {
+    margin-left: 0;
+    margin-right: 4px;
+}
+
 .ds-table__sort--active {
     color: var(--ds-data);
 }

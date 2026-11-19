@@ -127,5 +127,27 @@ namespace RingsideBooker.Tests.Business
             CollectionAssert.AreEqual(new[] { "Mainstage", "Summit (becomes a TV show)" }, BusinessText.ShowOptions("tv", shows).Select(option => option.label).ToArray());
             CollectionAssert.AreEqual(new[] { "all", "evd_3" }, BusinessText.ShowOptions("ppv", shows).Select(option => option.value).ToArray());
         }
+
+        [Test]
+        public void LastTwelveMonthsLabelsItsColumnsAndRows()
+        {
+            JToken monthly = JToken.Parse(@"{
+                ""startMonth"": ""2027-01"",
+                ""categories"": [""wages"", ""tickets"", ""somethingNew""],
+                ""months"": [
+                    { ""month"": ""2026-12"", ""income"": 0, ""costs"": 0, ""net"": 0, ""closingCash"": 0, ""byCategory"": {} },
+                    { ""month"": ""2027-01"", ""income"": 500, ""costs"": -300, ""net"": 200, ""closingCash"": 1200, ""byCategory"": { ""tickets"": 500, ""wages"": -300 } },
+                    { ""month"": ""2027-02"", ""income"": 0, ""costs"": -100, ""net"": -100, ""closingCash"": 1100, ""byCategory"": { ""wages"": -100 } }
+                ]
+            }");
+            var columns = BusinessText.MonthColumns(monthly);
+            CollectionAssert.AreEqual(new[] { "Dec 2026", "Jan 2027", "Feb 2027 (so far)" }, columns.Select(column => column.Heading).ToArray());
+            CollectionAssert.AreEqual(new[] { true, false, false }, columns.Select(column => column.BeforeStart).ToArray());
+            Assert.AreEqual("Mar 2027", BusinessText.MonthHeading("2027-03", "2027-04"));
+            (var income, var costs) = BusinessText.MonthCategories(monthly);
+            CollectionAssert.AreEqual(new[] { "tickets" }, income);
+            CollectionAssert.AreEqual(new[] { "wages", "somethingNew" }, costs);
+            Assert.AreEqual(0, BusinessText.MonthColumns(JToken.Parse("{}")).Count);
+        }
     }
 }

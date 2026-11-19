@@ -1173,3 +1173,16 @@
     top: 6px;
     right: 6px;
 }
+
+/* "Sign some wrestlers first" under the header (a founded promotion with too few people; UNITY-22). */
+.fc-signing {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-bottom: 8px;
+}
+
+.fc-signing__words {
+    flex-shrink: 1;
+    margin-right: 12px;
+}

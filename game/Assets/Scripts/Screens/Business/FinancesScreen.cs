@@ -175,7 +175,135 @@ namespace RingsideBooker.Screens.Business
             columns.Add(ThisMonthPanel(current));
             columns.Add(FixedCostsPanel(data, runway.Ok ? runway.Data : null));
             body.Add(BusinessUi.MarkLast(columns));
+            if (monthly.Ok) body.Add(LastTwelveMonths(monthly.Data));
         }
+
+        // ---- Last 12 months (the web's Monthly tab, one step away) ----------------------------------
+
+        /// <summary>Remembered while the game runs: whether "Last 12 months" is open (closed at first).</summary>
+        public static bool MonthlyOpen { get; set; }
+
+        /// <summary>
+        /// A quiet "Last 12 months" toggle under the Overview's panels. Open, it shows the web's
+        /// Monthly table: one column per month (oldest first, the current one "so far"), money in and
+        /// money out by category, then Net and Closing cash. A dash marks a month before the game
+        /// started; an amount opens its rows in the Ledger.
+        /// </summary>
+        private VisualElement LastTwelveMonths(JToken monthly)
+        {
+            VisualElement section = Ds.Column("biz-monthly").Named("finances-monthly");
+            var toggle = new Button { text = string.Empty, name = "finances-monthly-toggle" };
+            toggle.AddToClassList("biz-monthly__toggle");
+            toggle.Add(new Icon(MonthlyOpen ? "chevron-down" : "chevron-right", "ds-icon--sm"));
+            toggle.Add(Ds.Text(TextFormat.Upper("Last 12 months"), "biz-monthly__toggle-label"));
+            toggle.Add(Ds.Text("Money in and out, month by month", "biz-quiet-text"));
+            toggle.clicked += () =>
+            {
+                MonthlyOpen = !MonthlyOpen;
+                VisualElement fresh = LastTwelveMonths(monthly);
+                int index = section.parent?.IndexOf(section) ?? -1;
+                if (index < 0) return;
+                VisualElement parent = section.parent;
+                parent.RemoveAt(index);
+                parent.Insert(index, fresh);
+            };
+            section.Add(toggle);
+            if (MonthlyOpen) section.Add(MonthlyTable(monthly));
+            return section;
+        }
+
+        private VisualElement MonthlyTable(JToken monthly)
+        {
+            List<BusinessText.MonthColumn> months = BusinessText.MonthColumns(monthly);
+            VisualElement panel = Ds.Column("biz-monthly__panel").Named("finances-monthly-table");
+            if (months.Count == 0)
+            {
+                panel.Add(BusinessUi.Quiet("No months to show yet."));
+                return panel;
+            }
+            panel.Add(BusinessUi.Quiet("Oldest first. Press an amount to see its rows in the Ledger; a dash is a month before the game started."));
+            var scroll = new ScrollView(ScrollViewMode.Horizontal) { verticalScrollerVisibility = ScrollerVisibility.Hidden };
+            scroll.AddToClassList("biz-monthly__scroll");
+            VisualElement grid = Ds.Column("biz-monthly__grid");
+            scroll.Add(grid);
+            panel.Add(scroll);
+
+            VisualElement head = MonthRow("biz-monthly__row--head", string.Empty);
+            foreach (BusinessText.MonthColumn column in months)
+            {
+                Label heading = Ds.Text(column.Heading, "biz-monthly__cell", "biz-monthly__th");
+                heading.EnableInClassList("biz-monthly__th--current", column == months[months.Count - 1]);
+                head.Add(heading);
+            }
+            grid.Add(head);
+
+            (List<string> income, List<string> costs) = BusinessText.MonthCategories(monthly);
+            AddMonthGroup(grid, "Money in", income, months, "No income in these months.");
+            AddMonthGroup(grid, "Money out", costs, months, "No costs in these months.");
+
+            VisualElement net = MonthRow("biz-monthly__row--total", "Net");
+            foreach (BusinessText.MonthColumn column in months)
+            {
+                double amount = Kit.Num(column.Data, "net") ?? 0;
+                net.Add(column.BeforeStart ? Dash() : Ds.Text(BusinessText.Signed(amount, true), "biz-monthly__cell", amount < 0 ? "biz-bad" : amount > 0 ? "biz-good" : "biz-monthly__plain"));
+            }
+            grid.Add(net);
+            VisualElement closing = MonthRow("biz-monthly__row--total", "Closing cash");
+            foreach (BusinessText.MonthColumn column in months)
+            {
+                closing.Add(column.BeforeStart ? Dash() : Ds.Text(BusinessText.Signed(Kit.Num(column.Data, "closingCash") ?? 0), "biz-monthly__cell"));
+            }
+            grid.Add(closing);
+            return panel;
+        }
+
+        private void AddMonthGroup(VisualElement grid, string heading, List<string> categories, List<BusinessText.MonthColumn> months, string none)
+        {
+            VisualElement group = Ds.Row("biz-monthly__group");
+            group.Add(BusinessUi.SubHeading(heading));
+            grid.Add(group);
+            if (categories.Count == 0)
+            {
+                grid.Add(MonthRow(null, none));
+                return;
+            }
+            foreach (string category in categories)
+            {
+                VisualElement row = MonthRow(null, BusinessText.CategoryLabel(category));
+                foreach (BusinessText.MonthColumn column in months)
+                {
+                    if (column.BeforeStart)
+                    {
+                        row.Add(Dash());
+                        continue;
+                    }
+                    double amount = Kit.Num(Kit.Obj(column.Data, "byCategory"), category) ?? 0;
+                    if (amount == 0)
+                    {
+                        row.Add(Ds.Text(BusinessText.Signed(0), "biz-monthly__cell", "biz-monthly__zero"));
+                        continue;
+                    }
+                    string month = column.Month;
+                    var link = new Button(() => FilterLedger(month, category)) { text = string.Empty, name = $"monthly-{month}-{category}" };
+                    link.AddToClassList("biz-monthly__cell");
+                    link.AddToClassList("biz-monthly__link");
+                    link.Add(Ds.Text(BusinessText.Signed(amount), "biz-monthly__amount", amount < 0 ? "biz-bad" : "biz-good"));
+                    DsTooltip.Attach(link, $"See the {BusinessText.CategoryLabel(category)} rows for {BusinessText.MonthLabel(month)} in the ledger", null);
+                    row.Add(link);
+                }
+                grid.Add(row);
+            }
+        }
+
+        private static VisualElement MonthRow(string className, string label)
+        {
+            VisualElement row = Ds.Row("biz-monthly__row");
+            if (className != null) row.AddToClassList(className);
+            row.Add(Ds.Text(label, "biz-monthly__label"));
+            return row;
+        }
+
+        private static Label Dash() => Ds.Text(BusinessText.NoValue, "biz-monthly__cell", "biz-monthly__zero");
 
         private static string CashWords(JToken overview, double cash)
         {

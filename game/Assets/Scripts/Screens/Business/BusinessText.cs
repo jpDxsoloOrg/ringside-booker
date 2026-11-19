@@ -112,6 +112,57 @@ namespace RingsideBooker.Screens.Business
             return date.ToString(longForm ? "MMMM yyyy" : "MMM yyyy", CultureInfo.InvariantCulture);
         }
 
+        // ---- Last 12 months (finance.monthly; the web's Monthly tab) --------------------------------
+
+        /// <summary>Months the Overview's "Last 12 months" table lists (the web's <c>MONTHLY_TAB_MONTHS</c>).</summary>
+        public const int MonthlyMonths = 12;
+
+        /// <summary>One column of the 12-month table.</summary>
+        public sealed class MonthColumn
+        {
+            public string Month;
+            /// <summary>"Jan 2027", or "Mar 2027 (so far)" for the current month.</summary>
+            public string Heading;
+            /// <summary>A month before the game started: every cell shows a dash.</summary>
+            public bool BeforeStart;
+            public JToken Data;
+        }
+
+        /// <summary>"Mar 2027 (so far)" for the month under way, else "Mar 2027".</summary>
+        public static string MonthHeading(string month, string currentMonth) =>
+            month == currentMonth ? $"{MonthLabel(month)} (so far)" : MonthLabel(month);
+
+        /// <summary>The columns, oldest first; the last listed month is the current one.</summary>
+        public static List<MonthColumn> MonthColumns(JToken monthly)
+        {
+            List<JToken> months = Kit.Arr(monthly, "months").ToList();
+            string current = months.Count > 0 ? Kit.Str(months[months.Count - 1], "month") : null;
+            string start = Kit.Str(monthly, "startMonth");
+            return months.Select(entry =>
+            {
+                string key = Kit.Str(entry, "month");
+                return new MonthColumn
+                {
+                    Month = key,
+                    Heading = MonthHeading(key, current),
+                    // "YYYY-MM" sorts as text, as the web compares it.
+                    BeforeStart = start != null && key != null && string.CompareOrdinal(key, start) < 0,
+                    Data = entry,
+                };
+            }).ToList();
+        }
+
+        /// <summary>The table's category rows in ledger order, split into money in and money out.</summary>
+        public static (List<string> income, List<string> costs) MonthCategories(JToken monthly)
+        {
+            List<string> listed = Kit.Arr(monthly, "categories").Select(token => (string)token).Where(key => key != null).ToList();
+            List<string> income = IncomeCategories.Where(listed.Contains).ToList();
+            List<string> costs = CostCategories.Where(listed.Contains).ToList();
+            // A category this build doesn't know yet still shows, with the costs.
+            costs.AddRange(listed.Where(key => !income.Contains(key) && !costs.Contains(key)));
+            return (income, costs);
+        }
+
         // ---- Cash runway (production.cashRunway) ----------------------------------------------------
 
         public const string StatusMaking = "makingMoney";

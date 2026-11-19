@@ -267,7 +267,14 @@ namespace RingsideBooker.UI.Design
                 bool active = column.Id == sortId;
                 var icon = new Icon(active ? (sortDescending ? "sort-desc" : "sort-asc") : "sort", "ds-icon--xs", "ds-table__sort");
                 icon.EnableInClassList("ds-table__sort--active", active);
-                cell.Add(icon);
+                // A right-aligned column keeps its label's right edge over the numbers: the sort
+                // arrow goes in front (UNITY-22, the last of the header drift).
+                if (column.Align == DsAlign.Right)
+                {
+                    icon.AddToClassList("ds-table__sort--lead");
+                    cell.Insert(0, icon);
+                }
+                else cell.Add(icon);
             }
             if (column.Help != null) DsTooltip.Attach(cell, column.Help, column.Header);
             return cell;
