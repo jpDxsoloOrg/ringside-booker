@@ -16,6 +16,7 @@ import type { TableRegistry } from '../../model/table-def';
 import { isAfter, isGameDate, type GameDate } from '../date';
 import { describeValue } from '../errors';
 import { evaluateGates, GateRegistry, type GateHit, type GateSpec } from './gates';
+import { timed } from './phaseTiming';
 import type { DayReport } from './report';
 import { runDay } from './runDay';
 import type { SimRuntime } from './runtime';
@@ -214,7 +215,9 @@ export async function advanceDays<R extends TableRegistry>(
   }
 
   while (stoppedBy.kind === 'completed' && daysAdvanced < maxDays) {
-    const hits = evaluateGates(gateState, runtime.world.meta.currentDate);
+    const hits = timed('pipeline.gates', () =>
+      evaluateGates(gateState, runtime.world.meta.currentDate),
+    );
     if (hits.length > 0) {
       stoppedBy = { kind: 'gate', hits };
       break;
