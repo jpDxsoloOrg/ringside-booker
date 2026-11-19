@@ -239,7 +239,7 @@ namespace RingsideBooker.Screens.Creative
             {
                 VisualElement line = Ds.Row("cr-member-line");
                 line.Add(CreativeUi.Portrait(Kit.Str(member, "imageRef"), "ds-portrait--xs", false, side == "face" ? Alignment.Face : Alignment.Heel));
-                line.Add(CreativeUi.Clip(Kit.Str(member, "name"), "cr-member-line__name"));
+                line.Add(CreativeUi.Person(Kit.Str(member, "name"), Kit.Str(member, "personId"), "cr-member-line__name"));
                 if (!Kit.Bool(member, "stillEmployed"))
                 {
                     var left = new Icon("warning", "ds-icon--xs", "cr-member-line__left");
@@ -343,7 +343,7 @@ namespace RingsideBooker.Screens.Creative
             chips.Add(Ds.Pill(active ? DsState.Good : DsState.Neutral, active ? "Active" : "Ended", active ? "play" : "stop"));
             string brand = Kit.Str(story, "brandName");
             if (brand != null) chips.Add(Ds.Tag(brand));
-            if (!Kit.Num(story, "heat").HasValue) chips.Add(Ds.Tag(Kit.Str(story, "promotionName")));
+            if (!Kit.Num(story, "heat").HasValue) chips.Add(CreativeUi.Promotion(Kit.Str(story, "promotionName"), Kit.Str(story, "promotionId"), "cr-hero__line"));
             chips.Add(Ds.Text(StorylineText.DatesText(Kit.Str(story, "startedOn"), Kit.Str(story, "endedOn")), "cr-hero__line"));
             words.Add(chips);
             header.Add(words);
@@ -426,7 +426,7 @@ namespace RingsideBooker.Screens.Creative
             VisualElement row = Ds.Row("cr-member").Named("storyline-member-" + personId);
             row.Add(CreativeUi.Portrait(Kit.Str(member, "imageRef"), "ds-portrait--sm", false, side == "face" ? Alignment.Face : side == "heel" ? Alignment.Heel : Alignment.Tweener));
             VisualElement words = Ds.Column("cr-member__words");
-            words.Add(CreativeUi.Clip(name, "cr-member__name"));
+            words.Add(CreativeUi.Person(name, personId, "cr-member__name"));
             string alignment = Kit.Str(member, "alignment");
             words.Add(CreativeUi.Clip(alignment == null ? "Not with the promotion" : $"{Kit.Capital(alignment)} overall", "cr-member__meta"));
             row.Add(words);

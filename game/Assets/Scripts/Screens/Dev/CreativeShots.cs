@@ -196,8 +196,8 @@ namespace RingsideBooker.Screens.Dev
             yield return Capture("storyline-new-page");
             Log($"after create: {nav.Current}");
 
-            // Two weeks of shows so the timelines fill.
-            yield return Await(PlayDays(14));
+            // Three weeks of shows so the timelines fill.
+            yield return Await(PlayDays(24));
             yield return WaitIdle(1f);
 
             nav.Go(ShellRoute.To(StorylinesScreen.ScreenId));

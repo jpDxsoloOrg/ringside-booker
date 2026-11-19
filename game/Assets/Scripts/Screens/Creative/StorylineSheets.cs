@@ -356,7 +356,7 @@ namespace RingsideBooker.Screens.Creative
         {
             VisualElement row = Ds.Row("cr-payoff__member").Named("payoff-" + personId);
             row.Add(CreativeUi.Portrait(imageRef, "ds-portrait--xs"));
-            row.Add(CreativeUi.Clip(name, "cr-payoff__name"));
+            row.Add(CreativeUi.Person(name, personId, "cr-payoff__name"));
             if (skipped != null)
             {
                 row.Add(CreativeUi.Clip(skipped, "cr-payoff__skipped"));

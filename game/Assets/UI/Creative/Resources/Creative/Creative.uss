@@ -1462,3 +1462,27 @@
     flex-shrink: 0;
     margin-top: 8px;
 }
+
+/* ---- Links, modal titles, spacing (review fixes) -------------------------------------------------- */
+
+.cr-link {
+    cursor: link;
+}
+
+.cr-link:hover {
+    color: var(--ds-data);
+}
+
+.cr-cards {
+    margin-top: 12px;
+}
+
+.cr-modal .ds-overlay-header__words {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.cr-modal .ds-overlay-header__title {
+    white-space: normal;
+    max-width: 440px;
+}

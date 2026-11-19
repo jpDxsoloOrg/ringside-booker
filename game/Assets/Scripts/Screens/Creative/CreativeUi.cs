@@ -8,6 +8,7 @@ using RingsideBooker.Import.Pictures;
 using RingsideBooker.UI;
 using RingsideBooker.UI.Bridge;
 using RingsideBooker.UI.Design;
+using RingsideBooker.UI.Navigation;
 using RingsideBooker.UI.Shell;
 using RingsideBooker.UI.Widgets;
 using RingsideBooker.UI.Why;
@@ -118,6 +119,27 @@ namespace RingsideBooker.Screens.Creative
             Label label = Ds.Text(text ?? NoValue, "cr-clip");
             foreach (string className in classes) label.AddToClassList(className);
             label.tooltip = text;
+            return label;
+        }
+
+        /// <summary>A worker's name that opens their profile (<c>worker?id=</c>, UNITY-15).</summary>
+        public static Label Person(string name, string personId, params string[] classes) =>
+            LinkTo(Clip(name, classes), personId == null ? null : ShellRoute.With(ScreenIds.Worker, "id", personId));
+
+        /// <summary>A promotion's name that opens its profile (<c>promotion?id=</c>, UNITY-15).</summary>
+        public static Label Promotion(string name, string promotionId, params string[] classes) =>
+            LinkTo(Clip(name, classes), promotionId == null ? null : ShellRoute.With(ScreenIds.Promotion, "id", promotionId));
+
+        /// <summary>Makes a label a link to <paramref name="route"/> when that screen exists; the click stops there (a card under it does not open).</summary>
+        public static Label LinkTo(Label label, ShellRoute route)
+        {
+            if (route == null || !ScreenRegistry.IsLive(route.ScreenId)) return label;
+            label.AddToClassList("cr-link");
+            label.RegisterCallback<ClickEvent>(evt =>
+            {
+                evt.StopPropagation();
+                ShellController.Current?.Navigator.Go(route);
+            });
             return label;
         }
 

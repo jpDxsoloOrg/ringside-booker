@@ -187,7 +187,9 @@ namespace RingsideBooker.Screens.Creative
             VisualElement section = Ds.Column("cr-group").Named("titles-group-" + Kit.Str(group, "key"));
             VisualElement header = Ds.Row("cr-group__head");
             header.Add(CreativeUi.Logo(Kit.Str(group, "logoRef"), name, "rb-logo--sm"));
-            header.Add(Ds.Display(name, "cr-group__name"));
+            Label groupName = Ds.Display(name, "cr-group__name");
+            if (Kit.Str(group, "brandId") == null && tab == "world") CreativeUi.LinkTo(groupName, ShellRoute.With(ScreenIds.Promotion, "id", Kit.Str(group, "promotionId")));
+            header.Add(groupName);
             int count = Kit.Arr(group, "titles").Count();
             header.Add(Ds.Text(count == 1 ? "1 title" : $"{TextFormat.Number(count)} titles", "cr-group__count"));
             header.Add(Ds.El("cr-group__rule"));
@@ -236,7 +238,8 @@ namespace RingsideBooker.Screens.Creative
                 VisualElement who = Ds.Column("cr-tcard__who");
                 VisualElement nameRow = Ds.Row("cr-tcard__who-row");
                 nameRow.Add(new Icon("titles", "ds-icon--xs", "cr-belt-mark"));
-                nameRow.Add(CreativeUi.Clip(Kit.Str(champion, "label"), "cr-tcard__champion"));
+                bool solo = Kit.Arr(champion, "holders").Count() == 1;
+                nameRow.Add(CreativeUi.Person(Kit.Str(champion, "label"), solo ? Kit.Str(first, "personId") : null, "cr-tcard__champion"));
                 who.Add(nameRow);
                 who.Add(CreativeUi.Clip(TitleText.ReignLine((int)(Kit.Num(champion, "daysHeld") ?? 0), (int)(Kit.Num(champion, "defences") ?? 0)), "cr-tcard__reign"));
                 holder.Add(who);
@@ -334,7 +337,8 @@ namespace RingsideBooker.Screens.Creative
             words.Add(CreativeUi.Clip(TextFormat.Upper(name), "ds-type-headline", "cr-hero__name"));
             VisualElement belongs = Ds.Row("cr-hero__belongs");
             PromotionLogos.Prepend(belongs, Kit.Str(title, "promotionId"), Kit.Str(title, "promotionName"), "rb-logo--sm");
-            belongs.Add(CreativeUi.Clip($"{Kit.Str(title, "promotionName")} · {Kit.Str(title, "brandName") ?? TitleText.PromotionWideLabel}", "cr-hero__line"));
+            belongs.Add(CreativeUi.Promotion(Kit.Str(title, "promotionName"), Kit.Str(title, "promotionId"), "cr-hero__line"));
+            belongs.Add(CreativeUi.Clip($" · {Kit.Str(title, "brandName") ?? TitleText.PromotionWideLabel}", "cr-hero__line"));
             words.Add(belongs);
             VisualElement chips = Ds.Row("cr-chips");
             bool active = Kit.Str(title, "status") == "active";
@@ -400,7 +404,7 @@ namespace RingsideBooker.Screens.Creative
             {
                 VisualElement one = Ds.Column("cr-champ__holder");
                 one.Add(CreativeUi.Portrait(Kit.Str(holder, "imageRef"), "ds-portrait--md", true));
-                one.Add(CreativeUi.Clip(Kit.Str(holder, "ringName"), "cr-champ__holder-name"));
+                one.Add(CreativeUi.Person(Kit.Str(holder, "ringName"), Kit.Str(holder, "personId"), "cr-champ__holder-name"));
                 portraits.Add(one);
             }
             body.Add(portraits);
@@ -479,7 +483,7 @@ namespace RingsideBooker.Screens.Creative
                 string atTime = Kit.Str(holders[0], "nameAtTime");
                 string now = Kit.Str(holders[0], "currentRingName");
                 label = atTime ?? label;
-                cell.Add(CreativeUi.Clip(label, "ds-cell__text", "ds-cell__text--strong", "cr-name-cell__name"));
+                cell.Add(CreativeUi.Person(label, Kit.Str(holders[0], "personId"), "ds-cell__text", "ds-cell__text--strong", "cr-name-cell__name"));
                 if (now != null && now != atTime) cell.Add(CreativeUi.Clip($"now {now}", "ds-cell__text", "ds-cell__text--muted", "cr-name-cell__aside"));
             }
             else
@@ -530,7 +534,8 @@ namespace RingsideBooker.Screens.Creative
                 VisualElement row = Ds.Column("cr-record").Named("title-record-" + key);
                 row.Add(Ds.Text(label, "cr-record__label"));
                 VisualElement line = Ds.Row("cr-record__line");
-                line.Add(CreativeUi.Clip(string.IsNullOrEmpty(who) ? Kit.Str(record, "label") : who, "cr-record__who"));
+                List<string> ids = Kit.Arr(record, "personIds").Select(id => (string)id).ToList();
+                line.Add(CreativeUi.Person(string.IsNullOrEmpty(who) ? Kit.Str(record, "label") : who, ids.Count == 1 ? ids[0] : null, "cr-record__who"));
                 line.Add(Ds.Text(TitleText.RecordValue(Kit.Num(record, "value") ?? 0, unit), "cr-record__value"));
                 row.Add(line);
                 rows.Add(row);
@@ -557,7 +562,7 @@ namespace RingsideBooker.Screens.Creative
             VisualElement panel = Ds.Panel("About the title", null, null, "cr-panel");
             string retiredOn = Kit.Str(title, "retiredOn");
             panel.Add(CreativeUi.Facts(
-                ("Promotion", CreativeUi.FactText(Kit.Str(title, "promotionName"))),
+                ("Promotion", CreativeUi.Promotion(Kit.Str(title, "promotionName"), Kit.Str(title, "promotionId"), "ds-kv__value")),
                 ("Brand", CreativeUi.FactText(Kit.Str(title, "brandName") ?? TitleText.PromotionWideLabel)),
                 ("Division", CreativeUi.FactText(Kit.Str(title, "divisionLabel"))),
                 ("Kind", CreativeUi.FactText(TitleText.HolderCount((int)(Kit.Num(title, "holderCount") ?? 1)))),
