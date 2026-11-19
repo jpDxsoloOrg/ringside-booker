@@ -999,3 +999,53 @@
     -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
     color: var(--ds-text-2);
 }
+
+/* ---- Placeholder portrait comparison ------------------------------------------------------------- */
+
+.mk-pc-row {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-lg);
+    background-color: var(--ds-elev-1);
+}
+
+.mk-pc-row--default {
+    border-color: var(--ds-data);
+}
+
+.mk-pc-head {
+    width: 110px;
+    margin-right: 12px;
+}
+
+.mk-pc-head__letter {
+    font-size: 44px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.mk-pc-head__title {
+    font-size: 13px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+.mk-pc-group {
+    margin-right: 22px;
+}
+
+.mk-pc-group > .mk-label {
+    margin-bottom: 6px;
+}
+
+.mk-pc-sizes > .mk-pc-box {
+    margin-right: 10px;
+}
+
+.mk-pc-card {
+    width: 200px;
+    height: 200px;
+    border-radius: var(--ds-radius-lg);
+}

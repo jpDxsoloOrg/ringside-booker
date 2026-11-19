@@ -123,7 +123,7 @@ namespace RingsideBooker.UI.Mockups
         private static VisualElement NameCell(MockWorker worker)
         {
             VisualElement cell = Ds.Row("mk-name-cell");
-            cell.Add(DsCards.PortraitBox(null, worker.Alignment, "ds-portrait--xs", worker.Champion != null));
+            cell.Add(DsCards.PortraitBox(null, worker.Alignment, "ds-portrait--xs", worker.Champion != null, worker.Name));
             cell.Add(Ds.Text(worker.Name, "ds-cell__text", "ds-cell__text--strong", "mk-name-cell__name"));
             if (worker.Champion != null)
             {
@@ -241,7 +241,7 @@ namespace RingsideBooker.UI.Mockups
         {
             VisualElement body = Ds.Column("mk-worker");
             VisualElement hero = Ds.Row("ds-row--top", "mk-worker__hero");
-            hero.Add(DsCards.PortraitBox(null, worker.Alignment, "ds-portrait--lg", worker.Champion != null));
+            hero.Add(DsCards.PortraitBox(null, worker.Alignment, "ds-portrait--lg", worker.Champion != null, worker.Name));
             VisualElement words = Ds.Column("mk-worker__words");
             if (worker.Champion != null) words.Add(Ds.Pill(DsState.Gold, worker.Champion, "crown"));
             words.Add(Ds.Text(worker.Name.ToUpperInvariant(), "ds-type-headline"));

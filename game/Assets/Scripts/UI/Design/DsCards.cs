@@ -113,11 +113,15 @@ namespace RingsideBooker.UI.Design
             _ => PortraitTone.Neutral,
         };
 
-        /// <summary>A portrait in a rounded box (sizes: ds-portrait--xs/sm/md/lg/xl).</summary>
-        public static VisualElement PortraitBox(Texture2D picture, Alignment alignment, string sizeClass, bool gold = false)
+        /// <summary>
+        /// A portrait in a rounded box (sizes: ds-portrait--xs/sm/md/lg/xl). Pass the worker's
+        /// <paramref name="name"/> so a worker with no picture gets their initials (the default
+        /// placeholder); without it the placeholder is the silhouette.
+        /// </summary>
+        public static VisualElement PortraitBox(Texture2D picture, Alignment alignment, string sizeClass, bool gold = false, string name = null)
         {
             VisualElement box = Ui.El("ds-portrait", sizeClass);
-            box.Add(new Portrait(picture, gold ? PortraitTone.Gold : Tone(alignment)));
+            box.Add(new Portrait(picture, gold ? PortraitTone.Gold : Tone(alignment), name));
             return box;
         }
 
@@ -131,7 +135,7 @@ namespace RingsideBooker.UI.Design
             card.focusable = true;
             if (worker.Champion != null) card.AddToClassList("ds-pcard--champion");
             VisualElement art = Ui.El("ds-pcard__art");
-            art.Add(new Portrait(worker.Picture, worker.Champion != null ? PortraitTone.Gold : Tone(worker.Alignment)));
+            art.Add(new Portrait(worker.Picture, worker.Champion != null ? PortraitTone.Gold : Tone(worker.Alignment), worker.Name));
             VisualElement shade = new GradientFill(new Color(0.035f, 0.05f, 0.086f, 0f), new Color(0.035f, 0.05f, 0.086f, 0.95f));
             shade.AddToClassList("ds-pcard__shade");
             art.Add(shade);
@@ -261,7 +265,7 @@ namespace RingsideBooker.UI.Design
             if (winner) element.AddToClassList("ds-match__side--winner");
             if (loser) element.AddToClassList("ds-match__side--loser");
             if (side == null) return element;
-            element.Add(PortraitBox(side.Picture, side.Alignment, big ? "ds-portrait--lg" : "ds-portrait--sm", side.Champion != null));
+            element.Add(PortraitBox(side.Picture, side.Alignment, big ? "ds-portrait--lg" : "ds-portrait--sm", side.Champion != null, side.Name));
             VisualElement words = Ui.El("ds-match__words");
             if (side.Champion != null)
             {

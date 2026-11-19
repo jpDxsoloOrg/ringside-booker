@@ -223,7 +223,7 @@ namespace RingsideBooker.UI.Mockups
 
             VisualElement star = Ds.Panel("Star of the night", null, null, "mk-star-night");
             VisualElement starRow = Ds.Row("ds-row--top");
-            starRow.Add(DsCards.PortraitBox(null, Alignment.Heel, "ds-portrait--md", gold: true));
+            starRow.Add(DsCards.PortraitBox(null, Alignment.Heel, "ds-portrait--md", gold: true, name: "Ewan Thackeray"));
             VisualElement starWords = Ds.Column("mk-star-night__words");
             starWords.Add(Ds.Text("EWAN THACKERAY", "ds-type-title"));
             starWords.Add(new Stars(4.5f, "ds-icon--md"));
