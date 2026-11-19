@@ -1,0 +1,291 @@
+/*
+ * World screens and the restyled Roster and Calendar (UNITY-15): page layout only, wl- classes. The
+ * look comes from the ds- components (Assets/UI/Design). Rows never shrink (UNITY-13 rule);
+ * ellipsized labels keep letter-spacing 0 because Unity measures text without it.
+ */
+
+.wl-page { flex-direction: column; flex-shrink: 0; }
+.wl-host { flex-shrink: 0; }
+.wl-body { flex-shrink: 0; }
+.wl-tab-body { flex-shrink: 0; margin-top: 4px; }
+.wl-wrap { white-space: normal; }
+.wl-gap-top { margin-top: 12px; }
+.wl-gap-bottom { margin-bottom: 12px; }
+.wl-strong { margin-left: 8px; font-size: 14px; -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf"); color: var(--ds-text); }
+.wl-quiet-text { color: var(--ds-text-3); }
+.wl-clickable { cursor: link; }
+
+/* ---- Head and toolbar ----------------------------------------------------------------------------- */
+
+.wl-head { align-items: flex-end; margin-bottom: 8px; flex-shrink: 0; }
+.wl-head__titles { flex-shrink: 1; min-width: 0; }
+.wl-head__subtitle { margin-top: 2px; color: var(--ds-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0; }
+.wl-head > .ds-segmented { margin-left: 12px; }
+
+.wl-toolbar {
+    align-items: flex-end;
+    margin-bottom: 10px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line);
+    flex-wrap: wrap;
+}
+.wl-toolbar > .ds-tabs { border-bottom-width: 0; }
+.wl-toolbar > .ds-btn,
+.wl-toolbar > .wl-search { margin: 0 0 4px 8px; }
+
+.wl-crumbs { margin-bottom: 4px; }
+.wl-crumbs > .ds-btn { margin-left: -8px; }
+
+.wl-search {
+    width: 240px;
+    height: 30px;
+    padding-left: 8px;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-0);
+}
+.wl-search__icon { color: var(--ds-text-3); }
+.wl-search__field { flex-grow: 1; margin: 0; }
+.wl-search__field > .unity-base-text-field__input {
+    margin: 0;
+    padding: 0 8px;
+    border-width: 0;
+    background-color: transparent;
+    font-size: 13px;
+    color: var(--ds-text);
+}
+
+.wl-label {
+    margin-right: 10px;
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-4);
+}
+
+.wl-attention { margin-bottom: 12px; }
+.wl-attention > * { margin-right: 8px; margin-bottom: 4px; }
+.wl-active-filters { margin-bottom: 8px; }
+.wl-active-filters > * { margin-right: 6px; margin-bottom: 4px; }
+
+/* ---- Filter popover and menus ---------------------------------------------------------------------- */
+
+.wl-filters { width: 420px; padding: 4px 2px; }
+.wl-filter-group { margin-bottom: 10px; }
+.wl-filter-group > .wl-label { margin-bottom: 6px; }
+.wl-filter-group__chips > * { margin: 0 6px 6px 0; }
+.wl-menu { min-width: 200px; }
+.wl-menu__item { justify-content: flex-start; margin-bottom: 2px; }
+.wl-menu__item > .ds-btn__label { -unity-text-align: middle-left; }
+
+/* ---- Cells ------------------------------------------------------------------------------------------- */
+
+.wl-num-quiet {
+    margin-left: 8px;
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+    color: var(--ds-text-4);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0;
+}
+.wl-dot-num { flex-direction: row; align-items: center; flex-shrink: 1; min-width: 0; overflow: hidden; }
+.wl-grade { margin-left: 6px; font-size: 11px; -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf"); color: var(--ds-data); }
+
+.wl-name-cell { flex-direction: row; align-items: center; flex-grow: 1; min-width: 0; overflow: hidden; }
+.wl-name-cell__words { margin-left: 10px; flex-shrink: 1; min-width: 0; }
+.wl-name-cell__name { letter-spacing: 0; }
+.wl-name-cell__detail { font-size: 11px; color: var(--ds-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wl-name-cell__crown { margin-left: 6px; color: var(--ds-gold); flex-shrink: 0; }
+.wl-promo-cell { flex-direction: row; align-items: center; min-width: 0; overflow: hidden; }
+.wl-promo-cell__name { margin-left: 8px; margin-right: 6px; }
+.wl-inline-link { margin-left: 8px; height: 22px; }
+.wl-size-cell > .ds-meter { width: 150px; }
+
+.wl-logo--xs { width: 22px; height: 22px; border-radius: var(--ds-radius-xs); }
+.wl-logo--xs .ds-logo__text { font-size: 9px; }
+.wl-logo--row { width: 28px; height: 28px; border-radius: var(--ds-radius-sm); }
+.wl-logo--row .ds-logo__text { font-size: 11px; }
+.wl-logo--chip { width: 18px; height: 18px; border-radius: var(--ds-radius-xs); margin-right: 6px; }
+.wl-logo--chip .ds-logo__text { font-size: 7px; letter-spacing: 0; }
+.wl-logo-slot { flex-shrink: 0; }
+
+/* The quiet Why? on a UNITY-08 WhyButton: same size as the design system's. */
+.why-button.wl-why {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    margin: 0 0 0 4px;
+    padding: 0;
+    flex-shrink: 0;
+    border-radius: 9px;
+    font-size: 1px;
+}
+
+/* ---- Lists -------------------------------------------------------------------------------------------- */
+
+.wl-card-grid { margin-right: -12px; }
+.wl-more { margin-top: 10px; justify-content: space-between; }
+.wl-paged__footer { flex-shrink: 0; }
+
+/* ---- Details, skills, hero ---------------------------------------------------------------------------- */
+
+.wl-details { padding-top: 6px; }
+.wl-details__col { flex-grow: 1; flex-basis: 0; margin-right: 28px; min-width: 200px; }
+.wl-details__col > .wl-label { margin-bottom: 6px; }
+.wl-traits > .ds-pill { align-self: flex-start; margin-bottom: 6px; }
+.wl-details__actions { margin-top: 8px; }
+.wl-details__actions > .ds-btn { margin: 0 8px 6px 0; }
+
+.wl-skill { flex-direction: row; align-items: center; height: 24px; flex-shrink: 0; }
+.wl-skill__label { width: 96px; font-size: 12px; color: var(--ds-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0; }
+.wl-skill__label--wide { width: 130px; }
+.wl-skill > .ds-meter { flex-grow: 1; }
+
+.wl-hero { margin-bottom: 16px; flex-shrink: 0; }
+.wl-hero__words { flex-grow: 1; flex-shrink: 1; min-width: 0; margin-left: 16px; }
+.wl-hero__words > .ds-pill { align-self: flex-start; margin-bottom: 4px; }
+.wl-hero__name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0; }
+.wl-hero__tags { margin: 4px 0 10px 0; }
+.wl-hero__tags > * { margin: 0 8px 4px 0; }
+.wl-hero__states > .ds-dot-label { margin-bottom: 4px; }
+.wl-hero__employer { margin-top: 8px; }
+.wl-hero__employer-link { margin-left: 4px; align-self: flex-start; }
+.wl-hero__employer-link > .ds-btn__label { -unity-text-align: middle-left; }
+.wl-promo-hero > .ds-logo { margin-top: 4px; }
+
+.wl-tiles { flex-direction: row; margin-bottom: 12px; flex-shrink: 0; }
+.wl-tiles > .ds-stat { flex-grow: 1; flex-basis: 0; margin-right: 10px; }
+.wl-profile-top { margin-bottom: 8px; }
+.wl-profile-top > .wl-hero { flex-grow: 1; flex-basis: 0; min-width: 420px; margin-right: 16px; }
+.wl-profile-tiles { flex-grow: 1.2; flex-basis: 0; align-content: flex-start; }
+.wl-profile-tiles > .ds-stat { width: 220px; margin: 0 10px 10px 0; }
+.wl-worker .ds-section-header { margin-top: 10px; }
+
+.wl-columns { flex-shrink: 0; flex-wrap: wrap; }
+.wl-col { flex-grow: 1; flex-basis: 0; min-width: 340px; margin: 0 16px 16px 0; }
+.wl-col--wide { flex-grow: 1.6; }
+.wl-pills { margin-top: 4px; }
+.wl-pills > * { margin: 0 6px 6px 0; }
+
+.wl-form-strip { margin-bottom: 12px; }
+.wl-form-chip {
+    width: 26px;
+    height: 26px;
+    margin-right: 4px;
+    border-radius: var(--ds-radius-sm);
+    -unity-text-align: middle-center;
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-elev-0);
+    background-color: var(--ds-neutral);
+}
+.wl-form-chip--win { background-color: var(--ds-good); }
+.wl-form-chip--loss { background-color: var(--ds-bad); }
+
+.wl-show-tiles { margin-bottom: 8px; }
+.wl-show-tile {
+    width: 260px;
+    margin: 0 12px 12px 0;
+    padding: 10px 14px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+}
+.wl-show-tile__name { font-size: 15px; -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf"); color: var(--ds-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Set push ------------------------------------------------------------------------------------------ */
+
+.wl-setpush > .ds-type-caption { margin-bottom: 12px; }
+.wl-option {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 40px;
+    margin: 0 0 6px 0;
+    padding: 0 12px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-2);
+}
+.wl-option:hover { background-color: var(--ds-elev-3); }
+.wl-option--selected { border-color: var(--ds-data); background-color: var(--ds-data-soft); }
+.wl-option__label { font-size: 14px; -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf"); color: var(--ds-text); -unity-text-align: middle-left; }
+.wl-option__hint { font-size: 12px; color: var(--ds-text-3); -unity-text-align: middle-right; }
+
+/* ---- Calendar ------------------------------------------------------------------------------------------ */
+
+.wl-month-bar { align-items: center; padding-bottom: 6px; }
+.wl-month-bar__title { margin: 0 10px; min-width: 170px; -unity-text-align: middle-center; }
+.wl-month-bar > .ds-btn { margin-left: 8px; }
+.wl-legend > .ds-dot-label { margin-left: 14px; }
+
+.wl-month {
+    flex-shrink: 0;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    overflow: hidden;
+    background-color: var(--ds-elev-1);
+}
+.wl-month__week { flex-direction: row; flex-shrink: 0; }
+.wl-month__head { background-color: var(--ds-elev-2); }
+.wl-month__cell {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+    min-height: 116px;
+    padding: 6px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-color: var(--ds-line-subtle);
+    overflow: hidden;
+}
+.wl-month__cell--head { min-height: 0; height: 28px; justify-content: center; padding: 0 8px; }
+.wl-month__cell--outside { background-color: var(--ds-elev-0); }
+.wl-month__cell--outside .wl-month__day { color: var(--ds-text-4); }
+.wl-month__cell--today { border-color: var(--ds-data); border-width: 1px; background-color: var(--ds-elev-2); }
+.wl-month__top { flex-direction: row; align-items: center; height: 20px; margin-bottom: 4px; flex-shrink: 0; }
+.wl-month__day { font-size: 15px; -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf"); color: var(--ds-text-2); }
+.wl-month__cell--past .wl-month__day { color: var(--ds-text-4); }
+.wl-month__today { margin-left: 6px; font-size: 10px; letter-spacing: 1.2px; -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf"); color: var(--ds-data); }
+.wl-month__more { align-self: flex-start; height: 20px; }
+
+.wl-show-chip {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 24px;
+    margin: 0 0 3px 0;
+    padding: 0 6px 0 3px;
+    border-width: 0;
+    border-left-width: 3px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-xs);
+    background-color: var(--ds-elev-3);
+    overflow: hidden;
+}
+.wl-show-chip:hover { background-color: var(--ds-elev-4); }
+.wl-show-chip--own { border-left-color: var(--ds-action); }
+.wl-show-chip--big { border-left-color: var(--ds-gold); }
+.wl-show-chip--own.wl-show-chip--big { border-left-color: var(--ds-gold); background-color: rgba(250, 204, 21, 0.12); }
+.wl-show-chip--done { opacity: 0.6; }
+.wl-show-chip--cancelled .wl-show-chip__label { color: var(--ds-text-4); }
+.wl-show-chip__label {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: var(--ds-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0;
+    -unity-text-align: middle-left;
+}
+.wl-show-chip__icon { margin-left: 4px; color: var(--ds-text-3); flex-shrink: 0; }
+.wl-day-list > .wl-show-chip { height: 32px; }

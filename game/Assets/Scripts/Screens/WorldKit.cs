@@ -453,3 +453,70 @@ namespace RingsideBooker.Screens
         }
     }
 }
+
+namespace RingsideBooker.Screens
+{
+    /// <summary>
+    /// A <see cref="DsTable{T}"/> over a long list: a header click sorts the whole list (each
+    /// column's <see cref="DsColumn{T}.SortKey"/>), the table draws <see cref="W.PageSize"/> rows,
+    /// and "Show more" adds the next page. Keeps big worlds (thousands of people or shows) quick.
+    /// </summary>
+    public sealed class PagedTable<T> : VisualElement
+    {
+        private readonly List<T> all;
+        private readonly string noun;
+        private readonly VisualElement footer;
+        private List<T> ordered;
+        private int shown;
+
+        public PagedTable(IEnumerable<DsColumn<T>> columns, IEnumerable<T> rows, string noun, Func<T, VisualElement> details = null,
+            string sortId = null, bool descending = false)
+        {
+            AddToClassList("wl-paged");
+            all = rows.ToList();
+            ordered = all;
+            this.noun = noun;
+            Table = new DsTable<T>(columns, Array.Empty<T>(), details);
+            Table.ExternalSort = Sort;
+            Add(Table);
+            footer = Ds.Column("wl-paged__footer");
+            Add(footer);
+            shown = W.PageSize;
+            if (sortId != null)
+            {
+                Table.ShowSort(sortId, descending);
+                Order(sortId, descending);
+            }
+            Draw();
+        }
+
+        public DsTable<T> Table { get; }
+
+        public int Count => all.Count;
+
+        private void Sort(string columnId, bool descending)
+        {
+            Order(columnId, descending);
+            shown = W.PageSize;
+            Draw();
+        }
+
+        private void Order(string columnId, bool descending)
+        {
+            DsColumn<T> column = Table.Columns.FirstOrDefault(c => c.Id == columnId && c.SortKey != null);
+            if (column == null) return;
+            ordered = descending ? all.OrderByDescending(row => column.SortKey(row)).ToList() : all.OrderBy(row => column.SortKey(row)).ToList();
+        }
+
+        private void Draw()
+        {
+            Table.SetRows(ordered.Take(shown));
+            footer.Clear();
+            if (all.Count > W.PageSize) footer.Add(W.More(shown, all.Count, () =>
+            {
+                shown += W.PageSize;
+                Draw();
+            }, noun));
+        }
+    }
+}
