@@ -15,6 +15,7 @@
 
 import type { Reason } from '../../core/api/result';
 import { InvalidArgumentError } from '../../core/errors';
+import { fastPathsEnabled } from '../../core/fastPaths';
 import type { EmploymentId, PersonId, PromotionId, RegionId } from '../../core/ids';
 import type { StepContext } from '../../core/pipeline/context';
 import {
@@ -25,6 +26,7 @@ import {
   type Traced,
   type TraceNode,
 } from '../../core/trace';
+import { withoutNegativeZero } from '../../core/trace/helpers';
 import type { TraceRecordOptions, TraceRef } from '../../core/trace/store';
 import {
   ALIGNMENTS,
@@ -48,7 +50,7 @@ import {
 import type { DoorSource } from './events';
 import { CREW_ROLES } from './formulas/expectedPush';
 import { popularityAnchor, POPULARITY_DOC_REF } from './formulas/popularityAnchor';
-import { popularityChange } from './formulas/popularityChange';
+import { popularityChange, popularityChangeValue } from './formulas/popularityChange';
 import type { EngineTunables } from '../tunables';
 
 export type { DoorSource } from './events';
@@ -497,12 +499,25 @@ interface RegionRequest {
 }
 
 /** Throws unless every key of `byRegion` is a region on the map. */
+/** The region ids as a set, built once per id list (the table keeps one list until a row joins or leaves). */
+const regionIdSets = new WeakMap<readonly RegionId[], ReadonlySet<string>>();
+
+function knownRegionIds(read: GameWorldView): ReadonlySet<string> {
+  const ids = read.tables.regions.ids();
+  let known = regionIdSets.get(ids);
+  if (known === undefined) {
+    known = new Set<string>(ids);
+    regionIdSets.set(ids, known);
+  }
+  return known;
+}
+
 function requireKnownRegions(
   read: GameWorldView,
   field: string,
   byRegion: Readonly<Partial<Record<RegionId, unknown>>>,
 ): void {
-  const knownIds = new Set<string>(read.tables.regions.ids());
+  const knownIds = knownRegionIds(read);
   for (const regionId of Object.keys(byRegion)) {
     if (!knownIds.has(regionId)) {
       throw new InvalidArgumentError(
@@ -540,24 +555,25 @@ function requestedRegions(read: GameWorldView, args: PopularityChangeShape): Reg
     }
     const { regionDeltas } = args;
     requireKnownRegions(read, 'regionDeltas', regionDeltas);
-    for (const region of read.tables.regions.values()) {
-      const delta = regionDeltas[region.id];
+    // Region ids in table order, reading a row only for a region the call names (POL4-12).
+    for (const regionId of read.tables.regions.ids()) {
+      const delta = regionDeltas[regionId];
       if (delta === undefined) {
         continue;
       }
-      requireFinite(`regionDeltas.${region.id}`, typeof delta === 'number' ? delta : delta.value);
-      requests.push({ region, weight: 1, delta });
+      requireFinite(`regionDeltas.${regionId}`, typeof delta === 'number' ? delta : delta.value);
+      requests.push({ region: read.tables.regions.require(regionId), weight: 1, delta });
     }
   } else {
     requireKnownRegions(read, 'regionWeights', args.regionWeights);
     const deltaValue = typeof args.delta === 'number' ? args.delta : args.delta.value;
-    for (const region of read.tables.regions.values()) {
-      const weight = args.regionWeights[region.id];
+    for (const regionId of read.tables.regions.ids()) {
+      const weight = args.regionWeights[regionId];
       if (weight === undefined) {
         continue;
       }
-      requireFinite(`regionWeights.${region.id}`, weight);
-      requests.push({ region, weight, delta: deltaValue });
+      requireFinite(`regionWeights.${regionId}`, weight);
+      requests.push({ region: read.tables.regions.require(regionId), weight, delta: deltaValue });
     }
   }
   return requests.sort(
@@ -664,16 +680,34 @@ export function previewPopularityChange(
   subject: PopularitySubject,
   args: PreviewPopularityChangeArgs,
 ): PopularityPreview {
+  return popularityPreview(read, tunables, subject, args, true);
+}
+
+/**
+ * {@link previewPopularityChange}, optionally without each region's own trace (`regionTraces`
+ * false: the POL4-12 fast path the door takes). The door stores only the total, which shows the
+ * full working of the first {@link DOOR_TRACE_DETAILED_REGIONS} changed regions and the points the
+ * others moved; so only those few regions build their traced change, the rest use
+ * `popularityChangeValue` (the same steps as numbers), and `regions` is left empty. A worker on a
+ * national TV show is weighted in every region of a big map, which made this most of the door.
+ */
+function popularityPreview(
+  read: GameWorldView,
+  tunables: EngineTunables,
+  subject: PopularitySubject,
+  args: PreviewPopularityChangeArgs,
+  regionTraces: boolean,
+): PopularityPreview {
   const target = popularityTarget(read, tunables, subject);
   const requests = requestedRegions(read, args);
   const dropBelow = tunables.get('workers.popularity.dropBelow');
 
   const before = target.regionalPop;
   const stored = new Map<RegionId, number>();
-  for (const region of read.tables.regions.values()) {
-    const value = before[region.id];
+  for (const regionId of read.tables.regions.ids()) {
+    const value = before[regionId];
     if (value !== undefined) {
-      stored.set(region.id, value);
+      stored.set(regionId, value);
     }
   }
   const regionsChanged: RegionId[] = [];
@@ -686,17 +720,38 @@ export function previewPopularityChange(
   });
   for (const { region, weight, delta } of requests) {
     const regionBefore = before[region.id] ?? 0;
-    const changed = popularityChange(
-      {
-        subjectKind: subject.kind,
-        regionName: region.name,
-        before: regionBefore,
-        delta,
-        weight,
-        anchor: target.anchor,
-      },
-      { tunables },
-    );
+    const inputs = {
+      subjectKind: subject.kind,
+      regionName: region.name,
+      before: regionBefore,
+      delta,
+      weight,
+      anchor: target.anchor,
+    };
+    const fastValue = regionTraces ? null : popularityChangeValue(inputs, { tunables });
+    if (fastValue !== null) {
+      const tooSmallFast = fastValue !== 0 && fastValue < dropBelow;
+      const afterFast = tooSmallFast ? 0 : fastValue;
+      if (afterFast !== regionBefore && regionsChanged.length >= DOOR_TRACE_DETAILED_REGIONS) {
+        // The steps `dropped(…).subtract(…)` below take, as numbers: only the points are shown.
+        const kept = tooSmallFast ? withoutNegativeZero(fastValue * 0) : fastValue;
+        total.add(region.name, withoutNegativeZero(kept - regionBefore));
+      }
+      if (afterFast === regionBefore || regionsChanged.length >= DOOR_TRACE_DETAILED_REGIONS) {
+        byRegion[region.id] = { before: regionBefore, after: afterFast };
+        if (afterFast !== regionBefore) {
+          regionsChanged.push(region.id);
+        }
+        if (afterFast === 0) {
+          stored.delete(region.id);
+        } else {
+          stored.set(region.id, afterFast);
+        }
+        continue;
+      }
+      // A changed region that shows its full working: the traced path below.
+    }
+    const changed = popularityChange(inputs, { tunables });
     // The schemas refuse a stored 0, so a region that ends with nothing is left out of the map.
     const tooSmall = changed.value !== 0 && changed.value < dropBelow;
     const regionAfter = tooSmall ? 0 : changed.value;
@@ -724,11 +779,13 @@ export function previewPopularityChange(
       );
     }
     byRegion[region.id] = { before: regionBefore, after: regionAfter };
-    regions.set(region.id, {
-      before: regionBefore,
-      after: regionAfter,
-      trace: tooSmall ? dropped(`Popularity in ${region.name}`).done() : changed,
-    });
+    if (regionTraces) {
+      regions.set(region.id, {
+        before: regionBefore,
+        after: regionAfter,
+        trace: tooSmall ? dropped(`Popularity in ${region.name}`).done() : changed,
+      });
+    }
     if (regionAfter !== regionBefore) {
       regionsChanged.push(region.id);
     }
@@ -762,14 +819,17 @@ export function applyPopularityChange(
   requireReason('applyPopularityChange', args.reason);
   // The whole args go through, so the mixed-form check still sees a caller that passed both.
   const change: PreviewPopularityChangeArgs = args;
-  const preview = previewPopularityChange(ctx.read, ctx.tunables, args.subject, {
-    ...change,
-    label: args.reason.label,
-  });
+  const preview = popularityPreview(
+    ctx.read,
+    ctx.tunables,
+    args.subject,
+    { ...change, label: args.reason.label },
+    !fastPathsEnabled(),
+  );
   const { before, after, regionsChanged, byRegion } = preview;
 
   const roller = createPopularityRoller(geographyOf(ctx.read));
-  const worldBefore = roller.rollValues(before).world;
+  const worldBefore = roller.rollWorld(before);
   if (regionsChanged.length === 0) {
     return {
       ...unchanged(before),
@@ -779,7 +839,7 @@ export function applyPopularityChange(
       byRegion,
     };
   }
-  const worldAfter = roller.rollValues(after).world;
+  const worldAfter = roller.rollWorld(after);
   if (args.subject.kind === 'person') {
     ctx.tx.update('people', args.subject.id, { regionalPop: after });
   } else {

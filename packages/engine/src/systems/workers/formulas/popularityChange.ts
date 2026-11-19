@@ -121,3 +121,48 @@ export function popularityChange(
     .divide('Back to points', hundredths)
     .done();
 }
+
+/** `-0` as `0`, the way every traced step stores its value. */
+function plain(value: number): number {
+  return value === 0 ? 0 : value;
+}
+
+/**
+ * {@link popularityChange}'s value without its trace (POL4-12 fast path): the same steps in the
+ * same order, each with the traced step's `-0` rule, so the result is the same number to the bit.
+ * Returns null when a step would not give a finite number, so the caller takes the traced path
+ * and fails exactly as it does.
+ */
+export function popularityChangeValue(
+  inputs: PopularityChangeInputs,
+  deps: { tunables: EngineTunables },
+): number | null {
+  const delta = typeof inputs.delta === 'number' ? inputs.delta : inputs.delta.value;
+  if (!Number.isFinite(delta) || !Number.isFinite(inputs.weight)) return null;
+  const weight = plain(Math.min(Math.max(inputs.weight, WEIGHT_MIN), WEIGHT_MAX));
+  let value = plain(plain(delta) * weight);
+
+  if (inputs.anchor !== null && inputs.subjectKind === 'person') {
+    if (value > 0 && inputs.before > inputs.anchor.value) {
+      const span = deps.tunables.get('workers.popularity.taperSpan');
+      const floor = deps.tunables.get('workers.popularity.taperFloor');
+      let taper = plain(plain(inputs.before) - plain(inputs.anchor.value));
+      if (span === 0) {
+        taper = plain(taper * 0);
+      } else {
+        taper = plain(taper / plain(span));
+        taper = plain(taper * -1);
+        taper = plain(taper + 1);
+      }
+      taper = plain(Math.max(taper, plain(floor)));
+      value = plain(value * taper);
+    }
+  }
+
+  value = plain(value + plain(inputs.before));
+  value = plain(Math.min(Math.max(value, POPULARITY_MIN), POPULARITY_MAX));
+  value = plain(value * HUNDREDTHS_PER_POINT);
+  value = plain(Math.round(value));
+  value = plain(value / HUNDREDTHS_PER_POINT);
+  return Number.isFinite(value) ? value : null;
+}

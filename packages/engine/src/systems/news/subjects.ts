@@ -11,8 +11,14 @@ import type { EntityRef } from '../../core/trace';
 import type { MessageRefs } from '../../model/entities/mail';
 import type { GameWorldView } from '../../model/tables';
 import { primaryEmploymentOf } from '../workers/helpers/employment';
-import { popularityRollup } from '../world/formulas/popularityRollup';
-import type { Geography } from '../world/geography';
+import { fastPathsEnabled } from '../../core/fastPaths';
+import type { Traced } from '../../core/trace';
+import {
+  createPopularityRoller,
+  popularityRollup,
+  type RegionalPopularity,
+} from '../world/formulas/popularityRollup';
+import { AGGREGATION_DOC_REF, type Geography } from '../world/geography';
 import type { BuzzSubject } from './formulas/buzzScore';
 
 /** The subjects of a story, and the references that no longer exist. */
@@ -28,6 +34,33 @@ export interface BuzzSubjects {
 export function displayNameOf(read: GameWorldView, personId: PersonId, date: GameDate): string {
   const employment = primaryEmploymentOf(read, personId, date);
   return employment?.ringName ?? read.tables.people.require(personId).defaultRingName;
+}
+
+/**
+ * A subject's worldwide popularity, the popularity roll-up's world value with its trace.
+ *
+ * Fast path (POL4-12): a buzz trace reads only the label, doc link and value of this trace (see
+ * `popularitySource` in `formulas/buzzScore.ts`), never the continents and countries under it. So
+ * the value comes from the untraced roller, whose sums run in the same order as the traced means
+ * (the same number to the bit, as the office headline relies on), with a one-line trace carrying
+ * the root's label and doc link. Building the whole roll-up for every subject of every story was
+ * about a tenth of a big imported world's day.
+ */
+function worldPopularity(regionalPop: RegionalPopularity, geography: Geography): Traced<number> {
+  if (!fastPathsEnabled()) {
+    return popularityRollup(regionalPop, geography, { valueLabel: 'Popularity' }).world;
+  }
+  const value = createPopularityRoller(geography).rollValues(regionalPop).world;
+  return {
+    value,
+    trace: {
+      kind: 'input',
+      label: 'Popularity worldwide',
+      value,
+      unit: 'points',
+      docRef: AGGREGATION_DOC_REF,
+    },
+  };
 }
 
 /**
@@ -52,8 +85,7 @@ export function buzzSubjectsOf(
     subjects.push({
       label: displayNameOf(read, personId, date),
       ref: { kind: 'person', id: personId },
-      popularity: popularityRollup(person.regionalPop, geography, { valueLabel: 'Popularity' })
-        .world,
+      popularity: worldPopularity(person.regionalPop, geography),
     });
   }
   for (const promotionId of refs.promotionIds ?? []) {
@@ -65,9 +97,7 @@ export function buzzSubjectsOf(
     subjects.push({
       label: promotion.name,
       ref: { kind: 'promotion', id: promotionId },
-      popularity: popularityRollup(promotion.regionalPop, geography, {
-        valueLabel: 'Popularity',
-      }).world,
+      popularity: worldPopularity(promotion.regionalPop, geography),
     });
   }
   return { subjects, skipped };
