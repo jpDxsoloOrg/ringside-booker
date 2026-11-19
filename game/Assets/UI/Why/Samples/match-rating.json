@@ -1,0 +1,439 @@
+{
+  "ref": {
+    "kind": "shows.rivalSegmentScore",
+    "id": "seg_nzft2jb3ag"
+  },
+  "date": "2027-08-14",
+  "trace": {
+    "label": "Segment score",
+    "unit": "points",
+    "docRef": "angle-rating.md#angle-score",
+    "children": [
+      {
+        "label": "Nothing yet",
+        "unit": "points",
+        "kind": "input",
+        "value": 0
+      },
+      {
+        "label": "Semi-main (standard)",
+        "kind": "note",
+        "value": null
+      },
+      {
+        "label": "Slot weight ×1.25",
+        "kind": "note",
+        "value": null
+      },
+      {
+        "label": "Beats delivered × 0.65",
+        "children": [
+          {
+            "label": "Beats delivered's share",
+            "unit": "points",
+            "children": [
+              {
+                "label": "Beats delivered",
+                "unit": "points",
+                "docRef": "angle-rating.md#angle-score",
+                "children": [
+                  {
+                    "label": "Nothing delivered yet",
+                    "unit": "points",
+                    "kind": "input",
+                    "value": 0
+                  },
+                  {
+                    "label": "Pull-Apart (beat 1) × 1",
+                    "children": [
+                      {
+                        "label": "Pull-Apart (beat 1)",
+                        "unit": "points",
+                        "docRef": "angle-rating.md#angle-score",
+                        "kind": "input",
+                        "value": 61.27728944645882
+                      }
+                    ],
+                    "kind": "add",
+                    "value": 61.27728944645882,
+                    "operand": 61.27728944645882,
+                    "before": 0,
+                    "after": 61.27728944645882
+                  },
+                  {
+                    "label": "Total weight of the beats",
+                    "kind": "divide",
+                    "value": 61.27728944645882,
+                    "operand": 1,
+                    "before": 61.27728944645882,
+                    "after": 61.27728944645882,
+                    "reason": "Delivered is the weighted mean of the beats"
+                  }
+                ],
+                "kind": "formula",
+                "value": 61.27728944645882
+              },
+              {
+                "label": "What the crowd leaves",
+                "kind": "multiply",
+                "value": 39.83023814019823,
+                "operand": 0.65,
+                "before": 61.27728944645882,
+                "after": 39.83023814019823
+              }
+            ],
+            "kind": "formula",
+            "value": 39.83023814019823
+          }
+        ],
+        "kind": "add",
+        "value": 39.83023814019823,
+        "operand": 39.83023814019823,
+        "before": 0,
+        "after": 39.83023814019823
+      },
+      {
+        "label": "Crowd × 0.35",
+        "children": [
+          {
+            "label": "Crowd's share",
+            "unit": "points",
+            "children": [
+              {
+                "label": "Crowd",
+                "unit": "points",
+                "docRef": "match-rating.md#crowd-and-expectation-d-02",
+                "children": [
+                  {
+                    "label": "Nothing yet",
+                    "unit": "points",
+                    "kind": "input",
+                    "value": 0
+                  },
+                  {
+                    "label": "Delivered 53.84",
+                    "children": [
+                      {
+                        "label": "Delivered",
+                        "unit": "points",
+                        "docRef": "match-rating.md#crowd-and-expectation-d-02",
+                        "kind": "input",
+                        "value": 53.84367166305235
+                      }
+                    ],
+                    "kind": "add",
+                    "value": 53.84367166305235,
+                    "operand": 53.84367166305235,
+                    "before": 0,
+                    "after": 53.84367166305235
+                  },
+                  {
+                    "label": "Above expectation +4.08",
+                    "children": [
+                      {
+                        "label": "Surprise",
+                        "unit": "points",
+                        "docRef": "match-rating.md#crowd-and-expectation-d-02",
+                        "kind": "input",
+                        "value": 4.078648871434254
+                      }
+                    ],
+                    "kind": "add",
+                    "value": 57.9223205344866,
+                    "operand": 4.078648871434254,
+                    "before": 53.84367166305235,
+                    "after": 57.9223205344866
+                  },
+                  {
+                    "label": "Attack crowd factor",
+                    "children": [
+                      {
+                        "label": "Attack crowd factor",
+                        "kind": "constant",
+                        "value": 1,
+                        "reason": "Set by the Attack type"
+                      }
+                    ],
+                    "kind": "multiply",
+                    "value": 57.9223205344866,
+                    "operand": 1,
+                    "before": 57.9223205344866,
+                    "after": 57.9223205344866
+                  },
+                  {
+                    "label": "Crowd on the night",
+                    "children": [
+                      {
+                        "label": "Crowd variance spread",
+                        "unit": "points",
+                        "docRef": "match-rating.md#crowd-and-expectation-d-02",
+                        "kind": "tunable",
+                        "key": "match.crowd.varianceSd",
+                        "value": 3,
+                        "defaultValue": 3,
+                        "overridden": false
+                      }
+                    ],
+                    "kind": "roll",
+                    "value": 1.0719617322687163,
+                    "roll": {
+                      "stream": "match.angle",
+                      "kind": "normal",
+                      "label": "Crowd on the night",
+                      "result": 1.0719617322687163
+                    }
+                  },
+                  {
+                    "label": "Crowd on the night",
+                    "kind": "add",
+                    "value": 58.99428226675532,
+                    "operand": 1.0719617322687163,
+                    "before": 57.9223205344866,
+                    "after": 58.99428226675532
+                  },
+                  {
+                    "label": "Never below 0",
+                    "kind": "max",
+                    "value": 58.99428226675532,
+                    "limit": 0,
+                    "before": 58.99428226675532,
+                    "after": 58.99428226675532,
+                    "applied": false
+                  },
+                  {
+                    "label": "Above the knee at 85",
+                    "docRef": "match-rating.md#soft-compression",
+                    "children": [
+                      {
+                        "label": "Compression knee",
+                        "unit": "points",
+                        "docRef": "match-rating.md#soft-compression",
+                        "kind": "tunable",
+                        "key": "match.compression.knee",
+                        "value": 85,
+                        "defaultValue": 85,
+                        "overridden": false
+                      }
+                    ],
+                    "kind": "branch",
+                    "value": false,
+                    "condition": "Above the knee at 85",
+                    "taken": false
+                  },
+                  {
+                    "label": "At most 100",
+                    "kind": "min",
+                    "value": 58.99428226675532,
+                    "limit": 100,
+                    "before": 58.99428226675532,
+                    "after": 58.99428226675532,
+                    "applied": false
+                  },
+                  {
+                    "label": "At least 0",
+                    "kind": "max",
+                    "value": 58.99428226675532,
+                    "limit": 0,
+                    "before": 58.99428226675532,
+                    "after": 58.99428226675532,
+                    "applied": false
+                  }
+                ],
+                "kind": "formula",
+                "value": 58.99428226675532
+              },
+              {
+                "label": "Crowd blend",
+                "children": [
+                  {
+                    "label": "Crowd blend",
+                    "unit": "ratio",
+                    "docRef": "angle-rating.md#angle-score",
+                    "kind": "tunable",
+                    "key": "match.angle.crowdBlend",
+                    "value": 0.35,
+                    "defaultValue": 0.35,
+                    "overridden": false
+                  }
+                ],
+                "kind": "multiply",
+                "value": 20.647998793364362,
+                "operand": 0.35,
+                "before": 58.99428226675532,
+                "after": 20.647998793364362
+              }
+            ],
+            "kind": "formula",
+            "value": 20.647998793364362
+          }
+        ],
+        "kind": "add",
+        "value": 60.4782369335626,
+        "operand": 20.647998793364362,
+        "before": 39.83023814019823,
+        "after": 60.4782369335626
+      },
+      {
+        "label": "Writing team (level 0): floor 0, ceiling 75",
+        "children": [
+          {
+            "label": "Floor per level",
+            "unit": "points",
+            "docRef": "angle-rating.md#angle-score",
+            "kind": "tunable",
+            "key": "match.angle.writingFloorPerLevel",
+            "value": 3,
+            "defaultValue": 3,
+            "overridden": false
+          },
+          {
+            "label": "Ceiling with no writing team",
+            "unit": "points",
+            "docRef": "angle-rating.md#angle-score",
+            "kind": "tunable",
+            "key": "match.angle.writingCeilingAtZero",
+            "value": 75,
+            "defaultValue": 75,
+            "overridden": false
+          },
+          {
+            "label": "Ceiling per level",
+            "unit": "points",
+            "docRef": "angle-rating.md#angle-score",
+            "kind": "tunable",
+            "key": "match.angle.writingCeilingPerLevel",
+            "value": 2.5,
+            "defaultValue": 2.5,
+            "overridden": false
+          }
+        ],
+        "kind": "clamp",
+        "value": 60.4782369335626,
+        "min": 0,
+        "max": 75,
+        "before": 60.4782369335626,
+        "after": 60.4782369335626,
+        "applied": false
+      },
+      {
+        "label": "Rival shortcut: Score bonus +3",
+        "children": [
+          {
+            "label": "Rival score bonus",
+            "unit": "points",
+            "docRef": "rival-desk.md#shortcuts",
+            "children": [
+              {
+                "label": "No bonus",
+                "unit": "points",
+                "kind": "input",
+                "value": 0
+              },
+              {
+                "label": "Run by the computer",
+                "kind": "branch",
+                "value": true,
+                "condition": "Run by the computer",
+                "taken": true
+              },
+              {
+                "label": "Level playing field is off",
+                "kind": "branch",
+                "value": true,
+                "condition": "Level playing field is off",
+                "taken": true
+              },
+              {
+                "label": "Rival shortcut",
+                "children": [
+                  {
+                    "label": "Points added to every rival segment score",
+                    "unit": "points",
+                    "docRef": "rival-desk.md#shortcuts",
+                    "kind": "tunable",
+                    "key": "ai.scoreBonus",
+                    "value": 3,
+                    "defaultValue": 3,
+                    "overridden": false
+                  }
+                ],
+                "kind": "add",
+                "value": 3,
+                "operand": 3,
+                "before": 0,
+                "after": 3
+              }
+            ],
+            "kind": "formula",
+            "value": 3
+          }
+        ],
+        "kind": "add",
+        "value": 63.4782369335626,
+        "operand": 3,
+        "before": 60.4782369335626,
+        "after": 63.4782369335626
+      },
+      {
+        "label": "Above the knee at 85",
+        "docRef": "match-rating.md#soft-compression",
+        "children": [
+          {
+            "label": "Compression knee",
+            "unit": "points",
+            "docRef": "match-rating.md#soft-compression",
+            "kind": "tunable",
+            "key": "match.compression.knee",
+            "value": 85,
+            "defaultValue": 85,
+            "overridden": false
+          }
+        ],
+        "kind": "branch",
+        "value": false,
+        "condition": "Above the knee at 85",
+        "taken": false
+      },
+      {
+        "label": "At most 100",
+        "kind": "min",
+        "value": 63.4782369335626,
+        "limit": 100,
+        "before": 63.4782369335626,
+        "after": 63.4782369335626,
+        "applied": false
+      },
+      {
+        "label": "At least 0",
+        "kind": "max",
+        "value": 63.4782369335626,
+        "limit": 0,
+        "before": 63.4782369335626,
+        "after": 63.4782369335626,
+        "applied": false
+      },
+      {
+        "label": "Rounded to a whole number",
+        "kind": "round",
+        "value": 63,
+        "mode": "round",
+        "before": 63.4782369335626,
+        "after": 63
+      },
+      {
+        "label": "Kept between 0 and 100",
+        "kind": "clamp",
+        "value": 63,
+        "min": 0,
+        "max": 100,
+        "before": 63,
+        "after": 63,
+        "applied": false
+      }
+    ],
+    "kind": "formula",
+    "value": 63
+  },
+  "value": 63,
+  "seq": 52538
+}

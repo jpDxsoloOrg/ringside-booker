@@ -1,0 +1,326 @@
+{
+  "ref": {
+    "kind": "news.buzz",
+    "id": "nws_tv463qw4ra"
+  },
+  "date": "2027-08-16",
+  "trace": {
+    "label": "Story buzz",
+    "unit": "points",
+    "docRef": "docs/design/news.md#buzz",
+    "children": [
+      {
+        "label": "Nothing yet",
+        "unit": "points",
+        "kind": "input",
+        "value": 0
+      },
+      {
+        "label": "Base for a milestone story",
+        "children": [
+          {
+            "label": "Buzz every milestone story starts with (0 = none)",
+            "unit": "points",
+            "docRef": "news.md#buzz",
+            "kind": "tunable",
+            "key": "news.buzz.kindBase.milestone",
+            "value": 10,
+            "defaultValue": 10,
+            "overridden": false
+          }
+        ],
+        "kind": "add",
+        "value": 10,
+        "operand": 10,
+        "before": 0,
+        "after": 10
+      },
+      {
+        "label": "Importance 1 × points per level",
+        "children": [
+          {
+            "label": "Buzz from importance",
+            "unit": "points",
+            "children": [
+              {
+                "label": "Importance",
+                "unit": "points",
+                "kind": "input",
+                "value": 1
+              },
+              {
+                "label": "Points per level of importance",
+                "children": [
+                  {
+                    "label": "Points per level of importance",
+                    "unit": "points",
+                    "docRef": "news.md#buzz",
+                    "kind": "tunable",
+                    "key": "news.buzz.importancePoints",
+                    "value": 12,
+                    "defaultValue": 12,
+                    "overridden": false
+                  }
+                ],
+                "kind": "multiply",
+                "value": 12,
+                "operand": 12,
+                "before": 1,
+                "after": 12
+              }
+            ],
+            "kind": "formula",
+            "value": 12
+          }
+        ],
+        "kind": "add",
+        "value": 22,
+        "operand": 12,
+        "before": 10,
+        "after": 22
+      },
+      {
+        "label": "Popularity of Hammering Prince",
+        "children": [
+          {
+            "label": "Buzz from Hammering Prince",
+            "unit": "points",
+            "children": [
+              {
+                "label": "Popularity of Hammering Prince",
+                "unit": "points",
+                "children": [
+                  {
+                    "label": "Popularity worldwide",
+                    "unit": "points",
+                    "docRef": "geography.md#aggregation",
+                    "kind": "input",
+                    "value": 1.57788337450684,
+                    "ref": {
+                      "kind": "person",
+                      "id": "per_aqka87vjhr"
+                    }
+                  }
+                ],
+                "kind": "input",
+                "value": 1.57788337450684,
+                "ref": {
+                  "kind": "person",
+                  "id": "per_aqka87vjhr"
+                }
+              },
+              {
+                "label": "Most buzz popularity can add",
+                "children": [
+                  {
+                    "label": "Most buzz popularity can add",
+                    "unit": "points",
+                    "docRef": "news.md#buzz",
+                    "kind": "tunable",
+                    "key": "news.buzz.popularityMax",
+                    "value": 40,
+                    "defaultValue": 40,
+                    "overridden": false
+                  }
+                ],
+                "kind": "multiply",
+                "value": 63.115334980273595,
+                "operand": 40,
+                "before": 1.57788337450684,
+                "after": 63.115334980273595
+              },
+              {
+                "label": "Popularity 1.58 plus the soft cap",
+                "children": [
+                  {
+                    "label": "Popularity plus the soft cap",
+                    "unit": "points",
+                    "children": [
+                      {
+                        "label": "Popularity",
+                        "kind": "input",
+                        "value": 1.57788337450684
+                      },
+                      {
+                        "label": "Soft cap: the popularity that earns half the most buzz",
+                        "children": [
+                          {
+                            "label": "Popularity soft cap",
+                            "unit": "points",
+                            "docRef": "news.md#buzz",
+                            "kind": "tunable",
+                            "key": "news.buzz.popularitySoftCap",
+                            "value": 30,
+                            "defaultValue": 30,
+                            "overridden": false
+                          }
+                        ],
+                        "kind": "add",
+                        "value": 31.57788337450684,
+                        "operand": 30,
+                        "before": 1.57788337450684,
+                        "after": 31.57788337450684
+                      }
+                    ],
+                    "kind": "formula",
+                    "value": 31.57788337450684
+                  }
+                ],
+                "kind": "divide",
+                "value": 1.998719617516457,
+                "operand": 31.57788337450684,
+                "before": 63.115334980273595,
+                "after": 1.998719617516457
+              }
+            ],
+            "kind": "formula",
+            "value": 1.998719617516457
+          }
+        ],
+        "kind": "add",
+        "value": 23.998719617516457,
+        "operand": 1.998719617516457,
+        "before": 22,
+        "after": 23.998719617516457
+      },
+      {
+        "label": "Popularity of Eisenwerk Wrestling",
+        "children": [
+          {
+            "label": "Buzz from Eisenwerk Wrestling",
+            "unit": "points",
+            "children": [
+              {
+                "label": "Popularity of Eisenwerk Wrestling",
+                "unit": "points",
+                "children": [
+                  {
+                    "label": "Popularity worldwide",
+                    "unit": "points",
+                    "docRef": "geography.md#aggregation",
+                    "kind": "input",
+                    "value": 0.9544080233029756,
+                    "ref": {
+                      "kind": "promotion",
+                      "id": "pro_h0eshzd9h1"
+                    }
+                  }
+                ],
+                "kind": "input",
+                "value": 0.9544080233029756,
+                "ref": {
+                  "kind": "promotion",
+                  "id": "pro_h0eshzd9h1"
+                }
+              },
+              {
+                "label": "Most buzz popularity can add",
+                "children": [
+                  {
+                    "label": "Most buzz popularity can add",
+                    "unit": "points",
+                    "docRef": "news.md#buzz",
+                    "kind": "tunable",
+                    "key": "news.buzz.popularityMax",
+                    "value": 40,
+                    "defaultValue": 40,
+                    "overridden": false
+                  }
+                ],
+                "kind": "multiply",
+                "value": 38.176320932119026,
+                "operand": 40,
+                "before": 0.9544080233029756,
+                "after": 38.176320932119026
+              },
+              {
+                "label": "Popularity 0.95 plus the soft cap",
+                "children": [
+                  {
+                    "label": "Popularity plus the soft cap",
+                    "unit": "points",
+                    "children": [
+                      {
+                        "label": "Popularity",
+                        "kind": "input",
+                        "value": 0.9544080233029756
+                      },
+                      {
+                        "label": "Soft cap: the popularity that earns half the most buzz",
+                        "children": [
+                          {
+                            "label": "Popularity soft cap",
+                            "unit": "points",
+                            "docRef": "news.md#buzz",
+                            "kind": "tunable",
+                            "key": "news.buzz.popularitySoftCap",
+                            "value": 30,
+                            "defaultValue": 30,
+                            "overridden": false
+                          }
+                        ],
+                        "kind": "add",
+                        "value": 30.954408023302975,
+                        "operand": 30,
+                        "before": 0.9544080233029756,
+                        "after": 30.954408023302975
+                      }
+                    ],
+                    "kind": "formula",
+                    "value": 30.954408023302975
+                  }
+                ],
+                "kind": "divide",
+                "value": 1.2333080607898972,
+                "operand": 30.954408023302975,
+                "before": 38.176320932119026,
+                "after": 1.2333080607898972
+              },
+              {
+                "label": "Each further subject counts 0.25",
+                "children": [
+                  {
+                    "label": "Share for each further subject",
+                    "unit": "ratio",
+                    "docRef": "news.md#buzz",
+                    "kind": "tunable",
+                    "key": "news.buzz.extraSubjectShare",
+                    "value": 0.25,
+                    "defaultValue": 0.25,
+                    "overridden": false
+                  }
+                ],
+                "kind": "multiply",
+                "value": 0.3083270151974743,
+                "operand": 0.25,
+                "before": 1.2333080607898972,
+                "after": 0.3083270151974743
+              }
+            ],
+            "kind": "formula",
+            "value": 0.3083270151974743
+          }
+        ],
+        "kind": "add",
+        "value": 24.30704663271393,
+        "operand": 0.3083270151974743,
+        "before": 23.998719617516457,
+        "after": 24.30704663271393
+      },
+      {
+        "label": "Kept between 0 and 100",
+        "kind": "clamp",
+        "value": 24.30704663271393,
+        "min": 0,
+        "max": 100,
+        "before": 24.30704663271393,
+        "after": 24.30704663271393,
+        "applied": false
+      }
+    ],
+    "kind": "formula",
+    "value": 24.30704663271393
+  },
+  "value": 24.30704663271393,
+  "seq": 53332
+}

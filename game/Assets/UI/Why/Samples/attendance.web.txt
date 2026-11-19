@@ -1,0 +1,9 @@
+Crowd: 300
+  Expected crowd: 734
+  Crowd on the night: rolled 1.05 on 0.9–1.1 (0.9 possible, 1.1 not) · Random stream boxoffice.crowd
+    How far the crowd can swing: 0.1 · Game setting · boxOffice.crowd.spread
+  ×1.055 Crowd on the night · 734 → 774.2
+  Rounded 774.2 → 774 · Rounded to whole people
+  Capped 774 → 300 (maximum) · Capacity of The Hibiki Room
+  Checked 300 against a minimum of 0: not reached · Never below 0
+    Empty: 0 · Fixed: A crowd cannot be smaller than nobody

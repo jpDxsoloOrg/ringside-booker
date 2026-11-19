@@ -1,0 +1,66 @@
+Popularity change in Ireland: 0.5
+  No change yet: 0
+  +3 Beat expectations by 25.52 · 0 → 3
+    Beat expectations by 25.52: 3
+      Strength of the result: 1
+        Size of the margin either way: 25.52
+          Scored 46 against an expected 20.48: +25.52: 25.5
+            Show score: 46
+            −20.48 Less what fans here expected · 46 → 25.52
+              What fans in Ireland expected: 20.5
+                Nothing expected yet: 0
+                +10.08 Popularity here 16.8, Regular show · 0 → 10.08
+                  Expected because of popularity here: 10.1
+                    Popularity here: 16.8
+                    ×0.6 Popularity here 16.8 × 0.6 · 16.8 → 10.08
+                      Popularity weight: 0.6 · Game setting · promoPop.expect.popularityWeight
+                    ×1 Event size: Regular × 1 · 10.08 → 10.08
+                      Event size effect: ×1 · Game setting · promoPop.expect.importance.regular
+                +10.4 Prestige 52 · 10.08 → 20.48
+                  Expected because of prestige: 10.4
+                    Prestige: 52
+                    ×0.2 Prestige 52 × 0.2 · 52 → 10.4
+                      Prestige weight: 0.2 · Game setting · promoPop.expect.prestigeWeight
+                Hype isn't tracked yet
+                Checked 20.48 against 0–100: already in range · Expectations stay within 0–100
+        −3 Less the dead zone · 25.52 → 22.52
+          Dead zone: 3 · Game setting · promoPop.deadZone
+        ÷22 Share of the way to a blowout · 22.52 → 1.024
+          From the dead zone to a blowout: 22
+            Nothing yet: 0
+            +25 Blowout margin · 0 → 25
+              Blowout margin: 25 · Game setting · promoPop.blowoutMargin
+            −3 Less the dead zone · 25 → 22
+              Dead zone: 3 · Game setting · promoPop.deadZone
+        Capped 1.024 → 1 (maximum) · A blowout or more counts in full
+      ×3 Most one show can win · 1 → 3
+        Most gain per show: 3 · Game setting · promoPop.maxGainPerShow
+  ×1 Event size: Regular × 1 · 3 → 3
+    Event size effect: ×1 · Game setting · promoPop.impact.regular
+  ×0.2 Seen here as: TV: Larkspur Stream · 3 → 0.6
+    Reach in Ireland: 0.2
+      Not reached: 0 · Fixed: A region the show did not reach saw none of it
+      Raised 0 → 0.2 (minimum) · TV: Larkspur Stream, reach tier 1 × 0.2
+        TV reach, tier 1: 0.2 · Game setting · promoPop.tvReach.tier1
+      Checked 0.2 against a maximum of 1: not reached · Full reach
+        Full reach: 1 · Fixed: A region can't see a show more than fully
+  ×0.759 Diminishing returns at popularity 16.8 · 0.6 → 0.5
+    Share of a gain that still lands: 0.759
+      All fans: 1 · Fixed: Popularity runs up to 100, the whole region
+      −0.17 Fans already won · 1 → 0.83
+        Share of fans already won: 0.168
+          Popularity here: 16.8
+          ÷100 Out of 100 · 16.8 → 0.17
+            Popularity scale: 100 · Fixed: Popularity runs from 0 to 100
+      Checked 0.83 against 0–1: already in range · Fans left to win stay within 0–1
+      0.832 raised to the power 1.5 = 0.759 (Diminishing power) · 0.83 → 0.76
+        Diminishing power: 1.5 · Game setting · promoPop.diminishingPower
+  Checked 0.5 against a maximum of 2.1: not reached · Monthly gain cap: 0.92 of 3 used
+    Gain left this month: 2.1
+      Nothing yet: 0
+      +3 Monthly gain cap · 0 → 3
+        Monthly gain cap: 3 · Game setting · promoPop.monthlyGainCap
+      −0.9 Already gained here this month · 3 → 2.1
+      Checked 2.1 against a minimum of 0: not reached · Never below 0
+        Nothing left: 0 · Fixed: A cap cannot take back gains
+  Checked 0.5 against −16.8–83.2: already in range · Popularity stays within 0–100
