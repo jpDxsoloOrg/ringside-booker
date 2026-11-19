@@ -36,6 +36,9 @@ namespace RingsideBooker.UI.Bridge
 
         public event Action Changed;
 
+        /// <summary>True while a refresh is reading the engine (dev tools wait for it).</summary>
+        public bool Refreshing => refreshing;
+
         /// <summary>The last <c>sim.status</c>, raw, or null before the first answer.</summary>
         public SimStatus Status { get; private set; }
 
@@ -56,17 +59,24 @@ namespace RingsideBooker.UI.Bridge
                 do
                 {
                     refreshAgain = false;
-                    QueryResult<SimStatus> status = await game.Client.Query<SimStatus>(EngineQueries.SimStatus);
+                    EnginePerf.Count("ui.shellData.refresh");
+                    // One trip: sim.status and news.top (the ticker), plus promotions.list the first time a promotion shows up
+                    // (a promotion's logo never changes in a game).
+                    string knownLogoFor = logoFor;
+                    (QueryResult<SimStatus> status, QueryResult<JToken> list, QueryResult<JToken> news) = await game.Client.Read("shell.status", reader =>
+                    {
+                        QueryResult<SimStatus> read = reader.Query<SimStatus>(EngineQueries.SimStatus);
+                        string id = read.Data?.Promotion?.PromotionId;
+                        return (read, id != null && id != knownLogoFor ? reader.Query("promotions.list") : null, reader.Query("news.top"));
+                    });
                     if (!attached) return;
                     string promotionId = status.Data?.Promotion?.PromotionId;
-                    if (promotionId != null && promotionId != logoFor)
+                    if (list != null && promotionId != null)
                     {
-                        logoRef = await ReadLogoRef(promotionId);
+                        logoRef = LogoRefIn(list, promotionId);
                         logoFor = promotionId;
-                        if (!attached) return;
                     }
-                    Headlines = await ReadHeadlines();
-                    if (!attached) return;
+                    Headlines = HeadlinesFrom(news);
                     if (status.Ok && status.Data != null)
                     {
                         Status = status.Data;
@@ -96,11 +106,10 @@ namespace RingsideBooker.UI.Bridge
         /// The ticker's lines: each top story as "Kind: the names it involves" (the web's message
         /// catalogue is not in Unity yet, as on the Office page). Empty on any failure.
         /// </summary>
-        private async System.Threading.Tasks.Task<IReadOnlyList<string>> ReadHeadlines()
+        private static IReadOnlyList<string> HeadlinesFrom(QueryResult<JToken> news)
         {
             try
             {
-                QueryResult<JToken> news = await game.Client.Query("news.top");
                 if (!news.Ok || !(news.Data is JObject data)) return Array.Empty<string>();
                 JToken names = data["names"];
                 IEnumerable<JToken> stories = (data["hero"] as JArray ?? new JArray()).Concat(data["ticker"] as JArray ?? new JArray());
@@ -144,21 +153,13 @@ namespace RingsideBooker.UI.Bridge
             return $"{kind}: {string.Join(" · ", parts.Take(3))}";
         }
 
-        /// <summary>The promotion's logo ref (from <c>promotions.list</c>; a logo never changes in a game), or null.</summary>
-        private async System.Threading.Tasks.Task<string> ReadLogoRef(string promotionId)
+        /// <summary>The promotion's logo ref in a <c>promotions.list</c> answer, or null.</summary>
+        private static string LogoRefIn(QueryResult<JToken> list, string promotionId)
         {
-            try
+            if (!list.Ok || !(list.Data is JArray rows)) return null;
+            foreach (JToken row in rows)
             {
-                QueryResult<JToken> list = await game.Client.Query("promotions.list");
-                if (!list.Ok || !(list.Data is JArray rows)) return null;
-                foreach (JToken row in rows)
-                {
-                    if ((string)row["promotionId"] == promotionId) return row["logoRef"]?.Type == JTokenType.String ? (string)row["logoRef"] : null;
-                }
-            }
-            catch (Exception exception)
-            {
-                Debug.LogWarning($"[EngineShellData] promotions.list: {exception.GetType().Name}");
+                if ((string)row["promotionId"] == promotionId) return row["logoRef"]?.Type == JTokenType.String ? (string)row["logoRef"] : null;
             }
             return null;
         }

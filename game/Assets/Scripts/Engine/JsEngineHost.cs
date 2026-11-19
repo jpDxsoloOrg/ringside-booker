@@ -76,7 +76,10 @@ namespace RingsideBooker.Engine
                 ConfigureNativeSearchPath(Application.dataPath);
             }
 
-            engine = new V8ScriptEngine(V8ScriptEngineFlags.None);
+            V8RuntimeConstraints constraints = DevConstraints();
+            engine = constraints == null
+                ? new V8ScriptEngine(V8ScriptEngineFlags.None)
+                : new V8ScriptEngine(constraints, V8ScriptEngineFlags.None);
             try
             {
                 engine.Execute(documentName, bundleSource);
@@ -156,7 +159,11 @@ namespace RingsideBooker.Engine
             {
                 ThrowIfDisposed();
                 object[] scriptArguments = Array.ConvertAll(arguments ?? Array.Empty<string>(), ToScript);
-                return AsResult(function, api.InvokeMethod(function, scriptArguments));
+                if (!EnginePerf.Enabled) return AsResult(function, api.InvokeMethod(function, scriptArguments));
+                long started = System.Diagnostics.Stopwatch.GetTimestamp();
+                string json = AsResult(function, api.InvokeMethod(function, scriptArguments));
+                EnginePerf.NoteV8(System.Diagnostics.Stopwatch.GetTimestamp() - started, arguments, json);
+                return json;
             }
         }
 
@@ -175,6 +182,7 @@ namespace RingsideBooker.Engine
             {
                 ThrowIfDisposed();
                 object progress = onProgress == null ? (object)Undefined.Value : onProgress;
+                long started = EnginePerf.Enabled ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
                 var box = (ScriptObject)helper.InvokeMethod("callAsync", function, ToScript(argument), progress);
                 if (!(box.GetProperty("done") is bool done) || !done)
                 {
@@ -188,7 +196,9 @@ namespace RingsideBooker.Engine
                     throw new JsEngineException($"RingsideEngine.{function} rejected: {message}");
                 }
 
-                return AsResult(function, box.GetProperty("value"));
+                string json = AsResult(function, box.GetProperty("value"));
+                if (started != 0) EnginePerf.NoteV8(System.Diagnostics.Stopwatch.GetTimestamp() - started, new[] { argument }, json);
+                return json;
             }
         }
 
@@ -213,6 +223,39 @@ namespace RingsideBooker.Engine
                 ThrowIfDisposed();
                 engine.CollectGarbage(true);
             }
+        }
+
+        /// <summary>The V8 heap now (dev logs): used and total MB and the limit.</summary>
+        public string HeapSummary()
+        {
+            lock (gate)
+            {
+                ThrowIfDisposed();
+                V8RuntimeHeapInfo heap = engine.GetRuntimeHeapInfo();
+                return string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    "V8 heap used {0:0} MB of {1:0} MB (limit {2:0} MB)",
+                    heap.UsedHeapSize / 1048576.0, heap.TotalHeapSize / 1048576.0, heap.HeapSizeLimit / 1048576.0);
+            }
+        }
+
+        // Dev experiment flags (UNITY-23): -rbV8YoungMb <n> and -rbV8OldMb <n> size V8's heap spaces.
+        private static V8RuntimeConstraints DevConstraints()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            int young = DevInt(args, "-rbV8YoungMb");
+            int old = DevInt(args, "-rbV8OldMb");
+            if (young <= 0 && old <= 0) return null;
+            var constraints = new V8RuntimeConstraints();
+            if (young > 0) constraints.MaxYoungSpaceSize = young;
+            if (old > 0) constraints.MaxOldSpaceSize = old;
+            Debug.Log($"[JsEngineHost] V8 constraints: young {young} MB, old {old} MB");
+            return constraints;
+        }
+
+        private static int DevInt(string[] args, string name)
+        {
+            int at = Array.FindIndex(args, arg => string.Equals(arg, name, StringComparison.OrdinalIgnoreCase));
+            return at >= 0 && at + 1 < args.Length && int.TryParse(args[at + 1], out int value) ? value : 0;
         }
 
         /// <summary>Stops the runtime and frees the V8 isolate.</summary>
