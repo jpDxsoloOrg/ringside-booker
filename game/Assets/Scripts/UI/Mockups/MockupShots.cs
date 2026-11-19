@@ -134,6 +134,11 @@ namespace RingsideBooker.UI.Mockups
             yield return Capture("components-modal-toast");
             mock.Shell.Overlay.CloseAll();
 
+            mock.Shell.Root.Q<VisualElement>("ds-toasts")?.Clear();
+            mock.Show(MockupScreens.Portraits);
+            yield return Wait(0.8f);
+            yield return Capture("portrait-compare");
+
             Debug.Log($"[MockupShots] done: {folder}");
             Application.Quit(0);
         }

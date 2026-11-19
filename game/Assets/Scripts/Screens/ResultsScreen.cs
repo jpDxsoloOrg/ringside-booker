@@ -272,7 +272,7 @@ namespace RingsideBooker.Screens
                 Matchup matchup = Matchups.FromResult(best, people, true);
                 VisualElement star = Ds.Panel("Star of the night", null, null).Named("results-star");
                 VisualElement row = Ds.Row("ds-row--top");
-                row.Add(DsCards.PortraitBox(matchup.A?.Picture, matchup.A?.Alignment ?? Alignment.Tweener, "ds-portrait--md", matchup.A?.Champion != null));
+                row.Add(DsCards.PortraitBox(matchup.A?.Picture, matchup.A?.Alignment ?? Alignment.Tweener, "ds-portrait--md", matchup.A?.Champion != null, matchup.A?.Name));
                 VisualElement words = Ds.Column("fc-star-night__words");
                 words.Add(Ds.Text(TextFormat.Upper(matchup.A?.Name ?? string.Empty), "ds-type-title"));
                 words.Add(new Stars(matchup.Stars ?? 0, "ds-icon--md"));

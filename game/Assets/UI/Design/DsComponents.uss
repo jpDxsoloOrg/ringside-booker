@@ -1179,7 +1179,9 @@
 
 .ds-portrait-art,
 .ds-fill,
-.ds-portrait-art__figure {
+.ds-portrait-art__figure,
+.ds-portrait-art__stripe,
+.ds-portrait-art__initials {
     position: absolute;
     left: 0;
     top: 0;
@@ -1189,6 +1191,21 @@
 
 .ds-portrait-art {
     -unity-background-scale-mode: scale-and-crop;
+}
+
+/* The monogram placeholder: initials in the display face, sized in code to the box. */
+.ds-portrait-art__initials {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    -unity-text-align: middle-center;
+    letter-spacing: 0;
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+    white-space: nowrap;
+}
+
+/* On a portrait card the name sits over the foot: lift the initials into the top part. */
+.ds-pcard__art .ds-portrait-art__initials {
+    bottom: 28%;
 }
 
 .ds-portrait {

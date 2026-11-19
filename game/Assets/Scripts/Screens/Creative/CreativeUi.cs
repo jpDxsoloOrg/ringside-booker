@@ -56,8 +56,8 @@ namespace RingsideBooker.Screens.Creative
             return texture == pictures.Placeholder ? null : texture;
         }
 
-        public static VisualElement Portrait(string imageRef, string sizeClass = "ds-portrait--xs", bool gold = false, Alignment tone = Alignment.Tweener) =>
-            DsCards.PortraitBox(Picture(imageRef), tone, sizeClass, gold);
+        public static VisualElement Portrait(string imageRef, string sizeClass = "ds-portrait--xs", bool gold = false, Alignment tone = Alignment.Tweener, string name = null) =>
+            DsCards.PortraitBox(Picture(imageRef), tone, sizeClass, gold, name);
 
         /// <summary>A brand or promotion logo from the workshop world, else its monogram.</summary>
         public static VisualElement Logo(string logoRef, string name, string sizeClass = "rb-logo--sm") =>

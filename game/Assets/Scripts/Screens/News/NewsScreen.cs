@@ -98,8 +98,8 @@ namespace RingsideBooker.Screens.News
             return pictures.Get(person.imageRef);
         }
 
-        public static VisualElement Portrait(string personId, string sizeClass) =>
-            DsCards.PortraitBox(Picture(personId), AlignmentOf(personId), sizeClass);
+        public static VisualElement Portrait(string personId, string sizeClass, string name = null) =>
+            DsCards.PortraitBox(Picture(personId), AlignmentOf(personId), sizeClass, false, name);
     }
 
     /// <summary>The News screen's state and drawing (one per visit).</summary>
@@ -277,7 +277,7 @@ namespace RingsideBooker.Screens.News
             if (people.Count > 0)
             {
                 feature = Ds.Row("nw-lead__faces");
-                foreach (NewsName person in people) feature.Add(NewsPeople.Portrait(person.Id, "ds-portrait--xl"));
+                foreach (NewsName person in people) feature.Add(NewsPeople.Portrait(person.Id, "ds-portrait--xl", person.Name));
             }
             else if (NewsModel.PromotionOf(story, storyNames) is NewsName promotion)
             {
@@ -305,7 +305,7 @@ namespace RingsideBooker.Screens.News
             VisualElement card = Ds.Row("ds-news", "nw-story", Ds.StateClass(NewsModel.KindState(kind))).Named($"news-top-{index}");
             List<NewsName> people = NewsModel.PeopleOf(story, storyNames, 1);
             VisualElement art = Ds.El("nw-story__art");
-            if (people.Count > 0) art.Add(NewsPeople.Portrait(people[0].Id, "ds-portrait--sm"));
+            if (people.Count > 0) art.Add(NewsPeople.Portrait(people[0].Id, "ds-portrait--sm", people[0].Name));
             else if (NewsModel.PromotionOf(story, storyNames) is NewsName promotion) PromotionLogos.Prepend(art, promotion.Id, null, "rb-logo--lg");
             else art.Add(Ds.El("nw-story__icon-box").With(new Icon(NewsModel.KindIcon(kind), "ds-icon--lg", "nw-story__icon")));
             card.Add(art);

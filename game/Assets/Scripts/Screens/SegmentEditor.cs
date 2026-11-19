@@ -322,7 +322,7 @@ namespace RingsideBooker.Screens
             {
                 VisualElement line = Ds.Row("fc-person").Named($"editor-person-{personId}");
                 PersonFacts facts = page.State.People?.Get(personId);
-                line.Add(DsCards.PortraitBox(CardPeople.Picture(facts?.ImageRef ?? ImageRefOf(personId)), facts?.Alignment ?? Alignment.Tweener, "ds-portrait--xs", champion));
+                line.Add(DsCards.PortraitBox(CardPeople.Picture(facts?.ImageRef ?? ImageRefOf(personId)), facts?.Alignment ?? Alignment.Tweener, "ds-portrait--xs", champion, NameOf(personId)));
                 line.Add(Ds.Text(NameOf(personId), "fc-person__name"));
                 if (champion) line.Add(new Icon("crown", "ds-icon--xs", "fc-person__crown"));
                 line.Add(Ds.Spacer());
@@ -952,7 +952,7 @@ namespace RingsideBooker.Screens
                     row.AddToClassList("fc-pick");
                     row.EnableInClassList("fc-pick--disabled", !bookable);
                     bool champion = Kit.Arr(person, "titles").Any();
-                    row.Add(DsCards.PortraitBox(CardPeople.Picture(Kit.Str(person, "imageRef")), CardWords.AlignmentOf(Kit.Str(person, "alignment")), "ds-portrait--xs", champion));
+                    row.Add(DsCards.PortraitBox(CardPeople.Picture(Kit.Str(person, "imageRef")), CardWords.AlignmentOf(Kit.Str(person, "alignment")), "ds-portrait--xs", champion, name));
                     VisualElement words = Ds.Column("fc-pick__words");
                     VisualElement top = Ds.Row("fc-pick__top");
                     top.Add(Ds.Text(name, "fc-pick__name"));

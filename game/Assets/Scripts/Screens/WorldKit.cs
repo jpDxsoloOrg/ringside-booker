@@ -250,8 +250,8 @@ namespace RingsideBooker.Screens
             }
         }
 
-        public static VisualElement Portrait(string imageRef, string alignment, string sizeClass, bool champion = false) =>
-            DsCards.PortraitBox(Picture(imageRef), Side(alignment), sizeClass, champion);
+        public static VisualElement Portrait(string imageRef, string alignment, string sizeClass, bool champion = false, string name = null) =>
+            DsCards.PortraitBox(Picture(imageRef), Side(alignment), sizeClass, champion, name);
 
         /// <summary>A promotion's logo: the workshop picture fitted inside, else a monogram on its colour.</summary>
         public static VisualElement Logo(string logoRef, string shortName, string color, string sizeClass = "ds-logo--sm")
@@ -363,7 +363,7 @@ namespace RingsideBooker.Screens
         public static VisualElement NameCell(string name, string imageRef, string alignment, bool champion = false, string detail = null)
         {
             VisualElement cell = Ds.Row("wl-name-cell");
-            cell.Add(Portrait(imageRef, alignment, "ds-portrait--xs", champion));
+            cell.Add(Portrait(imageRef, alignment, "ds-portrait--xs", champion, name));
             VisualElement words = Ds.Column("wl-name-cell__words");
             words.Add(Ds.Text(name ?? Kit.NoValue, "ds-cell__text", "ds-cell__text--strong", "wl-name-cell__name"));
             if (detail != null) words.Add(Ds.Text(detail, "wl-name-cell__detail"));

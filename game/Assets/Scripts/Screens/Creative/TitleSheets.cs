@@ -460,7 +460,7 @@ namespace RingsideBooker.Screens.Creative
             VisualElement box = Ds.El("ds-check__box", radio ? "cr-pick__radio" : "cr-pick__box");
             if (on) box.Add(new Icon("check", "ds-icon--xs", "ds-check__tick"));
             row.Add(box);
-            if (imageRef != null || onPick != null) row.Add(CreativeUi.Portrait(imageRef, "ds-portrait--xs"));
+            if (imageRef != null || onPick != null) row.Add(CreativeUi.Portrait(imageRef, "ds-portrait--xs", name: title));
             VisualElement words = Ds.Column("cr-pick__words");
             words.Add(CreativeUi.Clip(title, "cr-pick__name"));
             if (!string.IsNullOrEmpty(meta)) words.Add(CreativeUi.Clip(meta, "cr-pick__meta"));

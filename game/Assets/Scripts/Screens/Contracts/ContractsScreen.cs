@@ -395,7 +395,7 @@ namespace RingsideBooker.Screens.Contracts
         {
             VisualElement card = Ds.Row("ct-decision", Ds.StateClass(state)).Named(name);
             card.Add(Ds.El("ct-decision__edge"));
-            if (ringName != null) card.Add(ContractUi.Portrait(imageRef, "ds-portrait--sm"));
+            if (ringName != null) card.Add(ContractUi.Portrait(imageRef, "ds-portrait--sm", false, ringName));
             else card.Add(Ds.El("ct-decision__icon-box").With(new Icon(icon, "ds-icon--lg", "ct-decision__icon")));
             VisualElement words = Ds.Column("ct-decision__words");
             VisualElement top = Ds.Row("ct-decision__top");

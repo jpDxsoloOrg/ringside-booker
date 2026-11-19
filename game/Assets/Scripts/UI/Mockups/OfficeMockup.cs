@@ -25,12 +25,12 @@ namespace RingsideBooker.UI.Mockups
 
             // Lead story: the biggest thing in your world this week, with the two faces of the main event.
             VisualElement leadFaces = Ds.Row("mk-lead__faces");
-            leadFaces.Add(DsCards.PortraitBox(null, Alignment.Face, "ds-portrait--xl", gold: true));
+            leadFaces.Add(DsCards.PortraitBox(null, Alignment.Face, "ds-portrait--xl", gold: true, name: "Calder Voss"));
             VisualElement vs = new SkewShape();
             vs.AddToClassList("mk-lead__vs");
             vs.Add(Ds.Text("VS", "mk-lead__vs-text"));
             leadFaces.Add(vs);
-            leadFaces.Add(DsCards.PortraitBox(null, Alignment.Heel, "ds-portrait--xl"));
+            leadFaces.Add(DsCards.PortraitBox(null, Alignment.Heel, "ds-portrait--xl", name: "Ewan Thackeray"));
             VisualElement lead = DsCards.NewsCard(new NewsItem
             {
                 Kicker = "Showcase · Main event",
@@ -136,7 +136,7 @@ namespace RingsideBooker.UI.Mockups
             {
                 VisualElement row = Ds.Row("mk-rank");
                 row.Add(Ds.Text(rank.ToString(), "mk-rank__number"));
-                row.Add(DsCards.PortraitBox(null, worker.Alignment, "ds-portrait--xs", worker.Champion != null));
+                row.Add(DsCards.PortraitBox(null, worker.Alignment, "ds-portrait--xs", worker.Champion != null, worker.Name));
                 VisualElement words = Ds.Column("mk-rank__words");
                 words.Add(Ds.Text(worker.Name, "mk-rank__name"));
                 words.Add(Ds.Text(worker.Champion ?? worker.Position, worker.Champion != null ? "mk-rank__champ" : "mk-rank__role"));
