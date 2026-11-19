@@ -961,12 +961,29 @@
     color: var(--ds-data);
 }
 
+/*
+ * The column picker sits absolutely in the header's right gutter; the header and every body row
+ * reserve the same 30 px gutter, so header cells line up with their column's cells.
+ */
 .ds-table__picker {
-    margin-left: auto;
-    margin-right: 2px;
+    position: absolute;
+    right: 2px;
+    top: 1px;
     width: 26px;
     height: 26px;
     min-width: 26px;
+    margin: 0;
+}
+
+.ds-table__header,
+.ds-table__row {
+    padding-right: 30px;
+}
+
+/* Rows carry a 2 px left edge (the selected marker); the header keeps the same edge, unseen. */
+.ds-table__header {
+    border-left-width: 2px;
+    border-left-color: transparent;
 }
 
 .ds-table__row {
