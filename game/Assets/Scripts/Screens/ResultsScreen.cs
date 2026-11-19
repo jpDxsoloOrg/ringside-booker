@@ -281,7 +281,8 @@ namespace RingsideBooker.Screens
             if (breakdownRows != null && Kit.Arr(breakdownRows).Any())
             {
                 VisualElement breakdown = Ds.Panel("How the score added up", null, null).Named("results-breakdown");
-                breakdown.Add(Ds.KeyValues(Kit.Arr(breakdownRows).Select(row => (Kit.Str(row, "label"), $"{Kit.Whole(Kit.Num(row, "score"))} × {Kit.Num(row, "weight"):0.##}")).ToArray()));
+                breakdown.Add(Ds.KeyValues(Kit.Arr(breakdownRows).Where(row => Kit.Num(row, "score") != null)
+                    .Select(row => (Kit.Str(row, "label"), Kit.Num(row, "weight") is double weight && weight != 1 ? $"{Kit.Whole(Kit.Num(row, "score"))} × {weight:0.##}" : Kit.Whole(Kit.Num(row, "score")))).ToArray()));
                 side.Add(breakdown);
             }
 

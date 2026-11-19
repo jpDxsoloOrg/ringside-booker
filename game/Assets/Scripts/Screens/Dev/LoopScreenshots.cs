@@ -142,13 +142,6 @@ namespace RingsideBooker.Screens.Dev
             ClickNamed("booking-edit");
             yield return WaitIdle(1.5f);
             yield return Capture("segment-editor");
-            if (SegmentEditor.Current != null)
-            {
-                ClickNamed("editor-add-team-0");
-                yield return Wait(0.8f);
-                yield return Capture("team-picker");
-                ShellController.Current.Overlay.CloseAll();
-            }
             ShellController.Current.Overlay.CloseAll();
             // A talking segment's beats editor, on the first talking segment the card has.
             VisualElement angleCard = Q<VisualElement>(element => element.name != null && element.name.StartsWith("slot-card-") &&

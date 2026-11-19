@@ -1165,3 +1165,11 @@
     flex-direction: row;
     align-items: center;
 }
+
+/* A Why? in a scoreboard cell sits in its top-right corner, out of the numbers' way. */
+.fc-board .ds-scoreboard__cell > .why-button,
+.fc-results-board .ds-scoreboard__cell > .why-button {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+}

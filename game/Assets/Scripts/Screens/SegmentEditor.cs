@@ -758,7 +758,7 @@ namespace RingsideBooker.Screens
 
             private void PickBeat(VisualElement anchor, BeatRow row)
             {
-                VisualElement list = Ds.Column("fc-pop-list");
+                VisualElement list = FightCardStyles.Apply(Ds.Column("fc-pop-list"));
                 OverlayHandle pop = null;
                 foreach (string key in AllowedBeats())
                 {

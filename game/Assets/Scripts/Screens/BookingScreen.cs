@@ -51,7 +51,7 @@ namespace RingsideBooker.Screens
         private static async Task Render(VisualElement host, ScreenContext context, State state)
         {
             EngineClient client = Kit.Game.Client;
-            QueryResult<JToken> shows = await client.Query("booking.shows", new JObject { ["limit"] = 12 });
+            QueryResult<JToken> shows = await client.Query("booking.shows", new JObject { ["limit"] = 30 });
             if (!shows.Ok)
             {
                 host.Clear();
@@ -146,7 +146,8 @@ namespace RingsideBooker.Screens
         {
             VisualElement strip = Ds.Row("fc-show-strip").Named("booking-shows");
             strip.Add(Ds.Text("BOOKING FOR", "fc-label"));
-            foreach (JToken row in rows)
+            // The next few shows, plus the chosen one when it is further out (don't overwhelm).
+            foreach (JToken row in rows.Take(6).Concat(rows.Skip(6).Where(row => Kit.Str(row, "eventInstanceId") == eventId)))
             {
                 string id = Kit.Str(row, "eventInstanceId");
                 int filled = (int)((Kit.Num(row, "filledMain") ?? 0) + (Kit.Num(row, "filledPreShow") ?? 0));
@@ -328,7 +329,7 @@ namespace RingsideBooker.Screens
         public static void OpenChecklist(BookingPage page, VisualElement anchor)
         {
             JToken checks = page.Checks;
-            VisualElement list = Ds.Column("fc-checklist-pop").Named("booking-checklist-pop");
+            VisualElement list = FightCardStyles.Apply(Ds.Column("fc-checklist-pop")).Named("booking-checklist-pop");
             list.Add(Ds.Text("CARD CHECK", "fc-label"));
             UI.Shell.OverlayHandle handle = null;
             foreach (JToken item in Kit.Arr(checks, "checklist"))
