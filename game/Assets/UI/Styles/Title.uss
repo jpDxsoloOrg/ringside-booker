@@ -104,3 +104,26 @@
 .title-panel__inner {
     max-width: 760px;
 }
+
+/* The New game wizard (UNITY-13): top-aligned, as wide as the settings rows need, and the step
+   scrolls inside the panel when it is taller than the window. */
+.title-panel--wizard {
+    justify-content: flex-start;
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-6);
+}
+
+.title-panel__inner--wizard {
+    max-width: 960px;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.title-panel__inner--wizard > * {
+    flex-shrink: 0;
+}
+
+.title-panel__inner--wizard > .rb-wizard {
+    flex-shrink: 1;
+    min-height: 0;
+}

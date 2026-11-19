@@ -45,7 +45,13 @@ namespace RingsideBooker.Screens
             string season = Kit.Num(clock, "season.number") is double number
                 ? $"Season {number} · Week {Kit.Num(clock, "season.week")} · {Kit.Num(clock, "season.daysLeft")} days left"
                 : null;
-            host.Add(Kit.Note($"{Kit.Str(data, "promotion.name") ?? "No promotion"} · {Kit.Date(Kit.Str(data, "date"), true)}{(season == null ? string.Empty : " · " + season)}", "rb-subtitle"));
+            VisualElement identity = Ui.El("rb-identity", "rb-subtitle").Named("office-identity");
+            if (Kit.Obj(data, "promotion") is JToken own && own.Type == JTokenType.Object)
+            {
+                identity.Add(PromotionLogos.Badge(WorkshopWorlds.CurrentPictures, Kit.Str(own, "logoRef"), Kit.Str(own, "shortName") ?? Kit.Str(own, "name"), "rb-logo--lg"));
+            }
+            identity.Add(Kit.Note($"{Kit.Str(data, "promotion.name") ?? "No promotion"} · {Kit.Date(Kit.Str(data, "date"), true)}{(season == null ? string.Empty : " · " + season)}"));
+            host.Add(identity);
 
             VisualElement kpis = Ui.El("rb-kpis").Named("office-kpis");
             foreach (JToken kpi in Kit.Arr(data, "kpis")) kpis.Add(Kpi(kpi));
@@ -106,7 +112,7 @@ namespace RingsideBooker.Screens
             string id = Kit.Str(show, "eventInstanceId");
             double days = Kit.Num(next.Data, "daysUntil") ?? 0;
             string when = days <= 0 ? "Tonight" : days == 1 ? "Tomorrow" : $"In {days} days";
-            body.Add(Ui.Text(TextFormat.Upper(Kit.Str(show, "name")), "rb-title"));
+            body.Add(ShowTitle(show, id));
             body.Add(Kit.Line("When", $"{when} · {Kit.Date(Kit.Str(show, "date"), true)}"));
             string venue = Kit.Str(show, "venue.name") ?? Kit.Str(show, "genericVenue.name");
             if (venue != null) body.Add(Kit.Line("Venue", $"{venue}, {Kit.Str(show, "region.name")}"));
@@ -122,13 +128,22 @@ namespace RingsideBooker.Screens
             Kit.Panel(parent, "Last show", out VisualElement body).Named("office-last-show");
             JToken show = last.Data;
             string id = Kit.Str(show, "eventInstanceId");
-            body.Add(Ui.Text(TextFormat.Upper(Kit.Str(show, "name")), "rb-title"));
+            body.Add(ShowTitle(show, id));
             body.Add(Kit.Note(Kit.Date(Kit.Str(show, "date"), true)));
             double score = Kit.Num(show, "score") ?? 0;
             body.Add(Kit.Row(
                 Kit.Stat("Score", Kit.Whole(score), Kit.WhyRef("Show score", score, Kit.Obj(show, "scoreTraceRef"), "points"), "t-prestige"),
                 Kit.Stat("Stars", Kit.Stars(Kit.Num(show, "stars")))));
             body.Add(Ui.Btn("See the results", () => context.Navigator.Go(ShellRoute.With(ScreenIds.ShowResults, "event", id)), "btn--link"));
+        }
+
+        /// <summary>The show's logo (or its promotion's) and its name on one line.</summary>
+        private static VisualElement ShowTitle(JToken show, string eventInstanceId)
+        {
+            VisualElement title = Ui.El("rb-identity", "rb-show-title");
+            title.Add(Ui.Text(TextFormat.Upper(Kit.Str(show, "name")), "rb-title"));
+            PromotionLogos.PrependShow(title, eventInstanceId, Kit.Str(show, "logoRef"), Kit.Str(show, "promotion.id"), "rb-logo--md");
+            return title;
         }
 
         private static void StoriesPanel(VisualElement parent, QueryResult<JToken> news)

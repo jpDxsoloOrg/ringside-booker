@@ -68,7 +68,7 @@
     /* Layout sizes. */
     --sidebar-width: 240px;
     --topbar-height: 56px;
-    --content-max-width: 1440px;
+    --content-max-width: 2200px;
 
     /* Motion. */
     --motion-fast: 120ms;

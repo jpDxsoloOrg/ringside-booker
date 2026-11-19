@@ -166,7 +166,7 @@ namespace RingsideBooker.Screens
                 box.Add(add);
                 form.Add(box);
             }
-            VisualElement sideButtons = Ui.El("rb-row", "rb-row--tight");
+            VisualElement sideButtons = Ui.El("rb-row", "rb-row--tight", "rb-row--wrap");
             if (draft.Sides < maxSides) sideButtons.Add(Ui.Btn("+ Add side", () => { draft.Sides++; redraw(); }, "btn--link"));
             if (draft.Sides > (match ? 2 : 1) && !draft.People.Any(person => person.Side == draft.Sides - 1))
             {

@@ -15,6 +15,8 @@ namespace RingsideBooker.UI.Bridge
         private bool attached = true;
         private bool refreshing;
         private bool refreshAgain;
+        private string logoFor;
+        private string logoRef;
 
         internal EngineShellData(EngineGame game)
         {
@@ -49,10 +51,17 @@ namespace RingsideBooker.UI.Bridge
                     refreshAgain = false;
                     QueryResult<SimStatus> status = await game.Client.Query<SimStatus>(EngineQueries.SimStatus);
                     if (!attached) return;
+                    string promotionId = status.Data?.Promotion?.PromotionId;
+                    if (promotionId != null && promotionId != logoFor)
+                    {
+                        logoRef = await ReadLogoRef(promotionId);
+                        logoFor = promotionId;
+                        if (!attached) return;
+                    }
                     if (status.Ok && status.Data != null)
                     {
                         Status = status.Data;
-                        Snapshot = Build(status.Data);
+                        Snapshot = Build(status.Data, logoRef);
                         Changed?.Invoke();
                     }
                 }
@@ -74,7 +83,26 @@ namespace RingsideBooker.UI.Bridge
             game.Client.OnStateChanged -= OnStateChanged;
         }
 
-        private static ShellSnapshot Build(SimStatus status)
+        /// <summary>The promotion's logo ref (from <c>promotions.list</c>; a logo never changes in a game), or null.</summary>
+        private async System.Threading.Tasks.Task<string> ReadLogoRef(string promotionId)
+        {
+            try
+            {
+                QueryResult<JToken> list = await game.Client.Query("promotions.list");
+                if (!list.Ok || !(list.Data is JArray rows)) return null;
+                foreach (JToken row in rows)
+                {
+                    if ((string)row["promotionId"] == promotionId) return row["logoRef"]?.Type == JTokenType.String ? (string)row["logoRef"] : null;
+                }
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[EngineShellData] promotions.list: {exception.GetType().Name}");
+            }
+            return null;
+        }
+
+        private static ShellSnapshot Build(SimStatus status, string logoRef)
         {
             GameDate.TryParse(status.Date, out GameDate date);
             string season = status.Season == null ? null : $"Season {status.Season.Number}";
@@ -86,7 +114,7 @@ namespace RingsideBooker.UI.Bridge
             double? prestige = (double?)popularity?["prestige"];
             string cashRef = promotion.CashTraceRef is JObject cash ? $"{(string)cash["kind"]}:{(string)cash["id"]}" : null;
             var info = new PromotionInfo(promotion.PromotionId, promotion.Name, promotion.ShortName,
-                status.Sandbox ? "Sandbox" : string.Empty);
+                status.Sandbox ? "Sandbox" : string.Empty, logoRef);
             return new ShellSnapshot(
                 date,
                 info,

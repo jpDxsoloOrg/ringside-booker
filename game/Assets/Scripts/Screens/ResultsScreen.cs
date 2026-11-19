@@ -59,6 +59,7 @@ namespace RingsideBooker.Screens
             JToken result = Kit.Obj(view, "result");
 
             VisualElement header = Ui.El("card", "rb-showbar", "rb-broadcast").Named("results-header");
+            PromotionLogos.PrependShow(header, Kit.Str(view, "eventInstanceId") ?? eventId, null, Kit.Str(view, "promotion.id"), "rb-logo--lg");
             header.Add(Ui.El("rb-showbar__info").With(
                 Ui.Text(TextFormat.Upper(Kit.Str(view, "name")), "rb-title"),
                 Kit.Note($"{Kit.Str(view, "promotion.name")} · {Kit.Date(Kit.Str(view, "date"), true)} · {Kit.Str(view, "venue.name") ?? Kit.Str(view, "region.name")}")));

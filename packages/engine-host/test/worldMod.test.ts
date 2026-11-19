@@ -210,6 +210,9 @@ describe('convertWorldMod', () => {
     expect(decodeWorldModImageRef(String(ref))).toBe('people/Worker 2 2009.png');
     const logo = find(recordsOf(withPictures, 'promotion'), 'wm-p1')['logoRef'];
     expect(decodeWorldModImageRef(String(logo))).toBe('logos/GWF logo.png');
+    // A show's logo (the calendar, booking and results show it, UNITY-13).
+    const showLogo = find(recordsOf(withPictures, 'eventDefinition'), 'wm-e1')['logoRef'];
+    expect(decodeWorldModImageRef(String(showLogo))).toBe('events/Granite Monday.png');
     expect(withPictures.report.pictures).toMatchObject({ people: 40, logos: 4 });
 
     const rosterOnly = convert(tables, true);

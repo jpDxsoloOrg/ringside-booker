@@ -57,9 +57,12 @@ namespace RingsideBooker.Screens
                 string id = Kit.Str(row, "eventInstanceId");
                 Button chip = Ui.Button(string.Empty, () => context.Navigator.Go(ShellRoute.With("booking", "event", id)), "choice-chip", "rb-show-pick");
                 chip.name = $"booking-show-{id}";
-                chip.Add(Ui.Text(Kit.Str(row, "name"), "choice-chip__label"));
-                chip.Add(Ui.Text($"{Kit.Date(Kit.Str(row, "date"))} · {Kit.Num(row, "filledMain")}/{Kit.Num(row, "slots")}", "choice-chip__detail"));
-                if (Kit.Bool(row, "needsBooking")) chip.Add(Kit.Badge("Book", "badge--action"));
+                VisualElement text = Ui.El("rb-show-pick__text");
+                text.Add(Ui.Text(Kit.Str(row, "name"), "choice-chip__label"));
+                text.Add(Ui.Text($"{Kit.Date(Kit.Str(row, "date"))} · {Kit.Num(row, "filledMain")}/{Kit.Num(row, "slots")}", "choice-chip__detail"));
+                if (Kit.Bool(row, "needsBooking")) text.Add(Kit.Badge("Book", "badge--action"));
+                chip.Add(text);
+                PromotionLogos.PrependShow(chip, id, null, null, "rb-logo--sm");
                 chip.EnableInClassList("choice-chip--selected", id == eventId);
                 picker.Add(chip);
             }
@@ -106,6 +109,7 @@ namespace RingsideBooker.Screens
         {
             JToken show = Kit.Obj(card, "show");
             VisualElement bar = Ui.El("card", "rb-showbar").Named("booking-showbar");
+            PromotionLogos.PrependShow(bar, eventId, null, Kit.Str(show, "promotionId"), "rb-logo--lg");
             VisualElement info = Ui.El("rb-showbar__info");
             info.Add(Ui.Text(TextFormat.Upper(Kit.Str(show, "name")), "rb-title"));
             double days = Kit.Num(show, "daysUntil") ?? 0;
@@ -217,7 +221,7 @@ namespace RingsideBooker.Screens
                 content.Add(Ui.Text("Empty", "t-muted", "t-sm"));
                 if (canEdit)
                 {
-                    VisualElement add = Ui.El("rb-row", "rb-row--tight");
+                    VisualElement add = Ui.El("rb-row", "rb-row--tight", "rb-row--wrap");
                     add.Add(Ui.Btn("+ Match", () => SegmentEditor.Open(context, card, preShow, slotIndex, null, "match"), "btn--link").Named($"add-match-{slotIndex}"));
                     add.Add(Ui.Btn("+ Talking segment", () => SegmentEditor.Open(context, card, preShow, slotIndex, null, "angle"), "btn--link"));
                     content.Add(add);
@@ -239,7 +243,7 @@ namespace RingsideBooker.Screens
                     content.Add(Ui.Text(Kit.Str(issue, "message"), "t-xs", Kit.Str(issue, "severity") == "error" ? "t-negative" : "rb-warning", "t-wrap"));
                 }
 
-                VisualElement actions = Ui.El("rb-row", "rb-row--tight", "rb-slot__actions");
+                VisualElement actions = Ui.El("rb-row", "rb-row--tight", "rb-row--wrap", "rb-slot__actions");
                 if (match)
                 {
                     JToken planned = PlannedResult(segment);
