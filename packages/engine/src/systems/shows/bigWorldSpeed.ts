@@ -60,7 +60,7 @@ export const BIG_WORLD_SPEED_SETTING: Readonly<NewGameSettingDef> = Object.freez
   default: 'full',
   label: 'Big world speed',
   description:
-    'Full detail: every show in the world is simulated in full. Fast: rival shows far from you are simulated more lightly, so long skips in big worlds are quicker; their results, titles, money and news still happen.',
+    'Full detail simulates every show; Fast simulates rival shows far from you more lightly, so long skips in big worlds are quicker.',
   group: 'world',
 });
 
