@@ -135,7 +135,8 @@ ids, codes and counts only, never names.
 Dev flags on the player: `-rbImportCheck [all|<id>,<id>…] [-rbImportCheckShots <folder>]` imports
 every installed world mod (logs `[ImportCheck]` per item, exit 0 when all import; with shots the
 first goes through the real sub-screen and an add-on mod is forced through to capture the failure
-screen); `-rbSkipCheck 30 -rbSkipCheckWorkshop <item id>` imports that mod and plays it. Screenshots
+screen); `-rbSkipCheck 30 -rbSkipCheckWorkshop <item id>` imports that mod and plays it, and
+`-rbSkipCheckSpeed full|fast` starts that game with the Big world speed setting (POL4-13). Screenshots
 and the skip check's log show mod names: keep them local.
 
 ## Kept across restarts (UNITY-14)

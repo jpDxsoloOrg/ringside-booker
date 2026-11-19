@@ -1899,6 +1899,16 @@ export {
   SHOW_NIGHT_MODES,
   SHOW_NIGHT_SETTING,
 } from './systems/shows/index';
+// Big world speed (POL4-13): Full detail or Fast, at new game and in Settings
+// (`world.setBigWorldSpeed`). Fast runs distant rival shows on a light path.
+// See docs/design/show-night.md#big-world-speed.
+export type { BigWorldSpeed } from './systems/shows/index';
+export {
+  BIG_WORLD_SPEEDS,
+  BIG_WORLD_SPEED_SETTING,
+  bigWorldSpeedOf,
+  isDistantShow,
+} from './systems/shows/index';
 export type { LiveShowRun } from './model/entities/event-instance';
 export { LiveShowRunSchema } from './model/entities/event-instance';
 

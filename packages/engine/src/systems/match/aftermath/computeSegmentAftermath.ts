@@ -52,7 +52,7 @@ import {
   type PopularityOpponent,
 } from './formulas/popularityGain';
 import { resultOf, winStreakBefore, type MatchPosition, type MatchResultForSide } from './history';
-import { segmentRegionWeights, type RegionWeightLine } from './regionWeights';
+import { segmentRegionWeights, showRegionWeights, type RegionWeightLine } from './regionWeights';
 
 export const AFTERMATH_DOC_REF = 'docs/design/match-aftermath.md#the-aftermath-of-one-match';
 
@@ -423,6 +423,12 @@ export interface AftermathOptions {
    * With it off those three lists are empty; every other field is the same.
    */
   readonly regionDetail?: boolean;
+  /**
+   * Big world speed's light path (POL4-13), for a distant rival show in a Fast world: the change
+   * reaches the show's region only (no neighbour spill, no reach providers) and the win streak is
+   * not looked up (counted as none). False by default.
+   */
+  readonly light?: boolean;
 }
 
 /**
@@ -439,18 +445,21 @@ export function computeSegmentAftermath(
   const regionDetail = options.regionDetail !== false;
   const match = resolveMatch(read, input);
   const showRegion = read.tables.regions.require(match.regionId);
-  const spread = segmentRegionWeights(
-    read,
-    {
-      promotionId: match.promotionId,
-      eventInstanceId: match.eventInstanceId,
-      regionId: match.regionId,
-      televised: match.televised,
-      importance: match.importance,
-      date: match.date,
-    },
-    tunables,
-  );
+  const spread =
+    options.light === true
+      ? showRegionWeights(read, match.regionId)
+      : segmentRegionWeights(
+          read,
+          {
+            promotionId: match.promotionId,
+            eventInstanceId: match.eventInstanceId,
+            regionId: match.regionId,
+            televised: match.televised,
+            importance: match.importance,
+            date: match.date,
+          },
+          tunables,
+        );
   const base = {
     segmentId: match.segmentId,
     eventInstanceId: match.eventInstanceId,
@@ -497,7 +506,10 @@ export function computeSegmentAftermath(
       name: other.name,
       popularity: popularityOf(other),
     }));
-    const streak = winStreakBefore(read, competitor.personId, position, lookback);
+    const streak =
+      options.light === true
+        ? { streak: 0 }
+        : winStreakBefore(read, competitor.personId, position, lookback);
     const storedMomentum = competitor.employment?.momentum ?? null;
     const delta = popularityGain(
       {

@@ -93,7 +93,7 @@ namespace RingsideBooker.Screens.Dev
             {
                 await wizard.UseDefaults(false);
             }
-            if (!wizard.SetSetting("showNight", "auto")) Debug.LogWarning("[ProfileSkip] this world has no Show night setting");
+            if (!wizard.SetSetting("showNight", (JToken)"auto")) Debug.LogWarning("[ProfileSkip] this world has no Show night setting");
             string seed = wizard.Seed;
             await wizard.StartGame();
             while (EngineGame.Current == null || ShellController.Current == null) await Task.Yield();
