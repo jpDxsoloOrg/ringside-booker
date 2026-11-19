@@ -61,6 +61,10 @@ namespace RingsideBooker.Engine
         private volatile bool cancelRequested;
         private long revision = -1; // last revision seen (Interlocked)
         private long notifiedRevision = -1; // engine thread only
+        private AdvanceProgress latestProgress; // the newest day not yet raised (Volatile)
+        private int progressPosted; // 1 while a progress event is posted and not yet raised (Interlocked)
+        private long stateRevisionToAnnounce; // the newest revision for OnStateChanged (Interlocked)
+        private int statePosted; // 1 while OnStateChanged is posted and not yet raised (Interlocked)
 
         /// <summary>
         /// Starts the engine thread and loads the bundle on it. Call on Unity's main thread: the main
@@ -85,7 +89,10 @@ namespace RingsideBooker.Engine
             Application.quitting += Dispose;
         }
 
-        /// <summary>Raised on the main thread after every simulated day of an advance.</summary>
+        /// <summary>
+        /// Raised on the main thread as days of an advance finish: at most once per frame, with the
+        /// newest day (days that finish between two frames fold into one event).
+        /// </summary>
         public event Action<AdvanceProgress> OnAdvanceProgress;
 
         /// <summary>Raised on the main thread when an advance ends (completed, at a gate, cancelled or refused).</summary>
@@ -94,7 +101,8 @@ namespace RingsideBooker.Engine
         /// <summary>
         /// Raised on the main thread when a call returns a new world revision (a command applied, a
         /// game made or loaded, an advance finished): screens refresh their queries. Not raised per
-        /// day during an advance; use <see cref="OnAdvanceProgress"/> for that.
+        /// day during an advance; use <see cref="OnAdvanceProgress"/> for that. Calls that finish
+        /// within one frame raise it once, with the newest revision.
         /// </summary>
         public event Action<long> OnStateChanged;
 
@@ -243,19 +251,7 @@ namespace RingsideBooker.Engine
         {
             string argsJson = ToJsonArgument(args);
             string viewerJson = viewer == null ? null : ToJsonArgument(viewer);
-            return Enqueue("query " + name, true, engine =>
-            {
-                string json = RunQuery(engine, name, argsJson, viewerJson);
-                JToken result = Envelope(json, out long resultRevision);
-                var query = new QueryResult<T>();
-                FillEnvelope(query, result, resultRevision);
-                if (query.Ok)
-                {
-                    query.Data = ToData<T>(result["data"]);
-                }
-
-                return query;
-            });
+            return Enqueue("query " + name, true, engine => RunQueryResult<T>(engine, name, argsJson, viewerJson));
         }
 
         /// <summary>A query whose data stays raw JSON (any shape).</summary>
@@ -270,6 +266,38 @@ namespace RingsideBooker.Engine
             string argsJson = ToJsonArgument(args);
             string viewerJson = viewer == null ? null : ToJsonArgument(viewer);
             return Enqueue("query " + name, true, engine => RunQuery(engine, name, argsJson, viewerJson));
+        }
+
+        /// <summary>
+        /// Several reads in one trip to the engine thread: one queue slot and one hop back to the main
+        /// thread, however many queries <paramref name="read"/> runs (a screen's or the shell's
+        /// refresh). <paramref name="read"/> runs on the engine thread: it may only call
+        /// <see cref="EngineReader"/> and must not touch Unity objects. Like a query, it may run
+        /// between the days of an advance.
+        /// </summary>
+        public Task<T> Read<T>(string label, Func<EngineReader, T> read)
+        {
+            if (read == null)
+            {
+                throw new ArgumentNullException(nameof(read));
+            }
+
+            return Enqueue("read " + label, true, engine => read(new EngineReader(this, engine)));
+        }
+
+        // A query's result, parsed (Query<T> and EngineReader).
+        internal QueryResult<T> RunQueryResult<T>(JsEngineHost engine, string name, string argsJson, string viewerJson)
+        {
+            string json = RunQuery(engine, name, argsJson, viewerJson);
+            JToken result = Envelope(json, out long resultRevision);
+            var query = new QueryResult<T>();
+            FillEnvelope(query, result, resultRevision);
+            if (query.Ok)
+            {
+                query.Data = ToData<T>(result["data"]);
+            }
+
+            return query;
         }
 
         /// <summary>
@@ -343,6 +371,12 @@ namespace RingsideBooker.Engine
         public Task<string> ExportState()
         {
             return Enqueue("exportState", true, engine => engine.Call("exportState"));
+        }
+
+        /// <summary>The V8 heap now, as a log line (dev tools).</summary>
+        public Task<string> HeapSummary()
+        {
+            return Enqueue("heapSummary", true, engine => engine.HeapSummary());
         }
 
         /// <summary>The world hash, the same value the web app and the headless runner print for the same game.</summary>
@@ -465,11 +499,19 @@ namespace RingsideBooker.Engine
                     {
                         var day = ParseToken(progressJson).ToObject<AdvanceProgress>(Serializer);
                         ObserveRevision(day.Revision, false);
-                        Post("main.OnAdvanceProgress", () =>
+                        // One progress event per main-thread frame at most: days that finish while
+                        // one is waiting to be raised fold into it (the latest day wins).
+                        Volatile.Write(ref latestProgress, day);
+                        if (Interlocked.CompareExchange(ref progressPosted, 1, 0) == 0)
                         {
-                            progress?.Report(day);
-                            OnAdvanceProgress?.Invoke(day);
-                        });
+                            Post("main.OnAdvanceProgress", () =>
+                            {
+                                Interlocked.Exchange(ref progressPosted, 0);
+                                AdvanceProgress latest = Volatile.Read(ref latestProgress);
+                                progress?.Report(latest);
+                                OnAdvanceProgress?.Invoke(latest);
+                            });
+                        }
                     }
                     catch (Exception error)
                     {
@@ -706,7 +748,18 @@ namespace RingsideBooker.Engine
             }
 
             notifiedRevision = newRevision;
-            Post("main.OnStateChanged", () => OnStateChanged?.Invoke(newRevision));
+            // A burst of calls finishing within one frame raises one event, with the newest revision.
+            Interlocked.Exchange(ref stateRevisionToAnnounce, newRevision);
+            if (Interlocked.CompareExchange(ref statePosted, 1, 0) != 0)
+            {
+                return;
+            }
+
+            Post("main.OnStateChanged", () =>
+            {
+                Interlocked.Exchange(ref statePosted, 0);
+                OnStateChanged?.Invoke(Interlocked.Read(ref stateRevisionToAnnounce));
+            });
         }
 
         // A query/command result is { revision, result: { ok, data | reasons } }; a host refusal
@@ -850,6 +903,34 @@ namespace RingsideBooker.Engine
 
             public override string ToString() => Label;
         }
+    }
+
+    /// <summary>
+    /// The queries an <see cref="EngineClient.Read{T}"/> batch may run, on the engine thread, in
+    /// order. Same arguments and results as <see cref="EngineClient.Query{T}"/>.
+    /// </summary>
+    public sealed class EngineReader
+    {
+        private readonly EngineClient client;
+        private readonly JsEngineHost engine;
+
+        internal EngineReader(EngineClient client, JsEngineHost engine)
+        {
+            this.client = client;
+            this.engine = engine;
+        }
+
+        public QueryResult<T> Query<T>(string name, object args = null, object viewer = null)
+        {
+            string argsJson = EngineClient.ToJsonArgument(args);
+            string viewerJson = viewer == null ? null : EngineClient.ToJsonArgument(viewer);
+            using (EnginePerf.Measure("read.query " + name))
+            {
+                return client.RunQueryResult<T>(engine, name, argsJson, viewerJson);
+            }
+        }
+
+        public QueryResult<JToken> Query(string name, object args = null, object viewer = null) => Query<JToken>(name, args, viewer);
     }
 
     /// <summary>Callback form of the client's calls, for MonoBehaviours that do not use async/await.</summary>

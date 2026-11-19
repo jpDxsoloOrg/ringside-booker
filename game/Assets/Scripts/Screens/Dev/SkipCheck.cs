@@ -206,16 +206,17 @@ namespace RingsideBooker.Screens.Dev
             return false;
         }
 
-        /// <summary>Waits for the engine to go idle and the day control to read today's stops again.</summary>
+        /// <summary>
+        /// Waits for the engine to go idle and the day control to read today's stops again (frame by
+        /// frame, no fixed delays: UNITY-23 found the old 0.6 s per step was most of a run's time).
+        /// </summary>
         private static async Task Settle()
         {
-            await Task.Delay(300);
             EngineGame game = EngineGame.Current;
-            while (game != null && (game.Client.IsBusy || game.DayControl.Advancing)) await Task.Yield();
-            game?.DayControl.Refresh();
-            await Task.Delay(200);
-            while (game != null && game.Client.IsBusy) await Task.Yield();
-            await Task.Delay(100);
+            if (game == null) return;
+            await ProfileSkip.Idle(game);
+            game.DayControl.Refresh();
+            await ProfileSkip.Idle(game);
         }
 
         private static async Task<GameDate> Today(EngineGame game)
@@ -248,7 +249,7 @@ namespace RingsideBooker.Screens.Dev
         {
             DayControlView control = ShellController.Current.DayControl;
             control.RunPrimary();
-            await Task.Delay(300);
+            await Task.Yield();
             Sheet sheet = control.WaitingSheet;
             if (sheet == null)
             {

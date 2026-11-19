@@ -53,14 +53,21 @@ namespace RingsideBooker.UI.Bridge
                 {
                     refreshAgain = false;
                     EnginePerf.Count("ui.shellData.refresh");
-                    QueryResult<SimStatus> status = await game.Client.Query<SimStatus>(EngineQueries.SimStatus);
+                    // One trip: sim.status, plus promotions.list the first time a promotion shows up
+                    // (a promotion's logo never changes in a game).
+                    string knownLogoFor = logoFor;
+                    (QueryResult<SimStatus> status, QueryResult<JToken> list) = await game.Client.Read("shell.status", reader =>
+                    {
+                        QueryResult<SimStatus> read = reader.Query<SimStatus>(EngineQueries.SimStatus);
+                        string id = read.Data?.Promotion?.PromotionId;
+                        return (read, id != null && id != knownLogoFor ? reader.Query("promotions.list") : null);
+                    });
                     if (!attached) return;
                     string promotionId = status.Data?.Promotion?.PromotionId;
-                    if (promotionId != null && promotionId != logoFor)
+                    if (list != null && promotionId != null)
                     {
-                        logoRef = await ReadLogoRef(promotionId);
+                        logoRef = LogoRefIn(list, promotionId);
                         logoFor = promotionId;
-                        if (!attached) return;
                     }
                     if (status.Ok && status.Data != null)
                     {
@@ -87,21 +94,13 @@ namespace RingsideBooker.UI.Bridge
             game.Client.OnStateChanged -= OnStateChanged;
         }
 
-        /// <summary>The promotion's logo ref (from <c>promotions.list</c>; a logo never changes in a game), or null.</summary>
-        private async System.Threading.Tasks.Task<string> ReadLogoRef(string promotionId)
+        /// <summary>The promotion's logo ref in a <c>promotions.list</c> answer, or null.</summary>
+        private static string LogoRefIn(QueryResult<JToken> list, string promotionId)
         {
-            try
+            if (!list.Ok || !(list.Data is JArray rows)) return null;
+            foreach (JToken row in rows)
             {
-                QueryResult<JToken> list = await game.Client.Query("promotions.list");
-                if (!list.Ok || !(list.Data is JArray rows)) return null;
-                foreach (JToken row in rows)
-                {
-                    if ((string)row["promotionId"] == promotionId) return row["logoRef"]?.Type == JTokenType.String ? (string)row["logoRef"] : null;
-                }
-            }
-            catch (Exception exception)
-            {
-                Debug.LogWarning($"[EngineShellData] promotions.list: {exception.GetType().Name}");
+                if ((string)row["promotionId"] == promotionId) return row["logoRef"]?.Type == JTokenType.String ? (string)row["logoRef"] : null;
             }
             return null;
         }

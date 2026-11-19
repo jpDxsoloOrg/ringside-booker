@@ -107,13 +107,8 @@ namespace RingsideBooker.UI.Bridge
                 {
                     refreshAgain = false;
                     EnginePerf.Count("ui.dayControl.refresh");
-                    QueryResult<PendingGates> pending = await game.Client.Query<PendingGates>(EngineQueries.PendingGates);
-                    if (!attached) return;
-                    List<GateHit> hits = pending.Ok && pending.Data != null
-                        ? pending.Data.Hits.Select(Map).ToList()
-                        : new List<GateHit>();
-                    GateHit show = hits.FirstOrDefault(hit => hit.ActionHint == GateHints.ShowNight);
-                    ShowNightRoute route = show == null ? null : await RouteFor(show);
+                    // One trip to the engine: today's stops and, for a show night, its live state.
+                    (List<GateHit> hits, ShowNightRoute route) = await game.Client.Read("day.gates", ReadGates);
                     if (!attached) return;
                     gates = hits;
                     ShowNight = route;
@@ -158,10 +153,13 @@ namespace RingsideBooker.UI.Bridge
             Changed?.Invoke();
 
             AdvanceReport report;
+            (List<GateHit> hits, ShowNightRoute route)? afterGates = null;
             try
             {
                 EngineAdvanceReport result = await game.Client.AdvanceDays(options);
-                report = await BuildReport(result, options.MaxDays);
+                // One trip after the advance: the report's shows and today's stops together.
+                (report, afterGates) = await game.Client.Read("day.afterAdvance", reader =>
+                    (BuildReport(reader, result, options.MaxDays), ReadGates(reader)));
             }
             catch (Exception exception)
             {
@@ -174,12 +172,29 @@ namespace RingsideBooker.UI.Bridge
             Stopping = false;
             Progress = null;
             LastReport = report;
+            if (afterGates.HasValue)
+            {
+                gates = afterGates.Value.hits;
+                ShowNight = afterGates.Value.route;
+            }
             Changed?.Invoke();
             AdvanceFinished?.Invoke(report);
-            Refresh();
+            if (!afterGates.HasValue) Refresh();
         }
 
-        private async Task<AdvanceReport> BuildReport(EngineAdvanceReport result, int requested)
+        // Engine thread: today's stops and, when one is a show night, how that show runs.
+        private static (List<GateHit> hits, ShowNightRoute route) ReadGates(EngineReader reader)
+        {
+            QueryResult<PendingGates> pending = reader.Query<PendingGates>(EngineQueries.PendingGates);
+            List<GateHit> hits = pending.Ok && pending.Data != null
+                ? pending.Data.Hits.Select(Map).ToList()
+                : new List<GateHit>();
+            GateHit show = hits.FirstOrDefault(hit => hit.ActionHint == GateHints.ShowNight);
+            return (hits, show == null ? null : RouteFor(reader, show));
+        }
+
+        // Engine thread (inside a Read): the report, with the shows the advance completed.
+        private static AdvanceReport BuildReport(EngineReader reader, EngineAdvanceReport result, int requested)
         {
             if (!result.Ok)
             {
@@ -200,21 +215,21 @@ namespace RingsideBooker.UI.Bridge
             }).ToList();
 
             AdvanceReport report = AdvanceReport.Advanced(start, end, result.DaysAdvanced, requested, stop, hits, failures);
-            report.Results = await CompletedShows(start, end);
+            report.Results = CompletedShows(reader, start, end);
             GateHit tonight = hits.FirstOrDefault(hit => hit.ActionHint == GateHints.ShowNight);
             if (tonight != null)
             {
                 report.Tonight = tonight;
-                report.TonightRoute = await RouteFor(tonight);
+                report.TonightRoute = RouteFor(reader, tonight);
             }
             return report;
         }
 
         /// <summary>The player's shows completed between two dates, newest first.</summary>
-        private async Task<IReadOnlyList<ShowResultLink>> CompletedShows(GameDate start, GameDate end)
+        private static IReadOnlyList<ShowResultLink> CompletedShows(EngineReader reader, GameDate start, GameDate end)
         {
             if (end <= start) return Array.Empty<ShowResultLink>();
-            QueryResult<JToken> shows = await game.Client.Query("shows.completedSince",
+            QueryResult<JToken> shows = reader.Query("shows.completedSince",
                 new JObject { ["from"] = start.Iso, ["to"] = end.Iso, ["scope"] = "mine" });
             if (!shows.Ok || !(shows.Data is JArray rows)) return Array.Empty<ShowResultLink>();
             return rows
@@ -224,10 +239,10 @@ namespace RingsideBooker.UI.Bridge
         }
 
         /// <summary>Whether tonight's show goes live, and whether it is under way (the web's useShowNightRoute).</summary>
-        private async Task<ShowNightRoute> RouteFor(GateHit show)
+        private static ShowNightRoute RouteFor(EngineReader reader, GateHit show)
         {
             if (show.Subject == null || show.Subject.Kind != "eventInstance") return new ShowNightRoute(false, false);
-            QueryResult<JToken> live = await game.Client.Query("shows.liveState", new JObject { ["eventInstanceId"] = show.Subject.Id });
+            QueryResult<JToken> live = reader.Query("shows.liveState", new JObject { ["eventInstanceId"] = show.Subject.Id });
             if (!live.Ok || live.Data == null || live.Data.Type == JTokenType.Null) return new ShowNightRoute(false, false);
             bool underWay = (string)live.Data["stage"] == "live";
             return new ShowNightRoute((string)live.Data["mode"] == "live" || underWay, underWay);

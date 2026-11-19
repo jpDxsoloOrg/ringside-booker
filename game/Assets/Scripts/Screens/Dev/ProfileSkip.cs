@@ -277,7 +277,7 @@ namespace RingsideBooker.Screens.Dev
             string Ratio(double ms) => ms <= 0 ? "-" : (wallMs / ms).ToString("0.00", CultureInfo.InvariantCulture) + "×";
 
             Debug.Log($"[{tag}] DONE: {outcome}");
-            Debug.Log($"[{tag}] world hash {hash}");
+            Debug.Log($"[{tag}] world hash {hash}; {await game.Client.HeapSummary()}");
             Debug.Log($"[{tag}] wall {Ms(wallMs)}; day pipeline in V8 {Ms(pipelineMs)} for {dayCount} days ({Ratio(pipelineMs)}); " +
                       $"engine's own work (day pipeline + commands) {Ms(engineOwnMs)} ({Ratio(engineOwnMs)})");
             Debug.Log($"[{tag}] engine thread busy {Ms(callsMs - (advance == null ? 0 : callbacksMs))} of {Ms(wallMs)}: advances {Ms(advance?.TotalMs ?? 0)} " +
