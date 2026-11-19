@@ -243,12 +243,12 @@ namespace RingsideBooker.Screens
                 if (match)
                 {
                     JToken planned = PlannedResult(segment);
-                    Label result = Ui.Text(ResultText(planned, segment), "t-sm", planned == null ? "t-negative" : "t-data");
+                    Label result = Ui.Text("Result: " + ResultText(planned, segment), "t-sm", planned == null ? "t-negative" : "t-data");
                     actions.Add(result);
                     if (canEdit)
                     {
-                        actions.Add(Ui.Btn("Auto", async () => await Kit.Run("booking.setResult", new JObject { ["segmentId"] = segmentId, ["result"] = "auto" }, feedback), "btn--link"));
-                        actions.Add(Ui.Btn("Random", async () => await Kit.Run("booking.setResult", new JObject { ["segmentId"] = segmentId, ["result"] = "random" }, feedback), "btn--link"));
+                        actions.Add(Ui.Btn("Set Auto", async () => await Kit.Run("booking.setResult", new JObject { ["segmentId"] = segmentId, ["result"] = "auto" }, feedback), "btn--link"));
+                        actions.Add(Ui.Btn("Set Random", async () => await Kit.Run("booking.setResult", new JObject { ["segmentId"] = segmentId, ["result"] = "random" }, feedback), "btn--link"));
                     }
                 }
                 if (canEdit)

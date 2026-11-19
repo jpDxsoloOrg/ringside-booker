@@ -24,6 +24,7 @@ namespace RingsideBooker.Screens.Dev
         public const string Argument = "-rbLoopShots";
 
         private string folder;
+        private bool workshop;
         private int index;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -36,23 +37,26 @@ namespace RingsideBooker.Screens.Dev
                 if (Application.isBatchMode) return;
                 var host = new GameObject("LoopScreenshots");
                 DontDestroyOnLoad(host);
-                host.AddComponent<LoopScreenshots>().folder = args[i + 1];
+                LoopScreenshots tour = host.AddComponent<LoopScreenshots>();
+                tour.folder = args[i + 1];
+                tour.workshop = Array.Exists(args, arg => string.Equals(arg, "-rbLoopWorkshop", StringComparison.OrdinalIgnoreCase));
                 return;
             }
         }
 
         private IEnumerator Start()
         {
-            Invoke(nameof(GiveUp), 240f);
+            Invoke(nameof(GiveUp), workshop ? 600f : 240f);
             Directory.CreateDirectory(folder);
             while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != SceneFlow.TitleScene) yield return null;
             yield return Wait(1.5f);
             yield return Capture("title-new-game");
 
             while (NewGameWizard.Last == null) yield return null;
-            yield return Await(NewGameWizard.Last.UseDefaults());
+            yield return Await(NewGameWizard.Last.UseDefaults(workshop));
             yield return Wait(0.5f);
             yield return Capture("new-game-options");
+            if (workshop) Debug.Log($"[LoopScreenshots] import report: {(NewGameWizard.Last.ImportNotice ?? "none")}");
             yield return Await(NewGameWizard.Last.StartGame());
 
             while (EngineGame.Current == null || ShellController.Current == null) yield return null;

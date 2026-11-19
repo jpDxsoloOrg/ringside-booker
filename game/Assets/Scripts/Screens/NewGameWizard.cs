@@ -64,6 +64,9 @@ namespace RingsideBooker.Screens
             return wizard.root;
         }
 
+        /// <summary>The import report summary of the world being set up (counts only), or null.</summary>
+        public string ImportNotice => world?.Notice;
+
         /// <summary>The live wizard for the screenshot tour: picks the defaults and starts a game.</summary>
         public static NewGameWizard Last { get; private set; }
 
@@ -347,9 +350,15 @@ namespace RingsideBooker.Screens
         }
 
         /// <summary>Goes straight to the last step with the defaults (the screenshot tour).</summary>
-        public async Task UseDefaults()
+        public async Task UseDefaults(bool workshop = false)
         {
             while (client == null || world == null) await Task.Yield();
+            if (workshop)
+            {
+                WorldChoice mod = worlds.Where(entry => entry.group == "Workshop mods").Select(entry => entry.world).FirstOrDefault();
+                if (mod == null) Debug.LogWarning("[NewGame] no workshop world mod installed; using the default world");
+                else world = mod;
+            }
             await LoadPreview();
             step = 2;
             Draw();
