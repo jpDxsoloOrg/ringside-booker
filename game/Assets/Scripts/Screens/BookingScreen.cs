@@ -156,7 +156,7 @@ namespace RingsideBooker.Screens
         }
 
         /// <summary>Auto-fill leaves results open; plan Auto for every match without one so the card can run.</summary>
-        private static async Task PlanAutoResults(string eventId)
+        public static async Task PlanAutoResults(string eventId)
         {
             EngineClient client = Kit.Game.Client;
             QueryResult<JToken> card = await client.Query("booking.card", new JObject { ["eventInstanceId"] = eventId });
