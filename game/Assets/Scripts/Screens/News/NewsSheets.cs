@@ -52,7 +52,6 @@ namespace RingsideBooker.Screens.News
             meta.Add(Ds.Text(GameDate.TryParse(Kit.Str(item, "date"), out GameDate date) ? date.Long : Kit.Str(item, "date"), "nw-sheet__date"));
             body.Add(meta);
 
-            body.Add(Ds.Text(headline, "nw-sheet__headline"));
             body.Add(Ds.Text(NewsText.Render(item["body"], names), "nw-sheet__body"));
 
             List<NewsName> entities = NewsModel.EntitiesOf(item, names);

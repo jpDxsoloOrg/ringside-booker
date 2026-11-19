@@ -67,6 +67,13 @@ namespace RingsideBooker.Screens.Dev
             yield return WaitIdle(1.5f);
             LogBadges("start");
 
+            // Turn every news alert on, so an alert stop comes up while playing.
+            Task<Engine.QueryResult<Newtonsoft.Json.Linq.JToken>> rules = EngineGame.Current.Client.Query("news.alertRules");
+            yield return Await(rules);
+            var allOn = new Newtonsoft.Json.Linq.JObject();
+            foreach (Newtonsoft.Json.Linq.JToken rule in Kit.Arr(rules.Result.Data, "rules")) allOn[Kit.Str(rule, "id")] = true;
+            yield return Await(EngineGame.Current.Client.Command("news.setAlertRules", new Newtonsoft.Json.Linq.JObject { ["rules"] = allOn }));
+
             // Play on, clearing stops; follow the first news alert to News.
             EngineDayControl day = EngineGame.Current.DayControl;
             GameDate start = EngineGame.Current.ShellData.Snapshot.Date;
@@ -137,7 +144,7 @@ namespace RingsideBooker.Screens.Dev
 
             view.SetFilters(view.Filters.WithKinds(Array.Empty<string>()).WithMine(true));
             yield return WaitIdle(1f);
-            Click(view.Root.Q<Button>("table-columns"));
+            Click(view.Table.Q<Button>("table-columns"));
             yield return Wait(0.6f);
             yield return Capture("feed-mine-columns");
             ShellController.Current.Overlay.CloseAll();
@@ -187,7 +194,9 @@ namespace RingsideBooker.Screens.Dev
         private static void ScrollTo(VisualElement element)
         {
             ScrollView scroll = element?.GetFirstAncestorOfType<ScrollView>();
-            scroll?.ScrollTo(element);
+            if (scroll == null) return;
+            Vector2 local = scroll.contentContainer.WorldToLocal(element.worldBound.position);
+            scroll.scrollOffset = new Vector2(0, Mathf.Max(0, local.y - 12));
         }
 
         private static T Q<T>(Func<T, bool> match) where T : VisualElement

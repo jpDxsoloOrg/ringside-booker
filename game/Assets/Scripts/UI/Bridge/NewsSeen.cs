@@ -10,13 +10,13 @@ namespace RingsideBooker.UI.Bridge
     /// How far the player has read the news, for the sidebar's unread badge (UNITY-19). The engine
     /// keeps no read state for news (it is public, D-07), so the game remembers, per save slot, the
     /// day the player last had News open and how many stories that day held then. Unread = the
-    /// stories from that day on (filler left out), less the ones already counted. Kept in PlayerPrefs
+    /// stories from that day on (major stories only), less the ones already counted. Kept in PlayerPrefs
     /// (<c>rb.news.seen.&lt;slot id&gt;</c>), in memory when there is no save slot.
     /// </summary>
     public static class NewsSeen
     {
-        /// <summary>Stories below this importance (filler) never count as unread, so the badge stays small.</summary>
-        public const int MinImportance = 1;
+        /// <summary>Only major and front-page stories (importance 2+) count as unread, so the badge stays small; weekly results and filler never do.</summary>
+        public const int MinImportance = 2;
 
         private const string PrefPrefix = "rb.news.seen.";
         private static readonly Dictionary<string, string> Memory = new Dictionary<string, string>();
@@ -55,7 +55,7 @@ namespace RingsideBooker.UI.Bridge
             return int.TryParse(stored.Substring(bar + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out int count) ? (date, count) : ((string, int)?)null;
         }
 
-        /// <summary>Marks every story up to now as read: <paramref name="todayCount"/> stories (filler left out) are dated <paramref name="today"/>.</summary>
+        /// <summary>Marks every story up to now as read: <paramref name="todayCount"/> stories (major stories only) are dated <paramref name="today"/>.</summary>
         public static void MarkRead(string today, int todayCount)
         {
             string value = $"{today}|{todayCount.ToString(CultureInfo.InvariantCulture)}";

@@ -374,10 +374,6 @@ namespace RingsideBooker.Screens.News
             }
             toolbar.Add(Ds.Spacer());
             toolbar.Add(countLine);
-            Button columns = Ds.IconButton("columns", "Columns", null);
-            columns.name = "table-columns";
-            columns.clicked += () => table.OpenColumnPicker(columns);
-            toolbar.Add(columns);
         }
 
         /// <summary>The kinds picker: a popover of chips, none picked = every kind.</summary>
