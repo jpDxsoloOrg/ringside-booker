@@ -247,7 +247,8 @@ namespace RingsideBooker.Screens.Office
             string number = Kit.Obj(story, "headline.params")?.Children<JProperty>().Select(p => p.Value)
                 .FirstOrDefault(value => value.Type == JTokenType.Integer)?.ToString();
             string text = Kit.Capital(topic);
-            return number == null ? text : $"{text}: {number}";
+            if (number == null) return text;
+            return text.EndsWith(" start") ? $"{text.Substring(0, text.Length - 6)} {number} starts" : $"{text}: {number}";
         }
 
         /// <summary>The story in a line from the names it involves (the web's message catalogue is not in Unity).</summary>

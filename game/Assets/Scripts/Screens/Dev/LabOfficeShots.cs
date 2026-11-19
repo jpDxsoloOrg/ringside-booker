@@ -76,6 +76,13 @@ namespace RingsideBooker.Screens.Dev
             while (MatchLabScreen.Current == null || !MatchLabScreen.Current.Loaded) yield return null;
             yield return Wait(0.5f);
             yield return Capture("lab-empty");
+            if (MatchLabScreen.Current.State.Sides[0].Count == 0)
+            {
+                Click(Q<Button>(button => button.name == "lab-add-0"));
+                yield return Wait(1.5f);
+                yield return Capture("lab-picker");
+                ShellController.Current.Overlay.CloseAll();
+            }
 
             LabView lab = MatchLabScreen.Current;
             LabState state = lab.State;
@@ -106,10 +113,6 @@ namespace RingsideBooker.Screens.Dev
             yield return ScrollTo("lab-setup-panel");
             yield return Capture("lab-more-options");
 
-            Click(Q<Button>(button => button.name == "lab-add-0"));
-            yield return Wait(1.5f);
-            yield return Capture("lab-picker");
-            ShellController.Current.Overlay.CloseAll();
 
             state.Kind = "angle";
             lab.Render();

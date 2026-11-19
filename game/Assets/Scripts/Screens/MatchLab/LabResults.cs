@@ -224,7 +224,7 @@ namespace RingsideBooker.Screens.MatchLab
                 new DsColumn<JToken>("side", "Side", row => Ds.Text(LabText.SideLabel((int)(Kit.Num(row, "side") ?? 0)), "ds-cell__text")) { Width = 70, SortKey = row => Kit.Num(row, "side") ?? 0 },
                 TraceColumn("inRing", "In-ring", "In-ring", "How they worked in the ring tonight."),
                 TraceColumn("entertainment", "Entertainment", "Entertainment", "Charisma and presence on the night."),
-                new DsColumn<JToken>("stamina", "Stamina", StaminaCell) { Grow = 1.1f, SortKey = row => Kit.Num(row, "stamina.penalty.value") ?? 0, Help = "Did they have the gas for this length of match?" },
+                new DsColumn<JToken>("stamina", "Stamina", StaminaCell) { Grow = 1.1f, MinWidth = 130, SortKey = row => Kit.Num(row, "stamina.penalty.value") ?? 0, Help = "Did they have the gas for this length of match?" },
                 TraceColumn("popularity", "Popularity", "Popularity", "Popularity in the show's region.", false),
                 TraceColumn("momentum", "Momentum", "Momentum", "How hot they are right now.", false),
             }, workers);

@@ -207,7 +207,7 @@ namespace RingsideBooker.Tests.Screens
         public void StoriesWithoutNamesReadFromTheirKey()
         {
             JToken story = JObject.Parse(@"{ ""headline"": { ""key"": ""news.season-start.headline"", ""params"": { ""seasonNumber"": 1 } } }");
-            Assert.AreEqual("Season start: 1", OfficeLogic.HeadlineFromKey(story));
+            Assert.AreEqual("Season 1 starts", OfficeLogic.HeadlineFromKey(story));
         }
 
         [Test]
