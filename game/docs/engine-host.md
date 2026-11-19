@@ -300,6 +300,19 @@ game/docs/world-mod-import.md.
 Forgets an imported world: `{ "ok": true, "removed": bool }`. A game already started from it keeps
 running (a game never needs its packs after `newGame`).
 
+### `exportImportedWorld(packId)` → JSON (API version 3)
+
+An imported world's converted pack, to keep it on disk: `{ "ok": true, "pack": { "manifest", "files" } }`
+(about 5 MB of JSON for a 3,500-person world, 0.6 MB gzipped), or a refusal when no imported world has
+that id. The game stores this answer as it is (UNITY-14, `ImportedWorldStore`).
+
+### `registerImportedWorld(inputJson)` → JSON (API version 3)
+
+Makes a stored pack an imported world again without the mod and without converting: input
+`{ "pack": { "manifest", "files" } }` (an `exportImportedWorld` answer works as it is). Checks the
+manifest (schema and format version), that it is a world and that no bundled pack has its id; the
+records are checked by `previewWorld`/`newGame` as for any pack. Returns `{ "ok": true, "manifest" }`.
+
 ## Example (C#, ClearScript V8 shape)
 
 ```csharp

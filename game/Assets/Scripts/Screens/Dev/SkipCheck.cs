@@ -39,6 +39,10 @@ namespace RingsideBooker.Screens.Dev
         public const string WorkshopArgument = "-rbSkipCheckWorkshop";
         private static string workshopItem;
 
+        /// <summary><c>-rbSkipCheckStored &lt;item id&gt;</c>: play that workshop world as stored by an earlier import, without importing (UNITY-14).</summary>
+        public const string StoredArgument = "-rbSkipCheckStored";
+        private static string storedItem;
+
         private int days = 90;
         private static string shots;
         private static int shotCount;
@@ -59,6 +63,8 @@ namespace RingsideBooker.Screens.Dev
                 if (shotsAt >= 0 && shotsAt + 1 < args.Length) shots = args[shotsAt + 1];
                 int workshopAt = Array.FindIndex(args, arg => string.Equals(arg, WorkshopArgument, StringComparison.OrdinalIgnoreCase));
                 if (workshopAt >= 0 && workshopAt + 1 < args.Length) workshopItem = args[workshopAt + 1];
+                int storedAt = Array.FindIndex(args, arg => string.Equals(arg, StoredArgument, StringComparison.OrdinalIgnoreCase));
+                if (storedAt >= 0 && storedAt + 1 < args.Length) storedItem = args[storedAt + 1];
                 return;
             }
         }
@@ -77,13 +83,43 @@ namespace RingsideBooker.Screens.Dev
             Application.Quit(exitCode);
         }
 
+        private static async Task CaptureAsync(string name)
+        {
+            System.IO.Directory.CreateDirectory(shots);
+            string path = System.IO.Path.Combine(shots, $"{name}-{Screen.width}x{Screen.height}.png");
+            ScreenCapture.CaptureScreenshot(path);
+            await Task.Delay(500);
+            Debug.Log($"[SkipCheck] {path}");
+        }
+
         private async Task<bool> Run()
         {
             var clock = Stopwatch.StartNew();
             while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != SceneFlow.TitleScene) await Task.Yield();
             while (NewGameWizard.Last == null) await Task.Yield();
             await Task.Delay(1000);
-            if (workshopItem != null)
+            if (storedItem != null)
+            {
+                var stored = Stopwatch.StartNew();
+                if (shots != null)
+                {
+                    // The world list and "Manage imported worlds" after a restart (UNITY-14), as PNGs.
+                    await Task.Delay(1500);
+                    await CaptureAsync("new-game-stored-world");
+                    NewGameWizard.Last.OpenManage();
+                    await Task.Delay(4000);
+                    await CaptureAsync("manage-imported-worlds");
+                    NewGameWizard.Last.HandleBack();
+                    NewGameWizard.Last.HandleBack();
+                    stored.Restart();
+                }
+                if (!await NewGameWizard.Last.UseStored(Import.WorkshopModScanner.PackIdFor(storedItem)))
+                {
+                    return Fail($"stored workshop item {storedItem} is not listed in New game");
+                }
+                Debug.Log($"[SkipCheck] playing stored workshop item {storedItem}: listed and previewed in {stored.ElapsedMilliseconds} ms after the title");
+            }
+            else if (workshopItem != null)
             {
                 if (!await NewGameWizard.Last.UseDefaults(true, workshopItem)) return Fail($"workshop item {workshopItem} did not import");
                 Debug.Log($"[SkipCheck] playing imported workshop item {workshopItem}");

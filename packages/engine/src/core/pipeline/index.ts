@@ -42,6 +42,7 @@ export {
   type RunStepOptions,
   type StepFailure,
 } from './runStep';
+export { startPhaseTiming, stopPhaseTiming, timed, type PhaseTimingEntry } from './phaseTiming';
 export { CLOSE_STEP_ID, OPEN_STEP_ID, runDay } from './runDay';
 export {
   defineGate,

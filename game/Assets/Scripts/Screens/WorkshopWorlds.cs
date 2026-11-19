@@ -16,8 +16,11 @@ namespace RingsideBooker.Screens
     /// <summary>
     /// Workshop world mods for New game (UNITY-06's importer; UNITY-12's import sub-screen):
     /// <see cref="ScanAsync"/> lists the installed mods, <see cref="ImportAsync"/> imports one into
-    /// the engine (<c>importWorldMod</c>), and as an <see cref="IWorldSource"/> this lists the worlds
-    /// already imported this session, so New game offers them next to the bundled world. It also
+    /// the engine (<c>importWorldMod</c>) and stores the converted world on disk
+    /// (<see cref="ImportedWorldStore"/>, UNITY-14), and as an <see cref="IWorldSource"/> this lists
+    /// the worlds imported this session and every stored one, so New game offers them next to the
+    /// bundled world after a restart too (a stored world goes back into the engine only when it is
+    /// picked, so start-up does no work). It also
     /// remembers which mod folder each save came from (<c>Saves/world-mods.json</c>, slot id →
     /// folder) so <see cref="CurrentPictures"/> finds the portraits again after a load. Never logs a
     /// mod's names or data: item ids, counts and reason codes only.
@@ -41,21 +44,123 @@ namespace RingsideBooker.Screens
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Register() => WorldSources.Register(new WorkshopWorlds());
 
-        /// <summary>The worlds imported this session (the engine keeps them until the game quits).</summary>
+        /// <summary>Stage reported by <see cref="ImportAsync"/> while it stores the converted world for next time.</summary>
+        public const string StageStoring = "storing";
+
+        private static ImportedWorldStore store;
+
+        /// <summary>The imported worlds kept on disk (<c>persistentDataPath/Worlds</c>).</summary>
+        public static ImportedWorldStore Store
+        {
+            get => store ??= new ImportedWorldStore();
+            set => store = value;
+        }
+
+        /// <summary>
+        /// The worlds imported this session (the engine keeps them until the game quits) and the
+        /// stored ones from earlier sessions (only the small index is read here).
+        /// </summary>
         public async Task<IReadOnlyList<WorldChoice>> ListAsync(EngineClient client)
         {
             var choices = new List<WorldChoice>();
             WorldListResult worlds = await client.ListWorlds();
+            Dictionary<string, StoredWorld> stored = (await Task.Run(() => Store.List())).ToDictionary(world => world.PackId);
+            var listed = new HashSet<string>();
             foreach (JToken pack in worlds.Packs)
             {
                 if (!Kit.Bool(pack, "imported")) continue;
                 string packId = Kit.Str(pack, "id");
+                listed.Add(packId);
+                if (stored.TryGetValue(packId, out StoredWorld kept))
+                {
+                    choices.Add(StoredChoice(kept));
+                    continue;
+                }
                 var choice = new WorldChoice(packId, Kit.Str(pack, "name") ?? packId,
                     "A workshop world mod, imported this session.", Detail(packId, Kit.Str(pack, "startDate")));
                 if (Results.TryGetValue(packId, out WorldModImportResult result)) choice.Notice = Summary(result);
                 choices.Add(choice);
             }
+            foreach (StoredWorld kept in stored.Values.OrderByDescending(world => world.ImportedAt))
+            {
+                if (!listed.Contains(kept.PackId)) choices.Add(StoredChoice(kept));
+            }
             return choices;
+        }
+
+        /// <summary>A stored world as a New game choice: it goes back into the engine when it is previewed or started.</summary>
+        private static WorldChoice StoredChoice(StoredWorld world)
+        {
+            var choice = new WorldChoice(world.PackId, world.Name ?? $"Workshop item {world.ItemId}",
+                "A workshop world mod, kept from an earlier import.", StoredDetail(world));
+            string note = ModNote(world);
+            choice.Notice = string.Join(" ", new[] { world.Summary, note }.Where(part => !string.IsNullOrEmpty(part)));
+            if (choice.Notice.Length == 0) choice.Notice = null;
+            choice.Preview = async client =>
+            {
+                string problem = await EnsureRegisteredAsync(client, world.PackId);
+                if (problem != null) choice.Notice = problem;
+                return await client.PreviewWorld(world.PackId);
+            };
+            choice.NewGame = async (client, options) =>
+            {
+                await EnsureRegisteredAsync(client, world.PackId);
+                return await client.NewGame(options);
+            };
+            return choice;
+        }
+
+        /// <summary>"Imported 19 Nov 2026 · starts 2010-01-04 · 3,576 people · roster only" (no names).</summary>
+        public static string StoredDetail(StoredWorld world)
+        {
+            var parts = new List<string> { $"Imported {world.ImportedAt.ToLocalTime():d MMM yyyy}" };
+            if (world.StartDate != null) parts.Add($"starts {world.StartDate}");
+            if (world.Counts != null && world.Counts.TryGetValue("person", out long people)) parts.Add($"{people:N0} people");
+            if (world.Counts != null && world.Counts.TryGetValue("promotion", out long promotions)) parts.Add($"{promotions:N0} promotions");
+            if (world.RosterOnly) parts.Add("roster only");
+            return string.Join(" · ", parts);
+        }
+
+        /// <summary>A note when the world's mod has updated or is no longer installed; null when it is as imported.</summary>
+        public static string ModNote(StoredWorld world)
+        {
+            switch (ImportedWorldStore.ModState(world))
+            {
+                case StoredModState.Missing:
+                    return world.RosterOnly
+                        ? "The mod is no longer installed; the world still plays."
+                        : "The mod is no longer installed, so pictures show placeholders; the world still plays.";
+                case StoredModState.Updated:
+                    return "The mod has updated since this import. Re-import it under Import a workshop world… › Manage imported worlds to pick up the changes.";
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>Stored worlds put back into the engine this session (the engine keeps them until the game quits).</summary>
+        private static readonly HashSet<string> Registered = new HashSet<string>();
+
+        /// <summary>
+        /// Puts a stored world into the engine unless it is already there (imported or registered
+        /// this session). Returns null when the world is ready, else a reason in words.
+        /// </summary>
+        public static async Task<string> EnsureRegisteredAsync(EngineClient client, string packId)
+        {
+            if (Imported.ContainsKey(packId) || Registered.Contains(packId)) return null;
+            string problem = await Store.RegisterAsync(client, packId);
+            if (problem == null) Registered.Add(packId);
+            return problem;
+        }
+
+        /// <summary>Removes a stored world from disk and from the engine. Saves of it still load (a save carries its world).</summary>
+        public static async Task RemoveStoredAsync(EngineClient client, string packId)
+        {
+            await Task.Run(() => Store.Remove(packId));
+            Registered.Remove(packId);
+            Imported.Remove(packId);
+            Results.Remove(packId);
+            if (client != null) await client.RemoveImportedWorld(packId);
+            Debug.Log($"[WorkshopWorlds] removed stored world {packId}");
         }
 
         private static string Detail(string packId, string startDate)
@@ -86,13 +191,44 @@ namespace RingsideBooker.Screens
                 }
             });
             foreach (WorkshopMod mod in mods) ModsByPack[mod.PackId] = mod;
+            await Task.Run(() => Relocate(mods));
             Debug.Log($"[WorkshopWorlds] {mods.Count} workshop mods found, {mods.Count(mod => mod.IsWorld)} of them worlds");
             return mods;
         }
 
-        /// <summary>True when <paramref name="mod"/> is already imported this session with the same roster-only choice.</summary>
-        public static bool IsImported(WorkshopMod mod, bool rosterOnly) =>
-            mod != null && Imported.TryGetValue(mod.PackId, out bool importedRosterOnly) && importedRosterOnly == rosterOnly;
+        /// <summary>A stored world whose mod is installed in another folder now (moved library) follows it.</summary>
+        private static void Relocate(IEnumerable<WorkshopMod> mods)
+        {
+            try
+            {
+                foreach (StoredWorld world in Store.List())
+                {
+                    WorkshopMod mod = mods.FirstOrDefault(candidate => candidate.ItemId == world.ItemId);
+                    if (mod == null || string.Equals(mod.DatabasePath, world.DatabasePath, StringComparison.OrdinalIgnoreCase)) continue;
+                    world.ModFolder = mod.Folder;
+                    world.DatabasePath = mod.DatabasePath;
+                    world.PictureFolder = mod.PictureFolder;
+                    Store.Update(world);
+                    Debug.Log($"[WorkshopWorlds] stored world {world.PackId}: mod folder moved, updated");
+                }
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[WorkshopWorlds] checking stored worlds failed ({exception.GetType().Name})");
+            }
+        }
+
+        /// <summary>The stored world of <paramref name="mod"/>, or null.</summary>
+        public static StoredWorld StoredFor(WorkshopMod mod) => mod == null ? null : Store.Find(mod.PackId);
+
+        /// <summary>True when <paramref name="mod"/> is already imported (this session or stored) with the same roster-only choice.</summary>
+        public static bool IsImported(WorkshopMod mod, bool rosterOnly)
+        {
+            if (mod == null) return false;
+            if (Imported.TryGetValue(mod.PackId, out bool importedRosterOnly)) return importedRosterOnly == rosterOnly;
+            StoredWorld stored = StoredFor(mod);
+            return stored != null && stored.RosterOnly == rosterOnly;
+        }
 
         /// <summary>
         /// Imports <paramref name="mod"/> (reads its database and converts it on a worker thread).
@@ -101,7 +237,8 @@ namespace RingsideBooker.Screens
         /// failure comes back as a failed result whose <see cref="WorldModImportResult.ReasonCodes"/>
         /// name the exception type. Logs the outcome as counts and reason codes.
         /// </summary>
-        public static async Task<WorldModImportResult> ImportAsync(EngineClient client, WorkshopMod mod, bool rosterOnly, Action<string> onStage = null)
+        /// <param name="keep">Store the converted world so New game lists it after a restart (the import check passes false).</param>
+        public static async Task<WorldModImportResult> ImportAsync(EngineClient client, WorkshopMod mod, bool rosterOnly, Action<string> onStage = null, bool keep = true)
         {
             ModsByPack[mod.PackId] = mod;
             WorldModImportResult result;
@@ -118,7 +255,13 @@ namespace RingsideBooker.Screens
             if (result.Ok)
             {
                 Imported[mod.PackId] = rosterOnly;
+                Registered.Remove(mod.PackId);
                 Debug.Log($"[WorkshopWorlds] import ok (item {mod.ItemId}): {CountsLine(result.Counts)}; {WarningCodes(result)}; read {result.ReadMs:0} ms, convert {result.ConvertMs:0} ms");
+                if (keep)
+                {
+                    onStage?.Invoke(StageStoring);
+                    await StoreImportedAsync(client, mod, rosterOnly, result);
+                }
             }
             else
             {
@@ -126,6 +269,37 @@ namespace RingsideBooker.Screens
                 Debug.LogWarning($"[WorkshopWorlds] import failed (item {mod.ItemId}): {result.ReasonCodes}; counts: {CountsLine(result.Counts)}; read {result.ReadMs:0} ms, convert {result.ConvertMs:0} ms");
             }
             return result;
+        }
+
+        /// <summary>Keeps a fresh import on disk so New game lists it after a restart. A failure only logs (the import still counts this session).</summary>
+        private static async Task StoreImportedAsync(EngineClient client, WorkshopMod mod, bool rosterOnly, WorldModImportResult result)
+        {
+            try
+            {
+                JToken manifest = result.Response?["manifest"];
+                var world = new StoredWorld
+                {
+                    PackId = mod.PackId,
+                    Name = Kit.Str(manifest, "name") ?? mod.WorldName,
+                    StartDate = Kit.Str(manifest, "startDate") ?? mod.StartDate,
+                    ItemId = mod.ItemId,
+                    ModFolder = mod.Folder,
+                    DatabasePath = mod.DatabasePath,
+                    PictureFolder = mod.PictureFolder,
+                    RosterOnly = rosterOnly,
+                    ImportedAt = DateTimeOffset.Now,
+                    DatabaseModifiedUtc = File.Exists(mod.DatabasePath) ? File.GetLastWriteTimeUtc(mod.DatabasePath) : (DateTime?)null,
+                    Counts = result.Counts?.Properties().Where(property => property.Value.Type == JTokenType.Integer)
+                        .ToDictionary(property => property.Name, property => (long)property.Value) ?? new Dictionary<string, long>(),
+                    Summary = Summary(result),
+                    EngineVersion = Application.version,
+                };
+                await Store.StoreFromEngineAsync(client, world);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[WorkshopWorlds] storing {mod.PackId} failed ({exception.GetType().Name}); it is listed this session only");
+            }
         }
 
         /// <summary>The report's warning codes with counts (<c>code×n</c>), for the log.</summary>
@@ -217,15 +391,31 @@ namespace RingsideBooker.Screens
         /// <summary>Records which mod a new save's world came from (called by the wizard after the first save).</summary>
         public static void RememberForSlot(string slotId, string packId)
         {
-            if (slotId == null || packId == null || !ModsByPack.TryGetValue(packId, out WorkshopMod mod)) return;
-            JObject map = ReadMap();
-            map[slotId] = new JObject
+            if (slotId == null || packId == null) return;
+            JObject entry;
+            if (ModsByPack.TryGetValue(packId, out WorkshopMod mod) && Imported.TryGetValue(packId, out bool rosterOnly))
             {
-                ["itemId"] = mod.ItemId,
-                ["folder"] = mod.Folder,
-                ["pictureFolder"] = mod.PictureFolder,
-                ["rosterOnly"] = Imported.TryGetValue(packId, out bool rosterOnly) && rosterOnly,
-            };
+                entry = new JObject
+                {
+                    ["itemId"] = mod.ItemId,
+                    ["folder"] = mod.Folder,
+                    ["pictureFolder"] = mod.PictureFolder,
+                    ["rosterOnly"] = rosterOnly,
+                };
+            }
+            else if (Store.Find(packId) is StoredWorld stored)
+            {
+                entry = new JObject
+                {
+                    ["itemId"] = stored.ItemId,
+                    ["folder"] = stored.ModFolder,
+                    ["pictureFolder"] = stored.PictureFolder,
+                    ["rosterOnly"] = stored.RosterOnly,
+                };
+            }
+            else return;
+            JObject map = ReadMap();
+            map[slotId] = entry;
             try
             {
                 Directory.CreateDirectory(MapDirectory);
@@ -250,9 +440,19 @@ namespace RingsideBooker.Screens
             packPictures?.Dispose();
             packPictures = null;
             packPicturesId = packId;
-            if (packId == null || !ModsByPack.TryGetValue(packId, out WorkshopMod mod)) return null;
-            if (!Imported.TryGetValue(packId, out bool rosterOnly) || rosterOnly || mod.PictureFolder == null) return null;
-            packPictures = new PictureProvider(mod.PictureFolder, false);
+            if (packId == null) return null;
+            string folder;
+            if (Imported.TryGetValue(packId, out bool rosterOnly) && ModsByPack.TryGetValue(packId, out WorkshopMod mod))
+            {
+                folder = rosterOnly ? null : mod.PictureFolder;
+            }
+            else
+            {
+                StoredWorld stored = Store.Find(packId);
+                folder = stored == null || stored.RosterOnly ? null : stored.PictureFolder;
+            }
+            if (folder == null || !Directory.Exists(folder)) return null;
+            packPictures = new PictureProvider(folder, false);
             return packPictures;
         }
 
@@ -269,13 +469,33 @@ namespace RingsideBooker.Screens
                 pictures?.Dispose();
                 pictures = null;
                 picturesSlot = slot;
+                CurrentPicturesNote = null;
                 if (slot == null || !(ReadMap()[slot] is JObject entry)) return null;
                 string folder = (string)entry["pictureFolder"];
-                if (folder == null || !Directory.Exists(folder)) return null;
-                pictures = new PictureProvider(folder, (bool?)entry["rosterOnly"] ?? false);
+                bool rosterOnly = (bool?)entry["rosterOnly"] ?? false;
+                if (folder != null && !Directory.Exists(folder))
+                {
+                    // The mod moved (another library) since this save: the stored world knows where it is now.
+                    string itemId = (string)entry["itemId"];
+                    StoredWorld stored = itemId == null ? null : Store.Find(WorkshopModScanner.PackIdFor(itemId));
+                    folder = stored?.PictureFolder != null && Directory.Exists(stored.PictureFolder) ? stored.PictureFolder : null;
+                    if (folder == null && !rosterOnly)
+                    {
+                        CurrentPicturesNote = "This world's workshop mod is not installed, so pictures show placeholders.";
+                        return null;
+                    }
+                }
+                if (folder == null) return null;
+                pictures = new PictureProvider(folder, rosterOnly);
                 return pictures;
             }
         }
+
+        /// <summary>
+        /// A note for screens with pictures when the running game's mod is missing (placeholders
+        /// are shown instead); null otherwise. Set by <see cref="CurrentPictures"/>.
+        /// </summary>
+        public static string CurrentPicturesNote { get; private set; }
 
         private static string MapDirectory => Path.Combine(Application.persistentDataPath, "Saves");
 
