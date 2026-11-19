@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable id-length -- SVG geometry uses the standard d/x/y/w/h names. */
 // Builds the game's icon set (UNITY-11) from Lucide (ISC licence, see game/docs/licenses/THIRD-PARTY-NOTICES.txt).
 //
 // Reads each icon's node list from an installed lucide-react package (the web app's dependency),
