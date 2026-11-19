@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Game.unity
     guid: ac232750e49f3c64391da36f330787a0
+  - enabled: 1
+    path: Assets/Scenes/Mockups.unity
+    guid: 7d23d42869f57804d9ef64de4d7becaf
   m_configObjects: {}

@@ -45,6 +45,13 @@ namespace RingsideBooker.UI.Dev
             yield return WaitForScene(SceneFlow.GameScene);
             yield return new WaitForSecondsRealtime(1f);
             yield return Capture("02-shell");
+            // UNITY-11: the sidebar as an icon rail, then back (the setting is remembered).
+            bool wasCollapsed = ShellController.Current.Shell.Collapsed;
+            ShellController.Current.Shell.Collapsed = true;
+            yield return new WaitForSecondsRealtime(0.6f);
+            yield return Capture("02b-shell-collapsed");
+            ShellController.Current.Shell.Collapsed = wasCollapsed;
+            yield return new WaitForSecondsRealtime(0.4f);
 
             IDayControl day = ShellServices.Day;
             ShellController.Current.OpenSkipDays();

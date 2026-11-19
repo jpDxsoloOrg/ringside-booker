@@ -16,7 +16,7 @@ namespace RingsideBooker.UI.Demo
     /// a stop points to deals with it (as the real screens will), and a background step fails now
     /// and then so the failures link shows. Everything is deterministic and fictional.
     /// </summary>
-    public sealed class DemoGame : IShellData, IDayControl, INavigationObserver, IDisposable
+    public sealed class DemoGame : IShellData, IShellNews, IDayControl, INavigationObserver, IDisposable
     {
         private const float SecondsPerSkipDay = 1f / 12f;
         private const float SecondsForNextDay = 0.25f;
@@ -57,6 +57,14 @@ namespace RingsideBooker.UI.Demo
         }
 
         public ShellSnapshot Snapshot { get; private set; }
+
+        /// <summary>Sample ticker lines (the demo has no news system).</summary>
+        public IReadOnlyList<string> Headlines { get; } = new[]
+        {
+            "Sample world: start a new game for real news",
+            "Harbor City Wrestling run a house show on Saturday",
+            "Three contracts end this month",
+        };
         public IReadOnlyList<GateHit> Gates => gates;
         public ShowNightRoute ShowNight
         {

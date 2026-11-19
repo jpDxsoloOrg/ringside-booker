@@ -97,4 +97,13 @@ namespace RingsideBooker.UI.Bridge
         /// <summary>Raised (on the main thread) whenever <see cref="Snapshot"/> is replaced.</summary>
         event Action Changed;
     }
+
+    /// <summary>
+    /// Optional on an <see cref="IShellData"/>: the headlines the shell's news ticker shows (UNITY-11),
+    /// newest first. Updated before <see cref="IShellData.Changed"/> is raised; empty hides the ticker.
+    /// </summary>
+    public interface IShellNews
+    {
+        IReadOnlyList<string> Headlines { get; }
+    }
 }

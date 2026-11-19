@@ -28,6 +28,7 @@ namespace RingsideBooker.UI.EditorTools
         public const string BootScenePath = "Assets/Scenes/Boot.unity";
         public const string TitleScenePath = "Assets/Scenes/Title.unity";
         public const string GameScenePath = "Assets/Scenes/Game.unity";
+        public const string MockupsScenePath = "Assets/Scenes/Mockups.unity";
 
         private static readonly Color Background = new Color32(0x09, 0x0d, 0x16, 0xff);
 
@@ -74,12 +75,41 @@ namespace RingsideBooker.UI.EditorTools
             else EditorUtility.SetDirty(settings);
         }
 
+        /// <summary>
+        /// UNITY-11: the redesign mockups scene (a UIDocument with no UXML: MockupController clones the
+        /// new AppShell), added to the build after the game's scenes. Opened by <c>-rbMockups</c>.
+        /// Batch: <c>-executeMethod RingsideBooker.UI.EditorTools.UiSceneBuilder.BuildMockups</c>.
+        /// </summary>
+        [MenuItem("Ringside Booker/Build Mockups Scene")]
+        public static void BuildMockups()
+        {
+            try
+            {
+                BuildScene(MockupsScenePath, null, typeof(Mockups.MockupController));
+                if (!EditorBuildSettings.scenes.Any(scene => scene.path == MockupsScenePath))
+                {
+                    EditorBuildSettings.scenes = EditorBuildSettings.scenes
+                        .Concat(new[] { new EditorBuildSettingsScene(MockupsScenePath, true) })
+                        .ToArray();
+                }
+                AssetDatabase.SaveAssets();
+                Debug.Log("[UiSceneBuilder] Mockups scene built");
+                if (Application.isBatchMode) EditorApplication.Exit(0);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                if (Application.isBatchMode) EditorApplication.Exit(1);
+                else throw;
+            }
+        }
+
         private static void BuildScene(string scenePath, string uxmlPath, Type controller)
         {
             // A new scene unloads unused assets, so load the references after creating it.
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            var tree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath);
-            if (tree == null) throw new InvalidOperationException($"Missing UXML {uxmlPath}");
+            VisualTreeAsset tree = uxmlPath == null ? null : AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath);
+            if (uxmlPath != null && tree == null) throw new InvalidOperationException($"Missing UXML {uxmlPath}");
             var panelSettings = AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath);
 
             var cameraObject = new GameObject("Camera");
@@ -108,11 +138,11 @@ namespace RingsideBooker.UI.EditorTools
         private static void VerifyScene(string scenePath, string uxmlPath)
         {
             Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-            var tree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath);
+            VisualTreeAsset tree = uxmlPath == null ? null : AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath);
             var panelSettings = AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath);
             GameObject ui = scene.GetRootGameObjects().First(root => root.GetComponent<UIDocument>() != null);
             var document = ui.GetComponent<UIDocument>();
-            if (panelSettings == null || tree == null || document.panelSettings != panelSettings || document.visualTreeAsset != tree)
+            if (panelSettings == null || (uxmlPath != null && tree == null) || document.panelSettings != panelSettings || document.visualTreeAsset != tree)
             {
                 throw new InvalidOperationException($"UI references did not stick in {scenePath}");
             }
@@ -121,6 +151,7 @@ namespace RingsideBooker.UI.EditorTools
         /// <summary>Boot first, then Title and Game; other scenes keep their places after them.</summary>
         private static void EnsureBuildScenes()
         {
+            // The Mockups scene (UNITY-11), when present, keeps its place after these.
             string[] ours = { BootScenePath, TitleScenePath, GameScenePath };
             EditorBuildSettings.scenes = ours
                 .Select(path => new EditorBuildSettingsScene(path, true))

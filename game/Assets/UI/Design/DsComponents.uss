@@ -1,0 +1,1984 @@
+/*
+ * Design system components (UNITY-11): the classes the builders in Scripts/UI/Design use. Every
+ * class starts with ds-. Font classes go on the label itself (faces are not inherited in USS).
+ * Unity's Button brings margins, borders and hover colours of its own, so each button-like class
+ * resets them and defines its own :hover/:active/:focus.
+ */
+
+/* ---- Layout helpers -------------------------------------------------------------------------------- */
+
+.ds-row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.ds-row--top {
+    align-items: flex-start;
+}
+
+.ds-row--wrap {
+    flex-wrap: wrap;
+}
+
+.ds-col {
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.ds-spacer {
+    flex-grow: 1;
+}
+
+.ds-grow {
+    flex-grow: 1;
+    flex-basis: 0;
+}
+
+.ds-mr-1 { margin-right: 4px; }
+.ds-mr-2 { margin-right: 8px; }
+.ds-mr-3 { margin-right: 12px; }
+.ds-mr-4 { margin-right: 16px; }
+.ds-ml-2 { margin-left: 8px; }
+.ds-ml-3 { margin-left: 12px; }
+.ds-mb-1 { margin-bottom: 4px; }
+.ds-mb-2 { margin-bottom: 8px; }
+.ds-mb-3 { margin-bottom: 12px; }
+.ds-mb-4 { margin-bottom: 16px; }
+.ds-mb-6 { margin-bottom: 24px; }
+.ds-mt-2 { margin-top: 8px; }
+.ds-mt-3 { margin-top: 12px; }
+
+.ds-text-2 { color: var(--ds-text-2); }
+.ds-text-3 { color: var(--ds-text-3); }
+.ds-wrap { white-space: normal; }
+
+/* ---- Icons ---------------------------------------------------------------------------------------- */
+
+.ds-icon {
+    --icon-stroke: 2;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.ds-icon--xs { width: 12px; height: 12px; }
+.ds-icon--sm { width: 14px; height: 14px; }
+.ds-icon--md { width: 16px; height: 16px; }
+.ds-icon--lg { width: 20px; height: 20px; }
+.ds-icon--xl { width: 24px; height: 24px; }
+.ds-icon--2xl { width: 32px; height: 32px; --icon-stroke: 1.75; }
+.ds-icon--3xl { width: 48px; height: 48px; --icon-stroke: 1.5; }
+
+/* ---- Buttons --------------------------------------------------------------------------------------- */
+
+.ds-btn {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    height: var(--ds-control-height);
+    min-height: var(--ds-control-height);
+    margin: 0;
+    padding: 0 12px;
+    border-width: 1px;
+    border-radius: var(--ds-radius-sm);
+    border-color: var(--ds-line-strong);
+    background-color: var(--ds-elev-3);
+    color: var(--ds-text);
+    transition-property: background-color, border-color, color;
+    transition-duration: 120ms;
+}
+
+.ds-btn__label {
+    font-size: 15px;
+    letter-spacing: 0.7px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text);
+    white-space: nowrap;
+}
+
+.ds-btn__icon {
+    color: var(--ds-text-2);
+    margin-right: 6px;
+}
+
+.ds-btn__icon-end {
+    color: var(--ds-text-3);
+    margin-left: 4px;
+}
+
+.ds-btn:hover {
+    background-color: var(--ds-elev-4);
+    border-color: var(--ds-line-strong);
+}
+
+.ds-btn:active {
+    background-color: var(--ds-elev-2);
+}
+
+.ds-btn:focus {
+    border-color: var(--ds-focus);
+}
+
+.ds-btn:disabled {
+    opacity: 0.45;
+}
+
+.ds-btn--primary {
+    background-color: var(--ds-action);
+    border-color: var(--ds-action-hover);
+}
+
+.ds-btn--primary:hover {
+    background-color: var(--ds-action-hover);
+    border-color: var(--ds-action-hover);
+}
+
+.ds-btn--primary .ds-btn__icon {
+    color: #ffffff;
+}
+
+.ds-btn--ghost {
+    background-color: transparent;
+    border-color: transparent;
+}
+
+.ds-btn--ghost .ds-btn__label {
+    color: var(--ds-text-2);
+}
+
+.ds-btn--ghost:hover {
+    background-color: var(--ds-elev-3);
+    border-color: transparent;
+}
+
+.ds-btn--ghost:hover .ds-btn__label {
+    color: var(--ds-text);
+}
+
+.ds-btn--danger {
+    background-color: transparent;
+    border-color: rgba(251, 113, 133, 0.5);
+}
+
+.ds-btn--danger .ds-btn__label,
+.ds-btn--danger .ds-btn__icon {
+    color: var(--ds-bad);
+}
+
+.ds-btn--danger:hover {
+    background-color: var(--ds-bad-soft);
+    border-color: var(--ds-bad);
+}
+
+/* A text link drawn as a button (section header "See all"). */
+.ds-btn--link {
+    height: 22px;
+    min-height: 22px;
+    padding: 0 2px;
+}
+
+.ds-btn--link .ds-btn__label {
+    font-size: 13px;
+    letter-spacing: 0.8px;
+    color: var(--ds-text-3);
+}
+
+.ds-btn--link:hover .ds-btn__label {
+    color: var(--ds-data);
+}
+
+.ds-btn--lg {
+    height: var(--ds-control-height-lg);
+    min-height: var(--ds-control-height-lg);
+    padding: 0 16px;
+}
+
+.ds-btn--lg .ds-btn__label {
+    font-size: 17px;
+}
+
+/* The skewed call to action. SkewShape paints --skew-fill / --skew-edge. */
+.ds-skew {
+    --skew-fill: #d7301a;
+    --skew-edge: rgba(0, 0, 0, 0);
+}
+
+.ds-cta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    height: 36px;
+    padding: 0 22px 0 24px;
+    --skew-fill: #d7301a;
+    --skew-edge: #ff3b1d;
+}
+
+.ds-cta:hover {
+    --skew-fill: #ff3b1d;
+}
+
+.ds-cta:focus {
+    --skew-edge: #00e5ff;
+}
+
+.ds-cta__label {
+    font-size: 18px;
+    letter-spacing: 1.2px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.ds-cta__icon {
+    color: #ffffff;
+    margin-left: 6px;
+}
+
+.ds-cta--lg {
+    height: 46px;
+    padding: 0 30px 0 34px;
+}
+
+.ds-cta--lg .ds-cta__label {
+    font-size: 22px;
+}
+
+.ds-icon-btn {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+    border-radius: var(--ds-radius-sm);
+    border-color: var(--ds-line-strong);
+    background-color: var(--ds-elev-2);
+    color: var(--ds-text-2);
+    transition-property: background-color, color;
+    transition-duration: 120ms;
+}
+
+.ds-icon-btn--quiet {
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--ds-text-3);
+}
+
+.ds-icon-btn:hover {
+    background-color: var(--ds-elev-4);
+    color: var(--ds-text);
+}
+
+.ds-icon-btn:focus {
+    border-color: var(--ds-focus);
+}
+
+/* ---- Chips, badges, pills, tags, dots ------------------------------------------------------------------ */
+
+.ds-chip {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 26px;
+    margin: 0 6px 0 0;
+    padding: 0 10px;
+    border-width: 1px;
+    border-radius: var(--ds-radius-pill);
+    border-color: var(--ds-line-strong);
+    background-color: transparent;
+    transition-property: background-color, border-color;
+    transition-duration: 120ms;
+}
+
+.ds-chip:hover {
+    background-color: var(--ds-elev-3);
+    border-color: var(--ds-line-strong);
+}
+
+.ds-chip:focus {
+    border-color: var(--ds-focus);
+}
+
+.ds-chip__label {
+    font-size: 12px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text-2);
+}
+
+.ds-chip__icon {
+    color: var(--ds-text-3);
+    margin-right: 5px;
+}
+
+.ds-chip__count {
+    margin-left: 6px;
+    font-size: 11px;
+    color: var(--ds-text-4);
+}
+
+.ds-chip--selected {
+    border-color: var(--ds-data);
+    background-color: var(--ds-data-soft);
+}
+
+.ds-chip--selected:hover {
+    border-color: var(--ds-data);
+    background-color: var(--ds-data-soft);
+}
+
+.ds-chip--selected .ds-chip__label,
+.ds-chip--selected .ds-chip__icon {
+    color: var(--ds-data);
+}
+
+.ds-badge {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background-color: var(--ds-state);
+    color: #ffffff;
+    font-size: 11px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-Bold.ttf");
+    -unity-text-align: middle-center;
+}
+
+.ds-badge.ds-state--good,
+.ds-badge.ds-state--warn,
+.ds-badge.ds-state--info,
+.ds-badge.ds-state--gold {
+    color: var(--ds-text-inverse);
+}
+
+.ds-pill {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 22px;
+    padding: 0 8px 0 7px;
+    margin-right: 6px;
+    border-radius: var(--ds-radius-pill);
+    background-color: var(--ds-state-soft);
+    color: var(--ds-state);
+}
+
+.ds-pill__icon {
+    margin-right: 5px;
+}
+
+.ds-pill__label {
+    font-size: 12px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-state);
+    white-space: nowrap;
+}
+
+.ds-pill--solid {
+    background-color: var(--ds-state);
+    color: var(--ds-text-inverse);
+}
+
+.ds-pill--solid .ds-pill__label {
+    color: var(--ds-text-inverse);
+}
+
+.ds-pill--solid.ds-state--live .ds-pill__label,
+.ds-pill--solid.ds-state--live {
+    color: #ffffff;
+}
+
+.ds-tag {
+    flex-shrink: 0;
+    padding: 1px 5px 0 5px;
+    border-width: 1px;
+    border-radius: var(--ds-radius-xs);
+    border-color: var(--ds-line-strong);
+    color: var(--ds-text-3);
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    -unity-text-align: middle-center;
+}
+
+.ds-tag--face {
+    color: var(--ds-face);
+    border-color: rgba(96, 165, 250, 0.45);
+    background-color: var(--ds-face-soft);
+}
+
+.ds-tag--heel {
+    color: var(--ds-heel);
+    border-color: rgba(167, 139, 250, 0.45);
+    background-color: var(--ds-heel-soft);
+}
+
+.ds-tag--gold {
+    color: var(--ds-gold);
+    border-color: rgba(250, 204, 21, 0.45);
+    background-color: var(--ds-gold-soft);
+}
+
+.ds-tag--live {
+    color: #ffffff;
+    border-color: var(--ds-live);
+    background-color: var(--ds-live);
+}
+
+.ds-dot-label {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.ds-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 4px;
+    background-color: var(--ds-state);
+    flex-shrink: 0;
+}
+
+.ds-dot-label__text {
+    margin-left: 6px;
+    font-size: 12px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text-2);
+    white-space: nowrap;
+}
+
+/* ---- Section header and panel -------------------------------------------------------------------------- */
+
+.ds-section-header {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 24px;
+    margin-bottom: 10px;
+}
+
+.ds-section-header__tick {
+    width: 3px;
+    height: 14px;
+    margin-right: 8px;
+    background-color: var(--ds-action-hover);
+}
+
+.ds-section-header__title {
+    font-size: 15px;
+    letter-spacing: 1.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-section-header__rule {
+    flex-grow: 1;
+    height: 1px;
+    margin: 0 10px;
+    background-color: var(--ds-line);
+}
+
+.ds-panel {
+    flex-shrink: 0;
+    padding: 14px 16px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+}
+
+.ds-panel--flush {
+    padding: 0;
+}
+
+.ds-panel--flush > .ds-section-header {
+    margin: 12px 14px 6px 14px;
+}
+
+/* ---- Stat tiles, trends, meters ------------------------------------------------------------------------ */
+
+.ds-stat {
+    flex-shrink: 0;
+    padding: 10px 14px 10px 12px;
+    border-width: 1px;
+    border-left-width: 3px;
+    border-color: var(--ds-line);
+    border-left-color: var(--ds-state);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+}
+
+.ds-stat.ds-state--neutral {
+    border-left-color: var(--ds-line-strong);
+}
+
+.ds-stat__top {
+    flex-direction: row;
+    align-items: center;
+    height: 18px;
+}
+
+.ds-stat__label {
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.ds-stat__value-row {
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+.ds-stat__value {
+    font-size: var(--ds-type-stat);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+    letter-spacing: 0.3px;
+}
+
+.ds-stat__words {
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: nowrap;
+}
+
+.ds-stat--sm .ds-stat__value {
+    font-size: var(--ds-type-stat-sm);
+}
+
+.ds-trend {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 8px;
+    margin-bottom: 6px;
+    color: var(--ds-state);
+}
+
+.ds-trend__text {
+    margin-left: 3px;
+    font-size: 12px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-state);
+}
+
+.ds-meter {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.ds-meter__word {
+    min-width: 72px;
+    margin-right: 10px;
+    font-size: 12px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-state);
+}
+
+.ds-meter__track {
+    flex-grow: 1;
+    height: 6px;
+    border-radius: 3px;
+    background-color: var(--ds-elev-3);
+    overflow: hidden;
+}
+
+.ds-meter__fill {
+    height: 100%;
+    border-radius: 3px;
+    background-color: var(--ds-state);
+}
+
+/* ---- The quiet Why? ------------------------------------------------------------------------------------- */
+
+.ds-why {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    margin: 0 0 0 4px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+    border-radius: 9px;
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--ds-text-3);
+    opacity: 0;
+    transition-property: opacity, background-color, color;
+    transition-duration: 120ms;
+}
+
+.ds-why-host:hover .ds-why,
+.ds-why-host--hover .ds-why,
+.ds-why:focus {
+    opacity: 1;
+}
+
+.ds-why:hover {
+    background-color: var(--ds-data-soft);
+    color: var(--ds-data);
+    border-color: transparent;
+}
+
+.ds-why:focus {
+    border-color: var(--ds-focus);
+}
+
+/* ---- Tooltip -------------------------------------------------------------------------------------------- */
+
+.ds-tooltip {
+    position: absolute;
+    max-width: 300px;
+    padding: 8px 10px;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-4);
+}
+
+.ds-tooltip__title {
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.ds-tooltip__text {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+/* ---- Overlays: side sheet, modal, popover, toast ------------------------------------------------------- */
+
+.ds-overlay--popover > .scrim {
+    background-color: transparent;
+}
+
+.ds-overlay-header {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 56px;
+    padding: 8px 8px 8px 20px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line);
+}
+
+.ds-overlay-header__words {
+    flex-grow: 1;
+}
+
+.ds-overlay-header__eyebrow {
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-data);
+}
+
+.ds-overlay-header__title {
+    font-size: 22px;
+    letter-spacing: 0.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-sheet {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    max-width: 90%;
+    border-left-width: 1px;
+    border-left-color: var(--ds-line-strong);
+    background-color: var(--ds-elev-2);
+}
+
+.ds-sheet__body {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.ds-sheet__content {
+    padding: 18px 20px;
+}
+
+.ds-modal__body > .ds-kv {
+    margin-top: 12px;
+}
+
+.ds-sheet__footer {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 10px 20px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line);
+}
+
+.ds-modal {
+    margin-top: 12%;
+    width: 540px;
+    max-width: 90%;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-lg);
+    background-color: var(--ds-elev-2);
+    overflow: hidden;
+}
+
+.ds-modal__body {
+    padding: 18px 20px;
+}
+
+.ds-modal__footer {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 12px 20px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line);
+    background-color: var(--ds-elev-1);
+}
+
+.ds-modal__footer > .ds-btn {
+    margin-left: 8px;
+}
+
+.ds-popover {
+    min-width: 240px;
+    padding: 10px;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-3);
+}
+
+.ds-toasts {
+    position: absolute;
+    right: 24px;
+    bottom: 24px;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.ds-toast {
+    flex-direction: row;
+    align-items: center;
+    width: 380px;
+    margin-top: 8px;
+    padding: 10px 6px 10px 12px;
+    border-width: 1px;
+    border-left-width: 3px;
+    border-color: var(--ds-line-strong);
+    border-left-color: var(--ds-state);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-3);
+}
+
+.ds-toast__icon {
+    color: var(--ds-state);
+}
+
+.ds-toast__words {
+    flex-grow: 1;
+    margin: 0 10px;
+}
+
+.ds-toast__text {
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.ds-toast__detail {
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+/* ---- Tabs and segmented switch -------------------------------------------------------------------------- */
+
+.ds-tabs {
+    flex-direction: row;
+    flex-shrink: 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line);
+}
+
+.ds-tab {
+    flex-direction: row;
+    align-items: center;
+    height: 36px;
+    margin: 0 4px -1px 0;
+    padding: 0 12px;
+    border-width: 0;
+    border-bottom-width: 2px;
+    border-radius: 0;
+    border-color: transparent;
+    background-color: transparent;
+}
+
+.ds-tab:hover {
+    background-color: transparent;
+    border-color: transparent;
+    border-bottom-color: var(--ds-line-strong);
+}
+
+.ds-tab:focus {
+    border-bottom-color: var(--ds-focus);
+}
+
+.ds-tab__label {
+    font-size: 15px;
+    letter-spacing: 1px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.ds-tab__icon {
+    margin-right: 6px;
+    color: var(--ds-text-3);
+}
+
+.ds-tab__count {
+    margin-left: 6px;
+    padding: 0 6px;
+    border-radius: var(--ds-radius-pill);
+    background-color: var(--ds-elev-3);
+    font-size: 11px;
+    color: var(--ds-text-3);
+}
+
+.ds-tab:hover .ds-tab__label {
+    color: var(--ds-text-2);
+}
+
+.ds-tab--current {
+    border-bottom-color: var(--ds-action-hover);
+}
+
+.ds-tab--current:hover {
+    border-bottom-color: var(--ds-action-hover);
+}
+
+.ds-tab--current .ds-tab__label,
+.ds-tab--current:hover .ds-tab__label {
+    color: var(--ds-text);
+}
+
+.ds-segmented {
+    flex-direction: row;
+    flex-shrink: 0;
+    padding: 2px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-0);
+}
+
+.ds-segmented__item {
+    flex-direction: row;
+    align-items: center;
+    height: 24px;
+    margin: 0;
+    padding: 0 10px;
+    border-width: 0;
+    border-radius: var(--ds-radius-sm);
+    background-color: transparent;
+}
+
+.ds-segmented__item:hover {
+    background-color: var(--ds-elev-2);
+}
+
+.ds-segmented__item .ds-tab__label {
+    font-size: 12px;
+    letter-spacing: 0;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+.ds-segmented__item--current,
+.ds-segmented__item--current:hover {
+    background-color: var(--ds-elev-4);
+}
+
+.ds-segmented__item--current .ds-tab__label,
+.ds-segmented__item--current .ds-tab__icon {
+    color: var(--ds-text);
+}
+
+/* ---- Table ------------------------------------------------------------------------------------------------ */
+
+.ds-table {
+    flex-shrink: 0;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+    overflow: hidden;
+}
+
+.ds-table__header {
+    flex-direction: row;
+    align-items: center;
+    height: 30px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line);
+    background-color: var(--ds-elev-2);
+}
+
+.ds-table__th {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ds-table__th-label {
+    font-size: 12px;
+    letter-spacing: 1.2px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.ds-table__th--sortable:hover .ds-table__th-label {
+    color: var(--ds-text);
+}
+
+.ds-table__sort {
+    margin-left: 4px;
+    color: var(--ds-text-4);
+}
+
+.ds-table__sort--active {
+    color: var(--ds-data);
+}
+
+.ds-table__picker {
+    margin-left: auto;
+    margin-right: 2px;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+}
+
+.ds-table__row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: var(--ds-row-height);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+    border-left-width: 2px;
+    border-left-color: transparent;
+}
+
+.ds-table__row--alt {
+    background-color: rgba(255, 255, 255, 0.015);
+}
+
+.ds-table__row:hover {
+    background-color: var(--ds-elev-2);
+}
+
+.ds-table__row--open {
+    background-color: var(--ds-elev-2);
+    border-bottom-color: transparent;
+}
+
+.ds-table__row--selected {
+    border-left-color: var(--ds-action-hover);
+    background-color: var(--ds-elev-2);
+}
+
+.ds-table__cell {
+    flex-direction: row;
+    align-items: center;
+    height: 100%;
+    padding: 0 10px;
+    overflow: hidden;
+}
+
+.ds-table__cell--right {
+    justify-content: flex-end;
+}
+
+.ds-table__cell--center {
+    justify-content: center;
+}
+
+.ds-cell__text {
+    font-size: 13px;
+    color: var(--ds-text-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ds-cell__text--strong {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-cell__text--num {
+    font-size: 15px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-cell__text--muted {
+    color: var(--ds-text-3);
+}
+
+.ds-table__expander {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    border-width: 0;
+    background-color: transparent;
+    color: var(--ds-text-3);
+}
+
+.ds-table__expander:hover {
+    background-color: transparent;
+    color: var(--ds-text);
+}
+
+.ds-table__details {
+    flex-shrink: 0;
+    padding: 6px 16px 14px 40px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line);
+    border-left-width: 2px;
+    border-left-color: transparent;
+    background-color: var(--ds-elev-2);
+}
+
+.ds-column-picker {
+    width: 300px;
+}
+
+.ds-column-picker__title {
+    font-size: 12px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.ds-column-picker__hint {
+    margin: 2px 0 8px 0;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.ds-column-picker__footer {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line);
+}
+
+.ds-check {
+    flex-direction: row;
+    align-items: center;
+    height: 28px;
+    margin: 0;
+    padding: 0 6px;
+    border-width: 0;
+    border-radius: var(--ds-radius-sm);
+    background-color: transparent;
+}
+
+.ds-check:hover {
+    background-color: var(--ds-elev-4);
+}
+
+.ds-check__box {
+    width: 14px;
+    height: 14px;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: 3px;
+    background-color: var(--ds-elev-0);
+}
+
+.ds-check--on .ds-check__box {
+    border-color: var(--ds-data);
+    background-color: var(--ds-data);
+}
+
+.ds-check__tick {
+    color: var(--ds-text-inverse);
+    --icon-stroke: 3;
+}
+
+.ds-check__label {
+    -unity-text-align: middle-left;
+    margin-left: 10px;
+    flex-grow: 1;
+    font-size: 13px;
+    color: var(--ds-text);
+}
+
+.ds-check__extra {
+    font-size: 11px;
+    color: var(--ds-text-4);
+}
+
+/* ---- Portraits, logos, stars ------------------------------------------------------------------------------- */
+
+.ds-portrait-art,
+.ds-fill,
+.ds-portrait-art__figure {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.ds-portrait-art {
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.ds-portrait {
+    flex-shrink: 0;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    overflow: hidden;
+}
+
+.ds-portrait--xs { width: 28px; height: 28px; border-radius: var(--ds-radius-sm); }
+.ds-portrait--sm { width: 52px; height: 60px; }
+.ds-portrait--md { width: 76px; height: 88px; }
+.ds-portrait--lg { width: 150px; height: 172px; }
+.ds-portrait--xl { width: 210px; height: 240px; }
+
+.ds-logo {
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+    border-radius: var(--ds-radius-md);
+    overflow: hidden;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.ds-logo__text {
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+.ds-logo--sm { width: 32px; height: 32px; }
+.ds-logo--sm .ds-logo__text { font-size: 13px; }
+.ds-logo--md { width: 48px; height: 48px; }
+.ds-logo--md .ds-logo__text { font-size: 18px; }
+.ds-logo--lg { width: 72px; height: 72px; }
+.ds-logo--lg .ds-logo__text { font-size: 26px; }
+.ds-logo--xl { width: 96px; height: 96px; }
+.ds-logo--xl .ds-logo__text { font-size: 34px; }
+
+.ds-stars {
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+.ds-stars__cell {
+    margin-right: 1px;
+}
+
+.ds-stars__empty {
+    color: var(--ds-text-4);
+}
+
+.ds-stars__clip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
+.ds-stars__clip--half {
+    width: 50%;
+}
+
+.ds-stars__full {
+    color: var(--ds-gold);
+}
+
+/* ---- Portrait card ----------------------------------------------------------------------------------------- */
+
+.ds-pcard {
+    width: 200px;
+    flex-shrink: 0;
+    margin: 0 12px 12px 0;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-lg);
+    background-color: var(--ds-elev-1);
+    overflow: hidden;
+    transition-property: border-color, translate;
+    transition-duration: 120ms;
+}
+
+.ds-pcard:hover {
+    border-color: var(--ds-line-strong);
+    translate: 0 -2px;
+}
+
+.ds-pcard:focus {
+    border-color: var(--ds-focus);
+}
+
+.ds-pcard--champion {
+    border-color: rgba(250, 204, 21, 0.55);
+}
+
+.ds-pcard__art {
+    height: 200px;
+}
+
+.ds-pcard__shade {
+    top: 40%;
+}
+
+.ds-pcard__align {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+}
+
+.ds-pcard__trend {
+    position: absolute;
+    right: 8px;
+    top: 7px;
+    margin: 0;
+    padding: 1px 6px;
+    border-radius: var(--ds-radius-pill);
+    background-color: rgba(8, 12, 21, 0.75);
+}
+
+.ds-pcard__nameplate {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 8px;
+}
+
+.ds-pcard__belt {
+    flex-direction: row;
+    align-items: center;
+    color: var(--ds-gold);
+}
+
+.ds-pcard__belt-text {
+    margin-left: 4px;
+    font-size: 11px;
+    letter-spacing: 0;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-gold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ds-pcard__name {
+    font-size: 22px;
+    letter-spacing: 0;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.ds-pcard__role {
+    font-size: 12px;
+    color: var(--ds-text-2);
+    white-space: nowrap;
+}
+
+.ds-pcard__facts {
+    padding: 8px 10px 9px 10px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line);
+}
+
+.ds-pcard__fact {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 20px;
+}
+
+.ds-pcard__fact-label {
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-4);
+}
+
+/* ---- Matchup card ------------------------------------------------------------------------------------------ */
+
+.ds-match {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-lg);
+    background-color: var(--ds-elev-1);
+    overflow: hidden;
+    transition-property: border-color;
+    transition-duration: 120ms;
+}
+
+.ds-match:hover {
+    border-color: var(--ds-line-strong);
+}
+
+.ds-match:focus {
+    border-color: var(--ds-focus);
+}
+
+.ds-match--title {
+    border-color: rgba(250, 204, 21, 0.35);
+}
+
+.ds-match--flagged {
+    border-left-width: 3px;
+    border-left-color: var(--ds-warn);
+}
+
+.ds-match--selected {
+    border-color: var(--ds-data);
+}
+
+.ds-match__top {
+    flex-direction: row;
+    align-items: center;
+    height: 28px;
+    padding: 0 12px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+    background-color: var(--ds-elev-2);
+}
+
+.ds-match__slot {
+    font-size: 14px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-action-hover);
+}
+
+.ds-match__type {
+    margin-left: 10px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.ds-match__meta-icon {
+    color: var(--ds-text-4);
+    margin-right: 4px;
+}
+
+.ds-match__meta {
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.ds-match__title {
+    flex-direction: row;
+    align-items: center;
+    height: 22px;
+    padding: 0 12px;
+    background-color: var(--ds-gold-soft);
+    color: var(--ds-gold);
+}
+
+.ds-match__title-text {
+    margin-left: 6px;
+    font-size: 13px;
+    letter-spacing: 1.3px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-gold);
+}
+
+.ds-match__faceoff {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 12px;
+}
+
+.ds-match__side {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+}
+
+.ds-match__side--right {
+    flex-direction: row-reverse;
+}
+
+.ds-match__side--loser {
+    opacity: 0.55;
+}
+
+.ds-match__words {
+    margin: 0 12px;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.ds-match__side--right .ds-match__words {
+    align-items: flex-end;
+}
+
+.ds-match__champ {
+    flex-direction: row;
+    align-items: center;
+    color: var(--ds-gold);
+}
+
+.ds-match__champ-text {
+    margin-left: 4px;
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-gold);
+}
+
+.ds-match__name {
+    font-size: 22px;
+    letter-spacing: 0;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ds-match__members {
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.ds-match__sub {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 3px;
+}
+
+.ds-match__side--right .ds-match__sub {
+    flex-direction: row-reverse;
+}
+
+.ds-match__note {
+    margin: 0 6px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.ds-match__vs {
+    width: 54px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    --skew-fill: #19253f;
+    --skew-edge: #34476a;
+}
+
+.ds-match__vs-text {
+    font-size: 17px;
+    letter-spacing: 1px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-match--title .ds-match__vs {
+    --skew-fill: #d7301a;
+    --skew-edge: #ff3b1d;
+}
+
+.ds-match__segment-gap {
+    flex-grow: 1;
+}
+
+.ds-match__foot {
+    flex-direction: row;
+    align-items: center;
+    min-height: 32px;
+    padding: 4px 12px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line-subtle);
+}
+
+.ds-match__stars {
+    margin-left: 12px;
+}
+
+.ds-match__finish {
+    font-size: 12px;
+    color: var(--ds-text-2);
+}
+
+.ds-match--big .ds-match__faceoff {
+    padding: 22px 24px;
+}
+
+.ds-match--big .ds-match__name {
+    font-size: 40px;
+}
+
+.ds-match--big .ds-match__vs {
+    width: 92px;
+    height: 54px;
+}
+
+.ds-match--big .ds-match__vs-text {
+    font-size: 30px;
+}
+
+.ds-match--big .ds-match__top {
+    height: 36px;
+}
+
+.ds-match--big .ds-match__slot {
+    font-size: 18px;
+}
+
+.ds-match--big .ds-match__title {
+    height: 28px;
+}
+
+.ds-match--big .ds-match__title-text {
+    font-size: 16px;
+}
+
+/* ---- Show card ------------------------------------------------------------------------------------------- */
+
+.ds-show {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 12px 14px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-lg);
+    background-color: var(--ds-elev-1);
+}
+
+.ds-show__words {
+    flex-grow: 1;
+    margin-left: 14px;
+}
+
+.ds-show__kicker {
+    margin-bottom: 2px;
+}
+
+.ds-show__countdown {
+    font-size: 12px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-action-hover);
+}
+
+.ds-show__name {
+    font-size: 26px;
+    letter-spacing: 0.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-show--wide .ds-show__name {
+    font-size: 34px;
+}
+
+.ds-show__meta {
+    color: var(--ds-text-3);
+}
+
+.ds-show__meta-text {
+    margin: 0 14px 0 5px;
+    font-size: 12px;
+    color: var(--ds-text-2);
+}
+
+.ds-show__progress {
+    align-items: center;
+    padding-left: 16px;
+    border-left-width: 1px;
+    border-left-color: var(--ds-line);
+}
+
+.ds-show__booked {
+    font-size: 30px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-show__booked-label {
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+/* ---- News card ------------------------------------------------------------------------------------------ */
+
+.ds-news {
+    flex-shrink: 0;
+    margin-bottom: 8px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+    overflow: hidden;
+}
+
+.ds-news:hover {
+    border-color: var(--ds-line-strong);
+}
+
+.ds-news__words {
+    padding: 10px 14px 11px 14px;
+}
+
+.ds-news__kicker {
+    flex-direction: row;
+    align-items: center;
+    color: var(--ds-state);
+}
+
+.ds-news__kicker-text {
+    margin-left: 6px;
+    font-size: 12px;
+    letter-spacing: 1.3px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-state);
+}
+
+.ds-news__when {
+    margin-left: 8px;
+    font-size: 11px;
+    color: var(--ds-text-4);
+}
+
+.ds-news__headline {
+    margin-top: 3px;
+    font-size: 15px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.ds-news__dek {
+    margin-top: 3px;
+    font-size: 13px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.ds-news--lead {
+    height: 330px;
+}
+
+.ds-news__art {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.ds-news__shade {
+    top: 30%;
+}
+
+.ds-news--lead .ds-news__words {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 18px 24px 20px 24px;
+}
+
+.ds-news--lead .ds-news__headline {
+    font-size: 40px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    letter-spacing: 0.3px;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.ds-news--lead .ds-news__dek {
+    font-size: 15px;
+    color: var(--ds-text-2);
+}
+
+/* ---- Scoreboard and ticker ------------------------------------------------------------------------------- */
+
+.ds-scoreboard {
+    flex-direction: row;
+    flex-shrink: 0;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-0);
+    overflow: hidden;
+}
+
+.ds-scoreboard__cell {
+    flex-grow: 1;
+    flex-basis: 0;
+    padding: 8px 16px;
+    border-left-width: 1px;
+    border-left-color: var(--ds-line);
+}
+
+.ds-scoreboard__label {
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-text-3);
+}
+
+.ds-scoreboard__value {
+    font-size: 26px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-scoreboard__cell.ds-state--good .ds-scoreboard__value,
+.ds-scoreboard__cell.ds-state--gold .ds-scoreboard__value,
+.ds-scoreboard__cell.ds-state--bad .ds-scoreboard__value,
+.ds-scoreboard__cell.ds-state--live .ds-scoreboard__value {
+    color: var(--ds-state);
+}
+
+.ds-scoreboard__sub {
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.ds-scoreboard--broadcast .ds-scoreboard__value {
+    font-size: 34px;
+}
+
+.ds-ticker {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 30px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-0);
+    overflow: hidden;
+}
+
+.ds-ticker__label {
+    height: 100%;
+    justify-content: center;
+    padding: 0 18px 0 12px;
+    --skew-fill: #d7301a;
+}
+
+.ds-ticker__label-text {
+    font-size: 14px;
+    letter-spacing: 1.6px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: #ffffff;
+}
+
+.ds-ticker__window {
+    flex-grow: 1;
+    height: 100%;
+    overflow: hidden;
+}
+
+.ds-ticker__track {
+    position: absolute;
+    left: 12px;
+    top: 0;
+    bottom: 0;
+    flex-direction: row;
+    align-items: center;
+}
+
+.ds-ticker__item {
+    font-size: 13px;
+    color: var(--ds-text-2);
+    white-space: nowrap;
+}
+
+.ds-ticker__sep {
+    width: 4px;
+    height: 4px;
+    margin: 0 14px;
+    border-radius: 2px;
+    background-color: var(--ds-action-hover);
+}
+
+/* ---- Empty, loading, skeleton, key-values ----------------------------------------------------------------- */
+
+.ds-empty {
+    align-items: center;
+    flex-shrink: 0;
+    padding: 28px 24px;
+}
+
+.ds-empty__icon {
+    color: var(--ds-text-4);
+}
+
+.ds-empty__title {
+    margin-top: 10px;
+    font-size: 15px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-empty__hint {
+    max-width: 360px;
+    margin: 4px 0 14px 0;
+    font-size: 13px;
+    color: var(--ds-text-3);
+    white-space: normal;
+    -unity-text-align: upper-center;
+}
+
+.ds-loading {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 14px 16px;
+}
+
+.ds-loading__spinner {
+    color: var(--ds-data);
+}
+
+.ds-loading__text {
+    margin-left: 10px;
+    font-size: 13px;
+    color: var(--ds-text-3);
+}
+
+.ds-skeleton {
+    height: 10px;
+    margin-bottom: 9px;
+    border-radius: 3px;
+    background-color: var(--ds-elev-3);
+}
+
+.ds-skeleton--title {
+    height: 18px;
+    margin-bottom: 12px;
+}
+
+.ds-kv {
+    flex-shrink: 0;
+}
+
+.ds-kv__row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 26px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.ds-kv__key {
+    font-size: 12px;
+    color: var(--ds-text-3);
+}
+
+.ds-kv__value {
+    font-size: 13px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    color: var(--ds-text);
+}
+
+/* ---- Why? breakdown sheet --------------------------------------------------------------------------------- */
+
+.ds-why-sheet__total {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+}
+
+.ds-why-sheet__value {
+    font-size: 40px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    color: var(--ds-text);
+}
+
+.ds-why-sheet__summary {
+    font-size: 14px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+.ds-why-line {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 9px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.ds-why-line__icon {
+    color: var(--ds-state);
+}
+
+.ds-why-line__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin: 0 10px;
+}
+
+.ds-why-line__label {
+    font-size: 13px;
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.ds-why-line__detail {
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.ds-why-line__effect {
+    font-size: 17px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    color: var(--ds-state);
+}
