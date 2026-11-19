@@ -18,7 +18,7 @@ namespace RingsideBooker.Screens.Dev
 {
     /// <summary>
     /// A developer tour of the News screen and the sidebar badges (UNITY-19): run the player with
-    /// <c>-rbNewsShots &lt;folder&gt; [-rbNewsShotsDays N]</c> (default 21). It starts a default-world
+    /// <c>-rbNewsShots &lt;folder&gt; [-rbNewsShotsDays N]</c> (default 60). It starts a default-world
     /// game, plays N days (shows on Auto, other stops cleared as a player would; a news alert is
     /// followed from the day button to News, captured and cleared there), captures the sidebar's
     /// badges, then the front page, the feed, the kinds filter, a filtered feed, the column picker,
@@ -31,7 +31,7 @@ namespace RingsideBooker.Screens.Dev
         public const string DaysArgument = "-rbNewsShotsDays";
 
         private string folder;
-        private int days = 21;
+        private int days = 60;
         private int index;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -72,7 +72,9 @@ namespace RingsideBooker.Screens.Dev
             yield return Await(rules);
             var allOn = new Newtonsoft.Json.Linq.JObject();
             foreach (Newtonsoft.Json.Linq.JToken rule in Kit.Arr(rules.Result.Data, "rules")) allOn[Kit.Str(rule, "id")] = true;
-            yield return Await(EngineGame.Current.Client.Command("news.setAlertRules", new Newtonsoft.Json.Linq.JObject { ["rules"] = allOn }));
+            Task<Engine.CommandResult<Newtonsoft.Json.Linq.JToken>> turnOn = EngineGame.Current.Client.Command("news.setAlertRules", new Newtonsoft.Json.Linq.JObject { ["rules"] = allOn });
+            yield return Await(turnOn);
+            Log($"alerts on ({allOn.Count} rules): {(turnOn.Result.Ok ? "ok" : turnOn.Result.ReasonText)}");
 
             // Play on, clearing stops; follow the first news alert to News.
             EngineDayControl day = EngineGame.Current.DayControl;
@@ -93,6 +95,7 @@ namespace RingsideBooker.Screens.Dev
                     continue;
                 }
                 GateHit lead = DayControlLogic.LeadingGate(gates);
+                Log($"stop {lead.GateId} ({gates.Count} waiting: {string.Join(", ", gates.Select(hit => hit.GateId))})");
                 if (lead.GateId == EngineGateActions.ShowsTonight)
                 {
                     yield return Await(SkipCheck.ShowNight(EngineGame.Current, lead));
@@ -111,6 +114,23 @@ namespace RingsideBooker.Screens.Dev
                     continue;
                 }
                 yield return Await(SkipCheck.ClearStop(lead));
+            }
+
+            // A quiet week a day at a time (alerts never stop single days), so unread news piles up for the badge.
+            for (int step = 0; step < 40 && start.DaysUntil(EngineGame.Current.ShellData.Snapshot.Date) < days + 7; step++)
+            {
+                yield return Await(SkipCheck.Settle());
+                IReadOnlyList<GateHit> waiting = day.Gates.Where(hit => hit.ActionHint != GateHints.News).ToList();
+                if (waiting.Count == 0)
+                {
+                    day.NextDay();
+                    yield return Wait(0.2f);
+                    while (day.Advancing) yield return null;
+                    continue;
+                }
+                GateHit next = DayControlLogic.LeadingGate(waiting);
+                if (next.GateId == EngineGateActions.ShowsTonight) yield return Await(SkipCheck.ShowNight(EngineGame.Current, next));
+                else yield return Await(SkipCheck.ClearStop(next));
             }
 
             // The sidebar's badges, seen from the Office.
