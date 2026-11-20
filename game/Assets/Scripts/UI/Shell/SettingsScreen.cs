@@ -3,9 +3,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using RingsideBooker.Engine;
+using RingsideBooker.Release;
 using RingsideBooker.UI.Bridge;
 using RingsideBooker.UI.Navigation;
 using RingsideBooker.UI.Settings;
+using RingsideBooker.UI.WhatsNew;
 using RingsideBooker.UI.Widgets;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -40,8 +42,12 @@ namespace RingsideBooker.UI.Shell
             var panel = new VisualElement();
             panel.Add(ScaleGroup());
             panel.Add(WindowGroup());
+            panel.Add(BackupsGroup());
             // A world setting: only while a game is running (the title screen has no world).
             if (EngineGame.Current != null) panel.Add(BigWorldSpeedGroup(EngineGame.Current));
+            panel.Add(RingsideBooker.Help.HelpTipsSettings.Group());
+            panel.Add(Crash.FeedbackUi.SettingsGroup());
+            panel.Add(AboutGroup());
             panel.Add(CreditsGroup());
             return panel;
         }
@@ -122,6 +128,43 @@ namespace RingsideBooker.UI.Shell
             return group;
         }
 
+        /// <summary>Backups per save (UNITY-27): how many earlier versions each save slot keeps.</summary>
+        private static VisualElement BackupsGroup()
+        {
+            VisualElement group = Ui.El("card", "settings-group").Named("settings-backups");
+            VisualElement chips = Ui.El("chip-row");
+            group.With(
+                Ui.Text(TextFormat.Upper("Backups per save"), "settings-group__title"),
+                Ui.Text("Each save keeps its last few versions, so you can go back to one from Load. More backups use more disk space.", "field-hint", "settings-group__hint"),
+                chips);
+
+            void Refresh()
+            {
+                foreach (VisualElement chip in chips.Children())
+                {
+                    chip.EnableInClassList("choice-chip--selected", (int)chip.userData == RingsideBooker.Saves.SaveSettings.BackupsPerSlot);
+                }
+            }
+
+            foreach (int choice in RingsideBooker.Saves.SaveSettings.BackupChoices)
+            {
+                int value = choice;
+                Button chip = Ui.Button(string.Empty, () =>
+                {
+                    RingsideBooker.Saves.SaveSettings.BackupsPerSlot = value;
+                    Refresh();
+                }, "choice-chip");
+                chip.name = $"backups-per-save-{value}";
+                chip.userData = value;
+                chip.Add(Ui.Text(value.ToString(System.Globalization.CultureInfo.InvariantCulture), "choice-chip__label"));
+                chip.style.flexGrow = 0;
+                chip.style.minWidth = 72;
+                chips.Add(chip);
+            }
+            Refresh();
+            return group;
+        }
+
         /// <summary>Big world speed's choices: the engine's value and the button text.</summary>
         private static readonly (string Value, string Label)[] BigWorldSpeeds =
         {
@@ -190,6 +233,44 @@ namespace RingsideBooker.UI.Shell
             return group;
         }
 
+        /// <summary>
+        /// About (POL9-01/10): version, build (short commit), built date and channel from
+        /// <see cref="ReleaseInfo"/>, and a What's new button.
+        /// </summary>
+        private static VisualElement AboutGroup()
+        {
+            VisualElement group = Ui.El("card", "settings-group").Named("settings-about");
+            group.Add(Ui.Text(TextFormat.Upper("About"), "settings-group__title"));
+            foreach ((string key, string value) in AboutFacts(ReleaseInfo.Current))
+            {
+                VisualElement row = Ui.El("settings-about__row");
+                row.style.flexDirection = FlexDirection.Row;
+                row.style.marginBottom = 4;
+                Label keyLabel = Ui.Text(key, "field-hint");
+                keyLabel.style.width = 120;
+                row.Add(keyLabel);
+                row.Add(Ui.Text(value, "t-data").Named($"about-{key.ToLowerInvariant()}"));
+                group.Add(row);
+            }
+            Button whatsNew = Ui.Btn("What's new", null, "btn--ghost");
+            whatsNew.clicked += () => WhatsNewSheet.Open(whatsNew);
+            whatsNew.name = "about-whats-new";
+            whatsNew.style.alignSelf = Align.FlexStart;
+            whatsNew.style.marginTop = 8;
+            group.Add(whatsNew);
+            return group;
+        }
+
+        /// <summary>The About rows: Version, Build, Built, Channel (rows with nothing to say are left out).</summary>
+        public static System.Collections.Generic.List<(string key, string value)> AboutFacts(ReleaseInfo.Stamp stamp)
+        {
+            var facts = new System.Collections.Generic.List<(string key, string value)> { ("Version", stamp.SemVer) };
+            if (!string.IsNullOrEmpty(stamp.ShortCommit)) facts.Add(("Build", stamp.ShortCommit));
+            if (!string.IsNullOrEmpty(stamp.BuiltDay)) facts.Add(("Built", stamp.BuiltDay));
+            facts.Add(("Channel", stamp.ChannelName));
+            return facts;
+        }
+
         /// <summary>The licences folder the build stages (BuildScripts.StageLicenses).</summary>
         public static string LicensesFolder => Path.Combine(Application.streamingAssetsPath, "licenses");
 
@@ -207,7 +288,7 @@ namespace RingsideBooker.UI.Shell
             text.SetShown(false);
             group.With(
                 Ui.Text(TextFormat.Upper("Credits & licences"), "settings-group__title"),
-                Ui.Text($"Ringside Booker {Application.version}. Built with Unity {Application.unityVersion}. " +
+                Ui.Text($"Ringside Booker {ReleaseInfo.Version}. Built with Unity {Application.unityVersion}. " +
                         "The game runs its simulation on ClearScript and V8, reads workshop world mods with SQLite and uses the Barlow Condensed and Inter fonts. " +
                         "Their notices:", "field-hint", "settings-group__hint", "t-wrap"),
                 chips,

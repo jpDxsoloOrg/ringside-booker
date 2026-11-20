@@ -1,0 +1,543 @@
+/*
+ * Help center, screen help sheet, first-run welcome and Getting started checklist (POL5-02/05).
+ * The look comes from the UNITY-11 ds- components; hp-, fr- and gs- classes only place things.
+ * Loaded at run time by HelpScreen.Style (Resources "Help/Help"); sheets in the overlay layer add it
+ * themselves. Rows never shrink (UNITY-13 layout rule); ellipsized labels keep letter-spacing 0.
+ */
+
+/* ---- Help center: search and list on the left, the article on the right ---------------------------- */
+
+.hp-page {
+    flex-direction: row;
+    align-items: flex-start;
+    flex-shrink: 0;
+    padding-bottom: 24px;
+}
+
+.hp-side {
+    width: 280px;
+    flex-shrink: 0;
+    margin-right: 24px;
+    padding: 12px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+}
+
+.hp-side__list {
+    flex-shrink: 0;
+}
+
+.hp-side__heading {
+    margin: 14px 8px 4px 8px;
+}
+
+.hp-side__empty {
+    margin: 8px;
+    white-space: normal;
+}
+
+.hp-side__item {
+    flex-shrink: 0;
+    margin: 1px 0;
+    padding: 6px 8px;
+    border-width: 0;
+    border-left-width: 2px;
+    border-color: transparent;
+    border-radius: var(--ds-radius-sm);
+    background-color: transparent;
+    align-items: stretch;
+}
+
+.hp-side__item:hover {
+    background-color: var(--ds-elev-3);
+}
+
+.hp-side__item:focus {
+    border-left-color: var(--ds-focus);
+}
+
+.hp-side__item--current {
+    border-left-color: var(--ds-action-hover);
+    background-color: var(--ds-elev-2);
+}
+
+.hp-side__title {
+    color: var(--ds-text);
+    font-size: var(--ds-type-body);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+.hp-side__detail {
+    margin-top: 2px;
+    color: var(--ds-text-3);
+    font-size: var(--ds-type-caption);
+    -unity-text-align: upper-left;
+    white-space: normal;
+}
+
+.hp-main {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    max-width: 860px;
+}
+
+.hp-head {
+    flex-shrink: 0;
+    margin-bottom: 16px;
+}
+
+.hp-eyebrow {
+    color: var(--ds-action-hover);
+    margin-bottom: 2px;
+}
+
+.hp-title {
+    white-space: normal;
+}
+
+.hp-summary {
+    margin-top: 4px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+/* The index: one panel per section, article cards in a wrapping grid. */
+.hp-section {
+    margin-bottom: 14px;
+}
+
+.hp-cards {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    margin: 0 -5px;
+}
+
+.hp-card {
+    width: 250px;
+    flex-grow: 1;
+    flex-shrink: 0;
+    margin: 5px;
+    padding: 12px 14px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-2);
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
+.hp-card:hover {
+    border-color: var(--ds-line-strong);
+    background-color: var(--ds-elev-3);
+}
+
+.hp-card:focus {
+    border-color: var(--ds-focus);
+}
+
+.hp-card__title {
+    color: var(--ds-text);
+    font-size: var(--ds-type-subtitle);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    -unity-text-align: upper-left;
+    white-space: normal;
+}
+
+.hp-card__summary {
+    margin-top: 4px;
+    color: var(--ds-text-3);
+    font-size: var(--ds-type-body-sm);
+    -unity-text-align: upper-left;
+    white-space: normal;
+}
+
+/* Contents */
+.hp-toc {
+    flex-shrink: 0;
+    margin-bottom: 14px;
+}
+
+.hp-toc__label {
+    margin-bottom: 6px;
+}
+
+.hp-toc__chips {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.hp-toc__chips > .ds-chip {
+    margin: 0 6px 6px 0;
+}
+
+/* ---- The article body ------------------------------------------------------------------------------- */
+
+.hp-body {
+    flex-shrink: 0;
+}
+
+.hp-text {
+    white-space: normal;
+    -unity-text-align: upper-left;
+    letter-spacing: 0;
+}
+
+.hp-text--over-link {
+    cursor: link;
+}
+
+.hp-h2 {
+    margin: 18px 0 6px 0;
+    color: var(--ds-text);
+    font-size: var(--ds-type-title);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+}
+
+.hp-h3 {
+    margin: 12px 0 4px 0;
+    color: var(--ds-text);
+    font-size: var(--ds-type-subtitle);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+.hp-p {
+    margin: 0 0 10px 0;
+    color: var(--ds-text-2);
+    font-size: var(--ds-type-body);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-Regular.ttf");
+}
+
+.hp-list {
+    flex-shrink: 0;
+    margin: 0 0 10px 4px;
+}
+
+.hp-list__item {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-bottom: 4px;
+}
+
+.hp-list__marker {
+    width: 20px;
+    flex-shrink: 0;
+    color: var(--ds-action-hover);
+    font-size: var(--ds-type-body);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+.hp-list__text {
+    flex-grow: 1;
+    flex-shrink: 1;
+    color: var(--ds-text-2);
+    font-size: var(--ds-type-body);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-Regular.ttf");
+}
+
+.hp-callout {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin: 4px 0 12px 0;
+    padding: 10px 12px;
+    border-width: 0;
+    border-left-width: 3px;
+    border-color: var(--ds-state);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-state-soft);
+}
+
+.hp-callout__icon {
+    margin: 2px 10px 0 0;
+    color: var(--ds-state);
+    flex-shrink: 0;
+}
+
+.hp-callout__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.hp-callout__label {
+    color: var(--ds-state);
+    font-size: var(--ds-type-micro);
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    margin-bottom: 2px;
+}
+
+.hp-callout__text {
+    margin-bottom: 0;
+    color: var(--ds-text);
+}
+
+.hp-go {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    margin: 8px 0 16px 0;
+}
+
+.hp-go > .ds-btn {
+    margin: 0 8px 8px 0;
+}
+
+.hp-related {
+    margin-top: 8px;
+}
+
+.hp-related__link {
+    align-self: flex-start;
+}
+
+/* ---- The title screen's Help: the article scrolls inside the panel ----------------------------------- */
+
+.title-panel__inner--wizard > .hp-page--title {
+    flex-shrink: 1;
+    min-height: 0;
+    flex-grow: 1;
+}
+
+.hp-page--title {
+    align-items: stretch;
+    padding-bottom: 0;
+}
+
+.hp-page--title > .hp-side {
+    align-self: flex-start;
+}
+
+.hp-main-scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+/* ---- The screen header's "?" and its side sheet ----------------------------------------------------- */
+
+.hp-screen-help {
+    margin-left: 6px;
+    width: 24px;
+    height: 24px;
+}
+
+.hp-sheet > .hp-summary {
+    margin: 0 0 8px 0;
+}
+
+.hp-sheet__footer {
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+/* ---- First run: the welcome sheet and the Alpha notice ---------------------------------------------- */
+
+.fr-body {
+    flex-shrink: 0;
+}
+
+.fr-para {
+    margin-bottom: 10px;
+    white-space: normal;
+    color: var(--ds-text-2);
+}
+
+.fr-alpha {
+    flex-shrink: 0;
+    margin: 6px 0 14px 0;
+    padding: 12px 14px;
+    border-width: 1px;
+    border-color: var(--ds-state);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-state-soft);
+}
+
+.fr-alpha__head {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.fr-alpha__version {
+    margin-left: 8px;
+    color: var(--ds-text-3);
+}
+
+.fr-alpha .fr-para {
+    color: var(--ds-text);
+}
+
+.fr-alpha__row {
+    flex-direction: row;
+    margin-bottom: 8px;
+}
+
+.fr-footer {
+    flex-direction: row;
+    align-items: center;
+}
+
+.fr-footer > .ds-btn {
+    margin-left: 8px;
+}
+
+.fr-check {
+    flex-direction: row;
+    align-items: center;
+    align-self: flex-start;
+    flex-shrink: 0;
+    margin: 4px 0;
+    padding: 4px 6px 4px 2px;
+    border-width: 0;
+    border-radius: var(--ds-radius-sm);
+    background-color: transparent;
+}
+
+.fr-check:hover {
+    background-color: var(--ds-elev-3);
+}
+
+.fr-check:focus {
+    border-width: 1px;
+    border-color: var(--ds-focus);
+}
+
+.fr-check__box {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    border-width: 1px;
+    border-color: var(--ds-line-strong);
+    border-radius: var(--ds-radius-xs);
+    background-color: var(--ds-elev-0);
+    align-items: center;
+    justify-content: center;
+}
+
+.fr-check__tick {
+    color: var(--ds-text-inverse);
+    display: none;
+}
+
+.fr-check--on > .fr-check__box {
+    border-color: var(--ds-data);
+    background-color: var(--ds-data);
+}
+
+.fr-check--on > .fr-check__box > .fr-check__tick {
+    display: flex;
+}
+
+.fr-check__label {
+    color: var(--ds-text-2);
+    font-size: var(--ds-type-body-sm);
+    -unity-text-align: middle-left;
+}
+
+.fr-settings__checks {
+    flex-shrink: 0;
+    margin: 4px 0 8px 0;
+}
+
+.fr-settings__buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.fr-settings__buttons > .ds-btn {
+    margin: 0 8px 8px 0;
+}
+
+/* ---- Getting started checklist ---------------------------------------------------------------------- */
+
+.gs-panel {
+    margin-bottom: 14px;
+}
+
+.gs-head {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-bottom: 10px;
+}
+
+.gs-count {
+    color: var(--ds-text);
+}
+
+.gs-meter {
+    width: 180px;
+    flex-shrink: 0;
+}
+
+.gs-items {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    margin: 0 -4px;
+}
+
+.gs-item {
+    width: 180px;
+    flex-grow: 1;
+    flex-shrink: 0;
+    margin: 4px;
+    padding: 10px 12px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-2);
+}
+
+.gs-item--done {
+    border-color: var(--ds-good-soft);
+    background-color: var(--ds-elev-1);
+}
+
+.gs-item__top {
+    flex-direction: row;
+    align-items: center;
+}
+
+.gs-item__icon {
+    color: var(--ds-good);
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.gs-item__ring {
+    width: 14px;
+    height: 14px;
+    margin: 1px 9px 1px 1px;
+    flex-shrink: 0;
+    border-width: 2px;
+    border-color: var(--ds-line-strong);
+    border-radius: 7px;
+}
+
+.gs-item__label {
+    flex-shrink: 1;
+    color: var(--ds-text);
+    font-size: var(--ds-type-body);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    white-space: normal;
+}
+
+.gs-item--done .gs-item__label {
+    color: var(--ds-text-3);
+}
+
+.gs-item__hint {
+    margin-top: 4px;
+    white-space: normal;
+}
+
+.gs-item__show {
+    align-self: flex-start;
+    margin-top: 6px;
+}

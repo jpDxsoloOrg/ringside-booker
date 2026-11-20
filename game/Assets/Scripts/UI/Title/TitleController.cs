@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using RingsideBooker.Release;
 using RingsideBooker.UI.Demo;
 using RingsideBooker.UI.Shell;
+using RingsideBooker.UI.WhatsNew;
 using RingsideBooker.UI.Widgets;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -30,7 +32,7 @@ namespace RingsideBooker.UI.Title
             overlay = new OverlayLayer(root.Q<VisualElement>(OverlayLayer.ElementName));
             panel = root.Q<VisualElement>("title-panel");
             root.Q<VisualElement>("title-stripe").Add(GradientStripe.Flame(1f));
-            root.Q<Label>("title-version").text = $"v{Application.version} · Unity {Application.unityVersion}";
+            SetUpRelease(root);
 
             saves = new TitleSaves(ResetPanel, overlay, GoToNewGame);
 
@@ -39,6 +41,7 @@ namespace RingsideBooker.UI.Title
             Wire(root, "menu-continue", () => saves.Continue());
             Wire(root, "menu-load", () => saves.ShowLoad());
             Wire(root, "menu-settings", ShowSettings);
+            if (root.Q<Button>("menu-help") != null) Wire(root, "menu-help", ShowHelp);
             Wire(root, "menu-quit", SceneFlow.Quit);
 
             VisualElement menuRoot = root.Q<VisualElement>("title-menu");
@@ -46,7 +49,51 @@ namespace RingsideBooker.UI.Title
 
             Select(menu[0]);
             ShowNewGame();
+            // After a crash loop (or the crash screen's Start safe), open on the safe-start choices.
+            if (Diagnostics.CrashGuard.ShouldOfferSafeStart) ShowSafeStart();
+            Crash.FeedbackUi.AddToTitle(root);
             menu[0].schedule.Execute(() => menu[0].Focus());
+        }
+
+        /// <summary>
+        /// The channel badge next to the wordmark, the version line (a link to What's new), and What's
+        /// new opening by itself once per new version (POL9-01/10).
+        /// </summary>
+        private void SetUpRelease(VisualElement root)
+        {
+            WhatsNewStyles.Apply(root);
+            Label badge = ChannelBadge.Create("rb-channel-badge--title");
+            if (badge != null) root.Q<VisualElement>(className: "title-wordmark")?.Add(badge);
+            // The app icon (ring B) above the wordmark.
+            VisualElement wordmark = root.Q<VisualElement>(className: "title-wordmark");
+            VisualElement icon = RingsideBooker.UI.Design.BrandIcon.Create(RingsideBooker.UI.Design.BrandIcon.Large, 96, "title-icon");
+            if (icon != null && wordmark?.parent != null) wordmark.parent.Insert(wordmark.parent.IndexOf(wordmark), icon);
+
+            Label version = root.Q<Label>("title-version");
+            ReleaseInfo.Stamp stamp = ReleaseInfo.Current;
+            version.text = TitleVersionLine(stamp);
+            version.tooltip = "What's new in this version";
+            version.focusable = true;
+            version.AddToClassList("title-version--link");
+            version.AddManipulator(new Clickable(() => WhatsNewSheet.Open(version)));
+            version.RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (evt.keyCode != KeyCode.Return && evt.keyCode != KeyCode.KeypadEnter && evt.keyCode != KeyCode.Space) return;
+                WhatsNewSheet.Open(version);
+                evt.StopPropagation();
+            });
+
+            if (!WhatsNewState.IsDevRun && WhatsNewState.CheckOnStart(ReleaseNotes.ForThisBuild().HasContent))
+            {
+                version.schedule.Execute(() => WhatsNewSheet.Open(version)).ExecuteLater(300);
+            }
+        }
+
+        /// <summary>"Alpha 0.1.0 (1) · 1a2b3c4d · What's new" (no commit on a local build).</summary>
+        public static string TitleVersionLine(ReleaseInfo.Stamp stamp)
+        {
+            string commit = string.IsNullOrEmpty(stamp.ShortCommit) ? string.Empty : $" · {stamp.ShortCommit}";
+            return $"{stamp.Label}{commit} · What's new";
         }
 
         private void Update()
@@ -118,10 +165,32 @@ namespace RingsideBooker.UI.Title
             inner.Add(demo);
         }
 
+        private void ShowSafeStart()
+        {
+            VisualElement inner = ResetPanel("Start safe");
+            inner.Add(Crash.SafeStartPanel.Build(GoToNewGame));
+        }
+
         private void ShowSettings()
         {
             VisualElement inner = ResetPanel("Settings");
-            inner.Add(SettingsScreen.BuildPanel());
+            // Top-aligned like the wizard, and the groups scroll inside the panel instead of
+            // squeezing into each other on a short window (2000×840).
+            panel.AddToClassList("title-panel--wizard");
+            inner.AddToClassList("title-panel__inner--wizard");
+            var scroll = new ScrollView(ScrollViewMode.Vertical) { name = "title-settings-scroll", horizontalScrollerVisibility = ScrollerVisibility.Hidden };
+            scroll.AddToClassList("title-settings-scroll");
+            scroll.Add(SettingsScreen.BuildPanel());
+            inner.Add(scroll);
+        }
+
+        /// <summary>The Help center before a game is loaded (POL5-02): screen links are plain text here.</summary>
+        private void ShowHelp()
+        {
+            VisualElement inner = ResetPanel("Help");
+            panel.AddToClassList("title-panel--wizard");
+            inner.AddToClassList("title-panel__inner--wizard");
+            inner.Add(RingsideBooker.Help.HelpScreen.BuildOutOfGame().Root);
         }
 
         private static void StartDemo()

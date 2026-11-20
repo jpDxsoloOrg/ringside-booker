@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!--
+    Ringside Booker app icon (POL9-10), drawn for this game from the UNITY-11 design system:
+    the sidebar's skewed red "RB" mark inside a ring seen from above (two ropes, four corner posts).
+    Colours are design tokens: elev-0 #080c15, elev-2 #131d33, line-strong #34476a, text #f1f5f9,
+    action #d7301a, action-hover #ff3b1d. The text is Barlow Condensed ExtraBold (OFL, in
+    game/Assets/UI/Fonts). Rendered to PNG/ICO by game/tools/icon/build-app-icon.mjs.
+  -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#19253f" />
+      <stop offset="1" stop-color="#080c15" />
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff3b1d" />
+      <stop offset="1" stop-color="#b8240f" />
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="244" height="244" rx="48" fill="url(#bg)" stroke="#34476a" stroke-width="4" />
+  <!-- Ropes: outer white, inner red. -->
+  <rect x="38" y="38" width="180" height="180" rx="6" fill="none" stroke="#f1f5f9" stroke-width="7" opacity="0.92" />
+  <rect x="54" y="54" width="148" height="148" rx="4" fill="none" stroke="#d7301a" stroke-width="6" />
+  <!-- Corner posts with turnbuckle pads. -->
+  <g fill="#b6c2d4" stroke="#080c15" stroke-width="3">
+    <circle cx="38" cy="38" r="15" />
+    <circle cx="218" cy="38" r="15" />
+    <circle cx="38" cy="218" r="15" />
+    <circle cx="218" cy="218" r="15" />
+  </g>
+  <g fill="#d7301a">
+    <circle cx="38" cy="38" r="6" />
+    <circle cx="218" cy="38" r="6" />
+    <circle cx="38" cy="218" r="6" />
+    <circle cx="218" cy="218" r="6" />
+  </g>
+  <!-- The skewed mark and its lit left edge, as in the sidebar's SkewShape. -->
+  <polygon points="86,84 192,84 170,172 64,172" fill="url(#mark)" />
+  <polygon points="86,84 94,84 72,172 64,172" fill="#ff6a50" />
+  <text x="146" y="160" text-anchor="middle" font-family="Barlow Condensed" font-weight="800" font-size="92"
+        letter-spacing="1" fill="#ffffff" transform="skewX(-8)">RB</text>
+</svg>

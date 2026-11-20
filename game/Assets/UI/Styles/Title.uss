@@ -127,3 +127,21 @@
     flex-shrink: 1;
     min-height: 0;
 }
+
+/* The title's Settings: the groups scroll inside the panel, and none of them squeezes (S13). */
+.title-panel__inner--wizard > .title-settings-scroll {
+    flex-shrink: 1;
+    min-height: 0;
+    /* As wide as the settings cards, so the scroll bar sits next to them. */
+    max-width: 760px;
+}
+
+.title-settings-scroll .settings-group {
+    flex-shrink: 0;
+}
+
+/* The app icon (ring B) above the wordmark. */
+.title-icon {
+    margin-bottom: var(--space-4);
+    margin-left: -2px;
+}

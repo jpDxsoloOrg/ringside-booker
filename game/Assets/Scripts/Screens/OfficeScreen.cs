@@ -117,6 +117,7 @@ namespace RingsideBooker.Screens
                 return;
             }
 
+            Help.GettingStarted.AddToOffice(host, context);
             VisualElement columns = Ds.Row("ds-row--top", "oh-columns");
             VisualElement main = Ds.Column("oh-main");
             VisualElement side = Ds.Column("oh-side");
