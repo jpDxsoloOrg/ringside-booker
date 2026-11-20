@@ -69,6 +69,11 @@ export interface EndEmploymentArgs {
   readonly severance?: Traced<number> | null;
   /** The ledger memo for the severance row. Defaults to "Severance: <ring name>". */
   readonly memo?: string;
+  /**
+   * Marks a release that is not news on its own (a trade moving the contract, TRD-01): the event
+   * carries `quiet: true` and the release story is left to the caller.
+   */
+  readonly quiet?: boolean;
 }
 
 export interface EndEmploymentResult {
@@ -234,6 +239,7 @@ export function endEmployment(ctx: DoorContext, args: EndEmploymentArgs): EndEmp
         severance: severanceCents,
         source: args.source,
         mutual: args.to === 'released' && args.mutual === true,
+        ...(args.quiet === true ? { quiet: true as const } : {}),
       });
       break;
     case 'quit':

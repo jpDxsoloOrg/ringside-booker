@@ -723,6 +723,7 @@ export function tinyWorld(): BuiltWorld {
     .with('contract concern', addTinyContractConcern)
     .with('negotiation', addTinyNegotiation)
     .with('draft', addTinyDraft)
+    .with('trade', addTinyTrade)
     .build();
 }
 
@@ -779,6 +780,59 @@ function addTinyDraft(context: BuildContext): void {
     employmentId: contract.id,
     reservedUntil: null,
     pickedOn: TINY_WORLD_START,
+  });
+}
+
+/**
+ * A refused trade (TRD-01): promotion A offered one of its wrestlers for one of B's, and B turned
+ * it down, so the trades table is not empty. Closed, so no day phase acts on it.
+ */
+function addTinyTrade(context: BuildContext): void {
+  const { sequence, tx } = context;
+  const promotionA = required(context.ids.promotions.A, 'promotion A');
+  const promotionB = required(context.ids.promotions.B, 'promotion B');
+  const wrestlerOf = (promotionId: typeof promotionA) => {
+    const contract = tx.view.tables.employments
+      .values()
+      .filter((row) => row.promotionId === promotionId && row.role === 'wrestler')
+      .at(-1);
+    if (contract === undefined) {
+      throw new Error(`tinyWorld: ${promotionId} has no wrestler`);
+    }
+    return contract.id;
+  };
+  context.insert('trades', {
+    id: sequence.id('trade'),
+    initiatorId: promotionA,
+    partnerId: promotionB,
+    status: 'refused',
+    awaitingId: null,
+    rounds: [
+      {
+        by: promotionA,
+        offer: {
+          sides: [
+            { promotionId: promotionA, employmentIds: [wrestlerOf(promotionA)], cash: cents(0) },
+            { promotionId: promotionB, employmentIds: [wrestlerOf(promotionB)], cash: cents(0) },
+          ],
+          adjustments: [],
+        },
+        on: TINY_WORLD_START,
+      },
+    ],
+    submittedOn: TINY_WORLD_START,
+    expiresOn: null,
+    closedOn: TINY_WORLD_START,
+    outcome: { code: 'trades.refused', message: 'Test Promotion B turned the trade down' },
+    answer: {
+      kind: 'refuse',
+      by: promotionB,
+      on: TINY_WORLD_START,
+      lines: ['Test Promotion B is not interested: they refuse'],
+      traceId: null,
+    },
+    moves: [],
+    stopsSkip: false,
   });
 }
 

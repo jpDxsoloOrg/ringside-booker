@@ -124,6 +124,9 @@ namespace RingsideBooker.Screens.News
             ["news.release-refused.headline"] = _ => "{personId} was refused a release by {promotionId}",
             ["news.release-refused.body"] = _ => "Word is out that {personId} asked {promotionId} to be let go and the promotion said no.",
 
+            ["news.trade.headline"] = _ => "{promotionId} trades for {personId}",
+            ["news.trade.body"] = _ => "{personId} moves from {fromPromotionId} to {promotionId} in a trade between the two promotions.",
+
             ["news.deal-signed.headline"] = _ => "{promotionId} signs with {network}",
             ["news.deal-signed.body"] = _ => "{network} will carry {show} for {promotionId}. The terms were not made public.",
         };

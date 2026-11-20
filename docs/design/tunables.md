@@ -1529,3 +1529,41 @@ DRF-01, DRF-03 and DRF-07, in `systems/draft/tunables.ts`, category `Draft`. See
 | `draft.ai.divisionNeedWeight`   | number  | 8       | 0–100 | points     | Points a rival adds for a wrestler who fills a division it is still short of                                                                                   |
 | `draft.ai.alignmentWeight`      | number  | 3       | 0–50  | points     | Points a rival adds for a natural heel or face when its roster leans the other way                                                                             |
 | `draft.ai.payrollShare`         | number  | 0.15    | 0–1   | ratio      | Under "Negotiate contracts after the draft", a rival signs its picks while their monthly wages stay under this share of its cash; the rest go back to the pool |
+
+## Trade tunables
+
+TRD-01 and TRD-03, in `systems/trades/tunables.ts`, category `Trades`. See
+[trades.md](trades.md). Money is shown in dollars; the engine stores cents.
+
+| Key                                | Kind    | Default | Range            | Unit        | What it does                                                                                                                 |
+| ---------------------------------- | ------- | ------- | ---------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `trades.value.cashPerPoint`        | integer | $25,000 | $100–$10,000,000 | money       | Cash a rival counts as one point of trade value                                                                              |
+| `trades.value.fullControlMonths`   | integer | 24      | 1–120            | months      | Months left on a contract from which a worker counts at full value                                                           |
+| `trades.value.shortContractFactor` | number  | 0.5     | 0–1              | ratio       | Share of a worker’s value left when their contract is about to end                                                           |
+| `trades.value.costWeight`          | number  | 12      | 0–100            | points      | Points a contract is worth when it pays nothing against the worker’s market value (lost when it pays double)                 |
+| `trades.value.appearancesPerMonth` | number  | 4       | 0–31             | count       | Appearances a month a per-appearance contract is costed at                                                                   |
+| `trades.value.starValue`           | number  | 65      | 0–100            | points      | Draft value from which a rival treats a worker as a top star it hates to lose                                                |
+| `trades.value.starKeepFactor`      | number  | 1.3     | 1–5              | multiplier  | How much more a rival counts a top star or main eventer it would give away                                                   |
+| `trades.value.needWeight`          | number  | 0.2     | 0–5              | multiplier  | Points per point of roster-need severity a deal fills (or opens) for the rival (division, card level, faces and heels, crew) |
+| `trades.answer.acceptMargin`       | number  | 2       | -50–50           | points      | Points a deal must be worth to a rival before it says yes                                                                    |
+| `trades.answer.counterRange`       | number  | 15      | 0–100            | points      | How far short of a yes a deal may fall and still get a counter-offer                                                         |
+| `trades.answer.rivalCashShare`     | number  | 0.25    | 0–1              | ratio       | Most of its cash a rival will pay out in one trade                                                                           |
+| `trades.answer.cashRounding`       | integer | $1,000  | $0.01–$1,000,000 | money       | Cash in a counter-offer is rounded up to this                                                                                |
+| `trades.maxRounds`                 | integer | 4       | 1–10             | count       | Offers either side may make in one trade talk before a rival stops talking                                                   |
+| `trades.counter.expiryDays`        | integer | 7       | 1–60             | days        | Days a player has to answer a rival’s counter-offer or trade offer                                                           |
+| `trades.stopSkip`                  | boolean | true    |                  | flag        | An answered trade or a rival’s trade offer stops a skip until you have seen it                                               |
+| `trades.say.uprootCost`            | number  | 4       | 0–50             | points      | How much a worker dislikes being moved at all                                                                                |
+| `trades.say.prestigeWeight`        | number  | 0.2     | 0–5              | multiplier  | Points per point of prestige the new promotion has over the old one                                                          |
+| `trades.say.moraleWeight`          | number  | 0.1     | 0–5              | multiplier  | Points per point of unhappiness a worker has where they are (they want out)                                                  |
+| `trades.say.payWeight`             | number  | 20      | 0–200            | points      | Points for a pay rise of 100% (taken away for a cut) in the deal                                                             |
+| `trades.say.moralePerPoint`        | number  | 2       | 0–20             | multiplier  | Morale a moved worker gains or loses per point of how they feel about the move                                               |
+| `trades.say.maxMoraleChange`       | integer | 15      | 0–100            | points      | Most morale a move can give or take                                                                                          |
+| `trades.noTrade.chanceMainEvent`   | number  | 0.35    | 0–1              | probability | Share of main-event contracts with a no-trade clause                                                                         |
+| `trades.noTrade.chanceUpperCard`   | number  | 0.15    | 0–1              | probability | Share of upper-card contracts with a no-trade clause                                                                         |
+| `trades.noTrade.creativeControl`   | boolean | true    |                  | flag        | A contract with creative control always has a no-trade clause                                                                |
+| `trades.rivalOffer.weeklyChance`   | number  | 0.2     | 0–1              | probability | Chance each week that a rival offers you a trade (0 = never)                                                                 |
+| `trades.rivalOffer.minDaysBetween` | integer | 30      | 7–365            | days        | Fewest days between two rival trade offers to the same player promotion                                                      |
+| `trades.rivalOffer.graceDays`      | integer | 60      | 0–730            | days        | Days after the game starts before any rival offers a trade                                                                   |
+| `trades.rivalOffer.rivalsTried`    | integer | 6       | 1–50             | count       | Rivals looked at when one wants to offer a trade (keeps big worlds cheap)                                                    |
+| `trades.rivalOffer.cashShare`      | number  | 0.5     | 0–1              | ratio       | Share of its spare value a rival adds as cash to make its own offer attractive                                               |
+| `trades.history.keepDays`          | integer | 180     | 7–3650           | days        | Days a closed trade stays on file                                                                                            |

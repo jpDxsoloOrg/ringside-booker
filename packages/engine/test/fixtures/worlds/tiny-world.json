@@ -4794,6 +4794,58 @@
         "color": "#8a8d91"
       }
     ],
+    "trades": [
+      {
+        "id": "trd_0000000001",
+        "initiatorId": "pro_0000000001",
+        "partnerId": "pro_0000000002",
+        "status": "refused",
+        "awaitingId": null,
+        "rounds": [
+          {
+            "by": "pro_0000000001",
+            "offer": {
+              "sides": [
+                {
+                  "promotionId": "pro_0000000001",
+                  "employmentIds": [
+                    "emp_000000000h"
+                  ],
+                  "cash": 0
+                },
+                {
+                  "promotionId": "pro_0000000002",
+                  "employmentIds": [
+                    "emp_000000000g"
+                  ],
+                  "cash": 0
+                }
+              ],
+              "adjustments": []
+            },
+            "on": "2026-01-05"
+          }
+        ],
+        "submittedOn": "2026-01-05",
+        "expiresOn": null,
+        "closedOn": "2026-01-05",
+        "outcome": {
+          "code": "trades.refused",
+          "message": "Test Promotion B turned the trade down"
+        },
+        "answer": {
+          "kind": "refuse",
+          "by": "pro_0000000002",
+          "on": "2026-01-05",
+          "lines": [
+            "Test Promotion B is not interested: they refuse"
+          ],
+          "traceId": null
+        },
+        "moves": [],
+        "stopsSkip": false
+      }
+    ],
     "venues": [
       {
         "id": "ven_0000000001",

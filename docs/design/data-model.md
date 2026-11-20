@@ -1605,3 +1605,33 @@ One row per pick.
 Refs: `draftId`, `promotionId`, `personId`, `employmentId` (nullable).
 Indexes: `byDraft`, `byPerson`, `byDraftPromotion`. Saves list both tables
 with a default of `[]`.
+
+## Trades
+
+TRD-01: trade talks between two promotions. See [trades.md](trades.md).
+
+### Trades (`trades`, `trd_`)
+
+One row per trade talk, from the first offer to its end. Closed rows are pruned after
+`trades.history.keepDays`.
+
+| Field         | Type                                                                    | Notes                                                                       |
+| ------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `id`          | `TradeId`                                                               |                                                                             |
+| `initiatorId` | `PromotionId`                                                           | the side that made the first offer                                          |
+| `partnerId`   | `PromotionId`                                                           | the other side                                                              |
+| `status`      | `open \| completed \| refused \| withdrawn \| lapsed \| cancelled`      | `cancelled`: the deal could no longer happen when it was answered           |
+| `awaitingId`  | `PromotionId \| null`                                                   | whose answer the open offer waits for; null once closed                     |
+| `rounds`      | `{ by, offer, on }[]`                                                   | every offer, oldest first; the newest is the one on the table               |
+| `submittedOn` | `GameDate`                                                              | the day the newest offer was made                                           |
+| `expiresOn`   | `GameDate \| null`                                                      | the last day a player may answer; null when a computer answers              |
+| `closedOn`    | `GameDate \| null`                                                      | set exactly when closed                                                     |
+| `outcome`     | `{ code, message } \| null`                                             | how it ended, in plain words                                                |
+| `answer`      | `{ kind, by, on, lines, traceId } \| null`                              | the computer's latest answer; the Why? is trace `trades.answer` / `traceId` |
+| `moves`       | `{ personId, from/toPromotionId, from/toEmploymentId, moraleChange }[]` | completed trades only                                                       |
+| `stopsSkip`   | boolean                                                                 | a player has not seen this change yet (the trade stops)                     |
+
+An offer is `{ sides: [TradeSide, TradeSide], adjustments }`: each side is `{ promotionId,
+employmentIds (≤ 5), cash }` (what that side sends), the initiator's first; an adjustment is
+`{ employmentId, pay, lengthMonths }` (null keeps that part). Indexes: `byStatus`,
+`byPromotion` (both sides), `openByEmployment` (contracts in open offers) and `stopping`.

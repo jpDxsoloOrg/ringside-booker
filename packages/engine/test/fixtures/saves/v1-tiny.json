@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "85bebdb351d1774381accea69a873401",
+    "schemaFingerprint": "983ef424c4239ed98e9b7972c5164e17",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -4815,6 +4815,58 @@
             "promotionId": "pro_0000000001",
             "retiredOn": null,
             "status": "active"
+          }
+        ],
+        "trades": [
+          {
+            "answer": {
+              "by": "pro_0000000002",
+              "kind": "refuse",
+              "lines": [
+                "Test Promotion B is not interested: they refuse"
+              ],
+              "on": "2026-01-05",
+              "traceId": null
+            },
+            "awaitingId": null,
+            "closedOn": "2026-01-05",
+            "expiresOn": null,
+            "id": "trd_0000000001",
+            "initiatorId": "pro_0000000001",
+            "moves": [],
+            "outcome": {
+              "code": "trades.refused",
+              "message": "Test Promotion B turned the trade down"
+            },
+            "partnerId": "pro_0000000002",
+            "rounds": [
+              {
+                "by": "pro_0000000001",
+                "offer": {
+                  "adjustments": [],
+                  "sides": [
+                    {
+                      "cash": 0,
+                      "employmentIds": [
+                        "emp_000000000h"
+                      ],
+                      "promotionId": "pro_0000000001"
+                    },
+                    {
+                      "cash": 0,
+                      "employmentIds": [
+                        "emp_000000000g"
+                      ],
+                      "promotionId": "pro_0000000002"
+                    }
+                  ]
+                },
+                "on": "2026-01-05"
+              }
+            ],
+            "status": "refused",
+            "stopsSkip": false,
+            "submittedOn": "2026-01-05"
           }
         ],
         "venues": [

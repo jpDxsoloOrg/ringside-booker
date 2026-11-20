@@ -128,6 +128,8 @@ const SerializedTablesSchema = z.strictObject({
   // DRF-01. Default to empty so saves written before drafts existed still load.
   drafts: z.array(TABLES.drafts.schema).default([]),
   draftPicks: z.array(TABLES.draftPicks.schema).default([]),
+  // TRD-01. Defaults to empty so saves written before trades existed still load.
+  trades: z.array(TABLES.trades.schema).default([]),
 });
 
 /**

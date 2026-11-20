@@ -34,9 +34,15 @@ declare module '../../core/events/types' {
     'contract.expired': ContractRef & { reasonKey: string };
     /**
      * A contract was ended by its promotion: a release of an active contract, or a signed future
-     * deal withdrawn (`mutual: false`). `severance` is in cents (0 when none was paid).
+     * deal withdrawn (`mutual: false`). `severance` is in cents (0 when none was paid). `quiet` is
+     * set when the ending is part of something that tells its own story (a trade, TRD-01).
      */
-    'contract.released': ContractRef & { severance: number; source: DoorSource; mutual: boolean };
+    'contract.released': ContractRef & {
+      severance: number;
+      source: DoorSource;
+      mutual: boolean;
+      quiet?: true;
+    };
     /** A worker left: a granted release, a walk-out, or an exclusive deal starting elsewhere. */
     'contract.quit': ContractRef & { how: ContractQuitHow; severance: number };
     /** A contract's end date moved later: a renewal by the same promotion. */

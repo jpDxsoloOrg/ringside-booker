@@ -116,6 +116,7 @@ function serialiseTables(tables: SerialisableWorld['tables']): SerializedTables 
     airings: [...tables.airings.values()],
     drafts: [...tables.drafts.values()],
     draftPicks: [...tables.draftPicks.values()],
+    trades: [...tables.trades.values()],
   };
 }
 
