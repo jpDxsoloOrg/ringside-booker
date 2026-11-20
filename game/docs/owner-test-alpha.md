@@ -222,7 +222,8 @@ Start the game, **New game**, the default world, take over any promotion, then *
 - [ ] The banner says who is on the clock, the round and pick, and how far away your pick is.
       **Sim to my pick** lets the rivals pick a few at a time; the recent picks tick by under it.
 - [ ] On your pick, sort the pool by Value, Fit, Age, and filter by Men/Women, division and
-      style. Hover Value and Fit for the quiet Why?. The column button adds Skill and Popularity.
+      style, and by **card level** (the Card level column sorts main event first). Hover Value and
+      Fit for the quiet Why?. The column button adds Skill and Popularity.
 - [ ] **Draft** asks first, then your roster on the right fills. Click any promotion under
       **Every roster** to see its picks.
 - [ ] Leave the room (Office), then press the day button: it brings you back.
@@ -235,8 +236,10 @@ Start the game, **New game**, the default world, take over any promotion, then *
 - [ ] After Finish, **Sign your draftees** lists every pick as Unsigned, with **Offer contract**
       and **Release**. Offer contract opens the normal contract talks; Release puts them back in
       the pool.
-- [ ] Answers come over the next days (Contracts › Offers). If your first show comes first,
-      Booking says "Sign some wrestlers first" with **Call off this show**.
+- [ ] Answers come over the next days (Contracts › Offers); each "Offer answered" stop clears
+      the first time the day button opens it. The first show is a week after the start, so it
+      comes after they sign. (If too few sign, Booking says "Sign some wrestlers first" with
+      **Call off this show**.)
 
 Quick look without playing (PNGs in the folder; add `-rbDraftNegotiate` for the second mode):
 
