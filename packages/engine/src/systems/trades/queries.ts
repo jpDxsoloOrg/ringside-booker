@@ -2,8 +2,8 @@
  * The trade queries (TRD-01, TRD-03). A player sees only trades their promotions are in; the
  * omniscient viewer sees all.
  *
- * - `trades.preview { promotionId, partnerId, give, get, adjustments? }`: a live read while an
- *   offer is being built: the rules it breaks, how the rival leans (and the counter it would send),
+ * - `trades.preview { promotionId, partnerId, give, get, adjustments?, tradeId? }`: a live read
+ *   while an offer is being built (`tradeId` when it is a counter to that open trade): the rules it breaks, how the rival leans (and the counter it would send),
  *   and how each worker feels about the move. Same numbers the answer will use if nothing changes.
  * - `trades.list { promotionId?, status?: open | closed | all, limit? }`: the talks, newest first.
  * - `trades.get { tradeId }`: one talk in full: the offer on the table with each worker's say
@@ -87,7 +87,10 @@ export interface TradeCandidatesView {
 
 declare module '../../core/api/maps' {
   interface QueryMap {
-    'trades.preview': { args: TradeTermsArgs; result: TradePreviewView };
+    'trades.preview': {
+      args: TradeTermsArgs & { tradeId?: TradeId | undefined };
+      result: TradePreviewView;
+    };
     'trades.list': {
       args: {
         promotionId?: PromotionId | undefined;
@@ -125,13 +128,18 @@ function round1(value: number): number {
 }
 
 export const tradePreviewQuery: QueryDefinition<'trades.preview'> = defineQuery('trades.preview', {
-  args: z.strictObject(TradeTermsArgsShape),
+  args: z.strictObject({ ...TradeTermsArgsShape, tradeId: zId('trade').optional() }),
   run: (ctx: QueryContext, args): TradePreviewView => {
     const { read, tunables, date } = ctx;
-    const you = visibleTo(read, ctx.viewer) ?? [args.promotionId];
+    const visible = visibleTo(read, ctx.viewer);
+    const you = visible ?? [args.promotionId];
     const offer = offerFromArgs(args, args.promotionId);
     const partner = read.tables.promotions.get(args.partnerId);
-    const problems = offerProblems(read, tunables, date, offer);
+    // A counter to an open trade (TRD-02): its own workers are not "in another trade", and the
+    // rival reads it as the next round.
+    const talk = args.tradeId === undefined ? undefined : read.tables.trades.get(args.tradeId);
+    const trade = talk !== undefined && canSee(talk, visible) ? talk : undefined;
+    const problems = offerProblems(read, tunables, date, offer, { tradeId: trade?.id ?? null });
     const valid =
       partner !== undefined &&
       read.tables.promotions.get(args.promotionId) !== undefined &&
@@ -141,7 +149,7 @@ export const tradePreviewQuery: QueryDefinition<'trades.preview'> = defineQuery(
       offer: valid ? offerView(read, tunables, date, offer, you, true) : { sides: [] },
       rival:
         valid && partner.controller.kind === 'computer'
-          ? rivalView(read, tunables, date, offer, partner.id, 1, you)
+          ? rivalView(read, tunables, date, offer, partner.id, (trade?.rounds.length ?? 0) + 1, you)
           : null,
     };
   },
