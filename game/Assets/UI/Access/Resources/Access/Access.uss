@@ -1,0 +1,128 @@
+/* Tester access (POL9-12): the code screen before the title menu and the Settings › About rows.
+   UNITY-11 tokens only. */
+
+.acc-gate {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--ds-elev-0);
+}
+
+.acc-card {
+    width: 560px;
+    max-width: 90%;
+    padding: 32px 36px 28px 36px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-top-width: 3px;
+    border-top-color: var(--ds-action);
+    border-radius: var(--ds-radius-lg);
+    background-color: var(--ds-elev-1);
+}
+
+.acc-brand {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.acc-brand__icon {
+    margin-right: 12px;
+}
+
+.acc-brand__name {
+    font-size: 26px;
+    letter-spacing: 0;
+    color: var(--ds-text);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+}
+
+.acc-brand__badge {
+    margin-left: 10px;
+}
+
+.acc-title {
+    font-size: 28px;
+    letter-spacing: 0;
+    color: var(--ds-text);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-ExtraBold.ttf");
+    margin-bottom: 8px;
+}
+
+.acc-intro {
+    font-size: 14px;
+    color: var(--ds-text-2);
+    white-space: normal;
+    margin-bottom: 16px;
+}
+
+.acc-notice {
+    font-size: 13px;
+    white-space: normal;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    border-left-width: 3px;
+    border-left-color: var(--ds-state);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-state-soft);
+    color: var(--ds-text);
+}
+
+.acc-field {
+    margin-bottom: 16px;
+}
+
+.acc-field .dsf-input__field {
+    font-size: 18px;
+    letter-spacing: 0;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+.acc-actions {
+    flex-direction: row;
+    align-items: center;
+}
+
+.acc-actions > .ds-btn {
+    margin-right: 8px;
+}
+
+.acc-actions__spacer {
+    flex-grow: 1;
+}
+
+.acc-privacy {
+    margin-top: 20px;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.acc-about {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line-subtle);
+}
+
+.acc-about__status {
+    margin-bottom: 4px;
+}
+
+.acc-about__detail {
+    white-space: normal;
+    margin-bottom: 8px;
+}
+
+.acc-about__remove {
+    align-self: flex-start;
+}
+
+.acc-confirm {
+    white-space: normal;
+    color: var(--ds-text-2);
+}
