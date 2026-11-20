@@ -6,7 +6,8 @@
 //
 // Outputs:
 //   game/branding/app-icon-<size>.png   16, 20, 24, 32, 40, 48, 64, 96, 128, 256, 512, 1024
-//   game/branding/app-icon.ico          16, 20, 24, 32, 40, 48, 64, 96, 128, 256 (exe, installer, shortcuts)
+//   game/branding/app-icon.ico          16, 20, 24, 32, 40, 48, 64, 96, 128, 256
+//   game/installer/RingsideBooker.ico   the same .ico, where the installer looks for it (RB_APP_ICON overrides)
 //   game/Assets/UI/AppIcon/AppIcon-<size>.png  the sizes Unity's Windows player icon list asks for
 //
 // Needs Playwright's Chromium (npx playwright install chromium) and ImageMagick's `convert`.
@@ -69,6 +70,9 @@ try {
 
 execFileSync('convert', [...ICO_SIZES.map((size) => join(branding, `app-icon-${size}.png`)), join(branding, 'app-icon.ico')]);
 console.log(`wrote ${join(branding, 'app-icon.ico')}`);
+mkdirSync(join(gameDir, 'installer'), { recursive: true });
+copyFileSync(join(branding, 'app-icon.ico'), join(gameDir, 'installer', 'RingsideBooker.ico'));
+console.log(`copied it to ${join(gameDir, 'installer', 'RingsideBooker.ico')}`);
 
 mkdirSync(unityIcons, { recursive: true });
 for (const size of UNITY_SIZES) {
