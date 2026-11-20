@@ -1,8 +1,8 @@
 # Owner test, Sprint 13: the Alpha installer
 
 How to test the Alpha build (S13-alpha) before it goes to testers. It covers POL1-06 (crash
-recovery and feedback), POL5-06 (help and first run) and POL9-06 (versions, installer, upgrade and
-uninstall). Play it like a new tester would. Note anything that feels wrong, confusing or broken,
+recovery and feedback), POL5-06 (help and first run), POL9-06 (versions, installer, upgrade and
+uninstall) and POL9-11 (in-game update). Play it like a new tester would. Note anything that feels wrong, confusing or broken,
 and the screen it was on.
 
 ## 1. Get the installer
@@ -106,6 +106,57 @@ You need a second installer with a newer version: build one from a later commit
 - [ ] **Settings › Apps › Installed apps** shows one Ringside Booker, with the new version and
       jpDxsolo.
 - [ ] The game starts and your save loads (What's new opens once if the version number changed).
+
+## 7b. In-game update (POL9-11)
+
+The game looks for a newer release on GitHub once a day and offers it with a quiet chip. How it
+works, and the installer flags it uses, are in
+[installer.md › In-game updates](installer.md#in-game-updates-pol9-11).
+
+**Quick look without a release** (no network, nothing is installed): run the tour, then look at
+the PNGs in the folder you named.
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\Ringside Booker\RingsideBooker.exe" -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -rbUpdateShots "C:\Temp\rb-update-shots"
+```
+
+**For real, now** (uses the `v0.1.0-alpha.1` draft that is already on GitHub):
+
+1. Build an installer from this branch that pretends to be older:
+   `RB_VERSION_BASE=0.1.0-alpha.0 game/tools/build-installer.sh`. Install it, start it, and check
+   that the title says Alpha 0.1.0 (0).
+2. On GitHub, publish the `v0.1.0-alpha.1` draft as a **pre-release** (it already has
+   `RingsideBooker-Setup-0.1.0-alpha.1+2a896c4f.exe`).
+3. Start the game again. If it already checked today, use **Settings › About › Check now**.
+   - [ ] The title screen shows **Update available: v0.1.0-alpha.1** above the version, and so does
+         Settings › About. Nothing pops up by itself.
+   - [ ] The chip opens a sheet with the release notes, **Download and install**, **Later** and
+         **Skip this version**.
+4. Start a game, play a day, then go to Settings › About, click the chip and **Download and
+   install**.
+   - [ ] A progress bar fills (about 38 MB). Then it says "Downloaded and checked" with **Save and
+         install**.
+   - [ ] **Save and install**: the game saves, closes, and the installer shows only a progress
+         window (no licence or folder pages).
+   - [ ] alpha.1's installer is older than this feature, so the game doesn't start again by
+         itself. Start it: the title says Alpha 0.1.0 (1), and the save loads at the day you
+         played.
+
+**For real, the whole loop** (once this branch is in a release):
+
+1. Release and publish `v0.1.0-alpha.2` (with its Setup exe) and install it.
+2. Release and publish `v0.1.0-alpha.3`.
+3. In alpha.2, the chip shows alpha.3. **Download and install** saves, closes, installs, and
+   **starts the game again** by itself, now on Alpha 0.1.0 (3). What's new opens once.
+
+Also check:
+
+- [ ] **Skip this version** hides both chips. **Check now** brings it back.
+- [ ] Untick **Check for updates automatically**: no chip on the next start (Check now still
+      works).
+- [ ] Offline (Wi-Fi off): the game starts normally with no error. Check now says "Couldn't check
+      for updates. Try again later."
+- [ ] With nothing newer published, Check now says "You have the newest version."
 
 ## 8. Uninstall (saves kept)
 

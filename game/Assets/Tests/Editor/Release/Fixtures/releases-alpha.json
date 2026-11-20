@@ -1,0 +1,59 @@
+[
+  {
+    "tag_name": "v0.1.0-alpha.9",
+    "name": "Ringside Booker 0.1.0-alpha.9",
+    "draft": true,
+    "prerelease": true,
+    "html_url": "https://github.com/jpDxsoloOrg/ringside-booker/releases/tag/untagged-1",
+    "published_at": null,
+    "body": "A draft: never offered.",
+    "assets": []
+  },
+  {
+    "tag_name": "nightly",
+    "name": "Nightly build",
+    "draft": false,
+    "prerelease": true,
+    "html_url": "https://github.com/jpDxsoloOrg/ringside-booker/releases/tag/nightly",
+    "published_at": "2026-11-27T09:00:00Z",
+    "body": "",
+    "assets": []
+  },
+  {
+    "tag_name": "v0.1.0-alpha.2",
+    "name": "Ringside Booker 0.1.0-alpha.2",
+    "draft": false,
+    "prerelease": true,
+    "html_url": "https://github.com/jpDxsoloOrg/ringside-booker/releases/tag/v0.1.0-alpha.2",
+    "published_at": "2026-11-26T18:30:00Z",
+    "body": "### Added\n\n- I added an update check.\n- I added **Skip this version**.\n\n### Fixed\n\n- I fixed `long` names.",
+    "assets": [
+      {
+        "name": "RingsideBooker-0.1.0-alpha.2-win64.zip",
+        "size": 55000000,
+        "browser_download_url": "https://github.com/jpDxsoloOrg/ringside-booker/releases/download/v0.1.0-alpha.2/RingsideBooker-0.1.0-alpha.2-win64.zip"
+      },
+      {
+        "name": "RingsideBooker-Setup-0.1.0-alpha.2+1a2b3c4d.exe",
+        "size": 40255784,
+        "browser_download_url": "https://github.com/jpDxsoloOrg/ringside-booker/releases/download/v0.1.0-alpha.2/RingsideBooker-Setup-0.1.0-alpha.2+1a2b3c4d.exe"
+      }
+    ]
+  },
+  {
+    "tag_name": "v0.1.0-alpha.1",
+    "name": "Ringside Booker 0.1.0-alpha.1",
+    "draft": false,
+    "prerelease": true,
+    "html_url": "https://github.com/jpDxsoloOrg/ringside-booker/releases/tag/v0.1.0-alpha.1",
+    "published_at": "2026-11-20T12:00:00Z",
+    "body": "First Alpha.",
+    "assets": [
+      {
+        "name": "RingsideBooker-Setup-0.1.0-alpha.1+fe25d981.exe",
+        "size": 40255000,
+        "browser_download_url": "https://github.com/jpDxsoloOrg/ringside-booker/releases/download/v0.1.0-alpha.1/RingsideBooker-Setup-0.1.0-alpha.1+fe25d981.exe"
+      }
+    ]
+  }
+]

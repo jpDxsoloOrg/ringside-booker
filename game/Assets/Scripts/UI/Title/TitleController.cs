@@ -52,6 +52,7 @@ namespace RingsideBooker.UI.Title
             // After a crash loop (or the crash screen's Start safe), open on the safe-start choices.
             if (Diagnostics.CrashGuard.ShouldOfferSafeStart) ShowSafeStart();
             Crash.FeedbackUi.AddToTitle(root);
+            Updates.UpdateUi.AddToTitle(root);
             menu[0].schedule.Execute(() => menu[0].Focus());
         }
 
