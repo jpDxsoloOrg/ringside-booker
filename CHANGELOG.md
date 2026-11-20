@@ -16,6 +16,8 @@ How I write an entry:
 
 ## Unreleased
 
+## [0.1.0-alpha.2] - 2026-11-20
+
 ### Added
 
 - I added an update check. When a new version is out, a quiet "Update available" chip shows on the
