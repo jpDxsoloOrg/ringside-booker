@@ -125,6 +125,9 @@ const SerializedTablesSchema = z.strictObject({
   negotiations: z.array(TABLES.negotiations.schema).default([]),
   // ECO8-01. Defaults to empty so saves written before the table existed still load.
   airings: z.array(TABLES.airings.schema).default([]),
+  // DRF-01. Default to empty so saves written before drafts existed still load.
+  drafts: z.array(TABLES.drafts.schema).default([]),
+  draftPicks: z.array(TABLES.draftPicks.schema).default([]),
 });
 
 /**

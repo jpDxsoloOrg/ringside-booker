@@ -3829,7 +3829,7 @@ export type {
 } from './systems/news';
 // Broadcast (ECO8-01): the `broadcast` system bundle, the `airings` table, the deal lifecycle
 // fields and the rule for which deal airs which show. See docs/design/broadcast.md.
-export type { AiringId } from './core/ids';
+export type { AiringId, DraftId, DraftPickId } from './core/ids';
 export {
   AIRING_MISS_REASONS,
   AIRING_QUALITY_SOURCES,
@@ -4118,3 +4118,89 @@ export type {
   ResyncPlan,
 } from './systems/calendar/editor/index';
 export { instanceFieldsFor, type InstanceFields } from './systems/calendar/schedule';
+// The draft (DRF epic): draft start, contracts at the pick, active promotions and the pool's mix.
+// See docs/design/draft.md.
+export {
+  ACTIVE_PROMOTIONS_STEP,
+  CARD_LEVEL_LABELS,
+  CARD_LEVELS,
+  DRAFT_ACTION_HINT,
+  DRAFT_GATE_ID,
+  DRAFT_POOL_SIZES,
+  DRAFT_REASON_CODES,
+  DRAFT_RIGHTS_REASON_CODE,
+  DRAFT_ROSTER_SIZES,
+  DRAFT_SETTINGS,
+  DRAFT_SETUP_STEP,
+  DRAFT_STAFF_ROLES,
+  DRAFT_VALUE_DOC_REF,
+  DRAFT_WEIGHT_CLASSES,
+  DraftBoard,
+  draftCandidates,
+  draftSettingsOf,
+  draftSystem,
+  draftTunables,
+  draftValue,
+  draftValueParts,
+  draftValueWeights,
+  EQUALISED,
+  isSittingOut,
+  NOT_EQUALISED,
+  POOL_SORTS,
+  rightsHolder,
+  SITTING_OUT_REASON_CODE,
+  STYLE_FITS,
+} from './systems/draft/index';
+export type {
+  CardLevel,
+  DraftAdvanceResult,
+  DraftCandidate,
+  DraftClockView,
+  DraftOptions,
+  DraftPickView,
+  DraftPoolRow,
+  DraftPoolView,
+  DraftPreviewView,
+  DraftRosterSummary,
+  DraftStateView,
+  DraftValueInputs,
+  DraftValueParts,
+  FinishSummary,
+  PickContract,
+  PoolSort,
+} from './systems/draft/index';
+export {
+  DRAFT_CATEGORIES,
+  DRAFT_KINDS,
+  DRAFT_ORDERS,
+  DRAFT_PICK_STATUSES,
+  DRAFT_SCHEDULES,
+  DRAFT_STATUSES,
+  DraftPickSchema,
+  DraftSchema,
+} from './model/entities/draft';
+export type {
+  Draft,
+  DraftCategory,
+  DraftLevel,
+  DraftPick,
+  DraftPickStatus,
+  DraftSettings,
+} from './model/entities/draft';
+// The wizard's previews for active promotions and the draft (DRF-06, DRF-07).
+export {
+  PICKER_SORTS,
+  previewPromotionPage,
+  previewSetup,
+  PromotionPageArgsSchema,
+  SetupPreviewArgsSchema,
+} from './systems/draft/setupPreview';
+export type {
+  DraftSetupPreview,
+  PickerPromotion,
+  PickerSort,
+  PromotionPage,
+  PromotionPageArgs,
+  SetupPreview,
+  SetupPreviewArgs,
+} from './systems/draft/setupPreview';

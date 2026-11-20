@@ -1,0 +1,518 @@
+/**
+ * The draft's queries (DRF-01): `draft.state`, `draft.pool` and `draft.preview`. Public: a draft
+ * is a public event, and every pick is seen by everyone. Money is never shown.
+ *
+ * Design: docs/design/draft.md#queries.
+ */
+
+import { z } from 'zod';
+import { defineQuery } from '../../core/api/query';
+import { viewerPromotionIds } from '../../core/api/controller';
+import { compareDates, type GameDate } from '../../core/date';
+import { zId } from '../../model/primitives';
+import type { PersonId, PromotionId } from '../../core/ids';
+import type {
+  Draft,
+  DraftCategory,
+  DraftLevel,
+  DraftPick,
+  DraftPickSource,
+  DraftPoolLevel,
+  DraftSettings,
+} from '../../model/entities/draft';
+import type { EmploymentRole } from '../../model/entities/employment';
+import type { Gender, RingStyle } from '../../model/entities/person';
+import { GENDERS, RING_STYLES } from '../../model/entities/person';
+import type { GameWorldView } from '../../model/tables';
+import type { DeepReadonly } from '../../model/world';
+import {
+  DRAFT_STAFF_ROLES,
+  DRAFT_WEIGHT_CLASSES,
+  type DraftCandidate,
+  type DraftWeightClass,
+} from './candidates';
+import { draftValueParts, draftValueWeights } from './draftValue';
+import { rosterCounts, turnOf, wantsCategory } from './flow';
+import { EQUALISED, NOT_EQUALISED } from './level';
+import { roundOrder } from './order';
+import { CARD_LEVEL_LABELS } from './pool';
+import { draftSettingsOf, type DraftOptions } from './settings';
+import { latestDraft, loadDraft, openDraft, picksOf } from './session';
+
+/** How a pick's contract stands now. `lapsed`: unsigned and the rights ran out. */
+export type PickContract = 'signed' | 'reserved' | 'released' | 'lapsed';
+
+export interface DraftPickView {
+  number: number;
+  round: number;
+  promotionId: PromotionId;
+  promotionName: string;
+  promotionShortName: string;
+  personId: PersonId;
+  name: string;
+  gender: Gender;
+  category: DraftCategory;
+  role: EmploymentRole;
+  value: number;
+  source: DraftPickSource;
+  contract: PickContract;
+  /** The last day the rights are held, for an unsigned pick. */
+  reservedUntil: GameDate | null;
+}
+
+export interface DraftClockView {
+  promotionId: PromotionId;
+  name: string;
+  shortName: string;
+  /** True when the viewer runs this promotion. */
+  isYou: boolean;
+  /** 1-based. */
+  round: number;
+  /** The pick number this turn will make, 1-based. */
+  pick: number;
+}
+
+export interface DraftRosterSummary {
+  promotionId: PromotionId;
+  name: string;
+  shortName: string;
+  color: string;
+  isYou: boolean;
+  wrestlers: number;
+  staff: number;
+  /** True when it wants nobody more the pool has. */
+  done: boolean;
+}
+
+export interface DraftStateView {
+  draftId: Draft['id'];
+  kind: Draft['kind'];
+  status: Draft['status'];
+  createdOn: GameDate;
+  finishedOn: GameDate | null;
+  settings: DraftSettings;
+  level: DraftLevel;
+  poolMix: (DraftPoolLevel & { label: string })[];
+  /** Promotions drafting, in round one's order. */
+  promotions: number;
+  picksMade: number;
+  poolLeft: { wrestlers: number; staff: number };
+  onTheClock: DraftClockView | null;
+  /** The viewer's next turn: its round and how many picks come before it. Null: none. */
+  yourNextTurn: { round: number; picksAway: number } | null;
+  /** The newest picks, newest first. */
+  recentPicks: DraftPickView[];
+  /** Every drafting promotion's roster so far, in round one's order. */
+  rosters: DraftRosterSummary[];
+  /** The picks of one roster (`rosterOf`, default the viewer's), in pick order. */
+  roster: { promotionId: PromotionId; picks: DraftPickView[] } | null;
+}
+
+export const POOL_SORTS = ['value', 'fit', 'rating', 'popularity', 'age', 'name'] as const;
+export type PoolSort = (typeof POOL_SORTS)[number];
+
+export interface DraftPoolRow {
+  personId: PersonId;
+  name: string;
+  gender: Gender;
+  age: number;
+  category: DraftCategory;
+  role: EmploymentRole;
+  style: RingStyle;
+  weightClass: DraftWeightClass;
+  weightKg: number;
+  alignment: 'face' | 'heel';
+  /** Role rating in the drafted role, one decimal. */
+  rating: number;
+  /** Best country and world-wide popularity, one decimal. */
+  popularity: { best: number; world: number };
+  /** Draft value, 0-100, one decimal. */
+  value: number;
+  /** The draft value's Why?, one line per part. */
+  why: string[];
+  /** How well they fit the viewer's roster (value plus needs), one decimal; null without one. */
+  fit: number | null;
+  /** The fit's Why?, one line per part. */
+  fitWhy: string[];
+}
+
+export interface DraftPoolView {
+  rows: DraftPoolRow[];
+  /** Rows matching the filters. */
+  total: number;
+  offset: number;
+  limit: number;
+  poolLeft: { wrestlers: number; staff: number };
+}
+
+export interface DraftPreviewView {
+  /** The draft settings this game was started with. */
+  options: DraftOptions;
+  /** The draft, or null in a game without one. */
+  draft: {
+    draftId: Draft['id'];
+    status: Draft['status'];
+    settings: DraftSettings;
+    level: DraftLevel;
+    promotions: number;
+    poolMix: (DraftPoolLevel & { label: string })[];
+    /** Wrestlers in the pool when the draft began. */
+    poolAtStart: number;
+    sittingOut: number;
+  } | null;
+  /** What the draft start made equal. */
+  equalised: string[];
+  /** What still differs between promotions. */
+  notEqualised: string[];
+}
+
+declare module '../../core/api/maps' {
+  interface QueryMap {
+    'draft.state': {
+      args: { recent?: number | undefined; rosterOf?: PromotionId | undefined };
+      result: { draft: DraftStateView | null };
+    };
+    'draft.pool': {
+      args: {
+        offset?: number | undefined;
+        limit?: number | undefined;
+        sort?: PoolSort | undefined;
+        descending?: boolean | undefined;
+        category?: DraftCategory | undefined;
+        gender?: Gender | undefined;
+        role?: EmploymentRole | undefined;
+        weightClass?: DraftWeightClass | undefined;
+        style?: RingStyle | undefined;
+        search?: string | undefined;
+      };
+      result: DraftPoolView;
+    };
+    'draft.preview': { args: Record<string, never>; result: DraftPreviewView };
+  }
+}
+
+function one(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+function mixView(draft: DeepReadonly<Draft>): (DraftPoolLevel & { label: string })[] {
+  return draft.poolMix.map((entry) => ({
+    ...entry,
+    label: CARD_LEVEL_LABELS[entry.level],
+  }));
+}
+
+function nameOf(read: GameWorldView, personId: PersonId, promotionId: PromotionId): string {
+  const employment = read.tables.employments
+    .lookup('byPerson', personId)
+    .find((row) => row.promotionId === promotionId && row.status === 'active');
+  return employment?.ringName ?? read.tables.people.get(personId)?.defaultRingName ?? personId;
+}
+
+function contractOf(
+  read: GameWorldView,
+  pick: DeepReadonly<DraftPick>,
+  date: GameDate,
+): PickContract {
+  if (pick.status !== 'reserved') {
+    return pick.status;
+  }
+  const signed = read.tables.employments
+    .lookup('byPerson', pick.personId)
+    .some(
+      (row) =>
+        row.promotionId === pick.promotionId &&
+        (row.status === 'active' || row.status === 'signed'),
+    );
+  if (signed) {
+    return 'signed';
+  }
+  return pick.reservedUntil !== null && compareDates(date, pick.reservedUntil) > 0
+    ? 'lapsed'
+    : 'reserved';
+}
+
+export function pickView(
+  read: GameWorldView,
+  pick: DeepReadonly<DraftPick>,
+  date: GameDate,
+): DraftPickView {
+  const promotion = read.tables.promotions.get(pick.promotionId);
+  return {
+    number: pick.number,
+    round: pick.round,
+    promotionId: pick.promotionId,
+    promotionName: promotion?.name ?? pick.promotionId,
+    promotionShortName: promotion?.shortName ?? '',
+    personId: pick.personId,
+    name: nameOf(read, pick.personId, pick.promotionId),
+    gender: read.tables.people.get(pick.personId)?.gender ?? 'male',
+    category: pick.category,
+    role: pick.role,
+    value: pick.value,
+    source: pick.source,
+    contract: contractOf(read, pick, date),
+    reservedUntil: pick.reservedUntil,
+  };
+}
+
+/** The viewer's next turn from the current one, assuming the rosters that need picks keep needing them. */
+function yourNextTurn(
+  read: GameWorldView,
+  draft: DeepReadonly<Draft>,
+  yours: ReadonlySet<PromotionId>,
+  needs: (promotionId: PromotionId) => boolean,
+): { round: number; picksAway: number } | null {
+  if (draft.status !== 'running' || ![...yours].some((id) => needs(id))) {
+    return null;
+  }
+  const count = draft.order.length;
+  let picksAway = 0;
+  for (let turn = draft.turn; turn < draft.turn + count * 2 + 1; turn += 1) {
+    const round = Math.floor(turn / count);
+    const promotionId = roundOrder(draft, round, read.meta.seed)[turn % count];
+    if (promotionId === undefined || !needs(promotionId)) {
+      continue;
+    }
+    if (yours.has(promotionId)) {
+      return { round: round + 1, picksAway };
+    }
+    picksAway += 1;
+  }
+  return null;
+}
+
+export const draftStateQuery = defineQuery('draft.state', {
+  args: z.strictObject({
+    recent: z.number().int().min(0).max(200).optional(),
+    rosterOf: zId('promotion').optional(),
+  }),
+  run: (ctx, args) => {
+    const { read, date } = ctx;
+    const draft = openDraft(read) ?? latestDraft(read);
+    if (draft === null) {
+      return { draft: null };
+    }
+    const yours = new Set(viewerPromotionIds(read, ctx.viewer));
+    const picks = picksOf(read, draft.id);
+    const counts = rosterCounts(picks);
+    const needs = (promotionId: PromotionId): boolean => {
+      const count = counts.get(promotionId);
+      return wantsCategory(draft, count, 'wrestler') || wantsCategory(draft, count, 'staff');
+    };
+    const turn = turnOf(read, draft);
+    const clockPromotion = turn === null ? undefined : read.tables.promotions.get(turn.promotionId);
+    const recent = args.recent ?? 12;
+    const rosterOf = args.rosterOf ?? draft.order.find((id) => yours.has(id)) ?? null;
+    const view: DraftStateView = {
+      draftId: draft.id,
+      kind: draft.kind,
+      status: draft.status,
+      createdOn: draft.createdOn,
+      finishedOn: draft.finishedOn,
+      settings: { ...draft.settings },
+      level: { ...draft.level },
+      poolMix: mixView(draft),
+      promotions: draft.order.length,
+      picksMade: draft.picks,
+      poolLeft: { ...draft.poolLeft },
+      onTheClock:
+        turn === null || clockPromotion === undefined
+          ? null
+          : {
+              promotionId: turn.promotionId,
+              name: clockPromotion.name,
+              shortName: clockPromotion.shortName,
+              isYou: yours.has(turn.promotionId),
+              round: turn.round + 1,
+              pick: draft.picks + 1,
+            },
+      yourNextTurn: yourNextTurn(read, draft, yours, needs),
+      recentPicks: picks
+        .slice(Math.max(0, picks.length - recent))
+        .reverse()
+        .map((pick) => pickView(read, pick, date)),
+      rosters: draft.order.map((promotionId) => {
+        const promotion = read.tables.promotions.require(promotionId);
+        const count = counts.get(promotionId);
+        return {
+          promotionId,
+          name: promotion.name,
+          shortName: promotion.shortName,
+          color: promotion.color,
+          isYou: yours.has(promotionId),
+          wrestlers: count?.wrestler ?? 0,
+          staff: count?.staff ?? 0,
+          done: draft.status !== 'running' || !needs(promotionId),
+        };
+      }),
+      roster:
+        rosterOf === null
+          ? null
+          : {
+              promotionId: rosterOf,
+              picks: picks
+                .filter((pick) => pick.promotionId === rosterOf && pick.status !== 'released')
+                .map((pick) => pickView(read, pick, date)),
+            },
+    };
+    return { draft: view };
+  },
+});
+
+function sortValue(row: DraftPoolRow, sort: PoolSort): number | string {
+  switch (sort) {
+    case 'value':
+      return row.value;
+    case 'fit':
+      return row.fit ?? row.value;
+    case 'rating':
+      return row.rating;
+    case 'popularity':
+      return row.popularity.best;
+    case 'age':
+      return row.age;
+    case 'name':
+      return row.name.toLowerCase();
+  }
+}
+
+function valueWhy(
+  candidate: DraftCandidate,
+  weights: ReturnType<typeof draftValueWeights>,
+): string[] {
+  const parts = draftValueParts(
+    {
+      roleRating: candidate.rating,
+      peakPop: candidate.peakPop,
+      worldPop: candidate.worldPop,
+      age: candidate.age,
+    },
+    weights,
+  );
+  const lines = [
+    `Skill: ${String(one(parts.skill))} (rating ${String(one(candidate.rating))})`,
+    `Popularity: ${String(one(parts.popularity))} (best country ${String(one(candidate.peakPop))}, world ${String(one(candidate.worldPop))})`,
+  ];
+  if (parts.age !== 0) {
+    lines.push(
+      `Age ${String(candidate.age)}: ${parts.age > 0 ? '+' : ''}${String(one(parts.age))}`,
+    );
+  }
+  return lines;
+}
+
+export const draftPoolQuery = defineQuery('draft.pool', {
+  args: z.strictObject({
+    offset: z.number().int().min(0).optional(),
+    limit: z.number().int().min(1).max(200).optional(),
+    sort: z.enum(POOL_SORTS).optional(),
+    descending: z.boolean().optional(),
+    category: z.enum(['wrestler', 'staff']).optional(),
+    gender: z.enum(GENDERS).optional(),
+    role: z.enum(['wrestler', ...DRAFT_STAFF_ROLES]).optional(),
+    weightClass: z.enum(DRAFT_WEIGHT_CLASSES).optional(),
+    style: z.enum(RING_STYLES).optional(),
+    search: z.string().max(60).optional(),
+  }),
+  run: (ctx, args) => {
+    const { read, tunables, date } = ctx;
+    const offset = args.offset ?? 0;
+    const limit = args.limit ?? 50;
+    const draft = openDraft(read);
+    if (draft === null) {
+      return { rows: [], total: 0, offset, limit, poolLeft: { wrestlers: 0, staff: 0 } };
+    }
+    const loaded = loadDraft(read, tunables, draft, date);
+    const yours = viewerPromotionIds(read, ctx.viewer).find((id) => draft.order.includes(id));
+    const roster = yours === undefined ? undefined : loaded.board.roster(yours);
+    const search = args.search?.trim().toLowerCase() ?? '';
+    const weights = draftValueWeights(tunables);
+    const sort = args.sort ?? 'value';
+    const descending = args.descending ?? sort !== 'name';
+    const matching = loaded.board
+      .poolMembers()
+      .filter(
+        (candidate) =>
+          (args.category === undefined || candidate.category === args.category) &&
+          (args.gender === undefined || candidate.gender === args.gender) &&
+          (args.role === undefined || candidate.role === args.role) &&
+          (args.weightClass === undefined || candidate.weightClass === args.weightClass) &&
+          (args.style === undefined || candidate.style === args.style) &&
+          (search === '' || candidate.name.toLowerCase().includes(search)),
+      );
+    const rows = matching.map((candidate): DraftPoolRow => {
+      const fitWhy: string[] = [];
+      const fit = roster === undefined ? null : loaded.board.score(roster, candidate, fitWhy);
+      return {
+        personId: candidate.personId,
+        name: candidate.name,
+        gender: candidate.gender,
+        age: candidate.age,
+        category: candidate.category,
+        role: candidate.role,
+        style: candidate.style,
+        weightClass: candidate.weightClass,
+        weightKg: candidate.weightKg,
+        alignment: candidate.heel ? 'heel' : 'face',
+        rating: one(candidate.rating),
+        popularity: { best: one(candidate.peakPop), world: one(candidate.worldPop) },
+        value: one(candidate.value),
+        why: [],
+        fit: fit === null ? null : one(fit),
+        fitWhy: roster === undefined ? [] : fitWhy,
+      };
+    });
+    const direction = descending ? -1 : 1;
+    rows.sort((left, right) => {
+      const leftValue = sortValue(left, sort);
+      const rightValue = sortValue(right, sort);
+      if (leftValue !== rightValue) {
+        return (leftValue < rightValue ? -1 : 1) * direction;
+      }
+      return left.personId < right.personId ? -1 : left.personId > right.personId ? 1 : 0;
+    });
+    const page = rows.slice(offset, offset + limit);
+    for (const row of page) {
+      const candidate = loaded.board.candidate(row.personId);
+      if (candidate !== undefined) {
+        row.why = valueWhy(candidate, weights);
+      }
+    }
+    return {
+      rows: page,
+      total: rows.length,
+      offset,
+      limit,
+      poolLeft: { wrestlers: loaded.board.wrestlersLeft, staff: loaded.board.staffLeft },
+    };
+  },
+});
+
+export const draftPreviewQuery = defineQuery('draft.preview', {
+  args: z.strictObject({}),
+  run: (ctx) => {
+    const { read } = ctx;
+    const draft = latestDraft(read);
+    return {
+      options: draftSettingsOf(read),
+      draft:
+        draft === null
+          ? null
+          : {
+              draftId: draft.id,
+              status: draft.status,
+              settings: { ...draft.settings },
+              level: { ...draft.level },
+              promotions: draft.order.length,
+              poolMix: mixView(draft),
+              poolAtStart: draft.poolMix.reduce((sum, entry) => sum + entry.inPool, 0),
+              sittingOut: draft.sitOut.length,
+            },
+      equalised: [...EQUALISED],
+      notEqualised: [...NOT_EQUALISED],
+    };
+  },
+});
+
+export const draftQueries = [draftStateQuery, draftPoolQuery, draftPreviewQuery];

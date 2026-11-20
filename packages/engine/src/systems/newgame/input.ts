@@ -23,6 +23,8 @@ export const FOUNDING_SIZES = ['small', 'medium', 'large'] as const;
 export type FoundingSize = (typeof FOUNDING_SIZES)[number];
 
 export const SEED_MAX_LENGTH = 64;
+/** The most promotion keys `activePromotionKeys` may list. */
+export const ACTIVE_PROMOTION_KEYS_MAX = 10_000;
 export const PLAYER_NAME_MAX_LENGTH = 40;
 export const SAVE_NAME_MAX_LENGTH = 60;
 export const FOUNDED_NAME_MIN_LENGTH = 3;
@@ -75,6 +77,12 @@ export const newGameInputSchema = z.strictObject({
   player: z.discriminatedUnion('mode', [existingPromotionSchema, foundPromotionSchema]),
   /** Setting key to value; left-out settings take their default. */
   settings: z.record(z.string(), z.union([z.boolean(), z.string()])),
+  /**
+   * DRF-06: the pack keys of the promotions that stay active. Left out: every promotion. Your own
+   * promotion is always active, listed or not; every other active promotion not listed is closed
+   * at the start (see docs/design/draft.md#active-promotions).
+   */
+  activePromotionKeys: z.array(z.string().min(1)).max(ACTIVE_PROMOTION_KEYS_MAX).optional(),
   /** Tunable key to value, checked against each tunable's range. */
   tunableOverrides: z.record(z.string(), z.number()).optional(),
 });

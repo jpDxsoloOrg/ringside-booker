@@ -114,6 +114,8 @@ function serialiseTables(tables: SerialisableWorld['tables']): SerializedTables 
     contractConcerns: [...tables.contractConcerns.values()],
     negotiations: [...tables.negotiations.values()],
     airings: [...tables.airings.values()],
+    drafts: [...tables.drafts.values()],
+    draftPicks: [...tables.draftPicks.values()],
   };
 }
 

@@ -44,6 +44,7 @@ import {
   availabilityOf,
   type AvailabilityStatus,
 } from '../helpers/availability';
+import { isSittingOut } from '../../draft/rights';
 import { primaryEmploymentOf } from '../helpers/employment';
 import { mainRoleOf, type RatingRole } from '../helpers/roles';
 
@@ -259,6 +260,8 @@ declare module '../../../core/api/maps' {
 interface Candidate {
   row: WorkerRow;
   person: Person;
+  /** Left out of a draft pool (DRF-07): not a free agent. */
+  sittingOut: boolean;
   countryId: CountryId;
   continentId: ContinentId;
 }
@@ -272,7 +275,11 @@ function allows<Value>(allowed: readonly Value[] | undefined, value: Value): boo
   return allowed === undefined || allowed.length === 0 || allowed.includes(value);
 }
 
-function passesEmployer(filter: WorkerEmployerFilter | undefined, row: WorkerRow): boolean {
+function passesEmployer(
+  filter: WorkerEmployerFilter | undefined,
+  row: WorkerRow,
+  sittingOut: boolean,
+): boolean {
   if (filter === undefined) {
     return true;
   }
@@ -280,7 +287,7 @@ function passesEmployer(filter: WorkerEmployerFilter | undefined, row: WorkerRow
     case 'any':
       return true;
     case 'freeAgent':
-      return row.employer === null;
+      return row.employer === null && !sittingOut;
     case 'promotion':
       return row.employer?.promotionId === filter.promotionId;
   }
@@ -297,7 +304,7 @@ function passes(candidate: Candidate, filters: WorkerListFilters): boolean {
     !allows(filters.availability, row.availability.status) ||
     !allows(filters.genders, row.gender) ||
     !allows(filters.styles, row.style) ||
-    !passesEmployer(filters.employer, row)
+    !passesEmployer(filters.employer, row, candidate.sittingOut)
   ) {
     return false;
   }
@@ -443,7 +450,8 @@ export function workerListOf(
     const place = placeOf(person.basedInRegionId);
     homeCountryIds.add(place.countryId);
     homeContinentIds.add(place.continentId);
-    if (primary === null) {
+    const sittingOut = primary === null && isSittingOut(read, person.id);
+    if (primary === null && !sittingOut) {
       freeAgents += 1;
     }
     // A copy per row, so no two rows share an object.
@@ -451,6 +459,7 @@ export function workerListOf(
 
     candidates.push({
       person,
+      sittingOut,
       countryId: place.countryId,
       continentId: place.continentId,
       row: {

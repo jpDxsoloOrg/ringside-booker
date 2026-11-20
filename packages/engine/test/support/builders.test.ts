@@ -395,6 +395,8 @@ describe('canned worlds', () => {
       contractConcerns: 1,
       negotiations: 1,
       airings: 1,
+      drafts: 1,
+      draftPicks: 1,
     });
     expect(world.tables.promotions.require(ids.promotions.A!).controller).toEqual({
       kind: 'human',
