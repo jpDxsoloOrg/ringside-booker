@@ -18,9 +18,9 @@ import type { Engine, RawPack, RecordKind, Viewer } from '@ringside/engine';
 const CONTENT_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../../../content');
 
 export const DEFAULT_WORLD_PLAYER_ID = 'local-player';
-/** Altura Wrestling Entertainment, the promotion the owner-test scripts play. */
+/** Szn League Wrestling (SLW, slot pro-flagship), the promotion the owner-test scripts play. */
 export const DEFAULT_WORLD_PROMOTION_KEY = 'pro-flagship';
-export const DEFAULT_WORLD_PROMOTION_NAME = 'Altura Wrestling Entertainment';
+export const DEFAULT_WORLD_PROMOTION_NAME = 'Szn League Wrestling';
 export const DEFAULT_WORLD_VIEWER: Viewer = {
   kind: 'controller',
   controller: { kind: 'human', playerId: DEFAULT_WORLD_PLAYER_ID },

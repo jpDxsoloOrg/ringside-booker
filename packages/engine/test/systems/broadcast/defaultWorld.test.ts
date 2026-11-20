@@ -54,7 +54,7 @@ describe('the default world on air', () => {
   it("airs Altura's weekly shows on their networks in the opening week, from definitions", () => {
     expect(state.world.meta.startDate).toBe(START);
     const read = worldOf(false);
-    const altura = promotionNamed('Altura');
+    const altura = promotionNamed('Szn League');
     expect(week(read, altura, START)).toEqual([
       '2027-01-04: Altura Mainstage on National Signal Network (definition)',
       '2027-01-06: Altura Overclock on Kestrel Sports (definition)',
@@ -66,7 +66,7 @@ describe('the default world on air', () => {
 
   it('airs the same shows from the calendar once it has dated them', () => {
     const read = worldOf(true);
-    const altura = promotionNamed('Altura');
+    const altura = promotionNamed('Szn League');
     expect(week(read, altura, START)).toEqual([
       '2027-01-04: Altura Mainstage on National Signal Network (instance)',
       '2027-01-06: Altura Overclock on Kestrel Sports (instance)',

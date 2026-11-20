@@ -24,6 +24,14 @@ npm run worldgen:default -- --force # overwrite generated files that have uncomm
 | the four files this tool writes            | `content/worlds/default/reigns.json`      |
 |                                            | `docs/design/default-world-report.md`     |
 
+The league roster (`content/worlds/default/league-roster.json`, see
+[The league roster](../../docs/design/default-world.md#the-league-roster)) is added on top of the
+generated people by `src/league/`. Refresh the snapshot from the league's public API with:
+
+```sh
+npm run league:fetch                # rewrites league-roster.json; then run worldgen:default
+```
+
 Exit codes: 0 written and valid, 1 the build or the validator failed, 2 a usage error or a refused
 overwrite.
 
@@ -43,6 +51,10 @@ overwrite.
 | `src/build.ts`                | Runs the steps in order and checks the target totals                |
 | `src/build-default-roster.ts` | The command: overwrite guard, build, write, validate, report        |
 | `src/streams.ts`              | The RNG streams the build draws from besides the people generator's |
+| `src/league/fetch-league.ts`  | `league:fetch`: the league's public API to the committed snapshot   |
+| `src/league/snapshot.ts`      | The snapshot's zod schema                                           |
+| `src/league/roster.ts`        | League wrestlers: rating, placement, contracts, teams and belts     |
+| `src/league/blocklist.ts`     | The real-name blocklist for names, bios and moves                   |
 
 ## Tests
 

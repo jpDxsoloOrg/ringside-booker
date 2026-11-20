@@ -78,7 +78,7 @@ describe('a week of airings on the default world', () => {
   });
 
   it("pays Altura's two airings as TV rights, each with a Why? that resolves and replays", () => {
-    const altura = promotionNamed('Altura');
+    const altura = promotionNamed('Szn League');
     const income = tables.ledgerEntries.filter(
       (row) => row.promotionId === altura && row.category === 'broadcast',
     );

@@ -13,12 +13,12 @@ const TIERS: readonly {
   sizes: readonly PromotionSize[];
   names: readonly string[];
 }[] = [
-  { tier: 'Flagship', sizes: ['continental', 'global'], names: ['Altura'] },
+  { tier: 'Flagship', sizes: ['continental', 'global'], names: ['Szn League'] },
   { tier: 'National', sizes: ['national'], names: ['Tessen', 'Cielo Alto'] },
   {
     tier: 'Regional',
     sizes: ['regional'],
-    names: ['Longleaf', 'Blast Furnace', 'Golden Poppy', 'Boreal', 'Ashlar', 'Eisenwerk'],
+    names: ['Longleaf', 'Blast Furnace', 'Golden Poppy', 'BLX', 'Ashlar', 'Eisenwerk'],
   },
   { tier: 'Local', sizes: ['local'], names: ['Hardpan', 'Hibari', 'Wattle'] },
 ];

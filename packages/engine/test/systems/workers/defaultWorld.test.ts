@@ -29,7 +29,7 @@ import { createEngineTunables } from '../../../src/systems/tunables';
 import { expectSerialisable } from '../../support/trace';
 
 const CONTENT_ROOT = fileURLToPath(new URL('../../../../../content/', import.meta.url));
-const DEFAULT_WORLD_PEOPLE = 286;
+const DEFAULT_WORLD_PEOPLE = 549;
 
 function readJson(path: string): unknown {
   return JSON.parse(readFileSync(path, 'utf8'));

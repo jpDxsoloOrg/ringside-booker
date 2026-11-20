@@ -551,8 +551,9 @@ describe('workers.explain', () => {
 });
 
 describe('workers.list on the default world', () => {
-  const DEFAULT_WORLD_PEOPLE = 286;
-  const FREE_AGENT_WRESTLERS = 35;
+  const DEFAULT_WORLD_PEOPLE = 549;
+  /** 35 generated plus 137 from the league roster. */
+  const FREE_AGENT_WRESTLERS = 172;
   const FREE_AGENT_CREW = 9;
   /** The budget for one list in node. The real figure is logged and is far below it. */
   const LIST_BUDGET_MS = 150;
@@ -563,13 +564,13 @@ describe('workers.list on the default world', () => {
     debugChecks: false,
   });
 
-  it('lists all 286 people as plain JSON, inside the time budget', () => {
+  it('lists all 549 people as plain JSON, inside the time budget', () => {
     // Once to warm up, then the measured run.
     listOf(engine, {}, OMNISCIENT);
     const startedAt = process.hrtime.bigint();
     const list = listOf(engine, {}, OMNISCIENT);
     const elapsedMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
-    console.info(`workers.list, default world, 286 rows: ${elapsedMs.toFixed(1)} ms`);
+    console.info(`workers.list, default world, 549 rows: ${elapsedMs.toFixed(1)} ms`);
 
     expect(list.rows).toHaveLength(DEFAULT_WORLD_PEOPLE);
     expect(list.total).toBe(DEFAULT_WORLD_PEOPLE);
@@ -577,7 +578,7 @@ describe('workers.list on the default world', () => {
     expect(elapsedMs).toBeLessThan(LIST_BUDGET_MS);
   });
 
-  it('finds the free-agent pool: 35 wrestlers and 9 crew', () => {
+  it('finds the free-agent pool: 172 wrestlers and 9 crew', () => {
     const list = listOf(engine, { filters: { employer: { kind: 'freeAgent' } } }, OMNISCIENT);
     const wrestlers = list.rows.filter((row) => row.mainRole === 'wrestler');
 

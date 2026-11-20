@@ -93,7 +93,7 @@ describe('expected push on the default world', () => {
 
   it('expects a lower push from a bigger promotion for the same worker', () => {
     const promotions = world.tables.promotions.values();
-    const altura = promotions.find((promotion) => promotion.name.startsWith('Altura'));
+    const altura = promotions.find((promotion) => promotion.name.startsWith('Szn League'));
     if (altura === undefined) {
       throw new Error('The default world has no Altura promotion');
     }

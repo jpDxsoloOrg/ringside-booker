@@ -15,6 +15,8 @@
 import { writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { foldName } from '@ringside/validate-world/real-name-matcher';
+import { format, resolveConfig } from 'prettier';
+import { z } from 'zod';
 import { readLeagueBlocklist, type LeagueBlocklist } from './blocklist';
 import {
   LEAGUE_SNAPSHOT_FILE,
@@ -50,71 +52,70 @@ const DIVISION_BY_NAME: Readonly<Record<string, LeagueDivision>> = {
   jobber: 'jobber',
 };
 
-interface ApiMove {
-  gameName?: string | null;
-  customName?: string | null;
-}
+// Only the fields this script reads; anything else the API sends is ignored.
+const optionalText = z.string().nullish();
+const count = z.number().int().nullish();
 
-interface ApiSeasonRecord {
-  seasonName?: string;
-  wins?: number;
-  losses?: number;
-  draws?: number;
-}
+const apiMoveSchema = z.looseObject({ gameName: optionalText, customName: optionalText });
 
-interface ApiPlayer {
-  playerId: string;
-  name?: string | null;
-  psnId?: string | null;
-  currentWrestler?: string | null;
-  currentWrestlerId?: string | null;
-  divisionId?: string | null;
-  alignment?: string | null;
-  wins?: number;
-  losses?: number;
-  draws?: number;
-  createdAt?: string;
-  bio?: string | null;
-  finishers?: ApiMove[] | null;
-  signatures?: ApiMove[] | null;
-  seasonRecords?: ApiSeasonRecord[] | null;
-}
+const apiPlayerSchema = z.looseObject({
+  playerId: z.string(),
+  name: optionalText,
+  psnId: optionalText,
+  currentWrestler: optionalText,
+  currentWrestlerId: optionalText,
+  divisionId: optionalText,
+  alignment: optionalText,
+  wins: count,
+  losses: count,
+  draws: count,
+  createdAt: optionalText,
+  bio: optionalText,
+  finishers: z.array(apiMoveSchema).nullish(),
+  signatures: z.array(apiMoveSchema).nullish(),
+  seasonRecords: z
+    .array(z.looseObject({ seasonName: optionalText, wins: count, losses: count, draws: count }))
+    .nullish(),
+});
+type ApiPlayer = z.infer<typeof apiPlayerSchema>;
+type ApiMove = z.infer<typeof apiMoveSchema>;
 
-interface ApiDivision {
-  divisionId: string;
-  name: string;
-}
+const apiDivisionSchema = z.looseObject({ divisionId: z.string(), name: z.string() });
 
-interface ApiChampionship {
-  name: string;
-  type: string;
-  isActive?: boolean;
-  divisionId?: string | null;
-  currentChampion?: string | string[] | null;
-}
+const apiChampionshipSchema = z.looseObject({
+  name: z.string(),
+  type: z.string(),
+  isActive: z.boolean().nullish(),
+  divisionId: optionalText,
+  currentChampion: z.union([z.string(), z.array(z.string())]).nullish(),
+});
 
-interface ApiWrestler {
-  wrestlerId: string;
-  overallCap?: number | null;
-  assignedPlayerId?: string | null;
-  assignedSlot?: string | null;
-}
+const apiWrestlerSchema = z.looseObject({
+  wrestlerId: z.string(),
+  overallCap: z.number().nullish(),
+  assignedPlayerId: optionalText,
+  assignedSlot: optionalText,
+});
 
-interface ApiTagTeam {
-  name: string;
-  status: string;
-  player1Id: string;
-  player2Id: string;
-  wins?: number;
-  losses?: number;
-}
+const apiTagTeamSchema = z.looseObject({
+  name: z.string(),
+  status: z.string(),
+  player1Id: z.string(),
+  player2Id: z.string(),
+  wins: count,
+  losses: count,
+});
 
-async function getJson<Value>(api: string, path: string): Promise<Value> {
+async function getJson<Schema extends z.ZodType>(
+  api: string,
+  path: string,
+  schema: Schema,
+): Promise<z.output<Schema>> {
   const response = await fetch(`${api}${path}`, { headers: { accept: 'application/json' } });
   if (!response.ok) {
     throw new Error(`GET ${path} failed: ${String(response.status)}`);
   }
-  return (await response.json()) as Value;
+  return schema.parse(await response.json());
 }
 
 async function mapLimited<Item, Result>(
@@ -128,8 +129,10 @@ async function mapLimited<Item, Result>(
     while (next < items.length) {
       const index = next;
       next += 1;
-      const item = items[index] as Item;
-      results[index] = await run(item);
+      const item = items[index];
+      if (item !== undefined) {
+        results[index] = await run(item);
+      }
     }
   };
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
@@ -220,14 +223,14 @@ async function main(): Promise<void> {
   const blocklist = await readLeagueBlocklist(repoRoot);
 
   const [players, divisions, championships, wrestlers, tagTeams] = await Promise.all([
-    getJson<ApiPlayer[]>(api, '/players'),
-    getJson<ApiDivision[]>(api, '/divisions'),
-    getJson<ApiChampionship[]>(api, '/championships'),
-    getJson<ApiWrestler[]>(api, '/wrestlers'),
-    getJson<ApiTagTeam[]>(api, '/tag-teams'),
+    getJson(api, '/players', z.array(apiPlayerSchema)),
+    getJson(api, '/divisions', z.array(apiDivisionSchema)),
+    getJson(api, '/championships', z.array(apiChampionshipSchema)),
+    getJson(api, '/wrestlers', z.array(apiWrestlerSchema)),
+    getJson(api, '/tag-teams', z.array(apiTagTeamSchema)),
   ]);
   const details = await mapLimited(players, CONCURRENCY, (player) =>
-    getJson<ApiPlayer>(api, `/players/${encodeURIComponent(player.playerId)}`),
+    getJson(api, `/players/${encodeURIComponent(player.playerId)}`, apiPlayerSchema),
   );
 
   const divisionOf = new Map<string, LeagueDivision>();
@@ -335,7 +338,10 @@ async function main(): Promise<void> {
         : championship.currentChampion === null || championship.currentChampion === undefined
           ? []
           : [championship.currentChampion];
-      const names = holders.map((id) => ringNameOf.get(id));
+      const names = holders.flatMap((id) => {
+        const ringName = ringNameOf.get(id);
+        return ringName === undefined ? [] : [ringName];
+      });
       return {
         name: clean(championship.name),
         kind: championship.type === 'tag' ? ('tag' as const) : ('singles' as const),
@@ -343,9 +349,8 @@ async function main(): Promise<void> {
           championship.divisionId === null || championship.divisionId === undefined
             ? null
             : (divisionOf.get(championship.divisionId) ?? null),
-        championRingNames: names.every((name) => name !== undefined)
-          ? names.filter((name): name is string => name !== undefined)
-          : [],
+        // Every holder must be imported, or the belt is treated as having no league champion.
+        championRingNames: names.length === holders.length ? names : [],
       };
     })
     .sort((left, right) => compareText(left.name, right.name));
@@ -388,7 +393,13 @@ async function main(): Promise<void> {
       .sort((left, right) => compareText(left.ringName, right.ringName)),
   });
   const path = join(repoRoot, WORLD_DIR, LEAGUE_SNAPSHOT_FILE);
-  await writeFile(path, `${JSON.stringify(snapshot, null, 2)}\n`, 'utf8');
+  // Written the way the repo's Prettier config formats it, so a refetch with no news is no diff.
+  const options = (await resolveConfig(path)) ?? {};
+  await writeFile(
+    path,
+    await format(JSON.stringify(snapshot, null, 2), { ...options, filepath: path }),
+    'utf8',
+  );
   process.stdout.write(
     `Wrote ${path}: ${String(snapshot.wrestlers.length)} wrestlers, ${String(teams.length)} teams, ${String(titles.length)} titles; skipped ${JSON.stringify(skipped)}\n`,
   );

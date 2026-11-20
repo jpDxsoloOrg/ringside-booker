@@ -8,6 +8,7 @@ import { buildDefaultRoster, TARGETS, type RosterBuild } from '../src/build';
 import { pushRank } from '../src/card';
 import { GENERATED_FILES, readBuildInputs } from '../src/content';
 import type { EmploymentOut, ReignOut, RosterMember } from '../src/model';
+import { LEAGUE_PERSON_PREFIX, LEAGUE_TITLE_PREFIX } from '../src/league/roster';
 import { renderRosterFiles, writeRosterFiles } from '../src/output';
 import { fitsDivision } from '../src/reigns';
 import { spearman } from '../src/stats';
@@ -38,6 +39,11 @@ async function buildInto(): Promise<string> {
   return dir;
 }
 
+/** The generated roster: everyone but the league wrestlers (see `league.test.ts`). */
+function generated(): RosterMember[] {
+  return build.members.filter((member) => !member.key.startsWith(LEAGUE_PERSON_PREFIX));
+}
+
 function memberByKey(): Map<string, RosterMember> {
   return new Map(build.members.map((member) => [member.key, member]));
 }
@@ -59,7 +65,7 @@ describe('the default roster build', () => {
   });
 
   it('hits the target totals', () => {
-    const { summary } = build;
+    const summary = build.generatedSummary;
     const inRange = (value: number, range: { min: number; max: number }): boolean =>
       value >= range.min && value <= range.max;
     expect(inRange(summary.total, TARGETS.total), `total ${String(summary.total)}`).toBe(true);
@@ -100,8 +106,9 @@ describe('the default roster build', () => {
     const employer = new Map(
       build.files.employment.map((employment) => [employment.personKey, employment.promotionKey]),
     );
-    expect(build.titles).toHaveLength(28);
-    for (const title of build.titles) {
+    const ownTitles = build.titles.filter((title) => !title.key.startsWith(LEAGUE_TITLE_PREFIX));
+    expect(ownTitles).toHaveLength(28);
+    for (const title of ownTitles) {
       const titleKey = title.key;
       const open = build.files.titleReign.filter(
         (reign) => reign.titleKey === titleKey && reign.lostOn === null,
@@ -137,6 +144,9 @@ describe('the default roster build', () => {
       byTitle.set(reign.titleKey, [...(byTitle.get(reign.titleKey) ?? []), reign]);
     }
     for (const [titleKey, reigns] of byTitle) {
+      if (titleKey.startsWith(LEAGUE_TITLE_PREFIX)) {
+        continue; // League belts start with their current reign only.
+      }
       expect(reigns.length - 1, titleKey).toBeGreaterThanOrEqual(1);
       expect(reigns.length - 1, titleKey).toBeLessThanOrEqual(4);
       reigns.forEach((reign, index) => {
@@ -151,7 +161,7 @@ describe('the default roster build', () => {
 
   it('puts better workers higher on the card (Spearman at least 0.6 per promotion)', () => {
     for (const promotionKey of build.summary.byPromotion.keys()) {
-      const wrestlers = build.members.filter(
+      const wrestlers = generated().filter(
         (member) => member.promotionKey === promotionKey && member.role === 'wrestler',
       );
       const correlation = spearman(
@@ -164,14 +174,14 @@ describe('the default roster build', () => {
 
   it('gives no free agent a contract', () => {
     const employed = new Set(build.files.employment.map((employment) => employment.personKey));
-    const freeAgents = build.members.filter((member) => member.promotionKey === null);
+    const freeAgents = generated().filter((member) => member.promotionKey === null);
     expect(freeAgents.length).toBeGreaterThanOrEqual(TARGETS.freeAgentWrestlers.min);
     expect(freeAgents.filter((member) => employed.has(member.key))).toEqual([]);
     expect(freeAgents.every((member) => member.key.startsWith('gen-fa-'))).toBe(true);
   });
 
   it('keys generated people by promotion and keeps the headliners’ authored keys', () => {
-    for (const member of build.members) {
+    for (const member of generated()) {
       if (member.headliner !== null) {
         expect(member.key).toBe(member.headliner.key);
       } else if (member.promotionKey !== null) {

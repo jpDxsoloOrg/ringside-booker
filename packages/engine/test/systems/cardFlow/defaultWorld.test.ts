@@ -34,14 +34,14 @@ function ceilingOf(prefix: string, levels?: Record<string, number>) {
 
 describe('the production ceiling on the default world', () => {
   it('is 86.5 for Altura and 43.5 for Wattle at the defaults; neither earns the bonus slot', () => {
-    const altura = ceilingOf('Altura');
+    const altura = ceilingOf('Szn League');
     expect(altura.ceiling).toBe(86.5);
     expect(altura.bonusSlot).toMatchObject({
       qualifies: false,
       threshold: 90,
       minImportance: 'regular',
     });
-    expect(altura.ceilingTrace.label).toBe('Production ceiling (Altura Wrestling Entertainment)');
+    expect(altura.ceilingTrace.label).toBe('Production ceiling (Szn League Wrestling)');
     expect(ceilingOf('Wattle').ceiling).toBe(43.5);
   });
 
@@ -57,7 +57,7 @@ describe('the production ceiling on the default world', () => {
 
   it('answers what-if levels without writing anything', () => {
     const before = engine.exportState();
-    const upgraded = ceilingOf('Altura', { editing: 10, pyro: 10 });
+    const upgraded = ceilingOf('Szn League', { editing: 10, pyro: 10 });
     expect(upgraded.ceiling).toBe(86.5 + 3 * 1.5 + 2);
     expect(upgraded.bonusSlot.qualifies).toBe(true);
     expect(upgraded.bonusSlot.trace.value).toBe(true);
@@ -73,7 +73,7 @@ describe('the production ceiling on the default world', () => {
     expect(unknown.ok).toBe(false);
     const tooHigh = engine.query(
       'production.ceiling',
-      { promotionId: promotionId('Altura'), levels: { stage: 11 } },
+      { promotionId: promotionId('Szn League'), levels: { stage: 11 } },
       VIEWER,
     );
     expect(tooHigh.ok).toBe(false);

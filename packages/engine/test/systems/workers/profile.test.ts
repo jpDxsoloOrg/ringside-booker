@@ -48,6 +48,8 @@ const OWN_ROSTER: readonly DeepPartial<Person>[] = [
     vices: { alcohol: 'known', substances: 'hidden' },
     development: { potential: 640, ceilings: { ringwork: 91 } },
     attributes: { ringwork: 74, mic: 38 },
+    bio: 'Test bio text.',
+    moves: { finishers: ['Test Finisher'], signatures: ['Test Signature A', 'Test Signature B'] },
     // South 1 only: best known in the smaller of the two countries.
     regionalPop: { [testId('region', 3)]: 60 },
   },
@@ -257,6 +259,19 @@ describe('workers.profile: the header', () => {
     expect(header.weightClass.trace.label).toBe('Weight class');
     expect(header.availability.status).toBe('available');
     expect(header.age).toBeGreaterThan(17);
+  });
+
+  it('shows the bio and named moves when the person has them, and empty ones otherwise', () => {
+    const { engine, own, ownPartner } = profileWorld();
+    const profile = profileOf(engine, own, PLAYER);
+    expect(profile.bio).toBe('Test bio text.');
+    expect(profile.moves).toEqual({
+      finishers: ['Test Finisher'],
+      signatures: ['Test Signature A', 'Test Signature B'],
+    });
+    const partner = profileOf(engine, ownPartner, PLAYER);
+    expect(partner.bio).toBeNull();
+    expect(partner.moves).toEqual({ finishers: [], signatures: [] });
   });
 
   it('gives a free agent their default ring name and no employer, push or alignment', () => {

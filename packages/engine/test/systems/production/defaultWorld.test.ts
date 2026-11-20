@@ -54,6 +54,6 @@ describe('the popularity ceiling in the default world', () => {
       ).value;
     };
     expect(ceilingOf('Hardpan')).toBe(30);
-    expect(ceilingOf('Altura')).toBe(95);
+    expect(ceilingOf('Szn League')).toBe(95);
   });
 });

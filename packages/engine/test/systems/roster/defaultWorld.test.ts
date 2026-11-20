@@ -28,7 +28,7 @@ import { TEST_PLAYER_ID } from '../../support/builders/build-row';
 import { loadDefaultWorld } from '../workers/default-world';
 import { PLAYER, rosterOf } from './roster-world';
 
-const ALTURA = 'Altura Wrestling Entertainment';
+const ALTURA = 'Szn League Wrestling';
 const EMPLOYMENTS_FILE = fileURLToPath(
   new URL('../../../../../content/worlds/default/employments.json', import.meta.url),
 );
@@ -84,15 +84,15 @@ describe('roster.rows on the default world as Altura', () => {
     .parse(JSON.parse(readFileSync(EMPLOYMENTS_FILE, 'utf8')))
     .filter((record) => record.promotionKey === 'pro-flagship');
 
-  it('lists all 55 contracts in the groups and brands the content gives them', () => {
+  it('lists all 100 contracts in the groups and brands the content gives them', () => {
     expect(view.promotion?.promotionId).toBe(altura);
     expect(view.promotion?.brands.map((brand) => brand.name)).toEqual([
       'Altura Mainstage',
       'Altura Overclock',
     ]);
-    expect(view.rows).toHaveLength(55);
+    expect(view.rows).toHaveLength(100);
     expect(countBy(view.rows, (row) => row.group)).toEqual({
-      wrestlers: 44,
+      wrestlers: 89,
       managers: 2,
       announcers: 3,
       referees: 4,
@@ -138,8 +138,13 @@ describe('roster.rows on the default world as Altura', () => {
     }
   });
 
-  it('starts every wrestler at the push they expect, as the content is calibrated', () => {
-    const wrestlers = view.rows.filter((row) => row.group === 'wrestlers');
+  it('starts every generated wrestler at the push they expect, as the content is calibrated', () => {
+    // League wrestlers (tagged `league`) are pushed by their league division instead.
+    const wrestlers = view.rows.filter(
+      (row) =>
+        row.group === 'wrestlers' &&
+        !read.tables.people.require(row.personId).tags.includes('league'),
+    );
     expect(wrestlers.every((row) => row.pushGap?.verdict === 'asExpected')).toBe(true);
     expect(wrestlers.every((row) => row.pushGap?.steps === 0)).toBe(true);
   });
@@ -149,13 +154,13 @@ describe('roster.summary and roster.explain on the default world as Altura (WRK2
   const { engine } = alturaWorld();
   const view: RosterView = rosterOf(engine, {}, PLAYER);
 
-  it('counts 55 contracts: 44 wrestlers, Mainstage 23, Overclock 21, Shared 11', () => {
+  it('counts 100 contracts: 89 wrestlers, Mainstage 46, Overclock 43, Shared 11', () => {
     const result = engine.query('roster.summary', {}, PLAYER);
     if (!result.ok) throw new Error('roster.summary was refused');
     const summary = result.data;
-    expect(summary.total).toBe(55);
+    expect(summary.total).toBe(100);
     expect(summary.byGroup).toEqual({
-      wrestlers: 44,
+      wrestlers: 89,
       managers: 2,
       announcers: 3,
       referees: 4,
@@ -163,8 +168,8 @@ describe('roster.summary and roster.explain on the default world as Altura (WRK2
       others: 0,
     });
     expect(summary.byBrand.map((brand) => [brand.name, brand.total])).toEqual([
-      ['Altura Mainstage', 23],
-      ['Altura Overclock', 21],
+      ['Altura Mainstage', 46],
+      ['Altura Overclock', 43],
       ['Shared', 11],
     ]);
     expect(summary.expectsMore).toBe(0);
