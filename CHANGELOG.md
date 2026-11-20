@@ -16,6 +16,8 @@ How I write an entry:
 
 ## Unreleased
 
+## [0.1.0-alpha.3] - 2026-11-20
+
 ### Added
 
 - I added a draft start. Turn on "Start with a draft" in the new-game options and every wrestler
