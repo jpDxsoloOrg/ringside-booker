@@ -14,6 +14,7 @@ import type { Employment } from '../../model/entities/employment';
 import type { GameTables } from '../../model/tables';
 import type { Tx } from '../../model/tx';
 import type { DeepReadonly } from '../../model/world';
+import { closeReign } from '../titles/reigns';
 
 type Row = DeepReadonly<Employment>;
 
@@ -71,7 +72,10 @@ export function removeEmployments(tx: Tx<GameTables>, rows: readonly Row[]): num
   return ids.size;
 }
 
-/** Ends every current reign of these titles on `date` with `endReason`. */
+/**
+ * Ends every current reign of these titles on `date` with `endReason`, through the one reign
+ * writer (`closeReign`). A reign that starts after `date` ends on its first day instead.
+ */
 function closeReignsOf(
   tx: Tx<GameTables>,
   titleIds: ReadonlySet<string>,
@@ -81,11 +85,11 @@ function closeReignsOf(
   let closed = 0;
   for (const reign of [...tx.view.tables.titleReigns.values()]) {
     if (reign.lostOn === null && titleIds.has(reign.titleId)) {
-      tx.update('titleReigns', reign.id, {
-        lostOn: compareDates(reign.wonOn, date) > 0 ? reign.wonOn : date,
-        endReason,
-        endedInSegmentId: null,
-      });
+      const endsOn = compareDates(reign.wonOn, date) > 0 ? reign.wonOn : date;
+      closeReign(
+        { date: endsOn, tx, read: tx.view },
+        { reignId: reign.id, endReason, endedInSegmentId: null },
+      );
       closed += 1;
     }
   }
