@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using RingsideBooker.Engine;
 using RingsideBooker.Screens.Schedule;
 using RingsideBooker.UI;
+using RingsideBooker.UI.Bridge;
 using RingsideBooker.UI.Navigation;
 using RingsideBooker.UI.Shell;
 using UnityEngine;
