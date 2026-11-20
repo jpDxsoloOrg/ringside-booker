@@ -128,6 +128,23 @@ namespace RingsideBooker.Screens.Draft
             return (DsState.Warn, "Have enough");
         }
 
+        /// <summary>
+        /// The fit hint against the rows on screen: early in a draft every wrestler fills a need, so
+        /// the words rank the needs among the shown rows (<paramref name="lowNeeds"/> to
+        /// <paramref name="highNeeds"/>); a negative gap still says "Have enough". With little spread
+        /// the plain rule applies.
+        /// </summary>
+        public static (DsState state, string word) Fit(double value, double? fit, double lowNeeds, double highNeeds)
+        {
+            if (fit == null) return (DsState.Neutral, Kit.NoValue);
+            double needs = fit.Value - value;
+            if (needs <= -3 || highNeeds - lowNeeds < 2) return Fit(value, fit);
+            double place = (needs - lowNeeds) / (highNeeds - lowNeeds);
+            if (place >= 0.66) return (DsState.Good, "Big need");
+            if (place >= 0.33) return (DsState.Good, "Good fit");
+            return (DsState.Neutral, "Fits");
+        }
+
         /// <summary>A draft value in words: the number leads in the table, the word sets its colour.</summary>
         public static (DsState state, string word) Value(double value)
         {

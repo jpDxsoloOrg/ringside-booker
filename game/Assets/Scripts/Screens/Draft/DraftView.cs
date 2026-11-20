@@ -57,6 +57,8 @@ namespace RingsideBooker.Screens.Draft
         private int searchTicket;
         private bool animating;
         private bool skipAnimation;
+        private double lowNeeds;
+        private double highNeeds;
 
         public DraftView(ScreenContext context)
         {
@@ -437,9 +439,10 @@ namespace RingsideBooker.Screens.Draft
         {
             double value = Kit.Num(row, "value") ?? 0;
             double? fit = Kit.Num(row, "fit");
-            (DsState state, string word) = DraftText.Fit(value, fit);
+            (DsState state, string word) = DraftText.Fit(value, fit, lowNeeds, highNeeds);
             VisualElement cell = Ds.Row("dr-fit");
             cell.Add(Ds.Dot(state, word));
+            if (fit != null) cell.Add(W.QuietNumber(Kit.Decimal1(fit)));
             if (fit != null)
             {
                 Ds.Why(cell, new WhyBreakdown("Fit for your roster", Kit.Decimal1(fit), "Their draft value plus what your roster needs.",
@@ -505,9 +508,6 @@ namespace RingsideBooker.Screens.Draft
             }
             toolbar.Add(Ds.Spacer());
             toolbar.Add(poolCount);
-            Button columns = Ds.IconButton("columns", "Columns", () => table.OpenColumnPicker(toolbar), quiet: true);
-            columns.name = "draft-columns";
-            toolbar.Add(columns);
         }
 
         private void SetFilter(Action change)
@@ -547,6 +547,9 @@ namespace RingsideBooker.Screens.Draft
             }
             PoolRows = Kit.Arr(pool.Data, "rows").ToList();
             int total = (int)(Kit.Num(pool.Data, "total") ?? PoolRows.Count);
+            List<double> needs = PoolRows.Where(row => Kit.Num(row, "fit") != null).Select(row => (Kit.Num(row, "fit") ?? 0) - (Kit.Num(row, "value") ?? 0)).ToList();
+            lowNeeds = needs.Count > 0 ? needs.Min() : 0;
+            highNeeds = needs.Count > 0 ? needs.Max() : 0;
             table.ShowSort(sort, descending);
             table.SetRows(PoolRows);
             int from = total == 0 ? 0 : page * PageSize + 1;
@@ -586,7 +589,7 @@ namespace RingsideBooker.Screens.Draft
             VisualElement words = Ds.Column("dr-confirm__words");
             words.Add(Ds.Text(name, "ds-type-subtitle"));
             words.Add(Ds.Text($"{Detail(row)} · {W.StyleWord(Kit.Str(row, "style"))} · age {W.Int(Kit.Num(row, "age"))}", "dr-quiet"));
-            (DsState fitState, string fitWord) = DraftText.Fit(Kit.Num(row, "value") ?? 0, Kit.Num(row, "fit"));
+            (DsState fitState, string fitWord) = DraftText.Fit(Kit.Num(row, "value") ?? 0, Kit.Num(row, "fit"), lowNeeds, highNeeds);
             VisualElement facts = Ds.Row("dr-confirm__facts");
             facts.Add(Ds.Text($"Value {Kit.Decimal1(Kit.Num(row, "value"))}", "dr-confirm__fact"));
             facts.Add(Ds.Dot(fitState, fitWord));
@@ -701,6 +704,7 @@ namespace RingsideBooker.Screens.Draft
                 sign.Add(Ds.SectionHeader("Sign your draftees"));
                 string until = Kit.Str(unsigned[0], "reservedUntil");
                 sign.Add(Ds.Text($"You hold their rights{(until != null ? " until " + Kit.Date(until) : string.Empty)}. Offer each one a contract (they can say no), or release them back to the pool.", "dr-quiet", "t-wrap"));
+                sign.Add(Ds.Text("Answers come in over the next days. If your first show comes before enough of them sign, call it off on Booking.", "dr-quiet", "t-wrap"));
                 foreach (JToken pick in unsigned) sign.Add(SignRow(pick));
                 Button contracts = Ds.Button("Open Contracts", () => context.Navigator.Go(ShellRoute.With(ContractsScreen.ScreenId, "tab", ContractsScreen.TabOffers)), DsButtonKind.Secondary, "contracts");
                 contracts.name = "draft-open-contracts";
@@ -729,7 +733,6 @@ namespace RingsideBooker.Screens.Draft
             string name = Kit.Str(pick, "name");
             VisualElement row = PickRow(pick);
             row.AddToClassList("dr-sign-row");
-            row.Add(Ds.Spacer());
             Button offer = Ds.Button("Offer contract", async () =>
             {
                 string problem = await ContractsScreen.OpenNegotiation(personId, "auto");

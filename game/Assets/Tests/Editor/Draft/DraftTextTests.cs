@@ -44,6 +44,12 @@ namespace RingsideBooker.Tests.Draft
             Assert.That(DraftText.Fit(50, 50).word, Is.EqualTo("Fits"));
             Assert.That(DraftText.Fit(50, 40).state, Is.EqualTo(DsState.Warn));
             Assert.That(DraftText.Fit(50, null).state, Is.EqualTo(DsState.Neutral));
+            // Ranked among the rows on screen: an empty roster needs everyone, so the biggest needs lead.
+            Assert.That(DraftText.Fit(50, 70, 10, 20).word, Is.EqualTo("Big need"));
+            Assert.That(DraftText.Fit(50, 65, 10, 20).word, Is.EqualTo("Good fit"));
+            Assert.That(DraftText.Fit(50, 61, 10, 20).word, Is.EqualTo("Fits"));
+            Assert.That(DraftText.Fit(50, 45, -5, 20).word, Is.EqualTo("Have enough"));
+            Assert.That(DraftText.Fit(50, 62, 12, 12.5).word, Is.EqualTo("Big need"), "no spread: the plain rule");
         }
 
         [Test]
