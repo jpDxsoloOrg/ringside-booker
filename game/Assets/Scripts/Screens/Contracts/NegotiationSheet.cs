@@ -542,6 +542,12 @@ namespace RingsideBooker.Screens.Contracts
             meterHost.Clear();
             if (footerReaction != null) footerReaction.text = string.Empty;
             if (draft == null) return;
+            if (SameJobBlocked)
+            {
+                // Outside the renewal window only a different job can be offered (UNITY-38).
+                meterHost.Add(Ds.Text("Pick a different job to see how they'd take it.", "ct-quiet", "ds-wrap"));
+                return;
+            }
             if (preview == null)
             {
                 meterHost.Add(Ds.Text("Working out how they would take it…", "ct-quiet"));
