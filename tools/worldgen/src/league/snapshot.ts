@@ -54,11 +54,26 @@ export type LeagueTitle = z.infer<typeof leagueTitleSchema>;
 
 export const leagueTeamSchema = z.strictObject({
   name: z.string().min(1).max(60),
-  memberRingNames: z.array(z.string()).length(2),
+  /** A tag team (2), or a stable of exactly 3, which the world keeps as a trio. */
+  kind: z.enum(['tag', 'trio']),
+  memberRingNames: z.array(z.string()).min(2).max(3),
   wins: z.number().int().min(0),
   losses: z.number().int().min(0),
 });
 export type LeagueTeam = z.infer<typeof leagueTeamSchema>;
+
+/** A recurring league show: a weekly TV show on its weekday, or a PPV in its place in the year. */
+export const leagueShowSchema = z.strictObject({
+  name: z.string().min(1).max(80),
+  kind: z.enum(['weekly', 'ppv']),
+  /** Weekly shows: 0 = Monday … 6 = Sunday. Null for PPVs. */
+  weekday: z.number().int().min(0).max(6).nullable(),
+  /** PPVs: their place in the league's calendar year, from its PPV dates (0 first). */
+  order: z.number().int().min(0).nullable(),
+  /** The day the league created the show (YYYY-MM-DD). */
+  since: z.string().regex(/^\d{4}-\d{2}-\d{2}$/u),
+});
+export type LeagueShow = z.infer<typeof leagueShowSchema>;
 
 export const leagueSnapshotSchema = z.strictObject({
   source: z.string(),
@@ -73,6 +88,10 @@ export const leagueSnapshotSchema = z.strictObject({
   }),
   titles: z.array(leagueTitleSchema),
   teams: z.array(leagueTeamSchema),
+  /** Sorted: weekly shows by weekday, then PPVs in order. */
+  shows: z.array(leagueShowSchema),
+  /** How many league shows were left out because their name hit the blocklist. */
+  skippedShows: z.number().int().min(0),
   /** Sorted by ring name. */
   wrestlers: z.array(leagueWrestlerSchema),
 });

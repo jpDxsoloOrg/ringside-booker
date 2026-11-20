@@ -206,9 +206,9 @@ Contracts running on the start date; the push columns count wrestler contracts o
 | promotion           | status | contracts | wrestlers | staff | mainEvent | upperCard | midCard | lowerCard | enhancement | none |
 | ------------------- | ------ | --------: | --------: | ----: | --------: | --------: | ------: | --------: | ----------: | ---: |
 | pro-au-indie        | active |        12 |        10 |     2 |         1 |         2 |       2 |         4 |           1 |    0 |
-| pro-ca              | active |        51 |        48 |     3 |         5 |         3 |       9 |        25 |           6 |    0 |
+| pro-ca              | active |        51 |        48 |     3 |         6 |         3 |       9 |        24 |           6 |    0 |
 | pro-de              | active |        20 |        17 |     3 |         1 |         3 |       6 |         5 |           2 |    0 |
-| pro-flagship        | active |       100 |        89 |    11 |         9 |         8 |      20 |        40 |          12 |    0 |
+| pro-flagship        | active |       100 |        89 |    11 |         8 |         8 |      20 |        41 |          12 |    0 |
 | pro-jp-kansai-indie | active |        12 |        10 |     2 |         1 |         2 |       2 |         4 |           1 |    0 |
 | pro-jp-major        | active |        43 |        36 |     7 |         3 |         5 |      10 |        13 |           5 |    0 |
 | pro-mx-major        | active |        43 |        36 |     7 |         3 |         5 |      10 |        13 |           5 |    0 |
@@ -241,16 +241,16 @@ Mean over every person in the world, counting a person unknown in the region as 
 
 | rank | region               | country | mean | people known |
 | ---: | -------------------- | ------- | ---: | -----------: |
-|    1 | us-great-lakes       | us      | 8.38 |          332 |
-|    2 | us-texas             | us      | 8.11 |          329 |
-|    3 | us-northeast         | us      | 8.06 |          322 |
-|    4 | us-southeast         | us      | 7.98 |          318 |
+|    1 | us-great-lakes       | us      | 8.32 |          332 |
+|    2 | us-northeast         | us      | 8.06 |          322 |
+|    3 | us-texas             | us      | 8.00 |          329 |
+|    4 | us-southeast         | us      | 7.95 |          318 |
 |    5 | us-california        | us      | 7.93 |          326 |
-|    6 | us-southwest         | us      | 7.80 |          325 |
-|    7 | us-mid-atlantic      | us      | 7.71 |          317 |
-|    8 | us-florida           | us      | 7.56 |          306 |
-|    9 | us-midwest           | us      | 7.55 |          313 |
-|   10 | us-pacific-northwest | us      | 7.16 |          309 |
+|    6 | us-southwest         | us      | 7.72 |          325 |
+|    7 | us-mid-atlantic      | us      | 7.64 |          317 |
+|    8 | us-florida           | us      | 7.54 |          306 |
+|    9 | us-midwest           | us      | 7.49 |          313 |
+|   10 | us-pacific-northwest | us      | 7.13 |          309 |
 
 ## Promotion popularity footprint (regions at 20 or more)
 

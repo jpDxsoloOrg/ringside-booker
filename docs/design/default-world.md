@@ -211,16 +211,16 @@ placeholder.
 40 recurring shows. Every one is a rule (`weekly`, `everyNWeeks`, `monthly` or
 `annual`); none is a `dates` list, so no schedule runs out after a year.
 
-| Promotion                              | Regular shows                                    | Bigger cards                                                                |
-| -------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
-| Altura                                 | Mainstage (Mon), Overclock (Wed), both televised | Altura Showcase (last Sunday monthly), 4 annual majors, Altitude (flagship) |
-| Tessen                                 | Tessen Iron Hour (Sat, televised)                | 3 annual majors, Tessen Grand Forge (flagship, December)                    |
-| Cielo Alto                             | Viernes de Cielo (Fri, televised)                | 3 annual majors, Gran Vuelo (flagship, September)                           |
-| Longleaf, Ashlar                       | Weekly televised show                            | 2 annual majors                                                             |
-| Boreal                                 | Weekly non-televised show                        | 3 annual majors                                                             |
-| Blast Furnace, Golden Poppy, Eisenwerk | Every other week (`everyNWeeks`, 2)              | 2 annual majors                                                             |
-| Hardpan                                | Weekly                                           | -                                                                           |
-| Hibari, Wattle                         | Every other week                                 | -                                                                           |
+| Promotion                              | Regular shows                                            | Bigger cards                                                                 |
+| -------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| SLW (Altura)                           | Six weekly league shows (Mon-Sat), Mon and Wed televised | Six league PPVs, every other month ([The league roster](#the-league-roster)) |
+| Tessen                                 | Tessen Iron Hour (Sat, televised)                        | 3 annual majors, Tessen Grand Forge (flagship, December)                     |
+| Cielo Alto                             | Viernes de Cielo (Fri, televised)                        | 3 annual majors, Gran Vuelo (flagship, September)                            |
+| Longleaf, Ashlar                       | Weekly televised show                                    | 2 annual majors                                                              |
+| Boreal                                 | Weekly non-televised show                                | 3 annual majors                                                              |
+| Blast Furnace, Golden Poppy, Eisenwerk | Every other week (`everyNWeeks`, 2)                      | 2 annual majors                                                              |
+| Hardpan                                | Weekly                                                   | -                                                                            |
+| Hibari, Wattle                         | Every other week                                         | -                                                                            |
 
 An every-other-week show's `anchor` is its last show on or before the start
 date (a Saturday show anchors on 2027-01-02, a Sunday show on 2027-01-03).
@@ -505,6 +505,19 @@ the promotion like everyone else's, then scaled by `1 + 0.2 × recordScore`; any
 more matches starts with momentum `40 × recordScore`. League alignment maps face → face,
 heel → heel, neutral or none → tweener. Everyone is listed as male and from the United States,
 based in their promotion's home region when it is abroad.
+
+**Shows.** SLW runs the league's shows instead of Altura's (`src/league/shows.ts` rewrites
+only SLW's entries in `events.json`; every other promotion's shows are hand-written). Each weekly
+league show airs on its weekday: Mayhem Monday and Warzone Wednesday take over the record keys of
+Mainstage and Overclock, so the national and sports TV deals carry on with them, and Toxic
+Tuesday, Throwdown Thursday, Fallout Friday and Saturday Showdown run untelevised (a "special"
+with a weekly show's name is a one-off and is dropped). The PPVs are SLW's majors, in the order
+the league ran them, on the second Sunday of every other month from February: SZN Unleashed
+(Feb), OPEN SZN: In Your House (Apr), Unfinished Business (Jun), Szn Reborn (Aug), SZN Zero
+(Oct), SurvivorSzn (Dec). Show names go through the blocklist like every other name.
+
+**Stables.** The world has no stables, so a league stable of exactly three imported members
+becomes a trio team; smaller or partly imported stables are left out.
 
 **Moves and bio.** A league finisher or signature is stored by its custom name, else its game
 name (up to 6 finishers and 8 signatures), in the person's optional `moves`; the league bio goes

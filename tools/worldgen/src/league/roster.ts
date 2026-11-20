@@ -280,24 +280,40 @@ function placeLeagueWrestlers(
   const byName = new Map(rated.map((entry) => [entry.wrestler.ringName, entry]));
   const promotionKeys = [...room.keys()].sort(compareText);
 
-  // Tag teams first, taking turns between SLW and BLX, where the league's tag titles are.
+  // Teams first (tag teams, then trios), taking turns between SLW and BLX, where the league's
+  // tag titles are. A team with a member already placed joins that member.
   let turn = 0;
-  for (const team of [...teams].sort((left, right) =>
-    compareText(left.memberRingNames.join('|'), right.memberRingNames.join('|')),
+  for (const team of [...teams].sort(
+    (left, right) =>
+      left.memberRingNames.length - right.memberRingNames.length ||
+      compareText(left.memberRingNames.join('|'), right.memberRingNames.join('|')),
   )) {
     const names = team.memberRingNames.filter((name) => byName.has(name));
-    if (names.length !== 2 || names.some((name) => placed.has(name))) {
+    if (names.length !== team.memberRingNames.length) {
       continue;
     }
-    const order = turn % 2 === 0 ? [SLW_PROMOTION, BLX_PROMOTION] : [BLX_PROMOTION, SLW_PROMOTION];
-    turn += 1;
-    const home = order.find((key) => (room.get(key) ?? 0) >= 2);
-    const placement = { promotionKey: home ?? null };
-    for (const name of names) {
-      placed.set(name, placement);
+    const already = names
+      .map((name) => placed.get(name))
+      .find((placement) => placement !== undefined);
+    let placement: Placement;
+    if (already !== undefined) {
+      placement = already;
+    } else {
+      const order =
+        turn % 2 === 0 ? [SLW_PROMOTION, BLX_PROMOTION] : [BLX_PROMOTION, SLW_PROMOTION];
+      turn += 1;
+      placement = {
+        promotionKey: order.find((key) => (room.get(key) ?? 0) >= names.length) ?? null,
+      };
     }
-    if (home !== undefined) {
-      room.set(home, (room.get(home) ?? 0) - 2);
+    for (const name of names) {
+      if (placed.has(name)) {
+        continue;
+      }
+      placed.set(name, placement);
+      if (placement.promotionKey !== null) {
+        room.set(placement.promotionKey, (room.get(placement.promotionKey) ?? 0) - 1);
+      }
     }
   }
 
@@ -527,7 +543,7 @@ export function buildLeagueRoster(
     const teamMembers = team.memberRingNames
       .map((name) => memberByName.get(name))
       .filter((member): member is LeagueMember => member !== undefined);
-    if (teamMembers.length !== 2) {
+    if (teamMembers.length !== team.memberRingNames.length) {
       continue;
     }
     let formedOn = addDays(context.startDate, -daysBack(`league-team:${team.name}`, 60, 240));
@@ -538,7 +554,7 @@ export function buildLeagueRoster(
     }
     teams.push({
       key: teamKeyOf(team.name),
-      kind: 'tag',
+      kind: team.kind,
       name: team.name,
       memberKeys: teamMembers.map((member) => member.key).sort(compareText),
       formedOn,
@@ -592,6 +608,7 @@ function buildLeagueReigns(
       let teamKey: string | null = null;
       if (leagueTitle.kind === 'tag') {
         const ownTeams = teams
+          .filter((team) => team.kind === 'tag')
           .filter((team) =>
             team.memberKeys.every(
               (key) => own.some((member) => member.key === key) && !holding.has(key),

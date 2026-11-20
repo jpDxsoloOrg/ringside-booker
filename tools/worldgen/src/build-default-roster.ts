@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs, promisify } from 'node:util';
 import { runValidateWorld } from '@ringside/validate-world/run';
 import { buildDefaultRoster, formatSummary } from './build';
+import { renderLeagueEvents, writeLeagueEvents } from './league/shows';
 import { formatLeagueSummary } from './league/summary';
 import { DEFAULT_WORLD_DIR, GENERATED_FILES, readBuildInputs } from './content';
 import { renderRosterFiles, writeRosterFiles } from './output';
@@ -92,6 +93,17 @@ async function main(argv: readonly string[]): Promise<number> {
     }
   }
 
+  // SLW's shows come from the league snapshot; write them first so the build reads them.
+  const leagueInputs = await readBuildInputs(REPO_ROOT);
+  if (leagueInputs.league !== null) {
+    const events = await renderLeagueEvents(
+      join(REPO_ROOT, DEFAULT_WORLD_DIR),
+      leagueInputs.league.snapshot,
+    );
+    if (events !== null) {
+      await writeLeagueEvents(join(REPO_ROOT, DEFAULT_WORLD_DIR), events);
+    }
+  }
   const build = buildDefaultRoster(await readBuildInputs(REPO_ROOT));
   await writeRosterFiles(join(REPO_ROOT, DEFAULT_WORLD_DIR), renderRosterFiles(build.files));
   process.stdout.write(formatSummary(build.summary));

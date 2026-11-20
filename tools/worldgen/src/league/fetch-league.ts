@@ -97,6 +97,30 @@ const apiWrestlerSchema = z.looseObject({
   assignedSlot: optionalText,
 });
 
+const apiShowSchema = z.looseObject({
+  showId: z.string(),
+  name: z.string(),
+  schedule: optionalText,
+  dayOfWeek: optionalText,
+  ppvDate: optionalText,
+  createdAt: optionalText,
+});
+
+const apiEventSchema = z.looseObject({
+  showId: optionalText,
+  eventType: optionalText,
+  date: optionalText,
+  status: optionalText,
+});
+
+const apiStableSchema = z.looseObject({
+  name: z.string(),
+  status: optionalText,
+  memberIds: z.array(z.string()).nullish(),
+});
+
+const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
 const apiTagTeamSchema = z.looseObject({
   name: z.string(),
   status: z.string(),
@@ -228,6 +252,11 @@ async function main(): Promise<void> {
     getJson(api, '/championships', z.array(apiChampionshipSchema)),
     getJson(api, '/wrestlers', z.array(apiWrestlerSchema)),
     getJson(api, '/tag-teams', z.array(apiTagTeamSchema)),
+  ]);
+  const [shows, events, stables] = await Promise.all([
+    getJson(api, '/shows', z.array(apiShowSchema)),
+    getJson(api, '/events', z.array(apiEventSchema)),
+    getJson(api, '/stables', z.array(apiStableSchema)),
   ]);
   const details = await mapLimited(players, CONCURRENCY, (player) =>
     getJson(api, `/players/${encodeURIComponent(player.playerId)}`, apiPlayerSchema),
@@ -373,6 +402,7 @@ async function main(): Promise<void> {
       return [
         {
           name,
+          kind: 'tag' as const,
           memberRingNames: [first, second].sort(compareText),
           wins: team.wins ?? 0,
           losses: team.losses ?? 0,
@@ -381,13 +411,105 @@ async function main(): Promise<void> {
     })
     .sort((left, right) => compareText(left.name, right.name));
 
+  // Stables of exactly three imported members become trios (the world has no stables yet).
+  for (const stable of stables) {
+    if (stable.status !== 'active') {
+      continue;
+    }
+    const members = (stable.memberIds ?? []).map((id) => ringNameOf.get(id));
+    const name = clean(stable.name);
+    const imported = members.filter((member): member is string => member !== undefined);
+    if (
+      imported.length !== 3 ||
+      members.length !== 3 ||
+      name.length === 0 ||
+      name.length > 60 ||
+      blocklist.blocksName(name)
+    ) {
+      continue;
+    }
+    teams.push({
+      name,
+      kind: 'trio',
+      memberRingNames: imported.sort(compareText),
+      wins: 0,
+      losses: 0,
+    });
+  }
+  teams.sort((left, right) => compareText(left.name, right.name));
+
+  // Shows: one weekly show per weekday (a "special" with the same name as a weekly show is a
+  // one-off and is dropped), and the PPVs in the order the league ran them.
+  let skippedShows = 0;
+  const weekly = new Map<string, { name: string; weekday: number; since: string }>();
+  const ppvs: { name: string; when: string; since: string }[] = [];
+  const firstPpvDate = new Map<string, string>();
+  for (const event of events) {
+    if (event.eventType !== 'ppv' || event.showId === null || event.showId === undefined) {
+      continue;
+    }
+    const date = (event.date ?? '').slice(0, 10);
+    const known = firstPpvDate.get(event.showId);
+    if (date.length === 10 && (known === undefined || date < known)) {
+      firstPpvDate.set(event.showId, date);
+    }
+  }
+  for (const show of [...shows].sort((left, right) =>
+    compareText(left.createdAt ?? '', right.createdAt ?? ''),
+  )) {
+    const name = clean(show.name);
+    if (name.length === 0 || name.length > 80) {
+      continue;
+    }
+    if (blocklist.blocksName(name) || blocklist.blocksText(name)) {
+      skippedShows += 1;
+      continue;
+    }
+    const since = (show.createdAt ?? '').slice(0, 10);
+    if (show.schedule === 'ppv') {
+      const when = (show.ppvDate ?? '').slice(0, 10) || firstPpvDate.get(show.showId) || since;
+      ppvs.push({ name, when, since });
+      continue;
+    }
+    const weekday = WEEKDAYS.indexOf(clean(show.dayOfWeek).toLowerCase());
+    const key = foldName(name);
+    if (weekday < 0 || weekly.has(key)) {
+      continue;
+    }
+    weekly.set(key, { name, weekday, since });
+  }
+  const leagueShows = [
+    ...[...weekly.values()]
+      .sort((left, right) => left.weekday - right.weekday)
+      .map((show) => ({
+        name: show.name,
+        kind: 'weekly' as const,
+        weekday: show.weekday,
+        order: null,
+        since: show.since,
+      })),
+    ...ppvs
+      .sort(
+        (left, right) => compareText(left.when, right.when) || compareText(left.name, right.name),
+      )
+      .map((show, order) => ({
+        name: show.name,
+        kind: 'ppv' as const,
+        weekday: null,
+        order,
+        since: show.since,
+      })),
+  ];
+
   const snapshot: LeagueSnapshot = leagueSnapshotSchema.parse({
     source:
-      'leagueszn.jpdxsolo.com public API (GET /players, /players/{id}, /divisions, /championships, /wrestlers, /tag-teams)',
+      'leagueszn.jpdxsolo.com public API (GET /players, /players/{id}, /divisions, /championships, /wrestlers, /tag-teams, /shows, /events, /stables)',
     fetchedOn: new Date().toISOString().slice(0, 10),
     skipped,
     titles,
     teams,
+    shows: leagueShows,
+    skippedShows,
     wrestlers: [...kept.values()]
       .map(({ wrestler }) => wrestler)
       .sort((left, right) => compareText(left.ringName, right.ringName)),
@@ -401,7 +523,7 @@ async function main(): Promise<void> {
     'utf8',
   );
   process.stdout.write(
-    `Wrote ${path}: ${String(snapshot.wrestlers.length)} wrestlers, ${String(teams.length)} teams, ${String(titles.length)} titles; skipped ${JSON.stringify(skipped)}\n`,
+    `Wrote ${path}: ${String(snapshot.wrestlers.length)} wrestlers, ${String(teams.length)} teams, ${String(titles.length)} titles, ${String(leagueShows.length)} shows; skipped ${JSON.stringify(skipped)}, ${String(skippedShows)} blocked shows\n`,
   );
 }
 

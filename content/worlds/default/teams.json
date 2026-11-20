@@ -84,6 +84,19 @@
     "status": "active"
   },
   {
+    "key": "team-league-straw-hats",
+    "kind": "trio",
+    "name": "Straw Hats",
+    "memberKeys": [
+      "league-kade-king",
+      "league-raphael-torres",
+      "league-victor-van-daigle"
+    ],
+    "formedOn": "2026-06-13",
+    "experience": 20,
+    "status": "active"
+  },
+  {
     "key": "team-pro-ca-01",
     "kind": "tag",
     "name": "Seismic Knight",

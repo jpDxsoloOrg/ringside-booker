@@ -1,5 +1,5 @@
 {
-  "source": "leagueszn.jpdxsolo.com public API (GET /players, /players/{id}, /divisions, /championships, /wrestlers, /tag-teams)",
+  "source": "leagueszn.jpdxsolo.com public API (GET /players, /players/{id}, /divisions, /championships, /wrestlers, /tag-teams, /shows, /events, /stables)",
   "fetchedOn": "2026-11-20",
   "skipped": {
     "blocklist": 64,
@@ -31,23 +31,120 @@
   "teams": [
     {
       "name": "Class of born",
+      "kind": "tag",
       "memberRingNames": ["Enzo kamura", "khi born"],
       "wins": 0,
       "losses": 0
     },
     {
       "name": "SICK A$$ FOOs",
+      "kind": "tag",
       "memberRingNames": ["Alan", "Hoss"],
       "wins": 0,
       "losses": 0
     },
     {
       "name": "Savage Velocity",
+      "kind": "tag",
       "memberRingNames": ["Danny Wolf", "JD Mysterio"],
+      "wins": 0,
+      "losses": 0
+    },
+    {
+      "name": "Straw Hats",
+      "kind": "trio",
+      "memberRingNames": ["Kade King", "Raphael Torres", "Victor van daigle"],
       "wins": 0,
       "losses": 0
     }
   ],
+  "shows": [
+    {
+      "name": "Mayhem Monday",
+      "kind": "weekly",
+      "weekday": 0,
+      "order": null,
+      "since": "2026-03-16"
+    },
+    {
+      "name": "Toxic Tuesday",
+      "kind": "weekly",
+      "weekday": 1,
+      "order": null,
+      "since": "2026-03-16"
+    },
+    {
+      "name": "Warzone Wednesday",
+      "kind": "weekly",
+      "weekday": 2,
+      "order": null,
+      "since": "2026-03-16"
+    },
+    {
+      "name": "Throwdown Thursday",
+      "kind": "weekly",
+      "weekday": 3,
+      "order": null,
+      "since": "2026-03-16"
+    },
+    {
+      "name": "Fallout Friday",
+      "kind": "weekly",
+      "weekday": 4,
+      "order": null,
+      "since": "2026-03-16"
+    },
+    {
+      "name": "Saturday Showdown",
+      "kind": "weekly",
+      "weekday": 5,
+      "order": null,
+      "since": "2026-03-16"
+    },
+    {
+      "name": "SZN Unleashed",
+      "kind": "ppv",
+      "weekday": null,
+      "order": 0,
+      "since": "2026-04-28"
+    },
+    {
+      "name": "OPEN SZN: In Your House",
+      "kind": "ppv",
+      "weekday": null,
+      "order": 1,
+      "since": "2026-05-08"
+    },
+    {
+      "name": "Unfinished Business",
+      "kind": "ppv",
+      "weekday": null,
+      "order": 2,
+      "since": "2026-05-26"
+    },
+    {
+      "name": "Szn Reborn",
+      "kind": "ppv",
+      "weekday": null,
+      "order": 3,
+      "since": "2026-08-14"
+    },
+    {
+      "name": "SZN Zero",
+      "kind": "ppv",
+      "weekday": null,
+      "order": 4,
+      "since": "2026-09-19"
+    },
+    {
+      "name": "SurvivorSzn",
+      "kind": "ppv",
+      "weekday": null,
+      "order": 5,
+      "since": "2026-10-03"
+    }
+  ],
+  "skippedShows": 0,
   "wrestlers": [
     {
       "ringName": "AJ REED",
