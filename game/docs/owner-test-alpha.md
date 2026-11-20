@@ -275,7 +275,7 @@ stack are in [access-codes.md](access-codes.md).
 
 Quick look with no typing (a packaged alpha build; it calls the real service):
 
-```powershell
+````powershell
 & "$env:LOCALAPPDATA\Programs\Ringside Booker\RingsideBooker.exe" -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -rbAccessTour "C:\Temp\rb-access" -rbAccessCode RB-XXXX-XXXX
 
 ## 12. Trades (Beta 03, TRD-02/03/04)
@@ -324,7 +324,7 @@ Quick look without playing (it forces a rival offer with dev overrides; PNGs in 
 
 ```powershell
 & "$env:LOCALAPPDATA\Programs\Ringside Booker\RingsideBooker.exe" -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -rbSeed trd -rbTradeShots "C:\Temp\rb-trade-shots"
-```
+````
 
 ## Known gaps
 
