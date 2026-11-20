@@ -37,6 +37,8 @@ export { checkNewShow, type NewShowWarning } from './newShowChecks';
 export {
   calendarEditorQueries,
   type DefinitionRow,
+  type DefinitionScheduling,
+  type SchedulingStatus,
   type EditorOptionsView,
   type PlaceChoicesView,
   type PlanView,
