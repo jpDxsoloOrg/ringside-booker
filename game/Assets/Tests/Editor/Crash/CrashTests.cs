@@ -237,10 +237,10 @@ namespace RingsideBooker.Tests.Crash
         }
 
         [Test]
-        public void TheAddressIsThePlaceholder()
+        public void TheAddressIsSetForTesters()
         {
-            Assert.AreEqual("feedback@example.invalid", FeedbackConfig.Address);
-            Assert.IsTrue(FeedbackConfig.IsPlaceholder);
+            Assert.AreEqual("jp@jpdxsolo.com", FeedbackConfig.Address);
+            Assert.IsFalse(FeedbackConfig.IsPlaceholder);
         }
 
         [Test]
