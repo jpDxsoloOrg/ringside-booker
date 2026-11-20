@@ -13,9 +13,10 @@ using UnityEngine.UIElements;
 namespace RingsideBooker.UI.Title
 {
     /// <summary>
-    /// The title screen's save panels: Continue (the latest slot), Load (every slot: load, export,
-    /// delete, import a file, open the folder), the interim quick start, and the sheets for a save
-    /// that will not load ("Made with an older build" and "Could not load").
+    /// The title screen's save panels: Continue (the latest slot), Load (every slot: load, backups,
+    /// export, delete, import a file, open the folder), the interim quick start, the Backups sheet
+    /// (UNITY-27), and the sheets for a save that will not load ("Made with an older build" and
+    /// "Could not load", which offers every backup).
     /// </summary>
     internal sealed class TitleSaves
     {
@@ -59,7 +60,7 @@ namespace RingsideBooker.UI.Title
                     return;
                 }
 
-                Open(latest, false);
+                Open(latest, null);
             }
             catch (Exception error)
             {
@@ -130,31 +131,43 @@ namespace RingsideBooker.UI.Title
             }
 
             if (slot.NeedsInspect) meta.Add(Ui.Text("Unreadable", "save-tag"));
+            if (slot.MadeByAlpha)
+            {
+                Label alpha = Ui.Text("Alpha", "save-tag", "save-tag--quiet").Named("save-alpha-" + slot.SlotId);
+                alpha.tooltip = "Saved by an Alpha build" + (slot.BuildVersion == null ? "." : " (" + slot.BuildVersion + ").");
+                meta.Add(alpha);
+            }
 
             VisualElement main = Ui.El("save-slot__main").With(
                 Ui.Text(slot.Label ?? slot.SlotId, "save-slot__label"),
                 Ui.Text(slot.Subtitle, "save-slot__subtitle"),
                 meta);
 
-            Button load = Ui.Btn("LOAD", () => Open(slot, false), "btn--primary");
+            Button load = Ui.Btn("LOAD", () => Open(slot, null), "btn--primary");
             load.SetEnabled(!slot.NeedsInspect);
+            Button backups = Ui.Btn(slot.BackupCount > 0 ? $"BACKUPS ({slot.BackupCount})" : "BACKUPS", () => OpenBackupsSheet(slot)).Named("backups-" + slot.SlotId);
+            backups.tooltip = slot.BackupCount > 0 ? "Earlier versions of this save" : "No backups yet: the next save keeps this one";
             VisualElement actions = Ui.El("save-slot__actions").With(
                 load,
+                backups,
                 Ui.Btn("EXPORT", () => Export(slot)),
                 Ui.Btn("DELETE", () => ConfirmDelete(slot, null), "btn--ghost"));
             return Ui.El("card", "save-slot").With(main, actions).Named("save-slot-" + slot.SlotId);
         }
 
-        private async void Open(SaveSlotInfo slot, bool backup)
+        /// <param name="backup">A backup of the slot to load instead of its latest save; null for the save.</param>
+        private async void Open(SaveSlotInfo slot, SaveBackupInfo backup)
         {
             if (busy) return;
             busy = true;
-            VisualElement inner = Panel(backup ? "Load backup" : "Continue");
-            Label status = Status(inner, $"Loading {slot.Label}…");
+            VisualElement inner = Panel(backup != null ? "Load backup" : "Continue");
+            Label status = Status(inner, backup != null ? $"Loading the backup of {slot.Label} from {BackupDate(backup)}…" : $"Loading {slot.Label}…");
             try
             {
                 EngineClient engine = await SaveEngine.GetAsync();
-                OpenResult result = await GameSession.OpenSlotAsync(engine, slot, store, backup);
+                OpenResult result = backup != null
+                    ? await GameSession.OpenBackupAsync(engine, slot, backup.BackupId, store)
+                    : await GameSession.OpenSlotAsync(engine, slot, store);
                 busy = false;
                 switch (result.Status)
                 {
@@ -330,15 +343,11 @@ namespace RingsideBooker.UI.Title
             sheet.Body.Add(Ui.Text($"{slot.Label} would not load. {result.Problem}", "save-sheet__body"));
             Label copyStatus = Ui.Text(string.Empty, "save-status");
             sheet.Body.Add(copyStatus);
+            // Every backup, newest first: one of them may still load (UNITY-27).
+            VisualElement backups = Ui.El("save-backup-list").Named("load-error-backups");
+            sheet.Body.Add(backups);
+            FillBackups(backups, slot, sheet, "Or go back to an earlier version of this save:");
             AddCopyButton(sheet, result.Report, copyStatus);
-            if (slot.HasBackup)
-            {
-                sheet.AddFooterButton("Load the backup", () =>
-                {
-                    sheet.Close();
-                    Open(slot, true);
-                }, "btn--primary");
-            }
 
             sheet.AddFooterButton("Export this save", () =>
             {
@@ -346,6 +355,88 @@ namespace RingsideBooker.UI.Title
                 Export(slot);
             });
             sheet.AddFooterButton("Delete this save", () => ConfirmDelete(slot, sheet.Close), "btn--ghost");
+        }
+
+        /// <summary>The Backups sheet (UNITY-27): every backup of the slot, newest first, each loadable after a confirm.</summary>
+        private void OpenBackupsSheet(SaveSlotInfo slot)
+        {
+            Sheet sheet = Sheet.Open(overlay, "Backups of " + (slot.Label ?? slot.SlotId), SheetPlacement.Right);
+            ApplyStyles(sheet.Root);
+            sheet.Root.name = "backups-sheet";
+            int keep = SaveSettings.BackupsPerSlot;
+            sheet.Body.Add(Ui.Text(
+                $"Each save keeps its last {keep} {(keep == 1 ? "version" : "versions")}. Loading one leaves your latest save in the slot until you save over it.",
+                "save-sheet__body"));
+            VisualElement list = Ui.El("save-backup-list").Named("backup-list");
+            sheet.Body.Add(list);
+            FillBackups(list, slot, sheet, null);
+            sheet.AddFooterButton("Close", sheet.Close, "btn--ghost");
+        }
+
+        // Lists the slot's backups into list (read off the main thread); "Load this backup" asks first.
+        private async void FillBackups(VisualElement list, SaveSlotInfo slot, Sheet sheet, string heading)
+        {
+            Label status = Ui.Text("Reading backups…", "save-status");
+            list.Add(status);
+            try
+            {
+                EngineClient engine = await SaveEngine.GetAsync();
+                IReadOnlyList<SaveBackupInfo> backups = await store.ListBackupsAsync(engine, slot.SlotId);
+                list.Clear();
+                if (backups.Count == 0)
+                {
+                    if (heading == null) list.Add(Ui.Text("This save has no backups yet. The next save keeps this one as a backup.", "save-status"));
+                    return;
+                }
+
+                if (heading != null) list.Add(Ui.Text(heading, "save-sheet__body"));
+                foreach (SaveBackupInfo backup in backups)
+                {
+                    SaveBackupInfo chosen = backup;
+                    VisualElement info = Ui.El("save-backup__info").With(
+                        Ui.Text(BackupDate(backup), "save-backup__date"),
+                        Ui.Text($"Saved {backup.Info.SavedAtText()} · {backup.Info.SizeText()}", "save-backup__meta"));
+                    Button load = Ui.Btn("LOAD THIS BACKUP", () => ConfirmLoadBackup(slot, chosen, sheet)).Named("load-backup-" + backup.BackupId);
+                    list.Add(Ui.El("save-backup").With(info, load).Named("backup-" + backup.BackupId));
+                }
+            }
+            catch (Exception error)
+            {
+                Debug.LogException(error);
+                status.text = "Could not read the backups: " + error.GetBaseException().Message;
+                status.AddToClassList("save-status--error");
+            }
+        }
+
+        private void ConfirmLoadBackup(SaveSlotInfo slot, SaveBackupInfo backup, Sheet from)
+        {
+            Sheet confirm = Sheet.Open(overlay, "Load this backup?", SheetPlacement.Center, small: true);
+            ApplyStyles(confirm.Root);
+            confirm.Root.name = "confirm-load-backup";
+            confirm.Body.Add(Ui.Text(
+                $"Load the backup from {BackupDate(backup)}? Your latest save stays in the slot until you save over it.",
+                "save-sheet__body"));
+            confirm.AddFooterButton("Cancel", confirm.Close, "btn--ghost");
+            Button go = confirm.AddFooterButton("Load backup", () =>
+            {
+                confirm.Close();
+                from?.Close();
+                Open(slot, backup);
+            }, "btn--primary");
+            go.name = "confirm-load-backup-go";
+            go.schedule.Execute(() => go.Focus());
+        }
+
+        /// <summary>The game date a backup holds ("Apr 10, 2026"), or when it was saved if its header was lost.</summary>
+        private static string BackupDate(SaveBackupInfo backup)
+        {
+            if (backup.GameDate != null && DateTime.TryParseExact(backup.GameDate, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out DateTime date))
+            {
+                return date.ToString("MMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture);
+            }
+
+            return "the save of " + backup.Info.SavedAtText();
         }
 
         private static void AddCopyButton(Sheet sheet, string report, Label copyStatus)

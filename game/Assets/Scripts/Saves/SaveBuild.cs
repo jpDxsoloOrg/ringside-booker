@@ -5,7 +5,7 @@ namespace RingsideBooker.Saves
     /// slot header this build writes (<see cref="SaveSlotInfo.BuildVersion"/>,
     /// <see cref="SaveSlotInfo.BuildChannel"/>). The Saves assembly cannot see the game's
     /// <c>RingsideBooker.Release.ReleaseInfo</c>, so the game sets these at start-up
-    /// (<c>UI/Saves/SaveBuildHook.cs</c>). Null when unknown (tests, tools).
+    /// (<c>UI/SaveUi/SaveBuildHook.cs</c>). Null when unknown (tests, tools).
     /// </summary>
     public static class SaveBuild
     {

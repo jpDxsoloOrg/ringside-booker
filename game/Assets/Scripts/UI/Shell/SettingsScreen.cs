@@ -40,6 +40,7 @@ namespace RingsideBooker.UI.Shell
             var panel = new VisualElement();
             panel.Add(ScaleGroup());
             panel.Add(WindowGroup());
+            panel.Add(BackupsGroup());
             // A world setting: only while a game is running (the title screen has no world).
             if (EngineGame.Current != null) panel.Add(BigWorldSpeedGroup(EngineGame.Current));
             panel.Add(CreditsGroup());
@@ -118,6 +119,43 @@ namespace RingsideBooker.UI.Shell
 
             AddMode("Fullscreen", FullScreenMode.FullScreenWindow);
             AddMode("Windowed", FullScreenMode.Windowed);
+            Refresh();
+            return group;
+        }
+
+        /// <summary>Backups per save (UNITY-27): how many earlier versions each save slot keeps.</summary>
+        private static VisualElement BackupsGroup()
+        {
+            VisualElement group = Ui.El("card", "settings-group").Named("settings-backups");
+            VisualElement chips = Ui.El("chip-row");
+            group.With(
+                Ui.Text(TextFormat.Upper("Backups per save"), "settings-group__title"),
+                Ui.Text("Each save keeps its last few versions, so you can go back to one from Load. More backups use more disk space.", "field-hint", "settings-group__hint"),
+                chips);
+
+            void Refresh()
+            {
+                foreach (VisualElement chip in chips.Children())
+                {
+                    chip.EnableInClassList("choice-chip--selected", (int)chip.userData == RingsideBooker.Saves.SaveSettings.BackupsPerSlot);
+                }
+            }
+
+            foreach (int choice in RingsideBooker.Saves.SaveSettings.BackupChoices)
+            {
+                int value = choice;
+                Button chip = Ui.Button(string.Empty, () =>
+                {
+                    RingsideBooker.Saves.SaveSettings.BackupsPerSlot = value;
+                    Refresh();
+                }, "choice-chip");
+                chip.name = $"backups-per-save-{value}";
+                chip.userData = value;
+                chip.Add(Ui.Text(value.ToString(System.Globalization.CultureInfo.InvariantCulture), "choice-chip__label"));
+                chip.style.flexGrow = 0;
+                chip.style.minWidth = 72;
+                chips.Add(chip);
+            }
             Refresh();
             return group;
         }

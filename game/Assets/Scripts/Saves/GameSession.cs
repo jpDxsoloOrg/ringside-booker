@@ -178,10 +178,10 @@ namespace RingsideBooker.Saves
             if (string.IsNullOrEmpty(backupId)) throw new ArgumentNullException(nameof(backupId));
             store = store ?? new SaveStore();
             SaveStore reader = store;
-            return OpenAsync(engine, slot, store, () => reader.LoadBackup(slot.SlotId, backupId), true);
+            return OpenAsync(engine, slot, store, () => reader.LoadBackup(slot.SlotId, backupId), true, backupId);
         }
 
-        private static async Task<OpenResult> OpenAsync(EngineClient engine, SaveSlotInfo slot, SaveStore store, Func<byte[]> read, bool backup)
+        private static async Task<OpenResult> OpenAsync(EngineClient engine, SaveSlotInfo slot, SaveStore store, Func<byte[]> read, bool backup, string backupId = null)
         {
             if (engine == null) throw new ArgumentNullException(nameof(engine));
             await EndCurrentAsync();
@@ -201,7 +201,7 @@ namespace RingsideBooker.Saves
             {
                 var session = new GameSession(engine, store, slot.SlotId, slot.Label ?? loaded.Summary?.Label, loaded.Summary?.Seat, loaded.Revision)
                 {
-                    LastSaved = slot,
+                    LastSaved = backupId == null ? slot : BackupShownAs(store, slot, backupId),
                     LastSaveKind = backup ? SaveKind.LoadedBackup : SaveKind.Loaded,
                 };
                 Current = session;
@@ -231,6 +231,28 @@ namespace RingsideBooker.Saves
                 Problem = olderBuild ? SaveCompat.OlderBuildBody : loaded.ProblemText,
                 Report = SaveCompat.Report(slot.Label, loaded, saved, current, olderBuild),
             };
+        }
+
+        // The loaded backup's header with the slot's name and backup count (what the chip shows).
+        private static SaveSlotInfo BackupShownAs(SaveStore store, SaveSlotInfo slot, string backupId)
+        {
+            SaveBackupInfo backup = null;
+            try
+            {
+                foreach (SaveBackupInfo candidate in store.ListBackups(slot.SlotId))
+                {
+                    if (candidate.BackupId == backupId) backup = candidate;
+                }
+            }
+            catch (System.IO.IOException)
+            {
+            }
+
+            if (backup == null || backup.NeedsInspect) return slot;
+            SaveSlotInfo shown = backup.Info.Clone();
+            shown.Label = slot.Label;
+            shown.BackupCount = slot.BackupCount;
+            return shown;
         }
 
         /// <summary>Ends the running session, if any (final save always). Safe to call from Main menu.</summary>
