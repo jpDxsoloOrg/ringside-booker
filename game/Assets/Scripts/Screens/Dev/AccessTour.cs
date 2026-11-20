@@ -87,6 +87,8 @@ namespace RingsideBooker.Screens.Dev
             yield return WaitWhileBusy();
             Label error = gate.Element.Q<Label>(className: "dsf-error");
             Check(error != null && error.text.StartsWith("That code isn't valid", StringComparison.Ordinal), "a made-up code is refused in plain words");
+            Check(gate.SubmitButton.enabledSelf, "Start playing works again after the error");
+            yield return Wait(0.3f);
             yield return Capture("gate-invalid-code");
 
             gate.Field.Input.value = code.ToLowerInvariant();

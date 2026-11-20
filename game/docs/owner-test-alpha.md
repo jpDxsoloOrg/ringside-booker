@@ -247,6 +247,38 @@ Quick look without playing (PNGs in the folder; add `-rbDraftNegotiate` for the 
 & "$env:LOCALAPPDATA\Programs\Ringside Booker\RingsideBooker.exe" -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -rbDraftShots "C:\Temp\rb-draft-shots"
 ```
 
+## 11. Tester access code (POL9-12)
+
+Test builds ask for a tester code once per computer. How it works, the codes tool and the AWS
+stack are in [access-codes.md](access-codes.md).
+
+1. Make a code for yourself, from `services/access` (run `npm ci` there once):
+   `npm run codes -- create --label "Owner test"`. It prints a code like `RB-XXXX-XXXX`.
+2. Install this build and start it.
+   - [ ] Before the title menu, **Enter your tester code** shows, with Start playing and Quit.
+   - [ ] A made-up code (`RB-2222-2222`) says "That code isn't valid…".
+   - [ ] Your code, typed in lower case or without dashes, is accepted and the title menu shows.
+3. Play a little, quit, and start the game again.
+   - [ ] No code is asked for. Settings › About shows **Tester access: active (RB-XXXX-••••)** and
+         "Works offline until …".
+4. Turn the network off (or unplug) and start the game again.
+   - [ ] It starts without asking (offline grace).
+5. **Settings › About › Remove this code**, then **Remove**.
+   - [ ] On the title screen the code screen comes straight back; in a game it comes back at the
+         next start. Entering the same code again works (the same computer doesn't use another
+         slot).
+6. Run `npm run codes -- list`: the code shows `1/2 computers`. Then revoke it with
+   `npm run codes -- revoke RB-XXXX-XXXX`, use **Remove this code** again and re-enter it.
+   - [ ] It says "This code has been turned off…". (A game that still holds the code stops at its
+         weekly check when online, or when the 30-day offline grace runs out.)
+7. Delete the test code when you're done: `npm run codes -- delete RB-XXXX-XXXX`.
+
+Quick look with no typing (a packaged alpha build; it calls the real service):
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\Ringside Booker\RingsideBooker.exe" -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -rbAccessTour "C:\Temp\rb-access" -rbAccessCode RB-XXXX-XXXX
+```
+
 ## Known gaps
 
 - The feedback address is a placeholder until you set it.

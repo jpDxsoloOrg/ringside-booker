@@ -212,7 +212,7 @@ namespace RingsideBooker.UI.Access
         private static void SetLabel(Button button, string text)
         {
             Label label = button.Q<Label>(className: "ds-btn__label");
-            if (label != null) label.text = text;
+            if (label != null) label.text = TextFormat.Upper(text);
         }
 
         private void Pass()
