@@ -138,6 +138,8 @@ namespace RingsideBooker.Screens.Dev
             yield return Wait(0.3f);
             yield return Capture("settings-feedback");
 
+            // The tour's forced faults must not leave the player's next start on Start safe.
+            CrashGuard.Clear();
             Log(failures == 0 ? "PASSED" : $"FAILED ({failures} checks)");
             Application.Quit(failures == 0 ? 0 : 1);
         }

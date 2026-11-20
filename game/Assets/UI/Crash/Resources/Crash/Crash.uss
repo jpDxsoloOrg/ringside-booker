@@ -20,9 +20,10 @@
     flex-grow: 1;
 }
 
-.cx-stopped__scroll > .unity-scroll-view__content-viewport > .unity-scroll-view__content-container {
+.cx-stopped__center {
+    flex-shrink: 0;
     align-items: center;
-    padding: 48px 24px;
+    padding: 96px 24px 48px 24px;
 }
 
 .cx-stopped__card {
@@ -243,6 +244,10 @@
     font-size: 13px;
     color: var(--ds-warn);
     white-space: normal;
+}
+
+.cx-settings-group {
+    flex-shrink: 0;
 }
 
 .cx-feedback--title {

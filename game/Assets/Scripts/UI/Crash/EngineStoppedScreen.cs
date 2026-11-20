@@ -266,7 +266,7 @@ namespace RingsideBooker.UI.Crash
             card.Add(toggle);
             card.Add(details);
 
-            scroll.Add(card);
+            scroll.Add(Ui.El("cx-stopped__center").With(card));
             screen.Add(scroll);
             first.schedule.Execute(() => first.Focus()).ExecuteLater(50);
             return screen;

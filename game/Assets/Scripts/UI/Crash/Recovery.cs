@@ -125,7 +125,8 @@ namespace RingsideBooker.UI.Crash
         private static void EndOldGame()
         {
             _ = GameSession.EndCurrentAsync(alwaysSave: false);
-            if (EngineGame.Current != null || ShellServices.IsInstalled) ShellServices.Clear();
+            EngineGame.Current?.Dispose();
+            if (ShellServices.IsInstalled) ShellServices.Clear();
             if (EngineRuntime.Client != null && EngineRuntime.Client.IsStopped) EngineRuntime.Reset();
         }
     }

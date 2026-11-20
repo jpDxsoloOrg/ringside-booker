@@ -22,7 +22,6 @@ namespace RingsideBooker.UI.Crash
             var slot = new VisualElement { name = "load-notice-slot" };
             slot.AddToClassList("cx-load-notice-slot");
             CrashStyles.Apply(slot);
-            anchor.parent.Insert(anchor.parent.IndexOf(anchor), slot);
 
             void Render()
             {
@@ -33,6 +32,8 @@ namespace RingsideBooker.UI.Crash
 
             slot.RegisterCallback<AttachToPanelEvent>(_ => LoadNotice.Changed += Render);
             slot.RegisterCallback<DetachFromPanelEvent>(_ => LoadNotice.Changed -= Render);
+            // Subscribe first: the slot joins a live panel, so AttachToPanelEvent fires on insert.
+            anchor.parent.Insert(anchor.parent.IndexOf(anchor), slot);
             Render();
         }
 

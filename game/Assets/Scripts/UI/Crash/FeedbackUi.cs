@@ -75,7 +75,8 @@ namespace RingsideBooker.UI.Crash
         /// <summary>Settings' "Feedback &amp; bug reports" group.</summary>
         public static VisualElement SettingsGroup()
         {
-            VisualElement group = Ui.El("card", "settings-group").Named("settings-feedback");
+            VisualElement group = Ui.El("card", "settings-group", "cx-settings-group").Named("settings-feedback");
+            CrashStyles.Apply(group);
             group.With(
                 Ui.Text(TextFormat.Upper("Feedback & bug reports"), "settings-group__title"),
                 Ui.Text("Send feedback opens your mail app with a new message and makes a bug report file to attach. " + WhatsInIt,

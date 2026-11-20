@@ -199,7 +199,14 @@ namespace RingsideBooker.Diagnostics
             }
         }
 
-        private static string NewZipPath() => Path.Combine(Directory, FileName(DateTime.Now));
+        // Windows paths read and paste better with one kind of slash (persistentDataPath uses '/').
+        private static string NewZipPath()
+        {
+            string path = Path.Combine(Directory, FileName(DateTime.Now));
+            return Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor
+                ? path.Replace('/', '\\')
+                : path;
+        }
 
         private static void Finish(string path)
         {
