@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global document -- the evaluate() callbacks run in the browser page. */
 // Renders the app icon (POL9-10) from game/branding/app-icon.svg (48 px and up) and
 // app-icon-small.svg (16-32 px) to PNGs, then packs the Windows .ico with ImageMagick.
 //
