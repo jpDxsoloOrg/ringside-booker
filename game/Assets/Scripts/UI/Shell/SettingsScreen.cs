@@ -259,6 +259,7 @@ namespace RingsideBooker.UI.Shell
             whatsNew.style.marginTop = 8;
             group.Add(whatsNew);
             group.Add(Updates.UpdateUi.AboutBlock());
+            group.Add(Access.AccessUi.AboutBlock());
             return group;
         }
 

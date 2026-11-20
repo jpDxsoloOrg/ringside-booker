@@ -188,6 +188,8 @@ export default defineConfig(
     '**/test-results/**',
     // The embedded engine bundle for the Unity game (npm run build:engine-bundle).
     'game/Assets/StreamingAssets/engine/**',
+    // The tester access service installs its own packages; `npm run lint` in services/access lints it.
+    'services/**',
   ]),
 
   // Plain JavaScript (this file and any future build scripts) runs in Node.

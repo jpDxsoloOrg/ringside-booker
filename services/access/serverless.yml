@@ -1,0 +1,89 @@
+# Ringside Booker tester access codes (POL9-12). Read game/docs/access-codes.md first.
+# Everything here is new and lives in its own stack, `ringside-booker-access`. It touches no other
+# stack, table, pool or bucket in the account.
+service: ringside-booker-access
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  architecture: arm64
+  region: us-east-1
+  stage: prod
+  stackName: ringside-booker-access
+  memorySize: 256
+  timeout: 10
+  logRetentionInDays: 14
+  environment:
+    CODES_TABLE: ${self:custom.table}
+    SIGNING_KEY_PARAM: ${self:custom.signingKeyParam}
+    PUBLIC_KEY_PARAM: ${self:custom.publicKeyParam}
+  httpApi:
+    cors: false
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+          Resource: !GetAtt CodesTable.Arn
+        - Effect: Allow
+          Action:
+            - ssm:GetParameter
+            - ssm:PutParameter
+          Resource:
+            - arn:aws:ssm:${aws:region}:${aws:accountId}:parameter${self:custom.signingKeyParam}
+            - arn:aws:ssm:${aws:region}:${aws:accountId}:parameter${self:custom.publicKeyParam}
+
+custom:
+  table: ringside-booker-access-codes
+  signingKeyParam: /ringside-booker-access/prod/signing-key
+  publicKeyParam: /ringside-booker-access/prod/public-key
+
+package:
+  individually: false
+  patterns:
+    - '!**'
+    - dist/**
+
+functions:
+  activate:
+    handler: dist/lambda.activate
+    events:
+      - httpApi:
+          method: POST
+          path: /activate
+  refresh:
+    handler: dist/lambda.refresh
+    events:
+      - httpApi:
+          method: POST
+          path: /refresh
+  # Not on the API: run once with `npm run keygen` to make the key pair inside AWS.
+  keygen:
+    handler: dist/lambda.keygen
+
+resources:
+  Resources:
+    CodesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.table}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: codeId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: codeId
+            KeyType: HASH
+  extensions:
+    # A tester's game calls at most a few times a week, so these limits only bite on abuse.
+    HttpApiStage:
+      Properties:
+        DefaultRouteSettings:
+          ThrottlingRateLimit: 5
+          ThrottlingBurstLimit: 10
+  Outputs:
+    AccessApiUrl:
+      Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com

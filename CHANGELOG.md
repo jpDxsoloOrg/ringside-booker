@@ -16,6 +16,11 @@ How I write an entry:
 
 ## Unreleased
 
+### Added
+
+- I added tester codes. Test builds ask for your tester code once on each computer, then play
+  offline too; Settings › About shows the code (partly hidden) and can remove it.
+
 ## [0.1.0-alpha.3] - 2026-11-20
 
 ### Added
