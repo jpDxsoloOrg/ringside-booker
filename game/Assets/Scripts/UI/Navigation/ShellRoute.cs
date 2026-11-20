@@ -74,5 +74,7 @@ namespace RingsideBooker.UI.Navigation
         public const string ShowResults = "show-results";
         public const string Worker = "worker";
         public const string Promotion = "promotion";
+        /// <summary>DRF-02: the draft room, before day 1 of a draft-start game.</summary>
+        public const string Draft = "draft";
     }
 }

@@ -318,7 +318,22 @@ namespace RingsideBooker.Screens
             Button go = Ds.Button(Signing.Action, () => page.Context.Navigator.Go(Signing.Route), DsButtonKind.Secondary, "contracts");
             go.name = "booking-sign-wrestlers";
             note.Add(go);
+            // DRF-03: after a draft with "Negotiate contracts after the draft" (or a new promotion) the
+            // first show can come before anyone has signed; calling it off lets the days move on.
+            Button off = Ds.Button("Call off this show", () => ConfirmCallOff(page), DsButtonKind.Ghost);
+            off.name = "booking-call-off";
+            DsTooltip.Attach(off, "Cancel tonight's show. The next one stays on the calendar.");
+            note.Add(off);
             return note;
+        }
+
+        private static void ConfirmCallOff(BookingPage page)
+        {
+            VisualElement body = Ds.Column();
+            body.Add(Ds.Text("The show is cancelled and the day can move on. Your next show stays on the calendar.", "ds-type-body", "fc-wrap"));
+            DsOverlay.Modal(page.Feedback, "Call off this show?", body,
+                ("Keep it", DsButtonKind.Ghost, null),
+                ("Call it off", DsButtonKind.Danger, async () => await Kit.Run("calendar.cancelShow", new JObject { ["eventInstanceId"] = page.EventId }, page.Feedback)));
         }
 
         private static void ConfirmClear(BookingPage page)

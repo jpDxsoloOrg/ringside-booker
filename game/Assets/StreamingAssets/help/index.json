@@ -9,11 +9,23 @@
     {
       "slug": "getting-started",
       "title": "Your first week",
-      "summary": "What to do first, the day button, skipping days, keys and saving.",
+      "summary": "What to do first, the day button, skipping days, keys, saving and a draft start.",
       "section": "basics",
       "order": 1,
-      "keywords": ["start", "new", "first", "day", "skip", "keys", "save", "saving", "load"],
-      "screens": []
+      "keywords": [
+        "start",
+        "new",
+        "first",
+        "day",
+        "skip",
+        "keys",
+        "save",
+        "saving",
+        "load",
+        "draft",
+        "pool"
+      ],
+      "screens": ["draft"]
     },
     {
       "slug": "the-office",

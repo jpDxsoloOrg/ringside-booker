@@ -14,6 +14,8 @@ namespace RingsideBooker.UI.Day
         public const string Contracts = "contracts";
         public const string OfferAnswered = "offerAnswered";
         public const string News = "news";
+        /// <summary>DRF-02: the draft before day 1 (<c>draft.unfinished</c>, "Finish the draft").</summary>
+        public const string Draft = "draft";
 
         public const string CounterWaitingGateId = "contracts.counterWaiting";
         public const string ReleaseRequestedGateId = "contracts.releaseRequested";
@@ -84,15 +86,19 @@ namespace RingsideBooker.UI.Day
         public const string OfferAnsweredLabel = "Offer answered";
         public const string OpenNewsLabel = "Open news";
         public const string GenericGateLabel = "Needs attention";
+        public const string FinishDraftLabel = "Finish the draft";
+        public const string DraftScreenId = ScreenIds.Draft;
         public const string InjuriesTabId = "injuries";
 
         /// <summary>
-        /// Hints in the order they win when several gates hit at once: decisions, then the show,
+        /// Hints in the order they win when several gates hit at once: the draft (nothing moves
+        /// before it is finished), decisions, then the show,
         /// then a new injury, contract stops, an answered offer, and a news alert last. Hints not
         /// listed keep the engine's registration order, after these.
         /// </summary>
         public static readonly IReadOnlyList<string> HintPriority = new[]
         {
+            GateHints.Draft,
             GateHints.Inbox,
             GateHints.ShowNight,
             GateHints.Roster,
@@ -125,6 +131,7 @@ namespace RingsideBooker.UI.Day
                 To = hit => ShellRoute.With("booking", "event", SubjectId(hit, "eventInstance")),
             },
             [GateHints.Roster] = new GateRoute { Label = _ => RosterLabel, To = InjuryDestination },
+            [GateHints.Draft] = new GateRoute { Label = _ => FinishDraftLabel, To = _ => ShellRoute.To(DraftScreenId) },
             [GateHints.Contracts] = new GateRoute { Label = _ => ContractsLabel, To = ContractsDestination },
             [GateHints.OfferAnswered] = new GateRoute
             {

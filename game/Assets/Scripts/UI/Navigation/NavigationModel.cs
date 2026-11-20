@@ -89,6 +89,7 @@ namespace RingsideBooker.UI.Navigation
             [ScreenIds.ShowResults] = "Show results",
             [ScreenIds.Worker] = "Worker",
             [ScreenIds.Promotion] = "Promotion",
+            [ScreenIds.Draft] = "Draft room",
         };
 
         /// <summary>The sections the player can see: promotion sections drop out while unemployed.</summary>

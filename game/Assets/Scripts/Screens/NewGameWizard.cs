@@ -105,6 +105,11 @@ namespace RingsideBooker.Screens
         /// </summary>
         public bool HandleBack()
         {
+            if (picking)
+            {
+                ClosePicker();
+                return true;
+            }
             if (!importing || importRunning || removing) return false;
             if (managing)
             {
@@ -168,7 +173,7 @@ namespace RingsideBooker.Screens
                 steps.Add(label);
             }
             // Redrawing the same page (picking an option, opening Advanced) keeps the scroll position.
-            string page = importing ? (managing ? "manage" : "import") : $"step-{step}";
+            string page = importing ? (managing ? "manage" : "import") : picking ? "picker" : $"step-{step}";
             Vector2 offset = page == drawnPage ? body.scrollOffset : Vector2.zero;
             drawnPage = page;
             body.Clear();
@@ -176,6 +181,7 @@ namespace RingsideBooker.Screens
             feedback.SetShown(false);
             if (importing && managing) DrawManage();
             else if (importing) DrawImport();
+            else if (picking) DrawPicker();
             else
             {
                 switch (step)
@@ -194,6 +200,7 @@ namespace RingsideBooker.Screens
         {
             if (index > 0 && preview == null) return;
             importing = false;
+            picking = false;
             step = index;
             showAdvanced = advanced;
             Draw();
@@ -738,6 +745,7 @@ namespace RingsideBooker.Screens
                 seasonPreset = Kit.Str(preview, "seasonLength.defaultPreset") ?? "12m";
                 settings.Clear();
                 foreach (JToken setting in Kit.Arr(preview, "settings")) settings[Kit.Str(setting, "key")] = setting["default"]?.DeepClone();
+                ResetDraftChoices();
                 step = 1;
                 Draw();
             }
@@ -829,12 +837,20 @@ namespace RingsideBooker.Screens
             body.Add(Ui.Text("Seasons set the competitive rhythm: awards, rankings and season goals come round at the end of each one.",
                 "rb-setting__description"));
 
+            planHost = null;
+            DrawActivePromotions();
+
             List<IGrouping<string, JToken>> groups = Kit.Arr(preview, "settings")
                 .GroupBy(setting => Kit.Str(setting, "group") ?? "world").ToList();
             foreach (IGrouping<string, JToken> group in groups.Where(group => group.Key != AdvancedGroup))
             {
+                if (group.Key == DraftGroup)
+                {
+                    DrawDraftGroup(group);
+                    continue;
+                }
                 body.Add(Section(GroupLabel(group.Key)));
-                foreach (JToken setting in group) body.Add(SettingRow(setting));
+                foreach (JToken setting in group.Where(Shown)) body.Add(SettingRow(setting));
             }
 
             // Don't overwhelm: the seed and the advanced settings sit behind a toggle, closed by default.
@@ -860,7 +876,7 @@ namespace RingsideBooker.Screens
                 foreach (IGrouping<string, JToken> group in groups.Where(group => group.Key == AdvancedGroup))
                 {
                     advanced.Add(Section(GroupLabel(group.Key)));
-                    foreach (JToken setting in group) advanced.Add(SettingRow(setting));
+                    foreach (JToken setting in group.Where(Shown)) advanced.Add(SettingRow(setting));
                 }
                 body.Add(advanced);
             }
@@ -869,6 +885,7 @@ namespace RingsideBooker.Screens
             Button start = Ui.Btn("START", async () => await StartGame(), "btn--primary");
             start.name = "wizard-start";
             nav.Add(start);
+            RequestSetup();
         }
 
         private const string AdvancedGroup = "advanced";
@@ -907,7 +924,11 @@ namespace RingsideBooker.Screens
                 ? (value.Type == JTokenType.Boolean ? ((bool)value ? "true" : "false") : value.ToString())
                 : null;
             VisualElement choices = Kit.Chips(options, current, picked =>
-                settings[key] = Kit.Str(setting, "kind") == "boolean" ? new JValue(picked == "true") : new JValue(picked));
+            {
+                settings[key] = Kit.Str(setting, "kind") == "boolean" ? new JValue(picked == "true") : new JValue(picked);
+                AfterSettingPicked(key);
+            });
+            choices.name = $"setting-{key}-choices";
             choices.AddToClassList("rb-segmented");
             choices.AddToClassList("rb-setting__choices");
             row.Add(choices);
@@ -921,7 +942,7 @@ namespace RingsideBooker.Screens
         public static string OptionLabel(string settingKey, string option) => (settingKey, option) switch
         {
             ("bigWorldSpeed", "full") => "Full detail",
-            _ => Kit.Capital(option),
+            _ => Draft.DraftText.OptionLabel(settingKey, option) ?? Kit.Capital(option),
         };
 
         /// <summary>A form row: the label on the left, the field on the right (fixed height, never overlapping).</summary>
@@ -980,6 +1001,12 @@ namespace RingsideBooker.Screens
                     ["tunableOverrides"] = new JObject(),
                 };
                 if (Kit.Str(preview, "startDate") is string startDate) options["startDate"] = startDate;
+                if (activeKeys != null)
+                {
+                    var keys = new HashSet<string>(activeKeys);
+                    if (YourKey != null) keys.Add(YourKey);
+                    options["activePromotionKeys"] = new JArray(keys.OrderBy(key => key, StringComparer.Ordinal));
+                }
                 DesktopSaveSettings.ApplyTo(options);
 
                 NewGameResult created = await world.RunNewGame(client, options);

@@ -1,0 +1,628 @@
+/*
+ * Draft room layout (DRF-02). The look comes from the UNITY-11 ds- components; dr- classes only
+ * place things. Loaded at run time by DraftScreen.Style (Resources "Draft/Draft"); sheets and
+ * dialogs in the overlay layer add it themselves. Rows never shrink (UNITY-13 layout rule);
+ * ellipsized labels keep letter-spacing 0.
+ */
+
+.dr-page {
+    flex-shrink: 0;
+    padding-bottom: 24px;
+}
+
+.dr-head {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+    align-items: flex-end;
+}
+
+.dr-head__title {
+    color: var(--ds-text);
+}
+
+.dr-head__subtitle {
+    margin-top: 2px;
+    color: var(--ds-text-3);
+}
+
+.dr-head__actions {
+    flex-direction: row;
+    align-items: center;
+}
+
+.dr-quiet {
+    font-size: 12px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+/* ---- On the clock --------------------------------------------------------------------------------- */
+
+.dr-clock {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    min-height: 92px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    background-color: var(--ds-elev-1);
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-left-width: 4px;
+    border-left-color: var(--ds-data);
+    border-radius: 6px;
+}
+
+.dr-clock--you {
+    border-left-color: var(--ds-action);
+    background-color: var(--ds-elev-2);
+}
+
+.dr-clock--done {
+    border-left-color: var(--ds-good);
+}
+
+.dr-clock__badge {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    margin-right: 16px;
+}
+
+.dr-clock__icon {
+    color: var(--ds-good);
+}
+
+.dr-clock__words {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.dr-clock__kicker {
+    color: var(--ds-text-3);
+}
+
+.dr-clock--you .dr-clock__kicker {
+    color: var(--ds-action-hover);
+}
+
+.dr-clock__headline {
+    color: var(--ds-text);
+    font-size: 26px;
+}
+
+.dr-clock__line {
+    margin-top: 2px;
+    color: var(--ds-text-2);
+    font-size: 13px;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dr-clock__next {
+    margin-top: 2px;
+    color: var(--ds-data);
+    font-size: 13px;
+    white-space: normal;
+}
+
+.dr-clock__actions {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
+.dr-clock__hint {
+    color: var(--ds-text-2);
+    font-size: 13px;
+}
+
+/* ---- Recent picks ------------------------------------------------------------------------------- */
+
+.dr-ticker {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    height: 30px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.dr-ticker__label {
+    color: var(--ds-text-3);
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.dr-ticker__items {
+    flex-direction: row;
+    flex-shrink: 1;
+    overflow: hidden;
+}
+
+.dr-pick {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 26px;
+    padding: 0 10px;
+    margin-right: 6px;
+    border-radius: 999px;
+    background-color: var(--ds-elev-2);
+    border-width: 1px;
+    border-color: var(--ds-line);
+}
+
+.dr-pick--yours {
+    border-color: var(--ds-action);
+}
+
+.dr-pick__number {
+    color: var(--ds-text-4);
+    font-size: 12px;
+    margin-right: 6px;
+}
+
+.dr-pick__promotion {
+    color: var(--ds-data);
+    font-size: 12px;
+    -unity-font-style: bold;
+    margin-right: 6px;
+}
+
+.dr-pick__name {
+    color: var(--ds-text);
+    font-size: 12px;
+    letter-spacing: 0;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---- Pool and side column --------------------------------------------------------------------- */
+
+.dr-body {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.dr-pool {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 560px;
+}
+
+.dr-toolbar {
+    flex-shrink: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.dr-toolbar > * {
+    margin-right: 8px;
+    margin-bottom: 4px;
+}
+
+.dr-chips {
+    flex-direction: row;
+}
+
+.dr-count {
+    color: var(--ds-text-3);
+    font-size: 12px;
+    margin-right: 6px;
+}
+
+.dr-table-host {
+    flex-shrink: 0;
+}
+
+.dr-value {
+    flex-direction: row;
+    align-items: center;
+}
+
+.dr-value__number {
+    min-width: 38px;
+    color: var(--ds-text);
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.dr-fit {
+    flex-direction: row;
+    align-items: center;
+}
+
+.dr-pager {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.dr-pager > * {
+    margin: 0 6px;
+}
+
+.dr-pager--small {
+    margin-top: 6px;
+}
+
+.dr-side {
+    width: 340px;
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
+.dr-panel {
+    flex-shrink: 0;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    background-color: var(--ds-elev-1);
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-radius: 6px;
+}
+
+.dr-counts {
+    flex-direction: row;
+    margin: 6px 0;
+}
+
+.dr-counts > .ds-meter {
+    flex-grow: 1;
+}
+
+.dr-roster-list {
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.dr-roster-row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 34px;
+    padding: 2px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ds-line-subtle);
+}
+
+.dr-roster-row > .ds-portrait {
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.dr-roster-row__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.dr-roster-row__name {
+    color: var(--ds-text);
+    font-size: 13px;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dr-roster-row__detail {
+    color: var(--ds-text-3);
+    font-size: 11px;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dr-rosters {
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.dr-roster {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 30px;
+    margin: 0;
+    padding: 0 6px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    border-radius: 4px;
+}
+
+.dr-roster:hover {
+    background-color: var(--ds-elev-2);
+}
+
+.dr-roster--yours .dr-roster__name {
+    color: var(--ds-action-hover);
+}
+
+.dr-roster__logo {
+    flex-direction: row;
+    width: 30px;
+    flex-shrink: 0;
+}
+
+.dr-roster__name {
+    width: 70px;
+    flex-shrink: 0;
+    color: var(--ds-text);
+    font-size: 12px;
+    letter-spacing: 0;
+    -unity-text-align: middle-left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dr-roster > .ds-meter {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin: 0 8px;
+}
+
+.dr-roster__count {
+    width: 44px;
+    flex-shrink: 0;
+    color: var(--ds-text-2);
+    font-size: 12px;
+    -unity-text-align: middle-right;
+}
+
+/* ---- Dialogs and sheets ------------------------------------------------------------------------ */
+
+.dr-confirm {
+    width: 460px;
+}
+
+.dr-confirm__who {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.dr-confirm__who > .ds-portrait {
+    margin-right: 12px;
+}
+
+.dr-confirm__facts {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.dr-confirm__fact {
+    color: var(--ds-text);
+    margin-right: 10px;
+}
+
+.dr-confirm__note {
+    color: var(--ds-text-2);
+    font-size: 13px;
+    white-space: normal;
+}
+
+.dr-sheet {
+    flex-shrink: 0;
+}
+
+/* ---- Finished ------------------------------------------------------------------------------------ */
+
+.dr-finished {
+    flex-shrink: 0;
+}
+
+.dr-finished__summary {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-bottom: 16px;
+}
+
+.dr-finished__summary > * {
+    margin-right: 12px;
+    min-width: 160px;
+}
+
+.dr-sign-row > .ds-btn {
+    margin-left: 6px;
+}
+
+.dr-roster-list--wide {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.dr-roster-list--wide > .dr-roster-row {
+    width: 300px;
+    margin-right: 16px;
+}
+
+.dr-finished__actions {
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+/* ---- New game wizard: active promotions and the draft plan (DRF-06/07) ------------------------ */
+
+.rb-active-summary {
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.rb-active-summary__text {
+    margin-right: 10px;
+    font-size: 13px;
+    color: var(--ds-data);
+}
+
+.rb-draft-plan {
+    flex-shrink: 0;
+    margin-top: 12px;
+    padding: 12px 14px;
+    background-color: var(--ds-elev-1);
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-left-width: 3px;
+    border-left-color: var(--ds-data);
+    border-radius: 6px;
+}
+
+.rb-draft-plan__title {
+    font-size: 11px;
+    color: var(--ds-text-3);
+    margin-bottom: 6px;
+}
+
+.rb-draft-plan__line {
+    font-size: 13px;
+    color: var(--ds-text-2);
+    margin-bottom: 3px;
+}
+
+.rb-draft-mix {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.rb-draft-mix__tile {
+    flex-shrink: 0;
+    min-width: 104px;
+    padding: 6px 10px;
+    margin: 0 8px 4px 0;
+    background-color: var(--ds-elev-2);
+    border-radius: 4px;
+}
+
+.rb-draft-mix__number {
+    font-size: 20px;
+    color: var(--ds-text);
+    -unity-font-style: bold;
+}
+
+.rb-draft-mix__label {
+    font-size: 11px;
+    color: var(--ds-text-3);
+}
+
+.rb-picker-head__count {
+    font-size: 16px;
+    color: var(--ds-data);
+    -unity-font-style: bold;
+    margin-bottom: 4px;
+}
+
+.rb-picker-quick,
+.rb-picker-filters {
+    flex-shrink: 0;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.rb-picker-quick > *,
+.rb-picker-filters > * {
+    margin-right: 8px;
+}
+
+.rb-picker-quick__label {
+    font-size: 13px;
+    color: var(--ds-text-2);
+}
+
+.rb-picker-quick__field {
+    width: 60px;
+}
+
+.rb-picker-list {
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.rb-picker-row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 40px;
+    margin: 0 0 2px 0;
+    padding: 0 8px;
+    background-color: var(--ds-elev-1);
+    border-width: 1px;
+    border-color: var(--ds-line-subtle);
+    border-radius: 4px;
+    opacity: 0.6;
+}
+
+.rb-picker-row--on {
+    opacity: 1;
+    border-color: var(--ds-line-strong);
+}
+
+.rb-picker-row:disabled {
+    opacity: 1;
+}
+
+.rb-picker-row__check {
+    width: 24px;
+    flex-shrink: 0;
+    color: var(--ds-text-3);
+}
+
+.rb-picker-row--on .rb-picker-row__check {
+    color: var(--ds-good);
+}
+
+.rb-picker-row > .rb-logo {
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.rb-picker-row__words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.rb-picker-row__name {
+    font-size: 13px;
+    color: var(--ds-text);
+    letter-spacing: 0;
+    -unity-text-align: middle-left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rb-picker-row__detail {
+    font-size: 11px;
+    color: var(--ds-text-3);
+    letter-spacing: 0;
+    -unity-text-align: middle-left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rb-picker-pager {
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+}

@@ -194,6 +194,56 @@ Windows machine" section of [installer.md](installer.md):
    is gone.
 9. Close the Sandbox (everything in it is thrown away).
 
+## 10. Draft start (Beta 01, DRF-02/03/06/07)
+
+Start the game, **New game**, the default world, take over any promotion, then **Options**.
+
+**Active promotions** (any game):
+
+- [ ] **Promotions › Active promotions** says "All 12 promotions active, … wrestlers". **Choose…**
+      opens the picker: your promotion has a lock and can't be turned off.
+- [ ] Search, the country picker and the size chips narrow the list. Clicking a row turns it on
+      or off, and the count at the top changes at once.
+- [ ] **Only the biggest** 6 → **Apply** leaves six on (yours among them). **Select all** turns
+      everything back on. **DONE** goes back to Options with the new count.
+
+**The draft options:**
+
+- [ ] **Draft › Start with a draft: On** shows Roster size, Negotiate contracts after the draft,
+      Show schedule and **More draft options…** (Pool size, Draft order, Draft staff too). Off
+      hides them again.
+- [ ] **The draft plan** under them shows how many promotions draft how many wrestlers, the
+      starting money and popularity, the pool, how many sit out, and the mix from Main event down
+      to Enhancement. Changing Roster size or Pool size updates it.
+
+**The draft room** (Start):
+
+- [ ] The game opens on the draft room, not the Office. The day button says **Finish the draft**.
+- [ ] The banner says who is on the clock, the round and pick, and how far away your pick is.
+      **Sim to my pick** lets the rivals pick a few at a time; the recent picks tick by under it.
+- [ ] On your pick, sort the pool by Value, Fit, Age, and filter by Men/Women, division and
+      style. Hover Value and Fit for the quiet Why?. The column button adds Skill and Popularity.
+- [ ] **Draft** asks first, then your roster on the right fills. Click any promotion under
+      **Every roster** to see its picks.
+- [ ] Leave the room (Office), then press the day button: it brings you back.
+- [ ] **Auto-pick the rest** makes every pick, then **Finish the draft**. The day button is back
+      to normal. Play a few weeks: shows run, your draftees are on your roster with one-season
+      contracts, and every title starts vacant.
+
+**Negotiate after** (a second new game with **Negotiate contracts after the draft: On**):
+
+- [ ] After Finish, **Sign your draftees** lists every pick as Unsigned, with **Offer contract**
+      and **Release**. Offer contract opens the normal contract talks; Release puts them back in
+      the pool.
+- [ ] Answers come over the next days (Contracts › Offers). If your first show comes first,
+      Booking says "Sign some wrestlers first" with **Call off this show**.
+
+Quick look without playing (PNGs in the folder; add `-rbDraftNegotiate` for the second mode):
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\Ringside Booker\RingsideBooker.exe" -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -rbDraftShots "C:\Temp\rb-draft-shots"
+```
+
 ## Known gaps
 
 - The feedback address is a placeholder until you set it.
