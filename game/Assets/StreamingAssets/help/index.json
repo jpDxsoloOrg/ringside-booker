@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "sections": [
+    { "id": "basics", "title": "The basics", "order": 1 },
+    { "id": "promotion", "title": "Your promotion", "order": 2 },
+    { "id": "business", "title": "Business", "order": 3 }
+  ],
+  "articles": [
+    {
+      "slug": "getting-started",
+      "title": "Your first week",
+      "summary": "What to do first, the day button, skipping days, keys and saving.",
+      "section": "basics",
+      "order": 1,
+      "keywords": ["start", "new", "first", "day", "skip", "keys", "save", "saving", "load"],
+      "screens": []
+    },
+    {
+      "slug": "the-office",
+      "title": "The Office",
+      "summary": "Your home screen: the top bar, what's coming up and what needs you today.",
+      "section": "basics",
+      "order": 2,
+      "keywords": ["office", "dashboard", "home", "top bar", "cash", "popularity", "sidebar"],
+      "screens": ["dashboard"]
+    },
+    {
+      "slug": "why-panels",
+      "title": "The Why? panel",
+      "summary": "Every number can explain itself. How to open a Why? and read it.",
+      "section": "basics",
+      "order": 3,
+      "keywords": ["why", "explain", "breakdown", "trace", "number"],
+      "screens": []
+    },
+    {
+      "slug": "roster",
+      "title": "Your roster",
+      "summary": "Everyone who works for you, their push, injuries and a closer look.",
+      "section": "promotion",
+      "order": 1,
+      "keywords": ["roster", "wrestlers", "push", "injury", "injuries", "morale", "table"],
+      "screens": ["roster"]
+    },
+    {
+      "slug": "booking",
+      "title": "Booking a show",
+      "summary": "Build a card: slots, lengths, Auto-fill, the card check and the venue.",
+      "section": "promotion",
+      "order": 2,
+      "keywords": ["booking", "card", "match", "slot", "auto-fill", "venue", "calendar"],
+      "screens": ["booking", "calendar"]
+    },
+    {
+      "slug": "show-night",
+      "title": "Show night and results",
+      "summary": "Run your show segment by segment, then read how it went.",
+      "section": "promotion",
+      "order": 3,
+      "keywords": ["show", "live", "results", "rating", "stars", "attendance"],
+      "screens": ["show-night", "show-results"]
+    },
+    {
+      "slug": "contracts",
+      "title": "Contracts",
+      "summary": "Sign free agents, renew contracts and let people go.",
+      "section": "business",
+      "order": 1,
+      "keywords": ["contracts", "sign", "free agents", "offer", "renew", "release", "wage"],
+      "screens": ["contracts"]
+    },
+    {
+      "slug": "finances",
+      "title": "Finances",
+      "summary": "Are you making money, and how long will the cash last?",
+      "section": "business",
+      "order": 2,
+      "keywords": ["money", "finances", "cash", "ledger", "debt", "costs", "income"],
+      "screens": ["finances"]
+    }
+  ]
+}

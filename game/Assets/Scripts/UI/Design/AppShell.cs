@@ -107,6 +107,8 @@ namespace RingsideBooker.UI.Design
         public VisualElement Actions => actions;
         public ScrollView Scroll { get; }
         public OverlayLayer Overlay { get; }
+        /// <summary>The top bar's "Section › Page" title; <see cref="SetCrumbs"/> redraws it (POL5-02 adds a "?" after it).</summary>
+        public VisualElement Crumbs => crumbs;
 
         /// <summary>The sidebar as a 60 px icon rail (labels become tooltips).</summary>
         public bool Collapsed

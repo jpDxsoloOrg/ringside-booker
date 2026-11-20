@@ -45,6 +45,7 @@ namespace RingsideBooker.UI.Shell
             panel.Add(BackupsGroup());
             // A world setting: only while a game is running (the title screen has no world).
             if (EngineGame.Current != null) panel.Add(BigWorldSpeedGroup(EngineGame.Current));
+            panel.Add(RingsideBooker.Help.HelpTipsSettings.Group());
             panel.Add(Crash.FeedbackUi.SettingsGroup());
             panel.Add(AboutGroup());
             panel.Add(CreditsGroup());

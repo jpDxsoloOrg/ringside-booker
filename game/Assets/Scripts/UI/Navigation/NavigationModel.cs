@@ -77,6 +77,8 @@ namespace RingsideBooker.UI.Navigation
                 new NavItem("contracts", "Contracts", "contracts", NavBadgeKey.WantsToLeave),
                 new NavItem("networks", "Networks", "tv"),
                 new NavItem("production", "Production", "video")),
+            new NavSection("help", "Help", false,
+                new NavItem("help", "Help", "help")),
         };
 
         /// <summary>Labels for screens outside the sidebar (their placeholder titles).</summary>

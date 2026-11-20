@@ -28,6 +28,9 @@ namespace RingsideBooker.UI.Shell
         /// <summary>The shell on screen, or null outside the Game scene.</summary>
         public static ShellController Current { get; private set; }
 
+        /// <summary>Raised once the shell is up and on its home screen (POL5-05's first-run welcome listens).</summary>
+        public static event System.Action<ShellController> Opened;
+
         public ShellNavigator Navigator { get; } = new ShellNavigator();
 
         /// <summary>The day control (its main button and the "Needs attention" sheet).</summary>
@@ -72,6 +75,7 @@ namespace RingsideBooker.UI.Shell
             RenderDay();
             Navigator.Go(NavigationModel.HomeItemId);
             Current = this;
+            Opened?.Invoke(this);
         }
 
         private void OnDisable()
