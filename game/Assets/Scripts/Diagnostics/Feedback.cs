@@ -6,11 +6,11 @@ using UnityEngine;
 
 namespace RingsideBooker.Diagnostics
 {
-    /// <summary>Where Alpha feedback goes. The owner sets the address; never commit a personal one.</summary>
+    /// <summary>Where Alpha feedback goes. The address is the one the owner chose for testers (2026-11-19).</summary>
     public static class FeedbackConfig
     {
-        /// <summary>The feedback mailbox. A placeholder until the owner fills it in.</summary>
-        public const string Address = "feedback@example.invalid";
+        /// <summary>The feedback mailbox Alpha testers write to.</summary>
+        public const string Address = "jp@jpdxsolo.com";
 
         /// <summary>True while <see cref="Address"/> is still the placeholder.</summary>
         public static bool IsPlaceholder => Address.EndsWith(".invalid", StringComparison.OrdinalIgnoreCase);

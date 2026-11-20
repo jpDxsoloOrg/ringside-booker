@@ -84,9 +84,8 @@ The engine can be made to fail on purpose. Start the game from a command prompt 
 
 ## 6. Send feedback
 
-The feedback address is a **placeholder** (`feedback@example.invalid`) until you set the real one
-in `game/Assets/Scripts/Diagnostics/Feedback.cs` (`FeedbackConfig.Address`). Until then a mail
-draft goes nowhere.
+Feedback goes to **jp@jpdxsolo.com** (`FeedbackConfig.Address` in
+`game/Assets/Scripts/Diagnostics/Feedback.cs`).
 
 - [ ] **Settings › Feedback & bug reports › Send feedback**: your mail app opens a new message with
       the version in the subject and a short template. The game shows the bug report's path.
