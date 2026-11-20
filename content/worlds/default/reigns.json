@@ -6,37 +6,25 @@
       "gen-pro-au-indie-07"
     ],
     "teamKey": null,
-    "wonOn": "2025-07-26",
-    "lostOn": "2025-10-10",
+    "wonOn": "2025-03-25",
+    "lostOn": "2025-11-30",
     "endReason": "lost",
-    "defences": 2
+    "defences": 5
   },
   {
     "key": "reign-au-indie-championship-02",
     "titleKey": "au-indie-championship",
     "holderPersonKeys": [
-      "hl-wade-pruneda"
+      "gen-pro-au-indie-03"
     ],
     "teamKey": null,
-    "wonOn": "2025-10-10",
-    "lostOn": "2026-04-22",
+    "wonOn": "2025-11-30",
+    "lostOn": "2026-12-10",
     "endReason": "lost",
-    "defences": 6
+    "defences": 4
   },
   {
     "key": "reign-au-indie-championship-03",
-    "titleKey": "au-indie-championship",
-    "holderPersonKeys": [
-      "gen-pro-au-indie-07"
-    ],
-    "teamKey": null,
-    "wonOn": "2026-04-22",
-    "lostOn": "2026-12-10",
-    "endReason": "lost",
-    "defences": 5
-  },
-  {
-    "key": "reign-au-indie-championship-04",
     "titleKey": "au-indie-championship",
     "holderPersonKeys": [
       "hl-callum-brindabella"
@@ -51,28 +39,16 @@
     "key": "reign-ca-heavyweight-01",
     "titleKey": "ca-heavyweight",
     "holderPersonKeys": [
-      "hl-gaetan-lacasse"
+      "hl-bramido-rojo"
     ],
     "teamKey": null,
-    "wonOn": "2025-05-21",
-    "lostOn": "2026-02-09",
+    "wonOn": "2026-03-13",
+    "lostOn": "2026-11-04",
     "endReason": "lost",
     "defences": 3
   },
   {
     "key": "reign-ca-heavyweight-02",
-    "titleKey": "ca-heavyweight",
-    "holderPersonKeys": [
-      "gen-pro-ca-06"
-    ],
-    "teamKey": null,
-    "wonOn": "2026-02-09",
-    "lostOn": "2026-11-04",
-    "endReason": "lost",
-    "defences": 6
-  },
-  {
-    "key": "reign-ca-heavyweight-03",
     "titleKey": "ca-heavyweight",
     "holderPersonKeys": [
       "hl-gaetan-lacasse"
@@ -91,7 +67,7 @@
       "gen-pro-ca-11"
     ],
     "teamKey": "team-pro-ca-03",
-    "wonOn": "2026-08-13",
+    "wonOn": "2026-05-06",
     "lostOn": "2026-11-04",
     "endReason": "lost",
     "defences": 1
@@ -113,13 +89,13 @@
     "key": "reign-de-championship-01",
     "titleKey": "de-championship",
     "holderPersonKeys": [
-      "hl-vendaval-azul"
+      "hl-lukas-hartrampf"
     ],
     "teamKey": null,
-    "wonOn": "2025-01-12",
-    "lostOn": "2025-12-22",
+    "wonOn": "2026-03-10",
+    "lostOn": "2026-05-08",
     "endReason": "lost",
-    "defences": 5
+    "defences": 1
   },
   {
     "key": "reign-de-championship-02",
@@ -128,10 +104,10 @@
       "gen-pro-de-03"
     ],
     "teamKey": null,
-    "wonOn": "2025-12-22",
+    "wonOn": "2026-05-08",
     "lostOn": "2026-07-08",
     "endReason": "lost",
-    "defences": 6
+    "defences": 0
   },
   {
     "key": "reign-de-championship-03",
@@ -153,23 +129,23 @@
       "gen-pro-de-11"
     ],
     "teamKey": "team-pro-de-01",
-    "wonOn": "2025-04-19",
-    "lostOn": "2026-05-10",
+    "wonOn": "2025-11-02",
+    "lostOn": "2026-09-05",
     "endReason": "lost",
-    "defences": 5
+    "defences": 1
   },
   {
     "key": "reign-de-tag-02",
     "titleKey": "de-tag",
     "holderPersonKeys": [
-      "gen-pro-de-05",
-      "gen-pro-de-07"
+      "gen-pro-de-02",
+      "gen-pro-de-10"
     ],
-    "teamKey": "team-pro-de-03",
-    "wonOn": "2026-05-10",
+    "teamKey": "team-pro-de-04",
+    "wonOn": "2026-09-05",
     "lostOn": "2026-11-08",
     "endReason": "lost",
-    "defences": 6
+    "defences": 1
   },
   {
     "key": "reign-de-tag-03",
@@ -185,333 +161,76 @@
     "defences": 0
   },
   {
-    "key": "reign-flagship-secondary-main-01",
-    "titleKey": "flagship-secondary-main",
-    "holderPersonKeys": [
-      "gen-pro-flagship-14"
-    ],
-    "teamKey": null,
-    "wonOn": "2025-08-11",
-    "lostOn": "2026-08-26",
-    "endReason": "lost",
-    "defences": 9
-  },
-  {
-    "key": "reign-flagship-secondary-main-02",
-    "titleKey": "flagship-secondary-main",
-    "holderPersonKeys": [
-      "hl-rook-halvorsen"
-    ],
-    "teamKey": null,
-    "wonOn": "2026-08-26",
-    "lostOn": null,
-    "endReason": null,
-    "defences": 3
-  },
-  {
-    "key": "reign-flagship-secondary-young-01",
-    "titleKey": "flagship-secondary-young",
-    "holderPersonKeys": [
-      "hl-kip-santangelo"
-    ],
-    "teamKey": null,
-    "wonOn": "2026-01-20",
-    "lostOn": "2026-04-12",
-    "endReason": "lost",
-    "defences": 0
-  },
-  {
-    "key": "reign-flagship-secondary-young-02",
-    "titleKey": "flagship-secondary-young",
-    "holderPersonKeys": [
-      "gen-pro-flagship-29"
-    ],
-    "teamKey": null,
-    "wonOn": "2026-04-12",
-    "lostOn": "2026-08-26",
-    "endReason": "lost",
-    "defences": 4
-  },
-  {
-    "key": "reign-flagship-secondary-young-03",
-    "titleKey": "flagship-secondary-young",
-    "holderPersonKeys": [
-      "hl-kip-santangelo"
-    ],
-    "teamKey": null,
-    "wonOn": "2026-08-26",
-    "lostOn": null,
-    "endReason": null,
-    "defences": 7
-  },
-  {
-    "key": "reign-flagship-tag-01",
-    "titleKey": "flagship-tag",
-    "holderPersonKeys": [
-      "gen-pro-flagship-25",
-      "gen-pro-flagship-37"
-    ],
-    "teamKey": "team-pro-flagship-05",
-    "wonOn": "2024-03-19",
-    "lostOn": "2024-08-14",
-    "endReason": "lost",
-    "defences": 0
-  },
-  {
-    "key": "reign-flagship-tag-02",
-    "titleKey": "flagship-tag",
-    "holderPersonKeys": [
-      "gen-pro-flagship-06",
-      "gen-pro-flagship-11"
-    ],
-    "teamKey": "team-pro-flagship-01",
-    "wonOn": "2024-08-14",
-    "lostOn": "2025-01-28",
-    "endReason": "lost",
-    "defences": 5
-  },
-  {
-    "key": "reign-flagship-tag-03",
-    "titleKey": "flagship-tag",
-    "holderPersonKeys": [
-      "gen-pro-flagship-03",
-      "gen-pro-flagship-22"
-    ],
-    "teamKey": "team-pro-flagship-03",
-    "wonOn": "2025-01-28",
-    "lostOn": "2025-12-23",
-    "endReason": "lost",
-    "defences": 9
-  },
-  {
-    "key": "reign-flagship-tag-04",
-    "titleKey": "flagship-tag",
-    "holderPersonKeys": [
-      "gen-pro-flagship-25",
-      "gen-pro-flagship-37"
-    ],
-    "teamKey": "team-pro-flagship-05",
-    "wonOn": "2025-12-23",
-    "lostOn": "2026-10-19",
-    "endReason": "lost",
-    "defences": 3
-  },
-  {
-    "key": "reign-flagship-tag-05",
-    "titleKey": "flagship-tag",
-    "holderPersonKeys": [
-      "gen-pro-flagship-06",
-      "gen-pro-flagship-11"
-    ],
-    "teamKey": "team-pro-flagship-01",
-    "wonOn": "2026-10-19",
-    "lostOn": null,
-    "endReason": null,
-    "defences": 11
-  },
-  {
-    "key": "reign-flagship-women-01",
-    "titleKey": "flagship-women",
-    "holderPersonKeys": [
-      "gen-pro-flagship-13"
-    ],
-    "teamKey": null,
-    "wonOn": "2026-08-09",
-    "lostOn": "2026-10-18",
-    "endReason": "lost",
-    "defences": 2
-  },
-  {
-    "key": "reign-flagship-women-02",
-    "titleKey": "flagship-women",
-    "holderPersonKeys": [
-      "hl-sable-whitcombe"
-    ],
-    "teamKey": null,
-    "wonOn": "2026-10-18",
-    "lostOn": null,
-    "endReason": null,
-    "defences": 8
-  },
-  {
-    "key": "reign-flagship-world-main-01",
-    "titleKey": "flagship-world-main",
-    "holderPersonKeys": [
-      "gen-pro-flagship-29"
-    ],
-    "teamKey": null,
-    "wonOn": "2025-09-30",
-    "lostOn": "2026-01-01",
-    "endReason": "lost",
-    "defences": 3
-  },
-  {
-    "key": "reign-flagship-world-main-02",
-    "titleKey": "flagship-world-main",
-    "holderPersonKeys": [
-      "gen-pro-flagship-16"
-    ],
-    "teamKey": null,
-    "wonOn": "2026-01-01",
-    "lostOn": "2026-03-31",
-    "endReason": "lost",
-    "defences": 2
-  },
-  {
-    "key": "reign-flagship-world-main-03",
-    "titleKey": "flagship-world-main",
-    "holderPersonKeys": [
-      "hl-calder-voss"
-    ],
-    "teamKey": null,
-    "wonOn": "2026-03-31",
-    "lostOn": null,
-    "endReason": null,
-    "defences": 6
-  },
-  {
-    "key": "reign-flagship-world-young-01",
-    "titleKey": "flagship-world-young",
-    "holderPersonKeys": [
-      "gen-pro-flagship-17"
-    ],
-    "teamKey": null,
-    "wonOn": "2024-10-26",
-    "lostOn": "2025-02-24",
-    "endReason": "lost",
-    "defences": 0
-  },
-  {
-    "key": "reign-flagship-world-young-02",
-    "titleKey": "flagship-world-young",
-    "holderPersonKeys": [
-      "gen-pro-flagship-19"
-    ],
-    "teamKey": null,
-    "wonOn": "2025-02-24",
-    "lostOn": "2025-12-16",
-    "endReason": "lost",
-    "defences": 7
-  },
-  {
-    "key": "reign-flagship-world-young-03",
-    "titleKey": "flagship-world-young",
-    "holderPersonKeys": [
-      "gen-pro-flagship-12"
-    ],
-    "teamKey": null,
-    "wonOn": "2025-12-16",
-    "lostOn": "2026-05-17",
-    "endReason": "lost",
-    "defences": 3
-  },
-  {
-    "key": "reign-flagship-world-young-04",
-    "titleKey": "flagship-world-young",
-    "holderPersonKeys": [
-      "hl-jett-amberley"
-    ],
-    "teamKey": null,
-    "wonOn": "2026-05-17",
-    "lostOn": null,
-    "endReason": null,
-    "defences": 3
-  },
-  {
     "key": "reign-jp-kansai-indie-championship-01",
     "titleKey": "jp-kansai-indie-championship",
     "holderPersonKeys": [
-      "hl-mio-kazahaya"
+      "gen-pro-jp-kansai-indie-01"
     ],
     "teamKey": null,
-    "wonOn": "2023-02-05",
-    "lostOn": "2024-01-20",
+    "wonOn": "2026-06-04",
+    "lostOn": "2026-08-26",
     "endReason": "lost",
-    "defences": 4
+    "defences": 1
   },
   {
     "key": "reign-jp-kansai-indie-championship-02",
     "titleKey": "jp-kansai-indie-championship",
     "holderPersonKeys": [
-      "gen-pro-jp-kansai-indie-02"
-    ],
-    "teamKey": null,
-    "wonOn": "2024-01-20",
-    "lostOn": "2024-12-26",
-    "endReason": "lost",
-    "defences": 6
-  },
-  {
-    "key": "reign-jp-kansai-indie-championship-03",
-    "titleKey": "jp-kansai-indie-championship",
-    "holderPersonKeys": [
       "hl-mio-kazahaya"
     ],
     "teamKey": null,
-    "wonOn": "2024-12-26",
-    "lostOn": "2025-11-18",
-    "endReason": "lost",
-    "defences": 8
-  },
-  {
-    "key": "reign-jp-kansai-indie-championship-04",
-    "titleKey": "jp-kansai-indie-championship",
-    "holderPersonKeys": [
-      "gen-pro-jp-kansai-indie-07"
-    ],
-    "teamKey": null,
-    "wonOn": "2025-11-18",
-    "lostOn": "2026-04-23",
-    "endReason": "lost",
-    "defences": 2
-  },
-  {
-    "key": "reign-jp-kansai-indie-championship-05",
-    "titleKey": "jp-kansai-indie-championship",
-    "holderPersonKeys": [
-      "hl-mio-kazahaya"
-    ],
-    "teamKey": null,
-    "wonOn": "2026-04-23",
+    "wonOn": "2026-08-26",
     "lostOn": null,
     "endReason": null,
-    "defences": 9
+    "defences": 3
   },
   {
     "key": "reign-jp-major-heavyweight-01",
     "titleKey": "jp-major-heavyweight",
     "holderPersonKeys": [
-      "gen-pro-jp-major-11"
+      "gen-pro-jp-major-16"
     ],
     "teamKey": null,
-    "wonOn": "2025-09-05",
-    "lostOn": "2026-05-15",
+    "wonOn": "2025-12-19",
+    "lostOn": "2026-02-19",
     "endReason": "lost",
-    "defences": 7
+    "defences": 2
   },
   {
     "key": "reign-jp-major-heavyweight-02",
     "titleKey": "jp-major-heavyweight",
     "holderPersonKeys": [
+      "gen-pro-jp-major-05"
+    ],
+    "teamKey": null,
+    "wonOn": "2026-02-19",
+    "lostOn": "2026-08-26",
+    "endReason": "lost",
+    "defences": 4
+  },
+  {
+    "key": "reign-jp-major-heavyweight-03",
+    "titleKey": "jp-major-heavyweight",
+    "holderPersonKeys": [
       "hl-gendo-arakawa"
     ],
     "teamKey": null,
-    "wonOn": "2026-05-15",
+    "wonOn": "2026-08-26",
     "lostOn": null,
     "endReason": null,
-    "defences": 5
+    "defences": 7
   },
   {
     "key": "reign-jp-major-junior-01",
     "titleKey": "jp-major-junior",
     "holderPersonKeys": [
-      "hl-hayato-minase"
+      "gen-pro-jp-major-18"
     ],
     "teamKey": null,
-    "wonOn": "2025-07-04",
-    "lostOn": "2026-03-19",
+    "wonOn": "2025-03-21",
+    "lostOn": "2025-10-01",
     "endReason": "lost",
-    "defences": 1
+    "defences": 2
   },
   {
     "key": "reign-jp-major-junior-02",
@@ -520,10 +239,10 @@
       "gen-pro-jp-major-15"
     ],
     "teamKey": null,
-    "wonOn": "2026-03-19",
-    "lostOn": "2026-11-04",
+    "wonOn": "2025-10-01",
+    "lostOn": "2026-10-19",
     "endReason": "lost",
-    "defences": 2
+    "defences": 6
   },
   {
     "key": "reign-jp-major-junior-03",
@@ -532,10 +251,10 @@
       "hl-hayato-minase"
     ],
     "teamKey": null,
-    "wonOn": "2026-11-04",
+    "wonOn": "2026-10-19",
     "lostOn": null,
     "endReason": null,
-    "defences": 5
+    "defences": 11
   },
   {
     "key": "reign-jp-major-tag-01",
@@ -545,10 +264,10 @@
       "gen-pro-jp-major-12"
     ],
     "teamKey": "team-pro-jp-major-04",
-    "wonOn": "2024-03-01",
-    "lostOn": "2025-01-20",
+    "wonOn": "2025-02-22",
+    "lostOn": "2025-05-15",
     "endReason": "lost",
-    "defences": 5
+    "defences": 2
   },
   {
     "key": "reign-jp-major-tag-02",
@@ -558,10 +277,10 @@
       "gen-pro-jp-major-21"
     ],
     "teamKey": "team-pro-jp-major-03",
-    "wonOn": "2025-01-20",
-    "lostOn": "2026-01-15",
+    "wonOn": "2025-05-15",
+    "lostOn": "2026-01-11",
     "endReason": "lost",
-    "defences": 5
+    "defences": 0
   },
   {
     "key": "reign-jp-major-tag-03",
@@ -571,83 +290,193 @@
       "gen-pro-jp-major-12"
     ],
     "teamKey": "team-pro-jp-major-04",
-    "wonOn": "2026-01-15",
-    "lostOn": "2026-03-17",
+    "wonOn": "2026-01-11",
+    "lostOn": "2026-10-18",
     "endReason": "lost",
-    "defences": 1
+    "defences": 5
   },
   {
     "key": "reign-jp-major-tag-04",
     "titleKey": "jp-major-tag",
     "holderPersonKeys": [
-      "gen-pro-jp-major-04",
-      "gen-pro-jp-major-21"
+      "gen-pro-jp-major-08",
+      "gen-pro-jp-major-23"
     ],
-    "teamKey": "team-pro-jp-major-03",
-    "wonOn": "2026-03-17",
+    "teamKey": "team-pro-jp-major-01",
+    "wonOn": "2026-10-18",
     "lostOn": null,
     "endReason": null,
-    "defences": 12
+    "defences": 8
+  },
+  {
+    "key": "reign-league-blx-mid-card-championship-01",
+    "titleKey": "league-blx-mid-card-championship",
+    "holderPersonKeys": [
+      "league-mugen"
+    ],
+    "teamKey": null,
+    "wonOn": "2026-07-28",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 6
+  },
+  {
+    "key": "reign-league-blx-world-heavyweight-championship-01",
+    "titleKey": "league-blx-world-heavyweight-championship",
+    "holderPersonKeys": [
+      "league-angus-wolf"
+    ],
+    "teamKey": null,
+    "wonOn": "2026-11-08",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 4
+  },
+  {
+    "key": "reign-league-blx-world-tag-team-championship-01",
+    "titleKey": "league-blx-world-tag-team-championship",
+    "holderPersonKeys": [
+      "league-danny-wolf",
+      "league-jd-mysterio"
+    ],
+    "teamKey": "team-league-savage-velocity",
+    "wonOn": "2026-09-06",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 3
+  },
+  {
+    "key": "reign-league-slw-mid-card-championship-01",
+    "titleKey": "league-slw-mid-card-championship",
+    "holderPersonKeys": [
+      "league-akira-ultimo"
+    ],
+    "teamKey": null,
+    "wonOn": "2026-05-12",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 1
+  },
+  {
+    "key": "reign-league-slw-world-heavyweight-championship-01",
+    "titleKey": "league-slw-world-heavyweight-championship",
+    "holderPersonKeys": [
+      "league-raiden-hallow"
+    ],
+    "teamKey": null,
+    "wonOn": "2026-12-05",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 4
+  },
+  {
+    "key": "reign-league-slw-world-tag-team-championship-01",
+    "titleKey": "league-slw-world-tag-team-championship",
+    "holderPersonKeys": [
+      "league-enzo-kamura",
+      "league-khi-born"
+    ],
+    "teamKey": "team-league-class-of-born",
+    "wonOn": "2026-09-01",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 4
   },
   {
     "key": "reign-mx-major-heavyweight-01",
     "titleKey": "mx-major-heavyweight",
     "holderPersonKeys": [
-      "gen-pro-mx-major-20"
+      "gen-pro-mx-major-22"
     ],
     "teamKey": null,
-    "wonOn": "2025-10-13",
-    "lostOn": "2026-03-23",
+    "wonOn": "2023-12-05",
+    "lostOn": "2024-06-21",
     "endReason": "lost",
-    "defences": 2
+    "defences": 4
   },
   {
     "key": "reign-mx-major-heavyweight-02",
     "titleKey": "mx-major-heavyweight",
     "holderPersonKeys": [
+      "gen-pro-mx-major-20"
+    ],
+    "teamKey": null,
+    "wonOn": "2024-06-21",
+    "lostOn": "2025-02-19",
+    "endReason": "lost",
+    "defences": 7
+  },
+  {
+    "key": "reign-mx-major-heavyweight-03",
+    "titleKey": "mx-major-heavyweight",
+    "holderPersonKeys": [
+      "gen-pro-mx-major-06"
+    ],
+    "teamKey": null,
+    "wonOn": "2025-02-19",
+    "lostOn": "2026-01-14",
+    "endReason": "lost",
+    "defences": 10
+  },
+  {
+    "key": "reign-mx-major-heavyweight-04",
+    "titleKey": "mx-major-heavyweight",
+    "holderPersonKeys": [
+      "gen-pro-mx-major-21"
+    ],
+    "teamKey": null,
+    "wonOn": "2026-01-14",
+    "lostOn": "2026-03-31",
+    "endReason": "lost",
+    "defences": 1
+  },
+  {
+    "key": "reign-mx-major-heavyweight-05",
+    "titleKey": "mx-major-heavyweight",
+    "holderPersonKeys": [
       "hl-vendaval-azul"
     ],
     "teamKey": null,
-    "wonOn": "2026-03-23",
+    "wonOn": "2026-03-31",
     "lostOn": null,
     "endReason": null,
-    "defences": 2
+    "defences": 6
   },
   {
     "key": "reign-mx-major-light-heavyweight-01",
     "titleKey": "mx-major-light-heavyweight",
     "holderPersonKeys": [
-      "hl-jett-amberley"
+      "hl-vendaval-azul"
     ],
     "teamKey": null,
-    "wonOn": "2025-03-20",
-    "lostOn": "2025-12-10",
+    "wonOn": "2023-09-07",
+    "lostOn": "2024-03-14",
     "endReason": "lost",
-    "defences": 1
+    "defences": 6
   },
   {
     "key": "reign-mx-major-light-heavyweight-02",
     "titleKey": "mx-major-light-heavyweight",
     "holderPersonKeys": [
-      "gen-pro-mx-major-04"
+      "gen-pro-mx-major-11"
     ],
     "teamKey": null,
-    "wonOn": "2025-12-10",
-    "lostOn": "2026-03-22",
+    "wonOn": "2024-03-14",
+    "lostOn": "2025-05-03",
     "endReason": "lost",
-    "defences": 3
+    "defences": 1
   },
   {
     "key": "reign-mx-major-light-heavyweight-03",
     "titleKey": "mx-major-light-heavyweight",
     "holderPersonKeys": [
-      "gen-pro-mx-major-07"
+      "gen-pro-mx-major-04"
     ],
     "teamKey": null,
-    "wonOn": "2026-03-22",
-    "lostOn": "2026-08-11",
+    "wonOn": "2025-05-03",
+    "lostOn": "2026-05-17",
     "endReason": "lost",
-    "defences": 2
+    "defences": 10
   },
   {
     "key": "reign-mx-major-light-heavyweight-04",
@@ -656,10 +485,10 @@
       "hl-piedra-lunar"
     ],
     "teamKey": null,
-    "wonOn": "2026-08-11",
+    "wonOn": "2026-05-17",
     "lostOn": null,
     "endReason": null,
-    "defences": 5
+    "defences": 3
   },
   {
     "key": "reign-mx-major-trios-01",
@@ -670,10 +499,10 @@
       "gen-pro-mx-major-23"
     ],
     "teamKey": "team-pro-mx-major-01",
-    "wonOn": "2024-07-14",
-    "lostOn": "2024-11-16",
+    "wonOn": "2024-05-02",
+    "lostOn": "2024-08-31",
     "endReason": "lost",
-    "defences": 4
+    "defences": 3
   },
   {
     "key": "reign-mx-major-trios-02",
@@ -684,10 +513,10 @@
       "gen-pro-mx-major-10"
     ],
     "teamKey": "team-pro-mx-major-02",
-    "wonOn": "2024-11-16",
-    "lostOn": "2025-09-21",
+    "wonOn": "2024-08-31",
+    "lostOn": "2025-07-14",
     "endReason": "lost",
-    "defences": 8
+    "defences": 7
   },
   {
     "key": "reign-mx-major-trios-03",
@@ -698,8 +527,8 @@
       "gen-pro-mx-major-18"
     ],
     "teamKey": "team-pro-mx-major-03",
-    "wonOn": "2025-09-21",
-    "lostOn": "2026-10-18",
+    "wonOn": "2025-07-14",
+    "lostOn": "2026-04-23",
     "endReason": "lost",
     "defences": 6
   },
@@ -712,10 +541,10 @@
       "gen-pro-mx-major-10"
     ],
     "teamKey": "team-pro-mx-major-02",
-    "wonOn": "2026-10-18",
+    "wonOn": "2026-04-23",
     "lostOn": null,
     "endReason": null,
-    "defences": 10
+    "defences": 9
   },
   {
     "key": "reign-uk-championship-01",
@@ -724,10 +553,10 @@
       "hl-alfie-brannock"
     ],
     "teamKey": null,
-    "wonOn": "2025-08-27",
-    "lostOn": "2026-04-13",
+    "wonOn": "2023-07-08",
+    "lostOn": "2024-07-29",
     "endReason": "lost",
-    "defences": 3
+    "defences": 5
   },
   {
     "key": "reign-uk-championship-02",
@@ -736,20 +565,20 @@
       "gen-pro-uk-04"
     ],
     "teamKey": null,
-    "wonOn": "2026-04-13",
-    "lostOn": "2026-06-05",
+    "wonOn": "2024-07-29",
+    "lostOn": "2025-05-23",
     "endReason": "lost",
-    "defences": 0
+    "defences": 3
   },
   {
     "key": "reign-uk-championship-03",
     "titleKey": "uk-championship",
     "holderPersonKeys": [
-      "gen-pro-uk-10"
+      "hl-alfie-brannock"
     ],
     "teamKey": null,
-    "wonOn": "2026-06-05",
-    "lostOn": "2026-10-06",
+    "wonOn": "2025-05-23",
+    "lostOn": "2025-11-12",
     "endReason": "lost",
     "defences": 0
   },
@@ -757,10 +586,22 @@
     "key": "reign-uk-championship-04",
     "titleKey": "uk-championship",
     "holderPersonKeys": [
+      "gen-pro-uk-10"
+    ],
+    "teamKey": null,
+    "wonOn": "2025-11-12",
+    "lostOn": "2026-05-15",
+    "endReason": "lost",
+    "defences": 6
+  },
+  {
+    "key": "reign-uk-championship-05",
+    "titleKey": "uk-championship",
+    "holderPersonKeys": [
       "hl-alfie-brannock"
     ],
     "teamKey": null,
-    "wonOn": "2026-10-06",
+    "wonOn": "2026-05-15",
     "lostOn": null,
     "endReason": null,
     "defences": 5
@@ -769,12 +610,12 @@
     "key": "reign-uk-tag-01",
     "titleKey": "uk-tag",
     "holderPersonKeys": [
-      "gen-pro-uk-02",
-      "gen-pro-uk-05"
+      "gen-pro-uk-07",
+      "gen-pro-uk-09"
     ],
-    "teamKey": "team-pro-uk-01",
-    "wonOn": "2025-05-12",
-    "lostOn": "2025-12-28",
+    "teamKey": "team-pro-uk-03",
+    "wonOn": "2026-06-08",
+    "lostOn": "2026-11-04",
     "endReason": "lost",
     "defences": 0
   },
@@ -782,51 +623,38 @@
     "key": "reign-uk-tag-02",
     "titleKey": "uk-tag",
     "holderPersonKeys": [
-      "gen-pro-uk-06",
-      "gen-pro-uk-08"
-    ],
-    "teamKey": "team-pro-uk-02",
-    "wonOn": "2025-12-28",
-    "lostOn": "2026-10-07",
-    "endReason": "lost",
-    "defences": 6
-  },
-  {
-    "key": "reign-uk-tag-03",
-    "titleKey": "uk-tag",
-    "holderPersonKeys": [
       "gen-pro-uk-02",
       "gen-pro-uk-05"
     ],
     "teamKey": "team-pro-uk-01",
-    "wonOn": "2026-10-07",
+    "wonOn": "2026-11-04",
     "lostOn": null,
     "endReason": null,
-    "defences": 7
+    "defences": 5
   },
   {
     "key": "reign-uk-women-01",
     "titleKey": "uk-women",
     "holderPersonKeys": [
-      "hl-imogen-saltash"
+      "gen-pro-uk-03"
     ],
     "teamKey": null,
-    "wonOn": "2025-06-03",
-    "lostOn": "2025-12-30",
+    "wonOn": "2025-04-18",
+    "lostOn": "2025-08-06",
     "endReason": "lost",
-    "defences": 6
+    "defences": 2
   },
   {
     "key": "reign-uk-women-02",
     "titleKey": "uk-women",
     "holderPersonKeys": [
-      "gen-pro-uk-01"
+      "hl-odessa-quill"
     ],
     "teamKey": null,
-    "wonOn": "2025-12-30",
-    "lostOn": "2026-12-10",
+    "wonOn": "2025-08-06",
+    "lostOn": "2026-03-17",
     "endReason": "lost",
-    "defences": 1
+    "defences": 7
   },
   {
     "key": "reign-uk-women-03",
@@ -835,10 +663,10 @@
       "hl-imogen-saltash"
     ],
     "teamKey": null,
-    "wonOn": "2026-12-10",
+    "wonOn": "2026-03-17",
     "lostOn": null,
     "endReason": null,
-    "defences": 1
+    "defences": 12
   },
   {
     "key": "reign-us-greatlakes-heavyweight-01",
@@ -847,34 +675,22 @@
       "gen-pro-us-greatlakes-02"
     ],
     "teamKey": null,
-    "wonOn": "2025-03-06",
-    "lostOn": "2025-09-09",
+    "wonOn": "2025-10-05",
+    "lostOn": "2026-03-23",
     "endReason": "lost",
-    "defences": 3
+    "defences": 5
   },
   {
     "key": "reign-us-greatlakes-heavyweight-02",
     "titleKey": "us-greatlakes-heavyweight",
     "holderPersonKeys": [
-      "gen-pro-us-greatlakes-04"
-    ],
-    "teamKey": null,
-    "wonOn": "2025-09-09",
-    "lostOn": "2026-10-18",
-    "endReason": "lost",
-    "defences": 1
-  },
-  {
-    "key": "reign-us-greatlakes-heavyweight-03",
-    "titleKey": "us-greatlakes-heavyweight",
-    "holderPersonKeys": [
       "hl-cinder-brandt"
     ],
     "teamKey": null,
-    "wonOn": "2026-10-18",
+    "wonOn": "2026-03-23",
     "lostOn": null,
     "endReason": null,
-    "defences": 8
+    "defences": 2
   },
   {
     "key": "reign-us-greatlakes-tag-01",
@@ -884,10 +700,10 @@
       "gen-pro-us-greatlakes-11"
     ],
     "teamKey": "team-pro-us-greatlakes-01",
-    "wonOn": "2023-06-25",
-    "lostOn": "2023-12-06",
+    "wonOn": "2023-09-29",
+    "lostOn": "2024-07-26",
     "endReason": "lost",
-    "defences": 0
+    "defences": 3
   },
   {
     "key": "reign-us-greatlakes-tag-02",
@@ -897,10 +713,10 @@
       "gen-pro-us-greatlakes-05"
     ],
     "teamKey": "team-pro-us-greatlakes-02",
-    "wonOn": "2023-12-06",
-    "lostOn": "2024-04-19",
+    "wonOn": "2024-07-26",
+    "lostOn": "2024-09-25",
     "endReason": "lost",
-    "defences": 4
+    "defences": 1
   },
   {
     "key": "reign-us-greatlakes-tag-03",
@@ -910,10 +726,10 @@
       "gen-pro-us-greatlakes-11"
     ],
     "teamKey": "team-pro-us-greatlakes-01",
-    "wonOn": "2024-04-19",
-    "lostOn": "2025-01-28",
+    "wonOn": "2024-09-25",
+    "lostOn": "2025-08-16",
     "endReason": "lost",
-    "defences": 9
+    "defences": 5
   },
   {
     "key": "reign-us-greatlakes-tag-04",
@@ -923,10 +739,10 @@
       "gen-pro-us-greatlakes-05"
     ],
     "teamKey": "team-pro-us-greatlakes-02",
-    "wonOn": "2025-01-28",
-    "lostOn": "2026-03-18",
+    "wonOn": "2025-08-16",
+    "lostOn": "2026-08-11",
     "endReason": "lost",
-    "defences": 6
+    "defences": 5
   },
   {
     "key": "reign-us-greatlakes-tag-05",
@@ -936,22 +752,22 @@
       "gen-pro-us-greatlakes-11"
     ],
     "teamKey": "team-pro-us-greatlakes-01",
-    "wonOn": "2026-03-18",
+    "wonOn": "2026-08-11",
     "lostOn": null,
     "endReason": null,
-    "defences": 1
+    "defences": 5
   },
   {
     "key": "reign-us-southeast-heavyweight-01",
     "titleKey": "us-southeast-heavyweight",
     "holderPersonKeys": [
-      "hl-boone-callaway"
+      "gen-pro-us-southeast-03"
     ],
     "teamKey": null,
-    "wonOn": "2025-02-09",
-    "lostOn": "2025-05-17",
+    "wonOn": "2025-09-11",
+    "lostOn": "2025-11-16",
     "endReason": "lost",
-    "defences": 1
+    "defences": 0
   },
   {
     "key": "reign-us-southeast-heavyweight-02",
@@ -960,34 +776,22 @@
       "gen-pro-us-southeast-05"
     ],
     "teamKey": null,
-    "wonOn": "2025-05-17",
-    "lostOn": "2025-09-26",
+    "wonOn": "2025-11-16",
+    "lostOn": "2026-10-18",
     "endReason": "lost",
-    "defences": 1
+    "defences": 5
   },
   {
     "key": "reign-us-southeast-heavyweight-03",
     "titleKey": "us-southeast-heavyweight",
     "holderPersonKeys": [
-      "hl-shuhei-kurobane"
-    ],
-    "teamKey": null,
-    "wonOn": "2025-09-26",
-    "lostOn": "2026-03-25",
-    "endReason": "lost",
-    "defences": 1
-  },
-  {
-    "key": "reign-us-southeast-heavyweight-04",
-    "titleKey": "us-southeast-heavyweight",
-    "holderPersonKeys": [
       "hl-boone-callaway"
     ],
     "teamKey": null,
-    "wonOn": "2026-03-25",
+    "wonOn": "2026-10-18",
     "lostOn": null,
     "endReason": null,
-    "defences": 2
+    "defences": 10
   },
   {
     "key": "reign-us-southeast-tag-01",
@@ -997,10 +801,10 @@
       "gen-pro-us-southeast-04"
     ],
     "teamKey": "team-pro-us-southeast-03",
-    "wonOn": "2025-01-29",
-    "lostOn": "2025-06-11",
+    "wonOn": "2024-03-07",
+    "lostOn": "2024-07-10",
     "endReason": "lost",
-    "defences": 2
+    "defences": 4
   },
   {
     "key": "reign-us-southeast-tag-02",
@@ -1010,10 +814,10 @@
       "gen-pro-us-southeast-11"
     ],
     "teamKey": "team-pro-us-southeast-02",
-    "wonOn": "2025-06-11",
-    "lostOn": "2026-04-29",
+    "wonOn": "2024-07-10",
+    "lostOn": "2025-05-15",
     "endReason": "lost",
-    "defences": 7
+    "defences": 8
   },
   {
     "key": "reign-us-southeast-tag-03",
@@ -1023,46 +827,84 @@
       "gen-pro-us-southeast-04"
     ],
     "teamKey": "team-pro-us-southeast-03",
-    "wonOn": "2026-04-29",
+    "wonOn": "2025-05-15",
+    "lostOn": "2026-06-11",
+    "endReason": "lost",
+    "defences": 6
+  },
+  {
+    "key": "reign-us-southeast-tag-04",
+    "titleKey": "us-southeast-tag",
+    "holderPersonKeys": [
+      "gen-pro-us-southeast-07",
+      "gen-pro-us-southeast-11"
+    ],
+    "teamKey": "team-pro-us-southeast-02",
+    "wonOn": "2026-06-11",
+    "lostOn": "2026-10-06",
+    "endReason": "lost",
+    "defences": 2
+  },
+  {
+    "key": "reign-us-southeast-tag-05",
+    "titleKey": "us-southeast-tag",
+    "holderPersonKeys": [
+      "gen-pro-us-southeast-01",
+      "gen-pro-us-southeast-04"
+    ],
+    "teamKey": "team-pro-us-southeast-03",
+    "wonOn": "2026-10-06",
     "lostOn": null,
     "endReason": null,
-    "defences": 3
+    "defences": 5
   },
   {
     "key": "reign-us-texas-indie-championship-01",
     "titleKey": "us-texas-indie-championship",
     "holderPersonKeys": [
-      "gen-pro-us-texas-indie-04"
+      "gen-pro-us-texas-indie-01"
     ],
     "teamKey": null,
-    "wonOn": "2024-12-31",
-    "lostOn": "2026-01-18",
+    "wonOn": "2025-08-28",
+    "lostOn": "2026-04-14",
     "endReason": "lost",
-    "defences": 5
+    "defences": 3
   },
   {
     "key": "reign-us-texas-indie-championship-02",
     "titleKey": "us-texas-indie-championship",
     "holderPersonKeys": [
-      "gen-pro-us-texas-indie-06"
+      "gen-pro-us-texas-indie-07"
     ],
     "teamKey": null,
-    "wonOn": "2026-01-18",
-    "lostOn": "2026-12-06",
+    "wonOn": "2026-04-14",
+    "lostOn": "2026-06-06",
     "endReason": "lost",
-    "defences": 2
+    "defences": 0
   },
   {
     "key": "reign-us-texas-indie-championship-03",
     "titleKey": "us-texas-indie-championship",
     "holderPersonKeys": [
+      "gen-pro-us-texas-indie-04"
+    ],
+    "teamKey": null,
+    "wonOn": "2026-06-06",
+    "lostOn": "2026-10-07",
+    "endReason": "lost",
+    "defences": 0
+  },
+  {
+    "key": "reign-us-texas-indie-championship-04",
+    "titleKey": "us-texas-indie-championship",
+    "holderPersonKeys": [
       "hl-wade-pruneda"
     ],
     "teamKey": null,
-    "wonOn": "2026-12-06",
+    "wonOn": "2026-10-07",
     "lostOn": null,
     "endReason": null,
-    "defences": 2
+    "defences": 7
   },
   {
     "key": "reign-us-west-women-championship-01",
@@ -1071,43 +913,31 @@
       "gen-pro-us-west-women-09"
     ],
     "teamKey": null,
-    "wonOn": "2024-06-03",
-    "lostOn": "2024-11-27",
+    "wonOn": "2025-08-31",
+    "lostOn": "2026-03-02",
     "endReason": "lost",
-    "defences": 0
+    "defences": 1
   },
   {
     "key": "reign-us-west-women-championship-02",
     "titleKey": "us-west-women-championship",
     "holderPersonKeys": [
-      "gen-pro-us-west-women-11"
+      "gen-pro-us-west-women-07"
     ],
     "teamKey": null,
-    "wonOn": "2024-11-27",
-    "lostOn": "2025-06-16",
+    "wonOn": "2026-03-02",
+    "lostOn": "2026-12-10",
     "endReason": "lost",
-    "defences": 6
+    "defences": 9
   },
   {
     "key": "reign-us-west-women-championship-03",
     "titleKey": "us-west-women-championship",
     "holderPersonKeys": [
-      "gen-pro-us-west-women-07"
-    ],
-    "teamKey": null,
-    "wonOn": "2025-06-16",
-    "lostOn": "2026-06-08",
-    "endReason": "lost",
-    "defences": 3
-  },
-  {
-    "key": "reign-us-west-women-championship-04",
-    "titleKey": "us-west-women-championship",
-    "holderPersonKeys": [
       "hl-odessa-quill"
     ],
     "teamKey": null,
-    "wonOn": "2026-06-08",
+    "wonOn": "2026-12-10",
     "lostOn": null,
     "endReason": null,
     "defences": 1
@@ -1116,14 +946,14 @@
     "key": "reign-us-west-women-tag-01",
     "titleKey": "us-west-women-tag",
     "holderPersonKeys": [
-      "gen-pro-us-west-women-02",
-      "gen-pro-us-west-women-06"
+      "gen-pro-us-west-women-04",
+      "gen-pro-us-west-women-08"
     ],
-    "teamKey": "team-pro-us-west-women-03",
-    "wonOn": "2025-09-19",
-    "lostOn": "2026-11-05",
+    "teamKey": "team-pro-us-west-women-02",
+    "wonOn": "2026-05-31",
+    "lostOn": "2026-10-18",
     "endReason": "lost",
-    "defences": 3
+    "defences": 0
   },
   {
     "key": "reign-us-west-women-tag-02",
@@ -1133,9 +963,9 @@
       "gen-pro-us-west-women-10"
     ],
     "teamKey": "team-pro-us-west-women-01",
-    "wonOn": "2026-11-05",
+    "wonOn": "2026-10-18",
     "lostOn": null,
     "endReason": null,
-    "defences": 7
+    "defences": 8
   }
 ]

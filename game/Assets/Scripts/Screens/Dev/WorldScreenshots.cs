@@ -20,7 +20,7 @@ namespace RingsideBooker.Screens.Dev
     /// wizard's defaults, plays N days (default 21: show nights get Auto-fill and Auto results, other
     /// stops are cleared) so there is history, then saves a PNG of Roster (cards, table, an expanded
     /// row, the column picker, filters, the quick look, Set push, Injuries), Workers (table, filters,
-    /// cards), a worker's profile tabs, Promotions, a rival's profile tabs, Event history, the
+    /// cards), a worker's profile tabs, a worker with a bio and moves when there is one, Promotions, a rival's profile tabs, Event history, the
     /// Calendar (yours, the world, a show sheet) and a rival show's results, then quits (exit 1 on a
     /// time-out).
     /// </summary>
@@ -77,9 +77,11 @@ namespace RingsideBooker.Screens.Dev
             yield return Wait(2f);
             yield return Capture("roster-table");
             RosterScreen.Entry first = null;
+            System.Collections.Generic.List<RosterScreen.Entry> rosterShown = null;
             if (RosterScreen.LastTable != null)
             {
                 first = RosterScreen.LastShown?.FirstOrDefault();
+                rosterShown = RosterScreen.LastShown?.ToList();
                 if (first != null) RosterScreen.LastTable.SetExpanded(first, true);
                 yield return Wait(1.2f);
                 yield return Capture("roster-table-expanded");
@@ -128,6 +130,18 @@ namespace RingsideBooker.Screens.Dev
                 Go(ShellRoute.With(ScreenIds.Worker, "id", personId, "tab", tab));
                 yield return Wait(1.8f);
                 yield return Capture("worker-" + tab);
+            }
+
+            // A worker with a bio and named moves (the league roster), when the roster has one.
+            foreach (RosterScreen.Entry entry in rosterShown ?? new System.Collections.Generic.List<RosterScreen.Entry>())
+            {
+                Task<QueryResult<JToken>> profile = game.Client.Query("workers.profile", new JObject { ["personId"] = entry.PersonId });
+                yield return Await(profile);
+                if (!profile.Result.Ok || Kit.Str(profile.Result.Data, "bio") == null || !Kit.Arr(profile.Result.Data, "moves.finishers").Any()) continue;
+                Go(ShellRoute.With(ScreenIds.Worker, "id", entry.PersonId, "tab", "overview"));
+                yield return Wait(1.8f);
+                yield return Capture("worker-overview-bio");
+                break;
             }
 
             // ---- Promotions ----

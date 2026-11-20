@@ -343,6 +343,7 @@ namespace RingsideBooker.Screens
                 pills.Add(Ds.Pill(state, Kit.Str(trait, "label") ?? W.Trait(key), state == DsState.Good ? "check" : state == DsState.Warn ? "warning" : "info"));
             }
             about.Add(pills);
+            AboutMovesAndBio(about, profile);
             columns.Add(about);
 
             VisualElement where = Ds.Panel("Where they're popular", null, null, "wl-col");
@@ -362,6 +363,27 @@ namespace RingsideBooker.Screens
             }
             columns.Add(where);
             body.Add(columns);
+        }
+
+        /// <summary>Named finishers, signatures and the bio, when the person has them (league roster).</summary>
+        private static void AboutMovesAndBio(VisualElement about, JToken profile)
+        {
+            List<string> finishers = Kit.Arr(profile, "moves.finishers").Select(m => (string)m).ToList();
+            List<string> signatures = Kit.Arr(profile, "moves.signatures").Select(m => (string)m).ToList();
+            if (finishers.Count + signatures.Count > 0)
+            {
+                about.Add(Ds.SectionHeader("Moves"));
+                about.Add(Ds.KeyValues(
+                    ("Finishers", finishers.Count > 0 ? string.Join(", ", finishers) : Kit.NoValue),
+                    ("Signatures", signatures.Count > 0 ? string.Join(", ", signatures) : Kit.NoValue)));
+            }
+            if (Kit.Str(profile, "bio") is string bio && bio.Length > 0)
+            {
+                about.Add(Ds.SectionHeader("Bio"));
+                Label text = Ds.Text(bio, "ds-type-body");
+                text.style.whiteSpace = WhiteSpace.Normal;
+                about.Add(text);
+            }
         }
 
         private static string Place(JToken place) =>

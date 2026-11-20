@@ -72,7 +72,7 @@ function codes(valuation: DealValuation): DealRefusalCode[] {
 describe("Altura's shipped deals", () => {
   it('values each shipped deal in its own slot as accepted, near the shipped terms', () => {
     const { read } = altura;
-    const promotionId = promotionNamed(read, 'Altura');
+    const promotionId = promotionNamed(read, 'Szn League');
     const deals = read.tables.deals.lookup('byPromotion', promotionId);
     expect(deals).toHaveLength(3);
     for (const deal of deals) {
@@ -104,8 +104,8 @@ describe("Altura's shipped deals", () => {
 
   it('collides with itself when the deal being renegotiated is not left out', () => {
     const { read } = altura;
-    const promotionId = promotionNamed(read, 'Altura');
-    const mainstage = showNamed(read, 'Altura Mainstage');
+    const promotionId = promotionNamed(read, 'Szn League');
+    const mainstage = showNamed(read, 'Mayhem Monday');
     const valuation = dealValuation(read, TUNABLES, {
       promotionId,
       networkId: networkNamed(read, 'National Signal Network'),
@@ -120,9 +120,9 @@ describe("Altura's shipped deals", () => {
   it('gives the same verdict, terms and traces every time', () => {
     const { read } = altura;
     const request = {
-      promotionId: promotionNamed(read, 'Altura'),
+      promotionId: promotionNamed(read, 'Szn League'),
       networkId: networkNamed(read, 'Kestrel Sports'),
-      eventDefinitionId: showNamed(read, 'Altura Mainstage'),
+      eventDefinitionId: showNamed(read, 'Mayhem Monday'),
       timeslot: 'evening',
       live: false,
       months: 12,

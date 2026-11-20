@@ -11,7 +11,8 @@ import { airingsDueOn } from '../../../src/systems/broadcast';
 import { startDefaultGame } from '../calendar/default-game';
 
 const START = parseGameDate('2027-01-04');
-const SHOWCASE = parseGameDate('2027-01-31');
+/** SLW's first PPV: SZN Unleashed, the second Sunday of February. */
+const SHOWCASE = parseGameDate('2027-02-14');
 
 let state: EngineState;
 
@@ -54,25 +55,25 @@ describe('the default world on air', () => {
   it("airs Altura's weekly shows on their networks in the opening week, from definitions", () => {
     expect(state.world.meta.startDate).toBe(START);
     const read = worldOf(false);
-    const altura = promotionNamed('Altura');
+    const altura = promotionNamed('Szn League');
     expect(week(read, altura, START)).toEqual([
-      '2027-01-04: Altura Mainstage on National Signal Network (definition)',
-      '2027-01-06: Altura Overclock on Kestrel Sports (definition)',
+      '2027-01-04: Mayhem Monday on National Signal Network (definition)',
+      '2027-01-06: Warzone Wednesday on Kestrel Sports (definition)',
     ]);
     expect(airings(read, altura, SHOWCASE)).toEqual([
-      'Altura Showcase on Turnstile Pay-Per-View (definition)',
+      'SZN Unleashed on Turnstile Pay-Per-View (definition)',
     ]);
   });
 
   it('airs the same shows from the calendar once it has dated them', () => {
     const read = worldOf(true);
-    const altura = promotionNamed('Altura');
+    const altura = promotionNamed('Szn League');
     expect(week(read, altura, START)).toEqual([
-      '2027-01-04: Altura Mainstage on National Signal Network (instance)',
-      '2027-01-06: Altura Overclock on Kestrel Sports (instance)',
+      '2027-01-04: Mayhem Monday on National Signal Network (instance)',
+      '2027-01-06: Warzone Wednesday on Kestrel Sports (instance)',
     ]);
     expect(airings(read, altura, SHOWCASE)).toEqual([
-      'Altura Showcase on Turnstile Pay-Per-View (instance)',
+      'SZN Unleashed on Turnstile Pay-Per-View (instance)',
     ]);
   });
 

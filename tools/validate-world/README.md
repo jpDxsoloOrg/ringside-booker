@@ -95,7 +95,7 @@ Format:
   It then matches only written the way the list writes it or in capitals. Any other flag, or
   `[case]` on a longer name, stops the run with exit code 2.
 
-What gets checked: every person's legal name and default ring name, every contract's ring name,
+What gets checked: every person's legal name, default ring name, bio and move names, every contract's ring name,
 every promotion's full and short name, and the names of brands, titles, venues, networks, event
 definitions and teams.
 

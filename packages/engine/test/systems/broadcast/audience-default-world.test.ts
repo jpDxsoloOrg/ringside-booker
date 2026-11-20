@@ -83,8 +83,8 @@ function project(
 describe('audience calibration on the default world', () => {
   it('puts Altura Mainstage on National Signal Network at 1.5M–4M, well above the benchmark', () => {
     const mainstage = project(
-      'Altura',
-      'Altura Mainstage',
+      'Szn League',
+      'Mayhem Monday',
       'National Signal Network',
       'primeTime',
       true,
@@ -97,14 +97,20 @@ describe('audience calibration on the default world', () => {
   });
 
   it('puts Altura Overclock on Kestrel Sports at or above the benchmark', () => {
-    const overclock = project('Altura', 'Altura Overclock', 'Kestrel Sports', 'primeTime', true);
+    const overclock = project(
+      'Szn League',
+      'Warzone Wednesday',
+      'Kestrel Sports',
+      'primeTime',
+      true,
+    );
     expect(overclock.ratio).toBeGreaterThanOrEqual(1);
   });
 
-  it('sells Altura Showcase on Turnstile Pay-Per-View to 50k–400k buyers', () => {
+  it('sells SZN Unleashed on Turnstile Pay-Per-View to 50k–400k buyers', () => {
     const showcase = project(
-      'Altura',
-      'Altura Showcase',
+      'Szn League',
+      'SZN Unleashed',
       'Turnstile Pay-Per-View',
       'primeTime',
       true,
@@ -162,7 +168,7 @@ describe('audience calibration on the default world', () => {
 
 describe('audience traces on the default world', () => {
   it('stay inside the trace limits on every network, the world-wide ones included', () => {
-    const altura = promotionNamed('Altura');
+    const altura = promotionNamed('Szn League');
     for (const network of read.tables.networks.values()) {
       const request = {
         networkId: network.id,

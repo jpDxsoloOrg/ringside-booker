@@ -7,7 +7,7 @@
  *
  * - Transient person state starts clear: `fatigue` 0, no `injury`, no `restrictions`.
  * - Every employment in a pack is `active`, offered on its `startsOn`, with no leave, no
- *   appearances yet this year and a null momentum. Money is in whole currency units.
+ *   appearances yet this year and a null momentum unless the record sets one. Money is in whole currency units.
  * - A reign's `holderNamesAtTime` comes from each holder's ring name with the title's promotion.
  */
 
@@ -22,6 +22,7 @@ import {
 import { isPresentIff } from '../../../model/entities/entity-refinements';
 import {
   AttributesSchema,
+  BioSchema,
   BodyConditionSchema,
   BuildSchema,
   CareerSchema,
@@ -34,6 +35,7 @@ import {
   MAX_TAGS,
   MIN_DEBUT_AGE,
   MotivationSchema,
+  MovesSchema,
   PersonRoleSchema,
   PersonStatusSchema,
   RING_NAME_MAX_LENGTH,
@@ -116,6 +118,10 @@ export const personRecord = defineRecordKind(
     regionalPop: regionalPopSchema,
     traits: TraitsSchema,
     vices: VicesSchema,
+    /** A short free-text bio; left out = none. */
+    bio: BioSchema.optional(),
+    /** Named finishers and signatures; left out = none. */
+    moves: MovesSchema.optional(),
   }),
   (person, context) => {
     if (person.debutDate !== null) {
@@ -197,6 +203,8 @@ export const employmentRecord = defineRecordKind(
     endsOn: isoDateSchema.nullable(),
     /** -100..100; left out = 0. */
     morale: zSigned100.optional(),
+    /** -100..100; left out or null = none yet (set by the first appearance). */
+    momentum: zSigned100.nullable().optional(),
   }),
   (employment, context) => {
     if (employment.endsOn !== null && compareDates(employment.endsOn, employment.startsOn) <= 0) {

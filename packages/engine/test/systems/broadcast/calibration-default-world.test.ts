@@ -76,7 +76,7 @@ function monthlyOverhead(view: GameWorldView, promotionId: PromotionId): number 
 beforeAll(() => {
   const state = startDefaultGame();
   read = documentToWorld({ state: { world: state.world } }, TABLES);
-  altura = promotionNamed(read, 'Altura');
+  altura = promotionNamed(read, 'Szn League');
 });
 
 /**

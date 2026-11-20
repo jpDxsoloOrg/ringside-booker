@@ -40,27 +40,28 @@ describe('calendar.scheduleOpening', () => {
     expect(state.world.meta.startDate).toBe(START);
     expect(addDays(START, HORIZON_DAYS)).toBe(HORIZON_END);
 
-    expect(datesIn(showsNamed(state, 'Altura Mainstage'), '2027-01')).toEqual([
+    expect(datesIn(showsNamed(state, 'Mayhem Monday'), '2027-01')).toEqual([
       '2027-01-04',
       '2027-01-11',
       '2027-01-18',
       '2027-01-25',
     ]);
-    expect(datesIn(showsNamed(state, 'Altura Overclock'), '2027-01')).toEqual([
+    expect(datesIn(showsNamed(state, 'Warzone Wednesday'), '2027-01')).toEqual([
       '2027-01-06',
       '2027-01-13',
       '2027-01-20',
       '2027-01-27',
     ]);
 
-    const [showcase] = showsNamed(state, 'Altura Showcase');
+    const [showcase] = showsNamed(state, 'SZN Unleashed');
     expect(showcase).toMatchObject({
-      date: '2027-01-31',
+      date: '2027-02-14',
       importance: 'major',
       format: { slots: 8, preShowSlots: 1 },
       status: 'scheduled',
     });
-    expect(showsNamed(state, 'Cold Front').map((show) => show.date)).toEqual(['2027-02-14']);
+    expect(showsNamed(state, 'SZN Unleashed').map((show) => show.date)).toEqual(['2027-02-14']);
+    expect(showsNamed(state, 'Toxic Tuesday').map((show) => show.date)[0]).toBe('2027-01-05');
   });
 
   it('stores every show from the start date through start + 90 days and none beyond', () => {

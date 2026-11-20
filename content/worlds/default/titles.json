@@ -90,114 +90,6 @@
     "color": "#94a3b8"
   },
   {
-    "key": "flagship-secondary-main",
-    "promotionKey": "pro-flagship",
-    "brandKey": "flagship-main-brand",
-    "name": "Altura Keystone Championship",
-    "holderCount": 1,
-    "division": {
-      "gender": "open",
-      "minWeightKg": null,
-      "maxWeightKg": null
-    },
-    "prestige": 74,
-    "status": "active",
-    "introducedOn": "1993-03-21",
-    "retiredOn": null,
-    "imageRef": null,
-    "color": "#1e40af"
-  },
-  {
-    "key": "flagship-secondary-young",
-    "promotionKey": "pro-flagship",
-    "brandKey": "flagship-young-brand",
-    "name": "Altura Breakout Championship",
-    "holderCount": 1,
-    "division": {
-      "gender": "open",
-      "minWeightKg": null,
-      "maxWeightKg": null
-    },
-    "prestige": 68,
-    "status": "active",
-    "introducedOn": "2009-05-17",
-    "retiredOn": null,
-    "imageRef": null,
-    "color": "#0891b2"
-  },
-  {
-    "key": "flagship-tag",
-    "promotionKey": "pro-flagship",
-    "brandKey": null,
-    "name": "Altura Tag Team Championship",
-    "holderCount": 2,
-    "division": {
-      "gender": "open",
-      "minWeightKg": null,
-      "maxWeightKg": null
-    },
-    "prestige": 72,
-    "status": "active",
-    "introducedOn": "1990-08-04",
-    "retiredOn": null,
-    "imageRef": null,
-    "color": "#475569"
-  },
-  {
-    "key": "flagship-women",
-    "promotionKey": "pro-flagship",
-    "brandKey": null,
-    "name": "Altura Women's Championship",
-    "holderCount": 1,
-    "division": {
-      "gender": "female",
-      "minWeightKg": null,
-      "maxWeightKg": null
-    },
-    "prestige": 82,
-    "status": "active",
-    "introducedOn": "1998-11-15",
-    "retiredOn": null,
-    "imageRef": null,
-    "color": "#be185d"
-  },
-  {
-    "key": "flagship-world-main",
-    "promotionKey": "pro-flagship",
-    "brandKey": "flagship-main-brand",
-    "name": "Altura World Championship",
-    "holderCount": 1,
-    "division": {
-      "gender": "open",
-      "minWeightKg": null,
-      "maxWeightKg": null
-    },
-    "prestige": 92,
-    "status": "active",
-    "introducedOn": "1989-06-10",
-    "retiredOn": null,
-    "imageRef": null,
-    "color": "#d4af37"
-  },
-  {
-    "key": "flagship-world-young",
-    "promotionKey": "pro-flagship",
-    "brandKey": "flagship-young-brand",
-    "name": "Altura Grand Championship",
-    "holderCount": 1,
-    "division": {
-      "gender": "open",
-      "minWeightKg": null,
-      "maxWeightKg": null
-    },
-    "prestige": 86,
-    "status": "active",
-    "introducedOn": "2002-09-02",
-    "retiredOn": null,
-    "imageRef": null,
-    "color": "#c0c7d1"
-  },
-  {
     "key": "jp-kansai-indie-championship",
     "promotionKey": "pro-jp-kansai-indie",
     "brandKey": null,
@@ -268,6 +160,114 @@
     "retiredOn": null,
     "imageRef": null,
     "color": "#1f2937"
+  },
+  {
+    "key": "league-blx-mid-card-championship",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "name": "BLX Mid Card Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 52,
+    "status": "active",
+    "introducedOn": "2026-03-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#0369a1"
+  },
+  {
+    "key": "league-blx-world-heavyweight-championship",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "name": "BLX World Heavyweight Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 64,
+    "status": "active",
+    "introducedOn": "2026-03-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#a16207"
+  },
+  {
+    "key": "league-blx-world-tag-team-championship",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "name": "BLX World Tag Team Championship",
+    "holderCount": 2,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 50,
+    "status": "active",
+    "introducedOn": "2026-03-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#6d28d9"
+  },
+  {
+    "key": "league-slw-mid-card-championship",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "Mid Card Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 70,
+    "status": "active",
+    "introducedOn": "2026-03-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#2563eb"
+  },
+  {
+    "key": "league-slw-world-heavyweight-championship",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "World Heavyweight Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 84,
+    "status": "active",
+    "introducedOn": "2026-03-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#b8860b"
+  },
+  {
+    "key": "league-slw-world-tag-team-championship",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "SZN World Tag Team Championship",
+    "holderCount": 2,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 74,
+    "status": "active",
+    "introducedOn": "2026-03-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#7c3aed"
   },
   {
     "key": "mx-major-heavyweight",

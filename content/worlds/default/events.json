@@ -182,125 +182,10 @@
     "logoRef": null
   },
   {
-    "key": "flagship-altitude",
-    "promotionKey": "pro-flagship",
-    "brandKey": null,
-    "name": "Altitude",
-    "importance": "flagship",
-    "recurrence": {
-      "kind": "annual",
-      "month": 4,
-      "week": 1,
-      "weekday": 6
-    },
-    "format": {
-      "slots": 10,
-      "preShowSlots": 2
-    },
-    "televised": true,
-    "preferredRegionKey": "us-mid-atlantic",
-    "preferredVenueKey": "kestlewood-stadium",
-    "activeFrom": "1990-04-01",
-    "activeUntil": null,
-    "logoRef": null
-  },
-  {
-    "key": "flagship-cold-front",
-    "promotionKey": "pro-flagship",
-    "brandKey": null,
-    "name": "Cold Front",
-    "importance": "major",
-    "recurrence": {
-      "kind": "annual",
-      "month": 2,
-      "week": 2,
-      "weekday": 6
-    },
-    "format": {
-      "slots": 8,
-      "preShowSlots": 1
-    },
-    "televised": true,
-    "preferredRegionKey": "ca-ontario",
-    "preferredVenueKey": "velmont-lakeshore-arena",
-    "activeFrom": "1999-02-14",
-    "activeUntil": null,
-    "logoRef": null
-  },
-  {
-    "key": "flagship-ember-night",
-    "promotionKey": "pro-flagship",
-    "brandKey": null,
-    "name": "Ember Night",
-    "importance": "major",
-    "recurrence": {
-      "kind": "annual",
-      "month": 11,
-      "week": 2,
-      "weekday": 6
-    },
-    "format": {
-      "slots": 8,
-      "preShowSlots": 1
-    },
-    "televised": true,
-    "preferredRegionKey": "us-northeast",
-    "preferredVenueKey": "calderwick-arena",
-    "activeFrom": "2004-11-14",
-    "activeUntil": null,
-    "logoRef": null
-  },
-  {
-    "key": "flagship-harvest-brawl",
-    "promotionKey": "pro-flagship",
-    "brandKey": null,
-    "name": "Harvest Brawl",
-    "importance": "major",
-    "recurrence": {
-      "kind": "annual",
-      "month": 9,
-      "week": 2,
-      "weekday": 6
-    },
-    "format": {
-      "slots": 8,
-      "preShowSlots": 1
-    },
-    "televised": true,
-    "preferredRegionKey": "us-northeast",
-    "preferredVenueKey": "harrowmere-arena",
-    "activeFrom": "1997-09-14",
-    "activeUntil": null,
-    "logoRef": null
-  },
-  {
-    "key": "flagship-longest-day",
-    "promotionKey": "pro-flagship",
-    "brandKey": null,
-    "name": "Longest Day",
-    "importance": "major",
-    "recurrence": {
-      "kind": "annual",
-      "month": 6,
-      "week": 3,
-      "weekday": 6
-    },
-    "format": {
-      "slots": 8,
-      "preShowSlots": 1
-    },
-    "televised": true,
-    "preferredRegionKey": "us-mid-atlantic",
-    "preferredVenueKey": "brackwater-arena",
-    "activeFrom": "1994-06-19",
-    "activeUntil": null,
-    "logoRef": null
-  },
-  {
     "key": "flagship-mainstage-weekly",
     "promotionKey": "pro-flagship",
     "brandKey": "flagship-main-brand",
-    "name": "Altura Mainstage",
+    "name": "Mayhem Monday",
     "importance": "regular",
     "recurrence": {
       "kind": "weekly",
@@ -313,7 +198,7 @@
     "televised": true,
     "preferredRegionKey": "us-northeast",
     "preferredVenueKey": "harrowmere-arena",
-    "activeFrom": "1993-01-11",
+    "activeFrom": "2026-03-16",
     "activeUntil": null,
     "logoRef": null
   },
@@ -321,7 +206,7 @@
     "key": "flagship-overclock-weekly",
     "promotionKey": "pro-flagship",
     "brandKey": "flagship-young-brand",
-    "name": "Altura Overclock",
+    "name": "Warzone Wednesday",
     "importance": "regular",
     "recurrence": {
       "kind": "weekly",
@@ -333,30 +218,8 @@
     },
     "televised": true,
     "preferredRegionKey": "us-northeast",
-    "preferredVenueKey": "calderwick-arena",
-    "activeFrom": "2002-08-28",
-    "activeUntil": null,
-    "logoRef": null
-  },
-  {
-    "key": "flagship-showcase-monthly",
-    "promotionKey": "pro-flagship",
-    "brandKey": null,
-    "name": "Altura Showcase",
-    "importance": "major",
-    "recurrence": {
-      "kind": "monthly",
-      "week": "last",
-      "weekday": 6
-    },
-    "format": {
-      "slots": 8,
-      "preShowSlots": 1
-    },
-    "televised": true,
-    "preferredRegionKey": "us-mid-atlantic",
-    "preferredVenueKey": "brackwater-arena",
-    "activeFrom": "1996-01-28",
+    "preferredVenueKey": "harrowmere-arena",
+    "activeFrom": "2026-03-16",
     "activeUntil": null,
     "logoRef": null
   },
@@ -606,6 +469,228 @@
     "preferredRegionKey": "mx-mexico-city",
     "preferredVenueKey": "arena-tres-garzas",
     "activeFrom": "1992-01-10",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "slw-fallout-friday-weekly",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "name": "Fallout Friday",
+    "importance": "regular",
+    "recurrence": {
+      "kind": "weekly",
+      "weekdays": [4]
+    },
+    "format": {
+      "slots": 6,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "us-northeast",
+    "preferredVenueKey": "harrowmere-arena",
+    "activeFrom": "2026-03-16",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "slw-open-szn-in-your-house",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "OPEN SZN: In Your House",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 4,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "us-northeast",
+    "preferredVenueKey": "harrowmere-arena",
+    "activeFrom": "2026-05-08",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "slw-saturday-showdown-weekly",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "name": "Saturday Showdown",
+    "importance": "regular",
+    "recurrence": {
+      "kind": "weekly",
+      "weekdays": [5]
+    },
+    "format": {
+      "slots": 6,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "us-northeast",
+    "preferredVenueKey": "calderwick-arena",
+    "activeFrom": "2026-03-16",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "slw-survivorszn",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "SurvivorSzn",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 12,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "us-northeast",
+    "preferredVenueKey": "calderwick-arena",
+    "activeFrom": "2026-10-03",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "slw-szn-reborn",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "Szn Reborn",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 8,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "us-mid-atlantic",
+    "preferredVenueKey": "brackwater-arena",
+    "activeFrom": "2026-08-14",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "slw-szn-unleashed",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "SZN Unleashed",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 2,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "us-mid-atlantic",
+    "preferredVenueKey": "brackwater-arena",
+    "activeFrom": "2026-04-28",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "slw-szn-zero",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "SZN Zero",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 10,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "us-northeast",
+    "preferredVenueKey": "harrowmere-arena",
+    "activeFrom": "2026-09-19",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "slw-throwdown-thursday-weekly",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "name": "Throwdown Thursday",
+    "importance": "regular",
+    "recurrence": {
+      "kind": "weekly",
+      "weekdays": [3]
+    },
+    "format": {
+      "slots": 6,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "us-northeast",
+    "preferredVenueKey": "calderwick-arena",
+    "activeFrom": "2026-03-16",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "slw-toxic-tuesday-weekly",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "name": "Toxic Tuesday",
+    "importance": "regular",
+    "recurrence": {
+      "kind": "weekly",
+      "weekdays": [1]
+    },
+    "format": {
+      "slots": 6,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "us-northeast",
+    "preferredVenueKey": "calderwick-arena",
+    "activeFrom": "2026-03-16",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "slw-unfinished-business",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "Unfinished Business",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 6,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "us-northeast",
+    "preferredVenueKey": "calderwick-arena",
+    "activeFrom": "2026-05-26",
     "activeUntil": null,
     "logoRef": null
   },

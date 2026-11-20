@@ -64,7 +64,7 @@ function storedTrace(ref: TraceRef | null) {
 describe('a week of airings on the default world', () => {
   it('airs Mainstage on 4 Jan and Overclock on 6 Jan inside the calibration bands', () => {
     const start = parseGameDate('2027-01-04');
-    const mainstage = airingNamed('Altura Mainstage');
+    const mainstage = airingNamed('Mayhem Monday');
     expect(mainstage.airDate).toBe(start);
     expect(mainstage.status).toBe('aired');
     expect(mainstage.quality?.source).toBe('show');
@@ -72,19 +72,19 @@ describe('a week of airings on the default world', () => {
     expect(mainstage.viewers).toBeLessThanOrEqual(4_000_000);
     expect(mainstage.viewers).toBeGreaterThanOrEqual(mainstage.expectedViewers);
 
-    const overclock = airingNamed('Altura Overclock');
+    const overclock = airingNamed('Warzone Wednesday');
     expect(overclock.airDate).toBe(addDays(start, 2));
     expect(overclock.viewers).toBeGreaterThanOrEqual(overclock.expectedViewers);
   });
 
   it("pays Altura's two airings as TV rights, each with a Why? that resolves and replays", () => {
-    const altura = promotionNamed('Altura');
+    const altura = promotionNamed('Szn League');
     const income = tables.ledgerEntries.filter(
       (row) => row.promotionId === altura && row.category === 'broadcast',
     );
     expect(income.map((row) => row.memo).sort()).toEqual([
-      'Broadcast: Altura Mainstage on National Signal Network',
-      'Broadcast: Altura Overclock on Kestrel Sports',
+      'Broadcast: Mayhem Monday on National Signal Network',
+      'Broadcast: Warzone Wednesday on Kestrel Sports',
     ]);
     for (const row of income) {
       expectTraceReplays({ value: row.amount, trace: storedTrace(row.traceRef).trace });
@@ -107,7 +107,7 @@ describe('a week of airings on the default world', () => {
         .filter((row) => row.promotionId === altura && row.refs.dealId !== null)
         .reduce((sum, row) => sum + row.amount, 0),
     );
-    expect(summary.data.lastAiring?.showName).toBe('Altura Overclock');
+    expect(summary.data.lastAiring?.showName).toBe('Warzone Wednesday');
     // A week into the game nothing has been rolled up, so the card has no "details kept" note.
     expect(summary.data.note).toBeNull();
   });

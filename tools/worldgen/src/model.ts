@@ -91,6 +91,8 @@ export interface PersonOut {
   regionalPop: Record<string, number>;
   traits: string[];
   vices: { alcohol: string; substances: string };
+  bio?: string;
+  moves?: { finishers: string[]; signatures: string[] };
 }
 
 export interface ContractTermsOut {
@@ -121,6 +123,8 @@ export interface EmploymentOut {
   terms: ContractTermsOut;
   startsOn: GameDate;
   endsOn: GameDate;
+  /** Starting momentum; left out = none yet. */
+  momentum?: number;
 }
 
 export interface TeamOut {

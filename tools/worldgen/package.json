@@ -6,6 +6,7 @@
   "description": "Builds the default world's roster, contracts, teams and title history from a spec file and a fixed seed.",
   "scripts": {
     "build-default": "tsx src/build-default-roster.ts",
+    "league:fetch": "tsx src/league/fetch-league.ts",
     "test": "vitest run",
     "typecheck": "tsc -b"
   },
@@ -16,6 +17,7 @@
   },
   "devDependencies": {
     "@types/node": "20.19.43",
+    "prettier": "3.9.10",
     "tsx": "4.23.15"
   }
 }

@@ -70,19 +70,19 @@ describe('the titles queries on the default world, playing Altura', () => {
   const ownRows = own.groups.flatMap((group) => group.titles);
   const worldRows = world.groups.flatMap((group) => group.titles);
 
-  it('lists our 6 titles under Mainstage, Overclock and Promotion-wide', () => {
-    expect(own.groups.map((group) => group.brandName)).toEqual([
-      'Altura Mainstage',
-      'Altura Overclock',
-      'Promotion-wide',
+  it('lists our 3 league titles, all promotion-wide', () => {
+    expect(own.groups.map((group) => group.brandName)).toEqual(['Promotion-wide']);
+    expect(ownRows.map((row) => row.name).sort()).toEqual([
+      'Mid Card Championship',
+      'SZN World Tag Team Championship',
+      'World Heavyweight Championship',
     ]);
-    expect(ownRows).toHaveLength(6);
     expect(ownRows.every((row) => row.editable)).toBe(true);
   });
 
-  it('lists the other 22 titles in 11 promotion groups, none editable', () => {
+  it('lists the other 25 titles in 11 promotion groups, none editable', () => {
     expect(world.groups).toHaveLength(11);
-    expect(worldRows).toHaveLength(22);
+    expect(worldRows).toHaveLength(25);
     expect(worldRows.some((row) => row.editable)).toBe(false);
   });
 

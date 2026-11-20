@@ -27,7 +27,7 @@ import { anEmployment } from '../../support/builders/promotions';
 import { startDefaultGame } from '../calendar/default-game';
 import { storedTrace } from './title-commands-world';
 
-const TITLE_NAME = 'Altura World Championship';
+const TITLE_NAME = 'World Heavyweight Championship';
 const GRACE_DAYS = titlesTunables['titles.orphanGraceDays'].default;
 
 /** The default world with the World Champion's Altura contract ended (released) yesterday. */
@@ -130,7 +130,7 @@ describe('a default-world champion whose contract ends', () => {
       const ruleLine = trace.trace.children?.find((node) => node.kind === 'branch');
       expect(ruleLine?.label).toMatch(
         new RegExp(
-          `^${reign.holderNamesAtTime[0] ?? ''} has had no contract with .*Altura.* since ${reignDateText(leftOn)} \\(${String(GRACE_DAYS)} days\\)$`,
+          `^${reign.holderNamesAtTime[0] ?? ''} has had no contract with .*Szn League.* since ${reignDateText(leftOn)} \\(${String(GRACE_DAYS)} days\\)$`,
         ),
       );
       expect(trace.trace.children?.find((node) => node.kind === 'input')).toMatchObject({

@@ -51,9 +51,9 @@ describe('the default world news, first month', () => {
     expect(advanced.daysAdvanced).toBe(DAYS);
   });
 
-  it('has the Altura reign marks: the World title at 300 days, the Women’s at 100', () => {
-    expect(reignStory('Altura World Championship', 300)).toBeDefined();
-    expect(reignStory("Altura Women's Championship", 100)).toBeDefined();
+  it('has the reign marks: Cielo Alto Heavyweight at 300 days, Tessen Junior Heavyweight at 100', () => {
+    expect(reignStory('Cielo Alto Heavyweight Championship', 300)).toBeDefined();
+    expect(reignStory('Tessen Junior Heavyweight Championship', 100)).toBeDefined();
   });
 
   it('has at least one career anniversary, the season story and about a dozen milestones', () => {

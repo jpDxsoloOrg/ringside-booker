@@ -34,10 +34,10 @@ const CONTENT_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../../../
 
 const PLAYER_ID = 'local-player';
 const PLAYER_PROMOTION_KEY = 'pro-flagship';
-const PLAYER_PROMOTION_NAME = 'Altura Wrestling Entertainment';
+const PLAYER_PROMOTION_NAME = 'Szn League Wrestling';
 const RIVAL_PROMOTION_NAME = 'Hibari Pro Wrestling';
-const DEFAULT_WORLD_PEOPLE = 286;
-const DEFAULT_WORLD_FREE_AGENTS = 44;
+const DEFAULT_WORLD_PEOPLE = 549;
+const DEFAULT_WORLD_FREE_AGENTS = 181;
 
 /** Profiles carry every level of the popularity roll-up, so the audit reads every Nth person. */
 const SAMPLE_EVERY = 8;

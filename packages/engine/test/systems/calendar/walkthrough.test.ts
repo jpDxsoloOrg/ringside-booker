@@ -123,37 +123,39 @@ async function saveAndReload(engine: Engine): Promise<Engine> {
 }
 
 describe('the calendar on a new default-world game', () => {
-  it('opens on Monday 4 January 2027 with the weekly shows and the month’s major show', () => {
+  it('opens on Monday 4 January 2027 with the weekly shows, and the first PPV in February', () => {
     const engine = engineOver(startDefaultGame());
     expect(ask(engine, 'clock.get', {}).date).toBe(START);
 
     const january = stored(engine, JANUARY, 'mine');
-    expect(datesOf(january, 'Altura Mainstage')).toEqual([
+    expect(datesOf(january, 'Mayhem Monday')).toEqual([
       '2027-01-04',
       '2027-01-11',
       '2027-01-18',
       '2027-01-25',
     ]);
-    expect(weekdaysOf(january, 'Altura Mainstage')).toEqual([MONDAY]);
-    expect(datesOf(january, 'Altura Overclock')).toEqual([
+    expect(weekdaysOf(january, 'Mayhem Monday')).toEqual([MONDAY]);
+    expect(datesOf(january, 'Warzone Wednesday')).toEqual([
       '2027-01-06',
       '2027-01-13',
       '2027-01-20',
       '2027-01-27',
     ]);
-    expect(weekdaysOf(january, 'Altura Overclock')).toEqual([WEDNESDAY]);
-    expect(showOn(january, 'Altura Showcase', '2027-01-31').importance).toBe('major');
+    expect(weekdaysOf(january, 'Warzone Wednesday')).toEqual([WEDNESDAY]);
+    // SLW runs a league show every day but Sunday; its first PPV is in February.
+    expect(weekdaysOf(january, 'Saturday Showdown')).toEqual([SATURDAY]);
+    expect(january.filter((show) => show.importance === 'major')).toEqual([]);
     expect(january.every((show) => show.isOwn)).toBe(true);
 
     const february = stored(engine, FEBRUARY, 'mine');
-    expect(showOn(february, 'Cold Front', '2027-02-14').importance).toBe('major');
+    expect(showOn(february, 'SZN Unleashed', '2027-02-14').importance).toBe('major');
   });
 
   it('gives the show sheet its facts, and a reason for the venue', () => {
     const engine = engineOver(startDefaultGame());
     const january = stored(engine, JANUARY, 'mine');
 
-    const row = showOn(january, 'Altura Mainstage', '2027-01-11');
+    const row = showOn(january, 'Mayhem Monday', '2027-01-11');
     if (row.eventInstanceId === null) {
       throw new Error('A stored show has an id');
     }
@@ -163,7 +165,7 @@ describe('the calendar on a new default-world game', () => {
     }
     expect(mainstage).toMatchObject({
       importance: 'regular',
-      brand: { name: 'Altura Mainstage' },
+      brand: { name: 'SLW Mainstage' },
       format: { slots: 6, preShowSlots: 0 },
       televised: true,
       status: 'scheduled',
@@ -178,7 +180,9 @@ describe('the calendar on a new default-world game', () => {
       { kind: 'branch', label: 'The show has a preferred venue' },
     );
 
-    expect(showOn(january, 'Altura Showcase', '2027-01-31').format).toMatchObject({
+    expect(
+      showOn(stored(engine, FEBRUARY, 'mine'), 'SZN Unleashed', '2027-02-14').format,
+    ).toMatchObject({
       slots: 8,
       preShowSlots: 1,
     });
@@ -201,7 +205,7 @@ describe('the calendar on a new default-world game', () => {
     expect(JSON.stringify(detail?.placementTrace)).not.toMatch(RUNNING_TIME);
   });
 
-  it('lists the rivals in Whole world, five shows deep on Saturday 16 January', () => {
+  it('lists the rivals in Whole world, six shows deep on Saturday 16 January', () => {
     const engine = engineOver(startDefaultGame());
     const mine = stored(engine, JANUARY, 'mine');
     const world = stored(engine, JANUARY, 'world');
@@ -211,7 +215,7 @@ describe('the calendar on a new default-world game', () => {
     expect(weekdaysOf(world, 'Tessen Iron Hour')).toEqual([SATURDAY]);
     expect(datesOf(mine, 'Ashlar Thursday')).toEqual([]);
 
-    expect(world.filter((show) => show.date === '2027-01-16')).toHaveLength(5);
+    expect(world.filter((show) => show.date === '2027-01-16')).toHaveLength(6);
 
     const [rival] = world.filter((show) => show.name === 'Ashlar Thursday');
     expect(rival).toMatchObject({ isOwn: false, canCancel: false });
@@ -220,28 +224,27 @@ describe('the calendar on a new default-world game', () => {
   it('projects April past the stored schedule, and stores a day more after Next Day', async () => {
     const engine = engineOver(startDefaultGame());
 
-    expect(showOn(stored(engine, APRIL, 'mine'), 'Altitude', '2027-04-04')).toMatchObject({
-      importance: 'flagship',
-      status: 'scheduled',
-    });
-    expect(datesOf(stored(engine, APRIL, 'mine'), 'Altura Mainstage')).toEqual(['2027-03-29']);
     expect(
-      showOn(projected(engine, APRIL, 'mine'), 'Altura Mainstage', '2027-04-05'),
-    ).toMatchObject({ status: 'projected', eventInstanceId: null, canCancel: false });
+      showOn(projected(engine, APRIL, 'mine'), 'OPEN SZN: In Your House', '2027-04-11'),
+    ).toMatchObject({ importance: 'major', status: 'projected' });
+    expect(datesOf(stored(engine, APRIL, 'mine'), 'Mayhem Monday')).toEqual(['2027-03-29']);
+    expect(showOn(projected(engine, APRIL, 'mine'), 'Mayhem Monday', '2027-04-05')).toMatchObject({
+      status: 'projected',
+      eventInstanceId: null,
+      canCancel: false,
+    });
 
     await advanceOneDay(engine);
 
-    expect(showOn(stored(engine, APRIL, 'mine'), 'Altura Mainstage', '2027-04-05').status).toBe(
+    expect(showOn(stored(engine, APRIL, 'mine'), 'Mayhem Monday', '2027-04-05').status).toBe(
       'scheduled',
     );
-    expect(datesOf(projected(engine, APRIL, 'mine'), 'Altura Mainstage')).not.toContain(
-      '2027-04-05',
-    );
+    expect(datesOf(projected(engine, APRIL, 'mine'), 'Mayhem Monday')).not.toContain('2027-04-05');
   });
 
   it('keeps a cancelled show cancelled through a save, a reload and the next day', async () => {
     const engine = engineOver(startDefaultGame());
-    const overclock = showOn(stored(engine, JANUARY, 'mine'), 'Altura Overclock', '2027-01-13');
+    const overclock = showOn(stored(engine, JANUARY, 'mine'), 'Warzone Wednesday', '2027-01-13');
     if (overclock.eventInstanceId === null) {
       throw new Error('A stored show has an id');
     }
@@ -259,13 +262,13 @@ describe('the calendar on a new default-world game', () => {
       canCancel: false,
     };
     expect(
-      showOn(stored(reloaded, JANUARY, 'mine'), 'Altura Overclock', '2027-01-13'),
+      showOn(stored(reloaded, JANUARY, 'mine'), 'Warzone Wednesday', '2027-01-13'),
     ).toMatchObject(expected);
 
     // The schedule moving forward must not put a second Overclock on the cancelled date.
     await advanceOneDay(reloaded);
     expect(
-      showOn(stored(reloaded, JANUARY, 'mine'), 'Altura Overclock', '2027-01-13'),
+      showOn(stored(reloaded, JANUARY, 'mine'), 'Warzone Wednesday', '2027-01-13'),
     ).toMatchObject(expected);
   });
 
@@ -274,12 +277,10 @@ describe('the calendar on a new default-world game', () => {
     await advanceOneDay(engine);
 
     expect(ask(engine, 'clock.get', {}).date).toBe('2027-01-05');
-    expect(showOn(stored(engine, JANUARY, 'mine'), 'Altura Mainstage', '2027-01-04')).toMatchObject(
-      {
-        status: 'cancelled',
-        cancellation: { reason: 'notRun' },
-        segmentCount: 0,
-      },
-    );
+    expect(showOn(stored(engine, JANUARY, 'mine'), 'Mayhem Monday', '2027-01-04')).toMatchObject({
+      status: 'cancelled',
+      cancellation: { reason: 'notRun' },
+      segmentCount: 0,
+    });
   });
 });

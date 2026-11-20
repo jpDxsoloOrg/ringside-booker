@@ -34,6 +34,7 @@
     "sim": "npm run sim -w @ringside/sim-runner --",
     "validate:world": "npm run -w @ringside/validate-world validate -- content/worlds/default",
     "worldgen:default": "npm run -w @ringside/tool-worldgen build-default --",
+    "league:fetch": "npm run -w @ringside/tool-worldgen league:fetch --",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm test",
     "verify:full": "npm run format:check && npm run lint && npm run typecheck && npm run test:slow && npm run test:tz && npm run sim -- --days 60 --check-determinism --strict && npm run sim -- --days 365 --strict && npm run validate:world -- --strict && npm run blog:check && npm run build"
   },

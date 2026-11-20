@@ -150,8 +150,22 @@ describe('the default world with its people', () => {
     }
   });
 
-  it('makes at least a quarter of the wrestlers women', () => {
-    const all = wrestlers();
+  it('carries the league roster in with bios, moves and starting momentum from the pack', () => {
+    const { world } = loadedWorld();
+    const league = wrestlers().filter((person) => person.tags.includes('league'));
+    expect(league.length).toBeGreaterThan(200);
+    expect(league.some((person) => person.bio !== undefined)).toBe(true);
+    expect(league.some((person) => (person.moves?.finishers.length ?? 0) > 0)).toBe(true);
+    // Generated people keep their old shape: no bio or moves keys at all.
+    const generated = wrestlers().find((person) => !person.tags.includes('league'));
+    expect(generated !== undefined && 'bio' in generated).toBe(false);
+    expect(generated !== undefined && 'moves' in generated).toBe(false);
+    expect(world.tables.employments.values().some((row) => row.momentum !== null)).toBe(true);
+  });
+
+  it('makes at least a quarter of the generated wrestlers women', () => {
+    // The league roster (tagged `league`) lists no women, so the mix is a generated-roster rule.
+    const all = wrestlers().filter((person) => !person.tags.includes('league'));
     const women = all.filter((person) => person.gender === 'female');
     expect(women.length / all.length).toBeGreaterThanOrEqual(0.25);
   });

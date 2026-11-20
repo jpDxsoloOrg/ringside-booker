@@ -240,6 +240,10 @@ export interface WorkerProfile {
   popularity: WorkerProfilePopularity;
   traits: WorkerProfileTrait[];
   vices: WorkerProfileVice[];
+  /** Free-text bio, or null when the person has none. */
+  bio: string | null;
+  /** Named finishers and signatures; empty lists when unknown. */
+  moves: { finishers: string[]; signatures: string[] };
   career: {
     /** Newest first. */
     contracts: WorkerProfileContract[];
@@ -514,6 +518,11 @@ export function workerProfileOf(
     popularity: popularityOf(person, geography),
     traits: person.traits.map((key) => ({ key, label: TRAIT_LABELS[key] })),
     vices: vicesOf(person),
+    bio: person.bio ?? null,
+    moves: {
+      finishers: [...(person.moves?.finishers ?? [])],
+      signatures: [...(person.moves?.signatures ?? [])],
+    },
     career: {
       contracts,
       reigns: reignsOf(read, personId, today),
