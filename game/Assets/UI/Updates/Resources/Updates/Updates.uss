@@ -1,0 +1,115 @@
+/* Update chip and sheet (POL9-11). UNITY-11 tokens only; quiet by design. */
+
+.upd-chip {
+    flex-direction: row;
+    align-items: center;
+    align-self: flex-start;
+    flex-shrink: 0;
+    height: 24px;
+    margin: 0;
+    padding: 0 10px 0 8px;
+    border-width: 1px;
+    border-radius: var(--ds-radius-pill);
+    border-color: rgba(56, 189, 248, 0.35);
+    background-color: var(--ds-info-soft);
+    color: var(--ds-info);
+    cursor: link;
+}
+
+.upd-chip:hover {
+    border-color: var(--ds-info);
+}
+
+.upd-chip:focus {
+    border-color: var(--ds-info);
+}
+
+.upd-chip__icon {
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    color: var(--ds-info);
+}
+
+.upd-chip__label {
+    color: var(--ds-info);
+    font-size: 12px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Title screen: just above the version line (bottom left). */
+.upd-chip--title {
+    position: absolute;
+    left: var(--space-10);
+    bottom: 52px;
+}
+
+.upd-chip--about {
+    margin-bottom: 8px;
+}
+
+.upd-about {
+    flex-shrink: 0;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line);
+}
+
+.upd-about__row {
+    align-items: center;
+    margin-top: 8px;
+}
+
+.upd-about__status {
+    margin-left: 12px;
+    flex-shrink: 1;
+}
+
+.upd-body {
+    flex-shrink: 0;
+}
+
+.upd-headline {
+    color: var(--ds-text);
+    font-size: var(--ds-type-subtitle);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+.upd-sub {
+    margin-top: 4px;
+    margin-bottom: 16px;
+    color: var(--ds-text-3);
+    font-size: var(--ds-type-caption);
+}
+
+.ds-sheet__footer.upd-footer {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.upd-footer__note {
+    margin-bottom: 8px;
+}
+
+.upd-footer__problem {
+    margin-bottom: 4px;
+    color: var(--ds-warn);
+    font-size: var(--ds-type-body);
+}
+
+.upd-footer__buttons {
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.upd-footer__buttons > .ds-btn {
+    margin-right: 8px;
+}
+
+.upd-footer > .ds-meter {
+    margin-bottom: 10px;
+}
