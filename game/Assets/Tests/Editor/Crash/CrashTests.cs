@@ -208,6 +208,7 @@ namespace RingsideBooker.Tests.Crash
             Assert.AreEqual("Beta", BugReport.ChannelName("BETA"));
             Assert.AreEqual(string.Empty, BugReport.ChannelName("release"));
             Assert.AreEqual(string.Empty, BugReport.ChannelName(null));
+            Assert.AreEqual("dev build", BugReport.ChannelName("local"));
         }
 
         // ---- Send feedback -------------------------------------------------------------------------

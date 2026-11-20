@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using RingsideBooker.Diagnostics;
 using RingsideBooker.Engine;
@@ -26,8 +27,9 @@ namespace RingsideBooker.UI.Crash
     }
 
     /// <summary>
-    /// Where "Load a backup" finds backups. Today: the single <c>.rbsave.bak</c> SaveStore keeps.
-    /// The save backups work (#892) can install a richer source with <see cref="Backups.Source"/>.
+    /// Where "Load a backup" finds backups: the slot's rotating backups (UNITY-27,
+    /// <see cref="SaveStore.ListBackups"/>). A ticketing or cloud source could replace it with
+    /// <see cref="Backups.Source"/>.
     /// </summary>
     public interface IBackupSource
     {
@@ -38,26 +40,46 @@ namespace RingsideBooker.UI.Crash
 
     public static class Backups
     {
-        public static IBackupSource Source { get; set; } = new SingleBackupSource();
+        public static IBackupSource Source { get; set; } = new SlotBackupSource();
+
+        /// <summary>The most backups the crash screen and safe start offer (newest first).</summary>
+        public const int MaxShown = 3;
     }
 
-    /// <summary>The one backup SaveStore keeps: the previous save of the slot.</summary>
-    public sealed class SingleBackupSource : IBackupSource
+    /// <summary>The slot's rotating backups (UNITY-27), newest first: "Previous save", then "Earlier save".</summary>
+    public sealed class SlotBackupSource : IBackupSource
     {
-        public const string BackupId = "previous";
-
         public IReadOnlyList<BackupChoice> List(SaveStore store, SaveSlotInfo slot)
         {
-            if (slot == null || !slot.HasBackup) return Array.Empty<BackupChoice>();
-            string path = store.BackupPath(slot.SlotId);
-            string detail = File.Exists(path)
-                ? "Saved " + File.GetLastWriteTime(path).ToString("d MMM yyyy, HH:mm", CultureInfo.InvariantCulture)
-                : null;
-            return new[] { new BackupChoice { Id = BackupId, Label = "Previous save", Detail = detail } };
+            if (slot == null) return Array.Empty<BackupChoice>();
+            IReadOnlyList<SaveBackupInfo> backups;
+            try
+            {
+                backups = store.ListBackups(slot.SlotId);
+            }
+            catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+            {
+                Debug.LogWarning("[Recovery] could not list backups: " + error.Message);
+                return Array.Empty<BackupChoice>();
+            }
+
+            var choices = new List<BackupChoice>();
+            foreach (SaveBackupInfo backup in backups.OrderByDescending(item => item.SavedAt).Take(Backups.MaxShown))
+            {
+                string date = backup.GameDate != null ? "game date " + backup.GameDate + " · " : string.Empty;
+                choices.Add(new BackupChoice
+                {
+                    Id = backup.BackupId,
+                    Label = choices.Count == 0 ? "Previous save" : "Earlier save",
+                    Detail = date + "saved " + backup.SavedAt.ToLocalTime().ToString("d MMM yyyy, HH:mm", CultureInfo.InvariantCulture),
+                });
+            }
+
+            return choices;
         }
 
         public Task<OpenResult> OpenAsync(EngineClient engine, SaveStore store, SaveSlotInfo slot, BackupChoice choice) =>
-            GameSession.OpenSlotAsync(engine, slot, store, backup: true);
+            GameSession.OpenBackupAsync(engine, slot, choice.Id, store);
     }
 
     /// <summary>

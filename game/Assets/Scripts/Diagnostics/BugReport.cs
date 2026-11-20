@@ -131,8 +131,8 @@ namespace RingsideBooker.Diagnostics
             var text = new StringBuilder();
             text.AppendLine($"Ringside Booker bug report ({facts.ChannelName} {facts.Version})");
             text.AppendLine($"Made: {facts.MadeAt.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)} UTC");
-            text.AppendLine($"Build: version {facts.Version}, channel {facts.Channel}, commit {facts.Commit ?? "unknown"}, built {facts.Built ?? "unknown"}");
-            text.AppendLine($"Engine: {facts.EngineVersion ?? "unknown"}");
+            text.AppendLine($"Build: version {facts.Version}, channel {facts.Channel}, commit {OrUnknown(facts.Commit)}, built {OrUnknown(facts.Built)}");
+            text.AppendLine($"Engine: {OrUnknown(facts.EngineVersion)}");
             text.AppendLine($"System: {facts.System}");
             text.AppendLine();
             if (facts.Fault != null)
@@ -174,10 +174,14 @@ namespace RingsideBooker.Diagnostics
             return text.ToString();
         }
 
+        private static string OrUnknown(string value) => string.IsNullOrEmpty(value) ? "unknown" : value;
+
         /// <summary>The words for a release channel ("Alpha", "Beta"; empty for a release).</summary>
         public static string ChannelName(string channel)
         {
             if (string.IsNullOrEmpty(channel) || string.Equals(channel, "release", StringComparison.OrdinalIgnoreCase)) return string.Empty;
+            // A dev build without version.json: say so plainly instead of "Local".
+            if (string.Equals(channel, "local", StringComparison.OrdinalIgnoreCase)) return "dev build";
             return char.ToUpperInvariant(channel[0]) + channel.Substring(1).ToLowerInvariant();
         }
 
@@ -254,8 +258,9 @@ namespace RingsideBooker.Diagnostics
                 entries.Add(BugReportEntry.FromFile("save/" + slot.SlotId + SaveStore.HeaderExtension, store.HeaderPath(slot.SlotId)));
             }
 
-            entries.Add(File.Exists(ReleaseInfo.FilePath)
-                ? BugReportEntry.FromFile(VersionEntry, ReleaseInfo.FilePath)
+            string versionFile = Path.Combine(Application.streamingAssetsPath, ReleaseInfo.FileName);
+            entries.Add(File.Exists(versionFile)
+                ? BugReportEntry.FromFile(VersionEntry, versionFile)
                 : BugReportEntry.FromText(VersionEntry, new JObject
                 {
                     ["version"] = ReleaseInfo.Version,

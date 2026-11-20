@@ -45,3 +45,9 @@ crashlytics-buildid.txt
 *.aab
 *.unitypackage
 *.app
+
+# Release stamp and notes written by game/tools/package-windows.sh / BuildScripts (POL9-01)
+/Assets/StreamingAssets/version.json
+/Assets/StreamingAssets/version.json.meta
+/Assets/StreamingAssets/CHANGELOG.md
+/Assets/StreamingAssets/CHANGELOG.md.meta

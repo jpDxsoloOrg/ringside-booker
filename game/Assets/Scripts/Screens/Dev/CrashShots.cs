@@ -96,7 +96,7 @@ namespace RingsideBooker.Screens.Dev
             yield return Wait(1f);
             Check(firstClient.IsStopped, "first client stopped");
             Check(Find("stopped-reload") != null, "Reload last save offered");
-            Check(Find("stopped-backup-" + SingleBackupSource.BackupId) != null, "Load a backup offered");
+            Check(FindPrefix("stopped-backup-") != null, "Load a backup offered");
             yield return Capture("engine-stopped");
             Click("stopped-details-toggle");
             yield return Wait(0.5f);
@@ -122,7 +122,7 @@ namespace RingsideBooker.Screens.Dev
             Click("stopped-safe");
             yield return WaitFor(() => SceneManager.GetActiveScene().name == SceneFlow.TitleScene && Find(SafeStartPanel.ElementName) != null, 20f, "safe start");
             yield return Wait(1.5f);
-            Check(Find("safe-backup-" + SingleBackupSource.BackupId) != null, "safe start offers the backup");
+            Check(FindPrefix("safe-backup-") != null, "safe start offers the backup");
             yield return Capture("safe-start");
 
             // Settings: Feedback & bug reports.
@@ -173,6 +173,17 @@ namespace RingsideBooker.Screens.Dev
             foreach (UIDocument document in FindObjectsByType<UIDocument>())
             {
                 VisualElement found = document.rootVisualElement?.Q(name);
+                if (found != null) return found;
+            }
+
+            return null;
+        }
+
+        private static VisualElement FindPrefix(string prefix)
+        {
+            foreach (UIDocument document in FindObjectsByType<UIDocument>())
+            {
+                VisualElement found = document.rootVisualElement?.Query<VisualElement>().Where(element => element.name != null && element.name.StartsWith(prefix, StringComparison.Ordinal)).First();
                 if (found != null) return found;
             }
 
