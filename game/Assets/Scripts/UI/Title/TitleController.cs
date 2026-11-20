@@ -53,6 +53,8 @@ namespace RingsideBooker.UI.Title
             if (Diagnostics.CrashGuard.ShouldOfferSafeStart) ShowSafeStart();
             Crash.FeedbackUi.AddToTitle(root);
             Updates.UpdateUi.AddToTitle(root);
+            // Released alpha/beta builds ask for a tester code before the menu (POL9-12).
+            Access.AccessGate.AttachToTitle(root, () => menu[0].Focus());
             menu[0].schedule.Execute(() => menu[0].Focus());
         }
 

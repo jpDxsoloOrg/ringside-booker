@@ -18,6 +18,8 @@ licence texts ship next to this file in the licenses folder.
 - Lucide icons (Lucide Icons and Contributors, ISC; some icons derived from
   Feather, Cole Bemis, MIT): the game's icon set, converted to path data in
   Assets/UI/Design/Resources/Design/Icons.txt. Licence below.
+- The tester access check (Ed25519 signatures) is the game's own code, written
+  from the algorithm in RFC 8032; no third-party library is bundled for it.
 - Built with Unity. Unity is a trademark of Unity Technologies.
 
 

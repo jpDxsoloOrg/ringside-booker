@@ -1,0 +1,40 @@
+{
+  "name": "@ringside/access-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tester access codes for the released game builds (POL9-12): activate and refresh on AWS.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run",
+    "codes": "tsx tools/codes.ts",
+    "deploy": "npm run build && serverless deploy --aws-profile league-szn",
+    "keygen": "serverless invoke --function keygen --aws-profile league-szn",
+    "remove": "serverless remove --aws-profile league-szn"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/aws-lambda": "8.10.164",
+    "@types/node": "20.19.43",
+    "aws-sdk-client-mock": "4.1.0",
+    "esbuild": "0.28.2",
+    "eslint": "9.39.5",
+    "globals": "17.14.0",
+    "serverless": "3.38.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.2",
+    "vitest": "3.2.7"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.1174.0",
+    "@aws-sdk/client-ssm": "3.1174.0",
+    "@aws-sdk/lib-dynamodb": "3.1174.0"
+  }
+}
