@@ -90,7 +90,7 @@ namespace RingsideBooker.UI.Updates
 
             void Refresh()
             {
-                status.text = StatusText(UpdateService.Status, UpdateService.Offer, UpdateService.LastCheckUtc);
+                status.text = StatusText(UpdateService.Status, UpdateService.Offer, UpdateService.LastCheckUtc, !UpdateService.ShowChip);
                 checkNow.SetEnabled(UpdateService.Status != UpdateStatus.Checking);
             }
 
@@ -99,14 +99,15 @@ namespace RingsideBooker.UI.Updates
         }
 
         /// <summary>The About status line in plain words.</summary>
-        public static string StatusText(UpdateStatus status, ReleaseEntry offer, DateTime? lastCheckUtc)
+        public static string StatusText(UpdateStatus status, ReleaseEntry offer, DateTime? lastCheckUtc, bool skipped = false)
         {
             switch (status)
             {
                 case UpdateStatus.Checking:
                     return "Checking…";
                 case UpdateStatus.Available:
-                    return offer != null ? $"Version {offer.Version} is out." : string.Empty;
+                    if (offer == null) return string.Empty;
+                    return skipped ? $"Version {offer.Version} is out (skipped). Check now to see it again." : $"Version {offer.Version} is out.";
                 case UpdateStatus.UpToDate:
                     return "You have the newest version.";
                 case UpdateStatus.Failed:

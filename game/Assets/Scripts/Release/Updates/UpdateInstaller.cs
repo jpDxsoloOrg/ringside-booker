@@ -59,7 +59,7 @@ namespace RingsideBooker.Release.Updates
                 };
                 download.request.SetRequestHeader("User-Agent", UpdateFeed.UserAgent(ReleaseInfo.SemVer));
                 download.request.SendWebRequest().completed += _ => download.Finish();
-                Debug.Log($"[Update] downloading {asset.Name} ({asset.Size} bytes) to {path}");
+                Debug.Log($"[Update] downloading {asset.Name} ({asset.Size} bytes) to %TEMP%\\{FolderName}");
             }
             catch (Exception error)
             {
@@ -143,7 +143,7 @@ namespace RingsideBooker.Release.Updates
         {
             if (UpdateService.IsFake)
             {
-                Debug.Log($"[Update] (fake) would start \"{path}\" {Arguments}");
+                Debug.Log($"[Update] (fake) would start {Path.GetFileName(path)} {Arguments}");
                 return null;
             }
             try
@@ -155,7 +155,7 @@ namespace RingsideBooker.Release.Updates
                     WorkingDirectory = Path.GetDirectoryName(path) ?? string.Empty,
                 };
                 Process.Start(start);
-                Debug.Log($"[Update] started \"{path}\" {Arguments}");
+                Debug.Log($"[Update] started {Path.GetFileName(path)} {Arguments}");
                 return null;
             }
             catch (Exception error)

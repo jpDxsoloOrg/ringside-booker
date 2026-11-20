@@ -168,6 +168,18 @@ namespace RingsideBooker.Tests.Release
         }
 
         [Test]
+        public void StatusLineInPlainWords()
+        {
+            ReleaseEntry offer = UpdateFeed.Parse(Fixture("releases-alpha.json")).Single(r => r.Tag == "v0.1.0-alpha.2");
+            Assert.That(UpdateUi.StatusText(UpdateStatus.Available, offer, null), Is.EqualTo("Version 0.1.0-alpha.2 is out."));
+            StringAssert.Contains("skipped", UpdateUi.StatusText(UpdateStatus.Available, offer, null, skipped: true));
+            Assert.That(UpdateUi.StatusText(UpdateStatus.UpToDate, null, null), Is.EqualTo("You have the newest version."));
+            StringAssert.StartsWith("Couldn't check", UpdateUi.StatusText(UpdateStatus.Failed, null, null));
+            Assert.That(UpdateUi.StatusText(UpdateStatus.Idle, null, null), Is.Empty);
+            Assert.That(UpdateUi.ChipText(offer), Is.EqualTo("Update available: v0.1.0-alpha.2"));
+        }
+
+        [Test]
         public void ReleaseNotesBecomeGroups()
         {
             ReleaseEntry offer = UpdateFeed.Parse(Fixture("releases-alpha.json")).Single(r => r.Tag == "v0.1.0-alpha.2");

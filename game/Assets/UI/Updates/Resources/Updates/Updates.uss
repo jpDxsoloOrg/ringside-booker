@@ -9,7 +9,7 @@
     margin: 0;
     padding: 0 10px 0 8px;
     border-width: 1px;
-    border-radius: var(--ds-radius-pill);
+    border-radius: 12px;
     border-color: rgba(56, 189, 248, 0.35);
     background-color: var(--ds-info-soft);
     color: var(--ds-info);
