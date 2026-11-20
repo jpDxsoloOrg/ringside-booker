@@ -61,14 +61,21 @@ try {
     const loaded = await tab.evaluate(() => document.fonts.check("800 20px 'Barlow Condensed'"));
     if (!loaded) throw new Error('Barlow Condensed did not load');
     const out = join(branding, `app-icon-${size}.png`);
-    await tab.screenshot({ path: out, omitBackground: true, clip: { x: 0, y: 0, width: size, height: size } });
+    await tab.screenshot({
+      path: out,
+      omitBackground: true,
+      clip: { x: 0, y: 0, width: size, height: size },
+    });
     console.log(`wrote ${out}`);
   }
 } finally {
   await browser.close();
 }
 
-execFileSync('convert', [...ICO_SIZES.map((size) => join(branding, `app-icon-${size}.png`)), join(branding, 'app-icon.ico')]);
+execFileSync('convert', [
+  ...ICO_SIZES.map((size) => join(branding, `app-icon-${size}.png`)),
+  join(branding, 'app-icon.ico'),
+]);
 console.log(`wrote ${join(branding, 'app-icon.ico')}`);
 mkdirSync(join(gameDir, 'installer'), { recursive: true });
 copyFileSync(join(branding, 'app-icon.ico'), join(gameDir, 'installer', 'RingsideBooker.ico'));
