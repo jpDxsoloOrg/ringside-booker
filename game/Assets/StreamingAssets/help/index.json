@@ -45,10 +45,21 @@
     {
       "slug": "booking",
       "title": "Booking a show",
-      "summary": "Build a card: slots, lengths, Auto-fill, the card check and the venue.",
+      "summary": "Build a card: slots, lengths, Auto-fill, the card check and the venue. Plus adding and changing your shows.",
       "section": "promotion",
       "order": 2,
-      "keywords": ["booking", "card", "match", "slot", "auto-fill", "venue", "calendar"],
+      "keywords": [
+        "booking",
+        "card",
+        "match",
+        "slot",
+        "auto-fill",
+        "venue",
+        "calendar",
+        "schedule",
+        "new show",
+        "special"
+      ],
       "screens": ["booking", "calendar"]
     },
     {

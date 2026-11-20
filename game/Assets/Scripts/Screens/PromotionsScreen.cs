@@ -344,8 +344,17 @@ namespace RingsideBooker.Screens
         private static async Task Shows(VisualElement body, JToken profile, string id, ScreenContext context)
         {
             body.Add(Ds.SectionHeader("Regular shows"));
+            if (id == Schedule.ScheduleEditor.OwnPromotionId)
+            {
+                // EVT8: your own promotion's schedule is edited from here and from the Calendar.
+                VisualElement scheduleActions = Ds.Row("wl-toolbar");
+                Schedule.ScheduleEditor.Style(scheduleActions);
+                scheduleActions.Add(Schedule.ScheduleEditor.NewShowButton(context, "promotion-new-show"));
+                scheduleActions.Add(Schedule.ScheduleEditor.ManageButton(context, "promotion-manage-shows"));
+                body.Add(scheduleActions);
+            }
             List<JToken> shows = Kit.Arr(profile, "shows").ToList();
-            if (shows.Count == 0) body.Add(Ds.Text("No regular shows.", "ds-type-caption"));
+            if (shows.Count == 0) body.Add(Ds.Text(id == Schedule.ScheduleEditor.OwnPromotionId ? "No regular shows yet. Add a weekly show to start your schedule." : "No regular shows.", "ds-type-caption"));
             VisualElement grid = Ds.Row("ds-row--wrap", "wl-show-tiles");
             foreach (JToken show in shows)
             {

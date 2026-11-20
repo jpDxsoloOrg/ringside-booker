@@ -48,6 +48,7 @@ import { storylinesTunables } from './storylines/tunables';
 import { angleTunables } from './match/angles/tunables';
 import { newsTunables } from './news/tunables';
 import { broadcastTunables } from './broadcast/tunables';
+import { calendarEditorTunables } from './calendar/editor/tunables';
 
 export const ALL_TUNABLES = mergeTunables(
   simTunables,
@@ -81,6 +82,7 @@ export const ALL_TUNABLES = mergeTunables(
   angleTunables,
   newsTunables,
   broadcastTunables,
+  calendarEditorTunables,
 );
 
 /** Every tunable key the engine knows. */
