@@ -87,7 +87,7 @@ export const tradeTunables = defineTunables({
   },
   'trades.cash.marketFloor': {
     kind: 'number',
-    default: 0.1,
+    default: 0.5,
     min: 0,
     max: 2,
     unit: 'ratio',

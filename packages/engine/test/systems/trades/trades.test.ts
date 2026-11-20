@@ -381,13 +381,13 @@ describe('cash', () => {
     expect(Math.max(...factors)).toBeGreaterThan(Math.min(...factors));
   });
 
-  it('in the default world: midcarders cost about 1-3 years of pay, and $40M never buys a top star or ace', () => {
+  it('in the default world: midcarders cost about 6-12 years of pay, and $40M never buys a top star or ace', () => {
     const engine = tradeEngine(tradeState());
     const promotions = engine.exportState().world.tables.promotions;
     const rivals = promotions.filter(
       (row) => row.controller.kind === 'computer' && row.status === 'active',
     );
-    let midcarders = 0;
+    const multiples: number[] = [];
     let topCards = 0;
     rivals.forEach((_rival, index) => {
       const game = { engine, ...sidesOf(engine, index) };
@@ -420,12 +420,17 @@ describe('cash', () => {
       if (mid !== undefined) {
         const needed = cashNeeded(game, mid.employmentId);
         expect(needed).not.toBeNull();
-        expect(needed! / yearlyPay(mid)).toBeGreaterThan(1);
-        expect(needed! / yearlyPay(mid)).toBeLessThan(3.5);
-        midcarders += 1;
+        multiples.push(needed! / yearlyPay(mid));
       }
     });
-    expect(midcarders).toBeGreaterThan(3);
+    // Well-paid midcarders cost less (their contract is above the market floor); the typical one
+    // costs 6-12 years of pay, and none is cheap.
+    multiples.sort((left, right) => left - right);
+    expect(multiples.length).toBeGreaterThan(3);
+    const median = multiples[Math.floor(multiples.length / 2)]!;
+    expect(median).toBeGreaterThanOrEqual(6);
+    expect(median).toBeLessThanOrEqual(12);
+    expect(multiples[0]).toBeGreaterThan(2);
     expect(topCards).toBeGreaterThan(2);
   }, 120_000);
 });

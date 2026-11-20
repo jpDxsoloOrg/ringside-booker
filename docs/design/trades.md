@@ -81,9 +81,11 @@ Cash is valued against what the workers cost, not at a flat rate, so a rich play
   unless the workers coming back are worth at least `trades.cash.starWorkerShare` of them. The
   answer says "They won't sell their top star for money" and it refuses (no counter).
 
-Needs the sale opens, the accept margin and the finance factor come on top of the price. In the
-default world a midcarder costs about 1.5–3× their yearly pay in cash, an enhancement worker
-1.2–3.7× (token contracts hit the market floor), and a main eventer who is not the ace about 3×.
+Needs the sale opens, the accept margin and the finance factor come on top of the price. The
+market floor defaults to 0.5 (the owner chose "partway up"): default-world wages are far below
+market value, so most prices follow the floor. In the default world a typical midcarder costs
+about 7–11× their yearly pay in cash (2.9–3.8× for the few paid near their worth, up to 13×),
+an enhancement worker 3–16×, and a main eventer who is not the ace 4–12×.
 The preview's lines say what cash is worth ("Cash is worth 1 point per $…") and the Why? has the
 rate's working.
 
