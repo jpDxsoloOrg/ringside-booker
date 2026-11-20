@@ -29,11 +29,15 @@
     font-size: 13px;
 }
 
-/* Sidebar header: after "RINGSIDE BOOKER"; hidden when the sidebar is collapsed. */
+/* Sidebar header: tucked under "RINGSIDE BOOKER" (the row has no room beside it); hidden when the
+   sidebar is collapsed. */
 .rb-channel-badge--sidebar {
-    margin-left: 8px;
-    font-size: 10px;
-    padding: 0 4px;
+    position: absolute;
+    left: 60px;
+    bottom: 3px;
+    font-size: 9px;
+    letter-spacing: 1.2px;
+    padding: 0 3px;
 }
 
 .ds-app--collapsed .rb-channel-badge--sidebar {

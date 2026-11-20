@@ -218,6 +218,16 @@ Intro text that is not a release.
         }
 
         [Test]
+        public void NewerItemsKeepTheirHeadsUpWarning()
+        {
+            var releases = ReleaseNotes.Parse("## Unreleased\n\n### Added\n\n- A\n\n### Heads up\n\n- B\n");
+            VisualElement body = WhatsNewSheet.Build(ReleaseNotes.For(releases, "0.1.0-alpha.1"), ReleaseInfo.Stamp.Local("0.1.0-alpha.1"));
+            Assert.IsNotNull(body.Q("whats-new-since"));
+            Assert.IsNotNull(body.Q("whats-new-since-heads-up"));
+            Assert.AreEqual(1, body.Q("whats-new-since").Query(className: "wn-item").ToList().Count);
+        }
+
+        [Test]
         public void TheSheetHasAnEmptyState()
         {
             VisualElement body = WhatsNewSheet.Build(new ReleaseNotes.Notes(), ReleaseInfo.Stamp.Local("0.1.0-alpha.1"));

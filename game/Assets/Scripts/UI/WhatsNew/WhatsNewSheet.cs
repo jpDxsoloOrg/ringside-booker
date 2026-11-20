@@ -40,7 +40,9 @@ namespace RingsideBooker.UI.WhatsNew
             if (notes.SinceRelease != null && !notes.SinceRelease.IsEmpty)
             {
                 string since = notes.Current != null ? $"New since {notes.Current.Version}" : "New in this build";
-                body.Add(Group(since, Items(notes.SinceRelease), false).Named("whats-new-since"));
+                body.Add(Group(since, Items(notes.SinceRelease, false), false).Named("whats-new-since"));
+                List<string> sinceHeadsUp = Items(notes.SinceRelease, true);
+                if (sinceHeadsUp.Count > 0) body.Add(Group(ReleaseNotes.HeadsUp, sinceHeadsUp, true).Named("whats-new-since-heads-up"));
             }
             if (notes.Current != null && !notes.Current.IsEmpty)
             {
@@ -76,10 +78,14 @@ namespace RingsideBooker.UI.WhatsNew
                 : isoDate;
         }
 
-        private static List<string> Items(ReleaseNotes.Release release)
+        /// <summary>The release's items, either the Heads up ones or all the others.</summary>
+        private static List<string> Items(ReleaseNotes.Release release, bool headsUp)
         {
             var items = new List<string>();
-            foreach (ReleaseNotes.Section section in release.Sections) items.AddRange(section.Items);
+            foreach (ReleaseNotes.Section section in release.Sections)
+            {
+                if (section.IsHeadsUp == headsUp) items.AddRange(section.Items);
+            }
             return items;
         }
 
