@@ -75,6 +75,15 @@ namespace RingsideBooker.Screens.Contracts
         /// disabled with the reason; null when no contract action applies (retired, no promotion).
         /// </summary>
         public static Task<ContractAction> ActionFor(string personId) => ContractAction.ForAsync(personId);
+
+        /// <summary>
+        /// The talks whose answer arriving on <paramref name="route"/> marks seen: the Offers tab with
+        /// a <c>negotiation</c>, as the day button's "Offer answered" goes. Null otherwise.
+        /// </summary>
+        public static string AnswerSeenOnArrival(ShellRoute route) =>
+            route != null && route.ScreenId == ScreenId && route.Param("tab") == TabOffers && !string.IsNullOrEmpty(route.Param("negotiation"))
+                ? route.Param("negotiation")
+                : null;
     }
 
     /// <summary>The worker profile's contract button, worked out for one person (see <see cref="ContractsScreen.ActionFor"/>).</summary>
@@ -153,6 +162,13 @@ namespace RingsideBooker.Screens.Contracts
             if (!Tabs.Any(entry => entry.id == tab)) tab = ContractsScreen.TabActive;
             focusPending = route.Param("employment") != null || route.Param("negotiation") != null ||
                            route.Param("person") != null || route.Param("renew") != null;
+            // DRF-08: arriving on an answered offer (the day button's "Offer answered") reads the
+            // answer, so it clears the stop now. Waiting for the talks sheet to load left a gap in
+            // which the stop was still up and the day button asked again.
+            if (ContractsScreen.AnswerSeenOnArrival(route) is string answered && Kit.Game?.PromotionId != null)
+            {
+                _ = Kit.Run("contracts.markOffersSeen", new JObject { ["negotiationIds"] = new JArray(answered) });
+            }
 
             Root = Ds.Column("ct-page").Named("screen-contracts");
             ContractUi.Style(Root);

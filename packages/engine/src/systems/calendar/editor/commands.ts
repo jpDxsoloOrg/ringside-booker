@@ -8,6 +8,7 @@
 
 import { z } from 'zod';
 import { defineCommand } from '../../../core/api/command';
+import { weeklyScheduleRefusals } from '../../draft/scheduleRule';
 import type { Reason } from '../../../core/api/result';
 import { compareDates, type GameDate } from '../../../core/date';
 import { EntityNotFoundError } from '../../../core/errors';
@@ -171,6 +172,14 @@ export const createDefinitionCommand = defineCommand('calendar.createDefinition'
     if (refused.length > 0) {
       return refused;
     }
+    const weekly = weeklyScheduleRefusals(read, {
+      kind: 'create',
+      promotionId: args.promotionId,
+      recurrence: args.draft.recurrence,
+    });
+    if (weekly.length > 0) {
+      return weekly;
+    }
     return checkDraft(read, args.promotionId, args.draft, checksOf(read, env.tunables));
   },
   apply: (ctx, args) => {
@@ -204,6 +213,14 @@ export const updateDefinitionCommand = defineCommand('calendar.updateDefinition'
     }
     if (isRetired(stored, checksOf(read, env.tunables))) {
       return [{ code: 'alreadyRetired', message: 'This show is retired' }];
+    }
+    const weekly = weeklyScheduleRefusals(read, {
+      kind: 'update',
+      eventDefinitionId: stored.id,
+      recurrence: args.draft.recurrence,
+    });
+    if (weekly.length > 0) {
+      return weekly;
     }
     return checkDraft(read, stored.promotionId, args.draft, checksOf(read, env.tunables), stored);
   },
@@ -282,6 +299,10 @@ export const addOneOffCommand = defineCommand('calendar.addOneOff', {
     );
     if (refused.length > 0) {
       return refused;
+    }
+    const weekly = weeklyScheduleRefusals(read, { kind: 'oneOff', promotionId: args.promotionId });
+    if (weekly.length > 0) {
+      return weekly;
     }
     return checkNewShow(read, args, checksOf(read, env.tunables)).reasons;
   },

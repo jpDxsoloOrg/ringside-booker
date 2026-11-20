@@ -38,8 +38,12 @@ import {
   isGameDate,
   loadSave,
   packManifestSchema,
+  previewPromotionPage,
+  previewSetup,
   previewWorld,
+  PromotionPageArgsSchema,
   SAVE_LABEL_MAX_LENGTH,
+  SetupPreviewArgsSchema,
   serializeError,
   TABLES,
   worldHash,
@@ -55,7 +59,7 @@ import { baseGeographyOf } from './worldMod/base';
 import { checkWorldModPack, ruleOf } from './worldMod/check';
 
 /** Bumped when a function, an argument or a result shape of this API changes. */
-export const HOST_API_VERSION = 3;
+export const HOST_API_VERSION = 4;
 
 /** The most loader issues an import result lists; the rest are only counted. */
 const MAX_REPORTED_PACK_ISSUES = 50;
@@ -84,6 +88,10 @@ export interface RingsideEngineApi {
   configure(optionsJson: string): string;
   listWorlds(): string;
   previewWorld(rootPackId: string): string;
+  /** DRF-06: the active-promotion picker's page (search, country and size filters, paging). */
+  previewPromotions(rootPackId: string, argsJson?: string): string;
+  /** DRF-06/07: counts for a choice of active promotions, and the draft's plan when it is on. */
+  previewSetup(rootPackId: string, argsJson?: string): string;
   newGame(optionsJson: string): string;
   load(save: SaveInput): Promise<string>;
   save(optionsJson?: string): Promise<string>;
@@ -285,6 +293,32 @@ export function createEmbeddedHost(options: EmbeddedHostOptions): RingsideEngine
           return refused([invalid('previewWorld needs a world pack id')]);
         }
         return out(previewWorld(allPacks(), rootPackId), 'previewWorld');
+      }),
+
+    previewPromotions: (rootPackId, argsJson) =>
+      guard('previewPromotions', () => {
+        if (typeof rootPackId !== 'string' || rootPackId === '') {
+          return refused([invalid('previewPromotions needs a world pack id')]);
+        }
+        const parsed = parseObject(argsJson, 'The picker arguments');
+        if (!parsed.ok) return refused([parsed.reason]);
+        const args = PromotionPageArgsSchema.safeParse(parsed.value);
+        if (!args.success)
+          return refused([invalid(args.error.issues[0]?.message ?? 'Bad arguments')]);
+        return out(previewPromotionPage(allPacks(), rootPackId, args.data), 'previewPromotions');
+      }),
+
+    previewSetup: (rootPackId, argsJson) =>
+      guard('previewSetup', () => {
+        if (typeof rootPackId !== 'string' || rootPackId === '') {
+          return refused([invalid('previewSetup needs a world pack id')]);
+        }
+        const parsed = parseObject(argsJson, 'The setup preview arguments');
+        if (!parsed.ok) return refused([parsed.reason]);
+        const args = SetupPreviewArgsSchema.safeParse(parsed.value);
+        if (!args.success)
+          return refused([invalid(args.error.issues[0]?.message ?? 'Bad arguments')]);
+        return out(previewSetup(allPacks(), rootPackId, args.data), 'previewSetup');
       }),
 
     newGame: (optionsJson) =>

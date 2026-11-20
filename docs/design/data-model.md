@@ -1552,3 +1552,56 @@ Refs: `dealId`, `networkId`, `promotionId`, `eventInstanceId` (nullable) and
 `eventDefinitionId` (nullable). Indexes: `byDeal`, `byPromotion`,
 `byEventInstance` and `byAirDate`. Saves list the table with a default of `[]`,
 so a save from before the table loads with it empty.
+
+## Drafts
+
+DRF-01: the draft start's draft and its picks. See [draft.md](draft.md).
+
+### Drafts (`drafts`, `drf_`)
+
+One row per draft. Everything the next pick needs is here, so a save made
+mid-draft resumes exactly.
+
+| Field        | Type                                 | Notes                                                                              |
+| ------------ | ------------------------------------ | ---------------------------------------------------------------------------------- |
+| `id`         | `DraftId`                            |                                                                                    |
+| `kind`       | `start`                              | what the draft is for (brand drafts add their own)                                 |
+| `status`     | `running \| complete \| finished`    | `complete`: every pick made, waiting for `draft.finish`                            |
+| `createdOn`  | `GameDate`                           |                                                                                    |
+| `finishedOn` | `GameDate \| null`                   | set when finished                                                                  |
+| `settings`   | `DraftSettings`                      | `order`, `rosterTarget`, `staffTarget`, `draftStaff`, `negotiateAfter`, `schedule` |
+| `order`      | `PromotionId[]`                      | the promotions drafting, in round one's order                                      |
+| `turn`       | int ≥ 0                              | the next turn; full promotions' turns are skipped                                  |
+| `picks`      | int ≥ 0                              | picks made                                                                         |
+| `poolLeft`   | `{ wrestlers, staff }`               | who is left in the pool, rewritten after every command                             |
+| `level`      | `{ cash, prestige, homePopularity }` | the level every promotion started at                                               |
+| `sitOut`     | `PersonId[]`                         | wrestlers left out of the pool (DRF-07), sorted                                    |
+| `poolMix`    | per card level                       | `level`, `inPool`, `available`, `female`, `male`, `other`                          |
+| `cardLevels` | `{ personId, level }[]`              | each pool wrestler's card level when the draft began (DRF-08), sorted by person    |
+
+Refs: `order[]`, `sitOut[]`, `cardLevels[].personId`. Index: `byStatus`.
+
+### Draft picks (`draftPicks`, `dpk_`)
+
+One row per pick.
+
+| Field           | Type                             | Notes                                              |
+| --------------- | -------------------------------- | -------------------------------------------------- |
+| `id`            | `DraftPickId`                    |                                                    |
+| `draftId`       | `DraftId`                        |                                                    |
+| `number`        | int ≥ 1                          | across the whole draft                             |
+| `round`         | int ≥ 1                          |                                                    |
+| `promotionId`   | `PromotionId`                    |                                                    |
+| `personId`      | `PersonId`                       |                                                    |
+| `category`      | `wrestler \| staff`              |                                                    |
+| `role`          | `EmploymentRole`                 | the job drafted for                                |
+| `source`        | `player \| computer \| auto`     | who chose it                                       |
+| `value`         | 0–100                            | draft value at the pick, one decimal               |
+| `status`        | `signed \| reserved \| released` | `reserved`: unsigned, rights held                  |
+| `employmentId`  | `EmploymentId \| null`           | the contract signed at the pick                    |
+| `reservedUntil` | `GameDate \| null`               | last day the rights are held, for an unsigned pick |
+| `pickedOn`      | `GameDate`                       |                                                    |
+
+Refs: `draftId`, `promotionId`, `personId`, `employmentId` (nullable).
+Indexes: `byDraft`, `byPerson`, `byDraftPromotion`. Saves list both tables
+with a default of `[]`.

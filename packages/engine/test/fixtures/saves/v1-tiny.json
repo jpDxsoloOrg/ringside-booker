@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "cd0e44da885923555179d5b663dc2049",
+    "schemaFingerprint": "85bebdb351d1774381accea69a873401",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -1873,6 +1873,68 @@
             "timeslot": "primeTime",
             "warnedOn": null,
             "weekday": 3
+          }
+        ],
+        "draftPicks": [
+          {
+            "category": "wrestler",
+            "draftId": "drf_0000000001",
+            "employmentId": "emp_0000000001",
+            "id": "dpk_0000000001",
+            "number": 1,
+            "personId": "per_0000000001",
+            "pickedOn": "2026-01-05",
+            "promotionId": "pro_0000000001",
+            "reservedUntil": null,
+            "role": "wrestler",
+            "round": 1,
+            "source": "player",
+            "status": "signed",
+            "value": 61.5
+          }
+        ],
+        "drafts": [
+          {
+            "cardLevels": [],
+            "createdOn": "2026-01-05",
+            "finishedOn": "2026-01-05",
+            "id": "drf_0000000001",
+            "kind": "start",
+            "level": {
+              "cash": 100000000,
+              "homePopularity": 30,
+              "prestige": 50
+            },
+            "order": [
+              "pro_0000000001",
+              "pro_0000000002"
+            ],
+            "picks": 1,
+            "poolLeft": {
+              "staff": 0,
+              "wrestlers": 0
+            },
+            "poolMix": [
+              {
+                "available": 1,
+                "female": 0,
+                "inPool": 1,
+                "level": "mainEvent",
+                "male": 1,
+                "other": 0
+              }
+            ],
+            "settings": {
+              "draftStaff": false,
+              "negotiateAfter": false,
+              "order": "snake",
+              "rosterTarget": 8,
+              "schedule": "weekly",
+              "staffTarget": 0
+            },
+            "sitOut": [],
+            "status": "finished",
+            "turn": 1
           }
         ],
         "employments": [

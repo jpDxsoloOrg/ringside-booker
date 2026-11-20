@@ -1852,6 +1852,68 @@
         "warnedOn": null
       }
     ],
+    "draftPicks": [
+      {
+        "id": "dpk_0000000001",
+        "draftId": "drf_0000000001",
+        "number": 1,
+        "round": 1,
+        "promotionId": "pro_0000000001",
+        "personId": "per_0000000001",
+        "category": "wrestler",
+        "role": "wrestler",
+        "source": "player",
+        "value": 61.5,
+        "status": "signed",
+        "employmentId": "emp_0000000001",
+        "reservedUntil": null,
+        "pickedOn": "2026-01-05"
+      }
+    ],
+    "drafts": [
+      {
+        "id": "drf_0000000001",
+        "kind": "start",
+        "status": "finished",
+        "createdOn": "2026-01-05",
+        "finishedOn": "2026-01-05",
+        "settings": {
+          "order": "snake",
+          "rosterTarget": 8,
+          "staffTarget": 0,
+          "draftStaff": false,
+          "negotiateAfter": false,
+          "schedule": "weekly"
+        },
+        "order": [
+          "pro_0000000001",
+          "pro_0000000002"
+        ],
+        "turn": 1,
+        "picks": 1,
+        "poolLeft": {
+          "wrestlers": 0,
+          "staff": 0
+        },
+        "level": {
+          "cash": 100000000,
+          "prestige": 50,
+          "homePopularity": 30
+        },
+        "sitOut": [],
+        "poolMix": [
+          {
+            "level": "mainEvent",
+            "inPool": 1,
+            "available": 1,
+            "female": 0,
+            "male": 1,
+            "other": 0
+          }
+        ],
+        "cardLevels": []
+      }
+    ],
     "employments": [
       {
         "id": "emp_0000000001",

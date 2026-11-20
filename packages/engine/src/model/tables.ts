@@ -12,6 +12,7 @@ import { aiProfilesTable } from './entities/ai-profile';
 import { airingsTable } from './entities/airing';
 import { brandsTable } from './entities/brand';
 import { dealsTable } from './entities/deal';
+import { draftPicksTable, draftsTable } from './entities/draft';
 import { employmentsTable } from './entities/employment';
 import { eventDefinitionsTable } from './entities/event-definition';
 import { eventInstancesTable } from './entities/event-instance';
@@ -86,6 +87,9 @@ export const TABLES = {
   negotiations: negotiationsTable,
   // ECO8-01: one row per show a broadcast deal aired or missed.
   airings: airingsTable,
+  // DRF-01: the draft-start option's draft and its picks.
+  drafts: draftsTable,
+  draftPicks: draftPicksTable,
 } as const satisfies TableRegistry;
 
 export type GameTables = typeof TABLES;

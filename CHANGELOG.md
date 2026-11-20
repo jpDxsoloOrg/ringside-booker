@@ -16,6 +16,18 @@ How I write an entry:
 
 ## Unreleased
 
+### Added
+
+- I added a draft start. Turn on "Start with a draft" in the new-game options and every wrestler
+  goes into a pool; every promotion starts with the same money and popularity, no TV deal and
+  every title vacant, and you draft your roster against the rivals in a draft room before day 1.
+  Picks sign for one season, or you can negotiate their contracts after the draft.
+- I added a choice of active promotions to every new game: search, filter by country or size, or
+  keep only the biggest few. The ones you leave out close before day 1, which also makes big
+  worlds faster.
+- I added "Call off this show" on Booking when you don't have enough wrestlers signed to fill a
+  card.
+
 ## [0.1.0-alpha.2] - 2026-11-20
 
 ### Added

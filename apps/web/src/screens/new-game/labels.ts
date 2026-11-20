@@ -33,6 +33,7 @@ export const WEEKDAYS: readonly Weekday[] = [0, 1, 2, 3, 4, 5, 6];
 export const SETTING_GROUP_LABELS: Readonly<Record<NewGameSettingGroup, string>> = {
   world: 'World',
   difficulty: 'Difficulty',
+  draft: 'Draft',
   advanced: 'Advanced settings',
 };
 

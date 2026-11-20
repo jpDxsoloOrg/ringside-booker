@@ -100,7 +100,7 @@ namespace RingsideBooker.Help
         {
             var ids = new HashSet<string>(NavigationModel.Sections.SelectMany(section => section.Items).Select(item => item.Id))
             {
-                ScreenIds.Settings, ScreenIds.ShowNight, ScreenIds.ShowResults, ScreenIds.Worker, ScreenIds.Promotion, ScreenId,
+                ScreenIds.Settings, ScreenIds.ShowNight, ScreenIds.ShowResults, ScreenIds.Worker, ScreenIds.Promotion, ScreenIds.Draft, ScreenId,
             };
             return ids;
         }

@@ -722,7 +722,64 @@ export function tinyWorld(): BuiltWorld {
     })
     .with('contract concern', addTinyContractConcern)
     .with('negotiation', addTinyNegotiation)
+    .with('draft', addTinyDraft)
     .build();
+}
+
+/**
+ * A finished draft start (DRF-01) with one pick, promotion A's first wrestler signed at the pick, so
+ * the drafts and draft picks tables are not empty.
+ */
+function addTinyDraft(context: BuildContext): void {
+  const { sequence, tx } = context;
+  const promotionA = required(context.ids.promotions.A, 'promotion A');
+  const promotionB = required(context.ids.promotions.B, 'promotion B');
+  const contract = tx.view.tables.employments
+    .values()
+    .find((row) => row.promotionId === promotionA && row.role === 'wrestler');
+  if (contract === undefined) {
+    throw new Error('tinyWorld: promotion A has no wrestler');
+  }
+  const draftId = sequence.id('draft');
+  context.insert('drafts', {
+    id: draftId,
+    kind: 'start',
+    status: 'finished',
+    createdOn: TINY_WORLD_START,
+    finishedOn: TINY_WORLD_START,
+    settings: {
+      order: 'snake',
+      rosterTarget: 8,
+      staffTarget: 0,
+      draftStaff: false,
+      negotiateAfter: false,
+      schedule: 'weekly',
+    },
+    order: [promotionA, promotionB],
+    turn: 1,
+    picks: 1,
+    poolLeft: { wrestlers: 0, staff: 0 },
+    level: { cash: cents(100_000_000), prestige: 50, homePopularity: 30 },
+    sitOut: [],
+    poolMix: [{ level: 'mainEvent', inPool: 1, available: 1, female: 0, male: 1, other: 0 }],
+    cardLevels: [],
+  });
+  context.insert('draftPicks', {
+    id: sequence.id('draftPick'),
+    draftId,
+    number: 1,
+    round: 1,
+    promotionId: promotionA,
+    personId: contract.personId,
+    category: 'wrestler',
+    role: 'wrestler',
+    source: 'player',
+    value: 61.5,
+    status: 'signed',
+    employmentId: contract.id,
+    reservedUntil: null,
+    pickedOn: TINY_WORLD_START,
+  });
 }
 
 /**

@@ -309,6 +309,15 @@ export function createNewGame(packs: readonly RawPack[], input: unknown): NewGam
 
   const choice = playerChoiceReasons(world, choices);
   reasons.push(...choice.reasons);
+  for (const key of choices.activePromotionKeys ?? []) {
+    if (contentIdOf(world.meta, 'promotion', key) === null) {
+      reasons.push({
+        code: NEW_GAME_REASON_CODES.unknownPromotion,
+        message: `There is no promotion "${key}" in this world.`,
+        field: 'activePromotionKeys',
+      });
+    }
+  }
   if (reasons.length > 0) {
     return { ok: false, reasons };
   }

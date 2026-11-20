@@ -132,9 +132,20 @@ describe('previewWorld', () => {
       }),
     );
     // Systems register their own settings when their module loads (the match system adds
-    // randomWinners, the shows system showNight and bigWorldSpeed). Whether one is loaded depends on which test files shared this worker, so
+    // randomWinners, the shows system showNight and bigWorldSpeed, the draft its seven). Whether one is loaded depends on which test files shared this worker, so
     // only the built-ins and the one registered here are checked, in order.
-    const systemKeys = new Set(['randomWinners', 'showNight', 'bigWorldSpeed']);
+    const systemKeys = new Set([
+      'randomWinners',
+      'showNight',
+      'bigWorldSpeed',
+      'draftStart',
+      'draftRosterSize',
+      'draftPoolSize',
+      'draftOrder',
+      'draftStaff',
+      'draftNegotiateAfter',
+      'draftSchedule',
+    ]);
     const keys = preview()
       .settings.map((setting) => setting.key)
       .filter((key) => !systemKeys.has(key));

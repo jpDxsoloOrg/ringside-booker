@@ -28,11 +28,12 @@ import {
 export type NewGameSettingValue = boolean | string;
 
 /** Where the wizard shows a setting. */
-export type NewGameSettingGroup = 'world' | 'difficulty' | 'advanced';
+export type NewGameSettingGroup = 'world' | 'difficulty' | 'draft' | 'advanced';
 
 export const NEW_GAME_SETTING_GROUPS: readonly NewGameSettingGroup[] = [
   'world',
   'difficulty',
+  'draft',
   'advanced',
 ];
 
@@ -50,6 +51,11 @@ export interface NewGameSettingDef {
   /** One or two sentences saying exactly what the setting does, and nothing more. */
   description: string;
   group: NewGameSettingGroup;
+  /**
+   * The key of a boolean setting this one only matters under: the wizard shows it only while that
+   * setting is on (the draft options under "Start with a draft"). Left out: always shown.
+   */
+  requires?: string;
 }
 
 /**
@@ -125,6 +131,7 @@ function copyDef(def: NewGameSettingDef): NewGameSettingDef {
     label: def.label,
     description: def.description,
     group: def.group,
+    ...(def.requires === undefined ? {} : { requires: def.requires }),
   };
 }
 
@@ -143,6 +150,9 @@ function checkDef(def: NewGameSettingDef): void {
   }
   if (!NEW_GAME_SETTING_GROUPS.includes(def.group)) {
     fail(`unknown group "${def.group}"`);
+  }
+  if (def.requires !== undefined && registry.get(def.requires)?.kind !== 'boolean') {
+    fail(`requires "${def.requires}", which is not a registered boolean setting`);
   }
   if (def.kind === 'boolean') {
     if (def.options !== undefined) {

@@ -23,6 +23,8 @@ const CREATION_PATHS = [
   'systems/world/',
   'persistence/packs/',
   'systems/negotiation/offeredEmployment.ts',
+  // DRF-03: the contract a draft pick signs, written before anyone has worked a day.
+  'systems/draft/session.ts',
 ] as const;
 
 const GUARDED_TABLES = ['employments', 'people', 'promotions'] as const;
