@@ -177,6 +177,40 @@ database's last write time, counts, the import summary). Code: `Saves/ImportedWo
   generated fictional world mod, `Assets/Tests/Saves/Fixtures/fictional-world-mod.json`, from
   `packages/engine-host/test/worldModFixture.ts`).
 
+## Your own folders (UNITY-34)
+
+The import sub-screen has a quiet **Choose a folder…** button (`import-choose-folder`, next to
+Manage imported worlds… in `import-extras`). It opens the Windows folder picker
+(`Saves/FileDialogs.PickFolder`: the shell's file dialog in pick-folders mode, called through its
+vtable, so it does not need the runtime's COM interop).
+
+- **What qualifies** (`Import/ModFolders.cs`, `ModFolders.Inspect(folder)` → `FolderCheck {Folder,
+Mods, Problem}`): a folder with the mod's database (the same top-level `.db` the Steam scan looks
+  for); the picture folder is optional (the mod row then says "no picture folder"). A folder with no
+  database of its own may hold several mods one level down, and each is listed. Otherwise the plain
+  message `ModFolders.NoDatabaseProblem` (or `MissingFolderProblem`) shows under the button
+  (`import-folder-problem`) and the folder is not remembered.
+- **Ids.** A folder named by a workshop item id keeps it (`wm-<id>`, the same world as the scanned
+  one). Any other folder gets `f` + 12 hex of a hash of its full path (`ModFolders.ItemIdFor`), so
+  ids, logs and element names never carry a folder's name.
+- **Import** is the same as for a scanned mod: `WorkshopWorlds.ImportAsync` with the `WorkshopMod`,
+  the stored world keeps the chosen folder, and `PictureProvider` reads pictures in place.
+- **Remembered** in the import settings, `persistentDataPath/import-settings.json`
+  (`{"folders": [...]}`, `ImportFolderSettings`; never in a save). The list shows under **Your
+  folders** (`your-folders`, heads `folder-<n>` with the path and a **Remove** link
+  `folder-remove-<n>`; Remove only forgets the folder). A remembered folder that is gone or empty
+  shows its problem under its path.
+- API: `WorkshopWorlds.Folders`, `ScanFoldersAsync()`, `AddFolderAsync(folder)`, `RemoveFolder(folder)`,
+  `SkipSteamScan` (tours); wizard `AddFolder(folder)`, `RemoveFolder(folder)`, `YourFolders`,
+  `FolderProblem`.
+- Tests: `game/tools/unity-test-editmode.sh RingsideBooker.Import.Tests.ModFoldersTests` (generated
+  fictional databases in a temp folder).
+- Tour: `python3 game/tools/make-fictional-mod-folders.py <dir>` writes fictional mod folders (one mod,
+  a folder of two, a folder with no database) from the fictional test world; then
+  `RingsideBooker.exe -screen-width W -screen-height H -screen-fullscreen 0 -rbFolderShots "<win dir>"
+-rbFolderShotsMods "<win dir>"` (`Screens/Dev/FolderImportShots.cs`; Steam scan off, 6 PNGs, exit 0
+  = PASSED). It forgets the folders it added and removes the world it stored.
+
 ## Known gaps
 
 - Simulation is slower in a big imported world: the test mod (3,576 people) plays about 60 days in

@@ -115,7 +115,13 @@ namespace RingsideBooker.Import
         }
 
         /// <summary>The mod in <paramref name="folder"/>, or null when it has no database at its top level.</summary>
-        public static WorkshopMod Describe(string folder)
+        public static WorkshopMod Describe(string folder) => Describe(folder, null);
+
+        /// <summary>
+        /// The mod in <paramref name="folder"/> with <paramref name="itemId"/> as its id (null: the
+        /// folder's name, as for a workshop folder), or null when it has no database at its top level.
+        /// </summary>
+        public static WorkshopMod Describe(string folder, string itemId)
         {
             var database = FindDatabase(folder);
             if (database == null)
@@ -147,7 +153,7 @@ namespace RingsideBooker.Import
             {
             }
 
-            var itemId = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            itemId ??= Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
             return new WorkshopMod(itemId, folder, database, worldName ?? Path.GetFileNameWithoutExtension(database), startDate, imageFolder,
                 size, people, promotions);
         }
