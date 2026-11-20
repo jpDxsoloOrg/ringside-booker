@@ -118,6 +118,26 @@ namespace RingsideBooker.Screens.Dev
                     employmentId = Kit.Str(other, "employmentId");
                     break;
                 }
+                // No manager wants to wrestle: look for a wrestler who would take the manager job.
+                if (talks != NegotiationSheet.Current)
+                {
+                    foreach (JToken other in view.ShownRows.Where(row => Kit.Str(row, "role") == "wrestler").Take(30).ToList())
+                    {
+                        ShellController.Current.Overlay.CloseAll();
+                        NegotiationView next = NegotiationSheet.Open(view.Root, NegotiationTarget.JobChange(Kit.Str(other, "employmentId")));
+                        yield return WaitFor(() => next?.Preview != null, 15f);
+                        yield return Await(next.OfferJob("manager"));
+                        yield return WaitFor(() => Kit.Str(next.Preview, "jobChange.to") == "manager", 15f);
+                        if (!Kit.Bool(next.Preview, "jobChange.willing")) continue;
+                        yield return Wait(0.6f);
+                        Log($"{Kit.Str(other, "ringName")}: {Kit.Str(next.Preview, "jobChange.answer")}");
+                        yield return Capture("wrestler-says-yes");
+                        talks = next;
+                        ringName = Kit.Str(other, "ringName");
+                        employmentId = Kit.Str(other, "employmentId");
+                        break;
+                    }
+                }
                 if (talks != NegotiationSheet.Current)
                 {
                     ShellController.Current.Overlay.CloseAll();
