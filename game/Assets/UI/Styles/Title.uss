@@ -132,6 +132,8 @@
 .title-panel__inner--wizard > .title-settings-scroll {
     flex-shrink: 1;
     min-height: 0;
+    /* As wide as the settings cards, so the scroll bar sits next to them. */
+    max-width: 760px;
 }
 
 .title-settings-scroll .settings-group {
