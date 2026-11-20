@@ -16,6 +16,8 @@ How I write an entry:
 
 ## Unreleased
 
+## [0.1.0-alpha.4] - 2026-11-20
+
 ### Added
 
 - I added tester codes. Test builds ask for your tester code once on each computer, then play
@@ -24,6 +26,11 @@ How I write an entry:
   each worker feel about it as you build the offer, and send it; they answer the next day with a
   yes, a no or a counter-offer. Rivals now and then offer you a trade too. Start one from
   Contracts › Trades, a rival's page, or "Offer in a trade" on any worker.
+
+### Heads up
+
+- Test builds now ask for a tester code the first time they start. Ask me for one.
+- Saves from alpha.3 don't open in this version. Start a new game.
 
 ## [0.1.0-alpha.3] - 2026-11-20
 
