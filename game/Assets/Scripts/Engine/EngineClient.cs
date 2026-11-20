@@ -188,6 +188,27 @@ namespace RingsideBooker.Engine
         }
 
         /// <summary>
+        /// DRF-06: one page of the wizard's active-promotion picker (<c>previewPromotions</c>, host API 4):
+        /// <c>{search?, countryKey?, size?, sort?, descending?, offset?, limit?}</c> in; the rows with
+        /// <c>total</c>, <c>countries</c>, <c>sizes</c> and <c>biggestFirst</c> out, in <c>Value</c>.
+        /// </summary>
+        public Task<WorldPreviewResult> PreviewPromotions(string rootPackId, object args = null)
+        {
+            string json = ToJsonArgument(args ?? new JObject());
+            return Enqueue("previewPromotions", true, engine => ParseResult<WorldPreviewResult>(engine.Call("previewPromotions", rootPackId, json)));
+        }
+
+        /// <summary>
+        /// DRF-06/07: the counts for a choice of active promotions and the draft's plan
+        /// (<c>previewSetup</c>, host API 4): <c>{activePromotionKeys?, playerPromotionKey?, founding?, settings?}</c>.
+        /// </summary>
+        public Task<WorldPreviewResult> PreviewSetup(string rootPackId, object args = null)
+        {
+            string json = ToJsonArgument(args ?? new JObject());
+            return Enqueue("previewSetup", true, engine => ParseResult<WorldPreviewResult>(engine.Call("previewSetup", rootPackId, json)));
+        }
+
+        /// <summary>
         /// Builds a new world and makes it the running game. <paramref name="options"/> is the engine's
         /// new-game input (engine-host.md, "newGame"): a JObject, an object serialised in camelCase,
         /// or JSON text. A refusal leaves the running game as it was.
