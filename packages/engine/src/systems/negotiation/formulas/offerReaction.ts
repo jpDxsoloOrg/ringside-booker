@@ -38,6 +38,8 @@ export interface OfferReactionInputs {
   readonly roleMismatch: string | null;
   /** True when the offer matches (or betters) the worker's last counter-offer. */
   readonly matchesLastCounter: boolean;
+  /** Their answer to a different job (UNITY-38), shown in the Why?; null when the job is the same. */
+  readonly jobChange?: Traced<boolean> | null | undefined;
 }
 
 export const MATCHES_COUNTER_REASON = 'Matches their counter-offer';
@@ -68,6 +70,9 @@ export function offerReaction(
   decision.rule(inputs.refusal?.message ?? 'Willing to talk', inputs.refusal === null);
   if (inputs.refusal !== null) {
     return decision.choose('refuse', inputs.refusal.message);
+  }
+  if (inputs.jobChange !== null && inputs.jobChange !== undefined) {
+    decision.include('Their answer to the new job', inputs.jobChange);
   }
   decision.rule(inputs.roleMismatch ?? 'Will take the role', inputs.roleMismatch === null);
   if (inputs.roleMismatch !== null) {

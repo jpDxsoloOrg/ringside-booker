@@ -175,11 +175,24 @@ export interface OfferPreview {
   readonly askValueTrace: TraceNode;
   /** Plain lines the sheet shows under the meter. */
   readonly notes: string[];
+  /** Offered a different job on a renewal (UNITY-38): their answer to it; else null. */
+  readonly jobChange: JobChangePreview | null;
   /**
    * Where the bands meet, as shares of the ask's value (ECO5-06's meter): below `walkAway` they
    * walk away, below `counter` they reject, below `accept` they counter (patience allowing).
    */
   readonly thresholds: OfferThresholds;
+}
+
+/** Their answer to a different job, as the sheet shows it (UNITY-38). */
+export interface JobChangePreview {
+  readonly from: EmploymentRole;
+  readonly to: EmploymentRole;
+  readonly willing: boolean;
+  /** "Up for the manager job: happy here", "Doesn't want to wrestle: hurt right now". */
+  readonly answer: string;
+  /** The Why? of the answer, with the score and every part of it. */
+  readonly trace: TraceNode;
 }
 
 /** The reaction bands' boundaries, from `contracts.react.*`. */
@@ -198,6 +211,7 @@ declare module '../../core/api/maps' {
         kind?: ContractKind | undefined;
         exclusive?: boolean | undefined;
         renewalOf?: EmploymentId | undefined;
+        role?: EmploymentRole | undefined;
       };
       result: AskingTermsView;
     };
@@ -246,6 +260,7 @@ export const askingTermsQuery = defineQuery('contracts.askingTerms', {
     kind: ContractKindSchema.optional(),
     exclusive: z.boolean().optional(),
     renewalOf: zId('employment').optional(),
+    role: EmploymentRoleSchema.optional(),
   }),
   run: (ctx, args): AskingTermsView => {
     ownPromotionOrRefuse(ctx, args.promotionId);
@@ -313,7 +328,8 @@ function previewNotes(offer: Offer, evaluation: OfferEvaluation): string[] {
   if (evaluation.refusal !== null) {
     notes.push(evaluation.refusal.message);
   }
-  if (evaluation.roleMismatch !== null) {
+  // A job change's answer has its own line on the sheet (UNITY-38).
+  if (evaluation.roleMismatch !== null && evaluation.jobChange === null) {
     notes.push(evaluation.roleMismatch);
   }
   const kind = ask.allowedKinds.find((entry) => entry.kind === offer.terms.kind);
@@ -410,6 +426,16 @@ export const offerPreviewQuery = defineQuery('contracts.offerPreview', {
       valueTrace: evaluation.offerValue.trace,
       askValueTrace: evaluation.askValue.trace,
       notes: previewNotes(args.offer, evaluation),
+      jobChange:
+        evaluation.jobChange === null
+          ? null
+          : {
+              from: evaluation.jobChange.from,
+              to: evaluation.jobChange.to,
+              willing: evaluation.jobChange.willing.value,
+              answer: evaluation.jobChange.answer,
+              trace: evaluation.jobChange.willing.trace,
+            },
       thresholds: {
         walkAway: ctx.tunables.get('contracts.react.walkAwayRatio'),
         counter: ctx.tunables.get('contracts.react.counterRatio'),

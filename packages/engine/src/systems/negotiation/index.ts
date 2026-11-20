@@ -141,6 +141,17 @@ export {
 export { askedMoney, counterTermsFor, perkOfTerm } from './counter';
 export { neverWorkedAs, roleMismatch, WANTS_TO_WRESTLE } from './roles';
 export {
+  isJobChange,
+  JOB_CHANGE_ROLES,
+  jobChangeAnswer,
+  jobWords,
+  REFUSES_JOB_CODE,
+  REFUSES_JOB_MESSAGE,
+  styleForNewWrestler,
+  type JobChangeAnswer,
+  type JobChangeInputs,
+} from './jobChange';
+export {
   askTermsOf,
   COOLING_OFF_CODE,
   coolingOffUntil,
@@ -172,6 +183,7 @@ export {
   brandOptionsOf,
   type BrandOption,
   type OfferThresholds,
+  type JobChangePreview,
 } from './queries';
 
 export {
