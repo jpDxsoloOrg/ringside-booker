@@ -888,6 +888,7 @@ namespace RingsideBooker.Screens
                 }
                 GameSession session = await GameSession.BeginNewAsync(client, (string)options["saveName"], created.Revision, created.Seat);
                 WorkshopWorlds.RememberForSlot(session?.SlotId, world.Id);
+                Help.FirstRun.MarkNewGame();
                 EngineGame.Enter(client, created.Seat);
             }
             catch (Exception exception)

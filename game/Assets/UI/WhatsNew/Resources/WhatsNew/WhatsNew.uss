@@ -1,0 +1,117 @@
+/* What's new sheet and the channel badge (POL9-01/10). UNITY-11 tokens only. */
+
+.rb-channel-badge {
+    flex-shrink: 0;
+    align-self: center;
+    padding: 1px 5px 0 5px;
+    border-width: 1px;
+    border-radius: var(--ds-radius-xs);
+    border-color: rgba(251, 191, 36, 0.4);
+    background-color: var(--ds-warn-soft);
+    color: var(--ds-warn);
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+    -unity-text-align: middle-center;
+}
+
+.rb-channel-badge--beta {
+    border-color: rgba(56, 189, 248, 0.4);
+    background-color: var(--ds-info-soft);
+    color: var(--ds-info);
+}
+
+/* Title screen: after the wordmark, raised to the cap line. */
+.rb-channel-badge--title {
+    align-self: flex-start;
+    margin-top: 12px;
+    margin-left: 12px;
+    font-size: 13px;
+}
+
+/* Sidebar header: tucked under "RINGSIDE BOOKER" (the row has no room beside it); hidden when the
+   sidebar is collapsed. */
+.rb-channel-badge--sidebar {
+    position: absolute;
+    left: 60px;
+    bottom: 3px;
+    font-size: 9px;
+    letter-spacing: 1.2px;
+    padding: 0 3px;
+}
+
+.ds-app--collapsed .rb-channel-badge--sidebar {
+    display: none;
+}
+
+.wn-body {
+    flex-shrink: 0;
+}
+
+.wn-build-line {
+    margin-bottom: 16px;
+    color: var(--ds-text-3);
+    font-size: var(--ds-type-caption);
+}
+
+.wn-release__title {
+    margin-bottom: 8px;
+    color: var(--ds-text);
+    font-size: var(--ds-type-subtitle);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Inter-SemiBold.ttf");
+}
+
+.wn-group {
+    flex-shrink: 0;
+    margin-bottom: 16px;
+}
+
+.wn-group--heads-up {
+    padding: 10px 12px;
+    border-width: 1px;
+    border-radius: var(--ds-radius-sm);
+    border-color: rgba(251, 191, 36, 0.35);
+    background-color: var(--ds-warn-soft);
+}
+
+.wn-group--heads-up > .ds-pill {
+    align-self: flex-start;
+    margin-bottom: 6px;
+}
+
+.wn-item {
+    flex-direction: row;
+    align-items: flex-start;
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.wn-item__dot {
+    width: 5px;
+    height: 5px;
+    margin-top: 7px;
+    margin-right: 10px;
+    flex-shrink: 0;
+    border-radius: 3px;
+    background-color: var(--ds-action-hover);
+}
+
+.wn-group--heads-up .wn-item__dot {
+    background-color: var(--ds-warn);
+}
+
+.wn-item__text {
+    flex-shrink: 1;
+    flex-grow: 1;
+    white-space: normal;
+    color: var(--ds-text-2);
+    font-size: var(--ds-type-body);
+}
+
+.title-version--link {
+    cursor: link;
+}
+
+.title-version--link:hover {
+    color: var(--ds-text-2);
+}

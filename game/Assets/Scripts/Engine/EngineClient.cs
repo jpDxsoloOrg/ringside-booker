@@ -65,6 +65,7 @@ namespace RingsideBooker.Engine
         private int progressPosted; // 1 while a progress event is posted and not yet raised (Interlocked)
         private long stateRevisionToAnnounce; // the newest revision for OnStateChanged (Interlocked)
         private int statePosted; // 1 while OnStateChanged is posted and not yet raised (Interlocked)
+        private volatile EngineFault fault; // set once, when the engine stops (UNITY-24)
 
         /// <summary>
         /// Starts the engine thread and loads the bundle on it. Call on Unity's main thread: the main
@@ -108,6 +109,20 @@ namespace RingsideBooker.Engine
 
         /// <summary>Raised on the main thread when <see cref="IsBusy"/> changes.</summary>
         public event Action<bool> OnBusyChanged;
+
+        /// <summary>
+        /// Raised once, on the main thread, when the engine stops (UNITY-24): a call faulted inside
+        /// V8 or at the boundary (<see cref="EngineFault.IsFatal"/>). The client is closed by then:
+        /// queued and later calls fail with <see cref="EngineStoppedException"/>, so nothing (no
+        /// autosave) can run against the broken world. Start a new client to carry on.
+        /// </summary>
+        public event Action<EngineFault> OnFault;
+
+        /// <summary>Why the engine stopped, or null while it runs.</summary>
+        public EngineFault Fault => fault;
+
+        /// <summary>True once the engine has stopped (see <see cref="OnFault"/>).</summary>
+        public bool IsStopped => fault != null;
 
         /// <summary>Completes with <c>info()</c> once the bundle has loaded; faults if it could not.</summary>
         public Task<EngineInfo> Ready => ready.Task;
@@ -468,6 +483,46 @@ namespace RingsideBooker.Engine
             }
         }
 
+        /// <summary>
+        /// Dev and tests (<c>-rbForceEngineFault</c>): throws inside V8, which stops the engine
+        /// exactly as a real fault would (<see cref="OnFault"/>).
+        /// </summary>
+        public Task<bool> ForceFaultForTesting()
+        {
+            return Enqueue("dev forceFault", false, engine =>
+            {
+                engine.EvaluateDiagnostic("(function () { throw new Error('Engine fault forced for testing (-rbForceEngineFault)'); })()");
+                return true;
+            });
+        }
+
+        // The engine stopped (engine thread): close the queue, fail what waits, tell the main thread.
+        private void Stop(string call, Exception error)
+        {
+            EngineFault stopped;
+            List<WorkItem> dropped;
+            lock (queueLock)
+            {
+                if (fault != null) return;
+                stopped = new EngineFault(call, error, DateTimeOffset.UtcNow);
+                fault = stopped;
+                closing = true;
+                dropped = new List<WorkItem>(queue);
+                queue.Clear();
+                pendingCount -= dropped.Count;
+                Monitor.PulseAll(queueLock);
+            }
+
+            cancelRequested = true;
+            Debug.LogError($"[EngineClient] The engine stopped during '{call}': {error}");
+            foreach (WorkItem item in dropped)
+            {
+                item.Fail(new EngineStoppedException(stopped));
+            }
+
+            Post("main.OnFault", () => OnFault?.Invoke(stopped));
+        }
+
         private static string RunQuery(JsEngineHost engine, string name, string argsJson, string viewerJson)
         {
             return viewerJson == null
@@ -568,7 +623,9 @@ namespace RingsideBooker.Engine
             {
                 if (closing)
                 {
-                    completion.TrySetException(new ObjectDisposedException(nameof(EngineClient)));
+                    completion.TrySetException(fault != null
+                        ? (Exception)new EngineStoppedException(fault)
+                        : new ObjectDisposedException(nameof(EngineClient)));
                     return completion.Task;
                 }
 
@@ -674,6 +731,7 @@ namespace RingsideBooker.Engine
             }
             catch (Exception error)
             {
+                if (EngineFault.IsFatal(error)) Stop(item.Label, error);
                 item.Fail(error);
             }
             finally

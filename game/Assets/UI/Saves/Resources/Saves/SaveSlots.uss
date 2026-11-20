@@ -25,12 +25,28 @@
     color: var(--color-negative);
 }
 
+/* The Load panel: the toolbar and status keep their height; the list scrolls in what is left. */
+.save-panel {
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.save-panel > * {
+    flex-shrink: 0;
+}
+
+.save-panel > .save-list {
+    flex-shrink: 1;
+    min-height: 0;
+}
+
 .save-list {
     flex-direction: column;
 }
 
 .save-slot {
     flex-direction: row;
+    flex-shrink: 0;
     align-items: center;
     margin-bottom: var(--space-3);
 }
@@ -93,4 +109,45 @@
 .save-sheet__footer-button {
     margin-left: var(--space-2);
     margin-bottom: var(--space-2);
+}
+
+/* "Alpha" on saves an Alpha build wrote (POL9-10): quieter than the warning tags. */
+.save-tag--quiet {
+    border-color: var(--color-border);
+    color: var(--color-text-muted);
+}
+
+/* The Backups sheet and the could-not-load sheet's backup list (UNITY-27). */
+.save-backup-list {
+    flex-direction: column;
+    flex-shrink: 0;
+    margin-bottom: var(--space-3);
+}
+
+.save-backup {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: var(--space-2) 0;
+    border-bottom-width: 1px;
+    border-color: var(--color-border);
+}
+
+.save-backup__info {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-right: var(--space-3);
+}
+
+.save-backup__date {
+    font-size: var(--font-size-lg);
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/BarlowCondensed-Bold.ttf");
+}
+
+.save-backup__meta {
+    margin-top: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    white-space: normal;
 }

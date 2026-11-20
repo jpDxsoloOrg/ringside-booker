@@ -28,6 +28,9 @@ namespace RingsideBooker.UI.Shell
         /// <summary>The shell on screen, or null outside the Game scene.</summary>
         public static ShellController Current { get; private set; }
 
+        /// <summary>Raised once the shell is up and on its home screen (POL5-05's first-run welcome listens).</summary>
+        public static event System.Action<ShellController> Opened;
+
         public ShellNavigator Navigator { get; } = new ShellNavigator();
 
         /// <summary>The day control (its main button and the "Needs attention" sheet).</summary>
@@ -53,11 +56,13 @@ namespace RingsideBooker.UI.Shell
             Overlay = shell.Overlay;
             sidebar = new SidebarView(shell, Navigator, GoToMainMenu);
             topBar = new TopBarView(shell);
+            SaveUi.LastSavedChip.Attach(shell);
             VisualElement dayHost = new VisualElement { name = "day-control" };
             dayHost.AddToClassList("day-control");
             shell.Actions.Add(dayHost);
             dayControl = new DayControlView(dayHost, Navigator, Overlay, OpenSkipDays);
             summary = new AdvanceSummaryView(shell.SummarySlot, Navigator, Overlay);
+            Crash.LoadNoticeView.Attach(shell);
             progressOverlay = new AdvanceProgressOverlay(Overlay);
 
             Navigator.Navigated += ShowScreen;
@@ -70,6 +75,7 @@ namespace RingsideBooker.UI.Shell
             RenderDay();
             Navigator.Go(NavigationModel.HomeItemId);
             Current = this;
+            Opened?.Invoke(this);
         }
 
         private void OnDisable()
@@ -158,6 +164,8 @@ namespace RingsideBooker.UI.Shell
         {
             // Save first: the final save is queued on the engine thread before the bridge unloads the world.
             Saves.GameSession.EndCurrent();
+            // Then unload the world and forget the game, so the title screen (its Settings) sees no world.
+            EngineGame.Current?.Dispose();
             ShellServices.Clear();
             SceneFlow.LoadTitle();
         }
