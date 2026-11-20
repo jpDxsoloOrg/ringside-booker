@@ -417,3 +417,179 @@ describe('importWorldMod through the host', () => {
     expect(parse(second.removeImportedWorld('wm-stored'))['removed']).toBe(true);
   });
 });
+
+/** The fixture's tables with `edit` applied to a copy (the shared tables stay as they are). */
+function editedTables(edit: (copy: Tables) => void): Tables {
+  const copy = structuredClone(tables);
+  edit(copy);
+  return copy;
+}
+
+function rowOf(copy: Tables, table: string, column: string, value: number): Rec {
+  const row = copy[table]?.find((entry) => entry[column] === value);
+  if (row === undefined) throw new Error(`No ${table} row ${String(value)}`);
+  return row;
+}
+
+function warningCount(conversion: WorldModConversion, code: string): number {
+  return conversion.report.warnings.find((warning) => warning.code === code)?.count ?? 0;
+}
+
+describe('shapes from installed mods (UNITY-36, UNITY-37, UNITY-39)', () => {
+  it('places promotions and people whose country and region are stored as names (UNITY-36)', () => {
+    const input = editedTables((copy) => {
+      copy['countries']?.push({
+        countryID: 4,
+        continent: 'Asia',
+        countryName: 'Japan',
+        population: 120000000,
+      });
+      copy['regions']?.push({ regionID: 5, regionParent: 4, regionName: 'Kanto', population: 1 });
+      // The mods store promotions' and people's places as text names, not ids.
+      Object.assign(rowOf(copy, 'promotions', 'promotionID', 2), {
+        basedIn: 'Asia',
+        basedInCountry: 'Japan',
+        basedInRegion: 'Kanto',
+      });
+      Object.assign(rowOf(copy, 'promotions', 'promotionID', 3), {
+        basedInCountry: 'Valdoria',
+        basedInRegion: '',
+      });
+      Object.assign(rowOf(copy, 'workers', 'workerID', 31), {
+        basedInCountry: 'Valdoria',
+        basedInRegion: 'South Valdoria',
+      });
+      // Only a continent; and a country the mod's map does not have.
+      Object.assign(rowOf(copy, 'workers', 'workerID', 32), {
+        basedInCountry: '',
+        basedInRegion: '',
+      });
+      Object.assign(rowOf(copy, 'workers', 'workerID', 33), {
+        basedInCountry: 'Nowhereland',
+        basedInRegion: '',
+      });
+    });
+    const conversion = convert(input);
+    const promotions = recordsOf(conversion, 'promotion');
+    // Not the most populous region of Asia (the continent fallback).
+    expect(find(promotions, 'wm-p2')['homeRegionKey']).toBe('jp-kanto');
+    expect(find(promotions, 'wm-p3')['homeRegionKey']).toBe('wm-r3');
+    const people = recordsOf(conversion, 'person');
+    expect(find(people, 'wm-w31')['basedInRegionKey']).toBe('wm-r4');
+
+    const onlyContinent = conversion.report.warnings.find(
+      (warning) => warning.code === 'continent-fallback-no-place',
+    );
+    expect(onlyContinent?.examples).toEqual(['workers#32']);
+    expect(onlyContinent?.message).toMatch(/only a continent/);
+    const unknownPlace = conversion.report.warnings.find(
+      (warning) => warning.code === 'continent-fallback-unknown-place',
+    );
+    expect(unknownPlace?.examples).toEqual(['workers#33']);
+    expect(unknownPlace?.message).toMatch(/does not have/);
+  });
+
+  it('rolls yearly shows dated before the start forward and says why shows are left out (UNITY-37)', () => {
+    const input = editedTables((copy) => {
+      const show = (eventId: number, promotionId: number, extra: Rec): void => {
+        copy['events']?.push({
+          eventID: eventId,
+          eventName: `Show ${String(eventId)}`,
+          promotionID: promotionId,
+          importance: 'High',
+          inactive: 0,
+          ...extra,
+        });
+      };
+      // A yearly one-off and a yearly tour, both listed only for the year before the start.
+      show(10, 1, { recurrenceType: 'Specific', repeatAnnually: 1 });
+      show(11, 2, { recurrenceType: 'Tour', repeatAnnually: 1 });
+      // A one-off that is over, a show of a promotion that opens later, one of a deleted promotion.
+      show(12, 1, { recurrenceType: 'Specific', repeatAnnually: 0 });
+      show(13, 4, { recurrenceType: 'Weekly', friday: 1 });
+      show(14, 99, { recurrenceType: 'Weekly', friday: 1 });
+      show(15, 1, { recurrenceType: 'Weekly', friday: 1, inactive: 1 });
+      const dates: [number, string][] = [
+        [10, '2009-12-20'],
+        [11, '2009-02-01'],
+        [11, '2009-02-03'],
+        [12, '2009-06-01'],
+      ];
+      dates.forEach(([eventId, day], index) => {
+        copy['eventDates']?.push({ dateID: 100 + index, eventID: eventId, date: day });
+      });
+    });
+    const conversion = convert(input);
+    const events = recordsOf(conversion, 'eventDefinition');
+    const yearly = find(events, 'wm-e10')['recurrence'];
+    expect(yearly).toMatchObject({ kind: 'dates' });
+    const yearlyDays = isRec(yearly) ? yearly['dates'] : [];
+    expect(Array.isArray(yearlyDays) ? yearlyDays.slice(0, 2) : []).toEqual([
+      '2010-12-20',
+      '2011-12-20',
+    ]);
+    expect(find(events, 'wm-e11')['recurrence']).toMatchObject({
+      kind: 'dates',
+      dates: expect.arrayContaining(['2010-02-01', '2010-02-03', '2011-02-01']) as unknown,
+    });
+    expect(warningCount(conversion, 'yearly-dates-rolled-forward')).toBe(2);
+    for (const key of ['wm-e12', 'wm-e13', 'wm-e14', 'wm-e15']) {
+      expect(events.some((event) => event['key'] === key)).toBe(false);
+    }
+    const leftOut = new Map(
+      conversion.report.warnings.map((warning) => [warning.code, warning.examples]),
+    );
+    expect(leftOut.get('no-future-dates')).toEqual(['events#12']);
+    expect(leftOut.get('event-of-future-promotion')).toEqual(['events#13']);
+    expect(leftOut.get('event-without-promotion')).toEqual(['events#14']);
+    expect(leftOut.get('inactive-event')).toEqual(['events#15']);
+  });
+
+  it('imports people who wrestle in the mod as wrestlers, whatever their listed job (UNITY-39)', () => {
+    const input = editedTables((copy) => {
+      // Listed as personalities, but one holds a wrestling push and one is in an active tag team.
+      for (const workerId of [11, 12, 13]) {
+        Object.assign(rowOf(copy, 'workers', 'workerID', workerId), { type: 'Personality' });
+      }
+      const contract = copy['contracts']?.find((row) => row['workerID'] === 11);
+      if (contract === undefined) throw new Error('Worker 11 has no contract');
+      contract['push'] = 'Main Event';
+      for (const row of copy['contracts'] ?? []) {
+        if ([12, 13, 16, 17].includes(Number(row['workerID']))) row['push'] = 'Personality';
+      }
+      copy['tagteams']?.push({ tagID: 9, worker1: 12, worker2: 14, tagStatus: 1 });
+      // A part-time personality with a ring style; and one without a ring style.
+      Object.assign(rowOf(copy, 'workers', 'workerID', 16), {
+        type: 'Personality',
+        status: 'Semi-Active',
+      });
+      Object.assign(rowOf(copy, 'workers', 'workerID', 17), {
+        type: 'Personality',
+        status: 'Semi-Active',
+        style: 'Non-Wrestler',
+      });
+    });
+    const conversion = convert(input);
+    const people = recordsOf(conversion, 'person');
+    expect(find(people, 'wm-w11')['roles']).toEqual(['wrestler', 'manager']);
+    expect(find(people, 'wm-w12')['roles']).toEqual(['occasionalWrestler', 'manager']);
+    expect(find(people, 'wm-w12')['style']).not.toBe('nonWrestler');
+    // No sign of wrestling: stays a manager.
+    expect(find(people, 'wm-w13')['roles']).toEqual(['manager']);
+    expect(find(people, 'wm-w16')['roles']).toEqual(['occasionalWrestler', 'manager']);
+    expect(find(people, 'wm-w17')['roles']).toEqual(['manager']);
+    const employments = recordsOf(conversion, 'employment');
+    expect(employments.find((row) => row['personKey'] === 'wm-w11')).toMatchObject({
+      role: 'wrestler',
+      push: 'mainEvent',
+    });
+    const guessed = conversion.report.warnings.find(
+      (warning) => warning.code === 'role-guessed-manager',
+    );
+    expect(guessed).toMatchObject({
+      count: 3,
+      examples: ['workers#11', 'workers#12', 'workers#16'],
+    });
+    expect(guessed?.message).toMatch(/second job/);
+  });
+});

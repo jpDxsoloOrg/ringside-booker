@@ -33,8 +33,8 @@ import type {
   RecordKind,
   TraitKey,
 } from '@ringside/engine';
-import { Geography } from './geography';
-import type { BaseGeography } from './geography';
+import { Geography, placeRef } from './geography';
+import type { BaseGeography, ResolvedPlace } from './geography';
 import { encodeWorldModImageRef } from './imageRef';
 import {
   ALIGNMENTS,
@@ -188,6 +188,24 @@ function laterOf(left: GameDate, right: GameDate): GameDate {
   return compareDates(left, right) >= 0 ? left : right;
 }
 
+/** Years a yearly show's dates are listed ahead (the engine's date lists do not repeat). */
+export const YEARLY_SHOW_YEARS = 10;
+
+/**
+ * The dates of a yearly show or tour (a mod's `repeatAnnually`): each listed date moved to its
+ * first anniversary on or after `start`, then repeated for `YEARLY_SHOW_YEARS` years.
+ */
+export function yearlyDates(dates: readonly GameDate[], start: GameDate): GameDate[] {
+  const out: GameDate[] = [];
+  for (const day of dates) {
+    const years = Math.max(0, Number(start.slice(0, 4)) - Number(day.slice(0, 4)));
+    let first = addYears(day, years);
+    if (compareDates(first, start) < 0) first = addYears(first, 1);
+    for (let year = 0; year < YEARLY_SHOW_YEARS; year += 1) out.push(addYears(first, year));
+  }
+  return out;
+}
+
 function earlierOf(left: GameDate, right: GameDate): GameDate {
   return compareDates(left, right) <= 0 ? left : right;
 }
@@ -257,6 +275,24 @@ export function convertWorldMod(
 
   const geography = new Geography(base, tables, report);
   const fallbackRegion = geography.worldFallbackRegion();
+  /** Reports a record that only found its continent (or nowhere) and says why. */
+  const reportPlace = (place: ResolvedPlace, example: string): void => {
+    if (place.source === 'continent') {
+      if (place.unmatched) {
+        report.warn(
+          'continent-fallback-unknown-place',
+          "A record names a country or region the mod's map does not have; it was placed in its continent's most populous region",
+          example,
+        );
+      } else {
+        report.warn(
+          'continent-fallback-no-place',
+          "A record gives only a continent (no country or region); it was placed in its continent's most populous region",
+          example,
+        );
+      }
+    }
+  };
   const regionFor = (
     row: ModRow,
     regionColumn: string,
@@ -264,15 +300,18 @@ export function convertWorldMod(
     continentColumn: string | null,
     example: string,
   ): string => {
-    const found = geography.resolveRegion(
-      id(row, regionColumn),
-      id(row, countryColumn),
+    const place = geography.resolvePlace(
+      placeRef(row, regionColumn),
+      placeRef(row, countryColumn),
       continentColumn === null ? null : text(row, continentColumn),
     );
-    if (found !== null) return found;
+    reportPlace(place, example);
+    if (place.key !== null) return place.key;
     report.warn(
       'no-location',
-      'A record has no usable location; it was placed in the most populous region',
+      place.unmatched
+        ? "A record names a country or region the mod's map does not have and no continent; it was placed in the most populous region"
+        : 'A record has no location at all; it was placed in the most populous region',
       example,
     );
     return fallbackRegion;
@@ -306,6 +345,33 @@ export function convertWorldMod(
     const workerId = id(row, 'workerID');
     const file = text(row, 'picture');
     if (workerId !== null && file !== null) pictureByWorker.set(workerId, file);
+  }
+
+  // Who wrestles in the mod, whatever their worker type says: a contract with a wrestling push,
+  // a title they hold now, or an active tag team (and, below, a part-time personality with a ring
+  // style). The mods list some part-time main-eventers as
+  // "Personality" (or "Staff"), which alone would import them as managers or producers.
+  const wrestlingPushWorkers = new Set<number>();
+  for (const row of rows(tables, 'contracts')) {
+    const workerId = id(row, 'workerID');
+    const push = lookup(PUSHES, text(row, 'push') ?? '');
+    if (workerId !== null && push !== undefined && push !== 'none')
+      wrestlingPushWorkers.add(workerId);
+  }
+  const wrestlingWorkers = new Set<number>(wrestlingPushWorkers);
+  for (const row of rows(tables, 'titles')) {
+    if (flag(row, 'inactive')) continue;
+    for (const column of ['currentChampion', 'currentChampion2', 'currentChampion3']) {
+      const holder = id(row, column);
+      if (holder !== null) wrestlingWorkers.add(holder);
+    }
+  }
+  for (const row of rows(tables, 'tagteams')) {
+    if (!flag(row, 'tagStatus')) continue;
+    for (const column of ['worker1', 'worker2']) {
+      const member = id(row, column);
+      if (member !== null) wrestlingWorkers.add(member);
+    }
   }
 
   const people = new Map<number, PersonInfo>();
@@ -355,6 +421,30 @@ export function convertWorldMod(
     if (role === undefined) {
       unknown('person-type', typeText, 'wrestler', example);
       role = 'wrestler';
+    }
+    const roles: PersonRole[] = [role];
+    // A part-time ("Semi-Active") personality with a ring style is a part-time wrestler.
+    const ringStyle = lookup(RING_STYLES, text(row, 'style') ?? '');
+    const partTimer =
+      role === 'manager' &&
+      (text(row, 'status') ?? '').toLowerCase() === 'semi-active' &&
+      ringStyle !== undefined &&
+      ringStyle !== 'nonWrestler';
+    if (
+      role !== 'wrestler' &&
+      role !== 'occasionalWrestler' &&
+      (wrestlingWorkers.has(workerId) || partTimer)
+    ) {
+      // Wrestling comes first (it is the job contracts are made for); the listed job stays as a
+      // second role.
+      const wrestlingRole = wrestlingPushWorkers.has(workerId) ? 'wrestler' : 'occasionalWrestler';
+      report.warn(
+        `role-guessed-${role}`,
+        `A person the mod lists as "${typeText ?? ''}" wrestles in the mod, so the import guessed a wrestling role: a wrestler when a contract gives them a wrestling push, else an occasional wrestler (they hold a title, are in an active tag team, or are a part-time personality with a ring style); ${role} is kept as a second job`,
+        example,
+      );
+      role = wrestlingRole;
+      roles.unshift(role);
     }
     const wrestles = role === 'wrestler' || role === 'occasionalWrestler';
     const styleText = text(row, 'style');
@@ -496,7 +586,7 @@ export function convertWorldMod(
       ...withPicture('imageRef', 'people', pictureByWorker.get(workerId) ?? text(row, 'picture')),
       masked: flag(row, 'isMasked'),
       tags: ['imported'],
-      roles: [role],
+      roles,
       status,
       career: { canOwn: flag(row, 'canBeOwner'), canBook: flag(row, 'canBeBooker') },
       motivation,
@@ -514,7 +604,7 @@ export function convertWorldMod(
       traits,
       vices: { alcohol: viceState(int(row, 'alcoholic') ?? 0), substances: viceState(substances) },
     };
-    people.set(workerId, { key, ringName, roles: [role], debutDate, record, continentPop });
+    people.set(workerId, { key, ringName, roles, debutDate, record, continentPop });
   }
   for (const column of PERSON_COLUMNS_NOT_IMPORTED) report.notImportedField(`workers.${column}`);
 
@@ -522,10 +612,14 @@ export function convertWorldMod(
   // Promotions and brands
 
   const promotions = new Map<number, PromotionInfo>();
+  /** Promotions of the mod that open after the start date (left out), for the shows' report. */
+  const futurePromotions = new Set<number>();
+  const sourcePromotions = new Set<number>();
   const shortNames = new Set<string>();
   for (const row of rows(tables, 'promotions')) {
     const promotionId = id(row, 'promotionID');
     const fullName = text(row, 'fullName');
+    if (promotionId !== null) sourcePromotions.add(promotionId);
     if (promotionId === null || fullName === null) continue;
     const example = `promotions#${String(promotionId)}`;
     const debut = date(row, 'debutDate');
@@ -543,6 +637,7 @@ export function convertWorldMod(
           'A promotion that only opens after the start date was left out',
           example,
         );
+        futurePromotions.add(promotionId);
         continue;
       }
       status = 'closed';
@@ -1032,11 +1127,14 @@ export function convertWorldMod(
   // -------------------------------------------------------------------------------------------
   // Event definitions
 
+  // Every listed date, past ones too: a yearly show (repeatAnnually) dated before the start date
+  // is rolled forward (yearlyDates); other shows keep only the dates on or after the start.
+  const notBefore = (day: GameDate): boolean => compareDates(day, start) >= 0;
   const datesByEvent = new Map<number, GameDate[]>();
   for (const row of rows(tables, 'eventDates')) {
     const eventId = id(row, 'eventID');
     const day = date(row, 'date');
-    if (eventId === null || day === null || compareDates(day, start) < 0) continue;
+    if (eventId === null || day === null) continue;
     const list = datesByEvent.get(eventId) ?? [];
     list.push(day);
     datesByEvent.set(eventId, list);
@@ -1048,17 +1146,36 @@ export function convertWorldMod(
     const name = text(row, 'eventName');
     if (eventId === null || name === null) continue;
     const example = `events#${String(eventId)}`;
-    const promotion = promotions.get(id(row, 'promotionID') ?? -1);
+    const promotionId = id(row, 'promotionID');
+    const promotion = promotions.get(promotionId ?? -1);
     if (promotion === undefined) {
-      report.warn(
-        'event-without-promotion',
-        'A show of a promotion that was not imported was left out',
-        example,
-      );
+      if (promotionId !== null && futurePromotions.has(promotionId)) {
+        report.warn(
+          'event-of-future-promotion',
+          'A show of a promotion that only opens after the start date was left out (the game cannot open promotions later yet)',
+          example,
+        );
+      } else if (promotionId === null || !sourcePromotions.has(promotionId)) {
+        report.warn(
+          'event-without-promotion',
+          'A show that belongs to no promotion in the mod (its promotion was deleted from the mod) was left out',
+          example,
+        );
+      } else {
+        report.warn(
+          'event-of-skipped-promotion',
+          'A show of a promotion that was left out of the import (see its own line) was left out',
+          example,
+        );
+      }
       continue;
     }
     if (flag(row, 'inactive')) {
-      report.warn('inactive-event', 'An inactive show was left out', example);
+      report.warn(
+        'inactive-event',
+        'A show the mod marks as inactive (not running) was left out',
+        example,
+      );
       continue;
     }
     const importanceText = text(row, 'importance');
@@ -1092,16 +1209,28 @@ export function convertWorldMod(
         weekday: firstWeekday,
       };
     } else if (recurrenceText === 'specific' || recurrenceText === 'tour') {
-      const dates = [...new Set(datesByEvent.get(eventId) ?? [])]
+      const sourceDates = datesByEvent.get(eventId) ?? [];
+      const yearly = flag(row, 'repeatAnnually');
+      const dates = (yearly ? yearlyDates(sourceDates, start) : sourceDates.filter(notBefore))
+        .filter((day, index, list) => list.indexOf(day) === index)
         .sort(compareDates)
         .slice(0, MAX_RECURRENCE_DATES);
       if (dates.length === 0) {
         report.warn(
           'no-future-dates',
-          'A one-off show or tour with no dates on or after the start date was left out',
+          sourceDates.length === 0
+            ? 'A one-off show or tour with no dates at all was left out'
+            : 'A one-off show or tour (not yearly) whose dates are all before the start date was left out',
           example,
         );
         continue;
+      }
+      if (yearly && sourceDates.some((day) => !notBefore(day))) {
+        report.warn(
+          'yearly-dates-rolled-forward',
+          'A yearly show or tour dated before the start date was moved forward to the coming years',
+          example,
+        );
       }
       recurrence = { kind: 'dates', dates };
     } else {
@@ -1112,10 +1241,15 @@ export function convertWorldMod(
       );
       continue;
     }
-    const hasPreferred =
-      id(row, 'preferredRegion') !== null ||
-      id(row, 'preferredCountry') !== null ||
-      text(row, 'preferredContinent') !== null;
+    const preferredRegion = placeRef(row, 'preferredRegion');
+    const preferredCountry = placeRef(row, 'preferredCountry');
+    const preferredContinent = text(row, 'preferredContinent');
+    let preferredRegionKey: string | null = null;
+    if (preferredRegion !== null || preferredCountry !== null || preferredContinent !== null) {
+      const place = geography.resolvePlace(preferredRegion, preferredCountry, preferredContinent);
+      reportPlace(place, example);
+      preferredRegionKey = place.key;
+    }
     const key = `wm-e${String(eventId)}`;
     events.set(eventId, key);
     eventRecords.push({
@@ -1127,13 +1261,7 @@ export function convertWorldMod(
       recurrence,
       format: SHOW_FORMATS[importance],
       televised: televisedEvents.has(eventId),
-      preferredRegionKey: hasPreferred
-        ? geography.resolveRegion(
-            id(row, 'preferredRegion'),
-            id(row, 'preferredCountry'),
-            text(row, 'preferredContinent'),
-          )
-        : null,
+      preferredRegionKey,
       preferredVenueKey: venues.get(id(row, 'preferredVenue') ?? -1) ?? null,
       activeFrom: promotion.foundedOn,
       activeUntil: null,
