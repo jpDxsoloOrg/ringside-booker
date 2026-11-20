@@ -25,12 +25,28 @@
     color: var(--color-negative);
 }
 
+/* The Load panel: the toolbar and status keep their height; the list scrolls in what is left. */
+.save-panel {
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.save-panel > * {
+    flex-shrink: 0;
+}
+
+.save-panel > .save-list {
+    flex-shrink: 1;
+    min-height: 0;
+}
+
 .save-list {
     flex-direction: column;
 }
 
 .save-slot {
     flex-direction: row;
+    flex-shrink: 0;
     align-items: center;
     margin-bottom: var(--space-3);
 }

@@ -92,7 +92,10 @@ namespace RingsideBooker.UI.Title
                         : slots.Count + (slots.Count == 1 ? " save" : " saves") + " in " + store.Directory;
                 }
 
-                VisualElement list = Ui.El("save-list").Named("save-list");
+                // A long list scrolls inside the panel instead of squeezing the rows (UNITY-13 layout rule).
+                inner.AddToClassList("save-panel");
+                var list = new ScrollView(ScrollViewMode.Vertical) { name = "save-list", horizontalScrollerVisibility = ScrollerVisibility.Hidden };
+                list.AddToClassList("save-list");
                 foreach (SaveSlotInfo slot in slots) list.Add(SlotRow(slot, fingerprint));
                 inner.Add(list);
                 list.Q<Button>(className: "btn--primary")?.Focus();
