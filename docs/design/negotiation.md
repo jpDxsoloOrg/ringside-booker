@@ -763,6 +763,60 @@ message: "Won't renew while unhappy here" }`, with the decision
 - The ask never drops below the current deal (see the asking wage's last
   step). WRK8 moves morale; until then every default-world contract is at 0.
 
+## Job change
+
+UNITY-38. The player can offer someone on their roster a **different job**: a
+manager gets a shot in the ring, a wrestler moves to managing or commentary.
+It is a renewal (`contracts.offerRenewal`) whose offer names another `role`,
+so it uses the same talks, Why? panels and saves as any renewal, and adds no
+new rows or fields. The jobs on offer are `JOB_CHANGE_ROLES`: wrestler,
+manager, announcer, presenter, referee and producer.
+
+What is different from a plain renewal:
+
+- **Any time**: the renewal window does not apply; a job change can be offered
+  whenever the contract is live.
+- **The ask is for the new job** (`askingTerms` with `role`): their rating and
+  expected card position in the new job. The ask still never drops below what
+  they earn now. An unhappy worker is not refused outright: their morale
+  counts in their answer to the job instead.
+- **Their answer to the job** (`jobChangeAnswer`, `jobChange.ts`) comes before
+  the money. It is a traced score; at or above `contracts.jobChange.acceptAt`
+  (5) they will take the job and the money decides as usual (accept, counter,
+  reject). Below it they refuse: the talks close as declined with the outcome
+  `contracts.refusesJob` ("Doesn't want the new job"). Nothing is rolled.
+
+The score adds up, each part a line of the Why?:
+
+| Part                   | Points                                                                                                                                                                                                                                                                                  |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fit                    | (rating in the new job − `fitPivot` 45) × `fitWeight` 0.6. Wrestling skills for wrestling; mic, charisma and presence for managing or commentary, through the role-rating weights.                                                                                                      |
+| Still wants to wrestle | − `ringPull` 20 for a wrestler rated at least `contracts.react.refuseCrewRoleRating` who would leave the ring, fading to nothing over `ringPullFadeYears` 15 years past `oldFromAge`.                                                                                                   |
+| Age                    | Past `oldFromAge` 38, `perYearOld` 3 a year (at most `ageMax` 30): against wrestling, for leaving the ring. Under `youngUntil` 30: `young` 12 against leaving the ring, and for trying it.                                                                                              |
+| Health                 | Hurt: − `injured` 25 for wrestling, + half of it for leaving the ring. The worst body part below `wornBelow` 60: `perPointWorn` 0.5 a point, the same way round.                                                                                                                        |
+| Morale                 | Morale with you × `moraleWeight` 0.15 ("Happy here", "Unhappy here").                                                                                                                                                                                                                   |
+| Ambition               | A thrill-seeker: ± `thrill` 10 for or against the ring. Selfless: + `trait` 5. An egotist whose spotlight shrinks: − `trait` 5.                                                                                                                                                         |
+| Pay                    | (new pay ÷ pay now − 1) × `payWeight` 40, within ± `payMax` 20; doubled for someone driven by money. A per-appearance fee counts at `appearancesPerMonth` 4 a month.                                                                                                                    |
+| Spotlight              | Steps up or down × `prominenceWeight` 8, doubled for someone driven by legacy or power. A wrestler's spotlight is their card position (main event 5, upper card 4, mid card 3, lower card 2.5, enhancement 2); announcer and booker 3, manager and presenter 2, referee and producer 1. |
+
+Tuned on the default world (UNITY-38) so a minority says yes at their ask and more
+when paid above it. At their ask (and at 25% more): managers offered wrestling 22%
+(89%), wrestlers 35 and over offered managing 35% (60%) or commentary 22% (49%),
+wrestlers under 35 offered managing 6% (14%).
+
+The answer's words name the biggest part: "Up for the manager job: ready to
+slow down at 44", "Doesn't want to wrestle: feels too old at 52".
+`contracts.offerPreview` returns it as `jobChange { from, to, willing, answer,
+trace }`, and the reaction's Why? includes it.
+
+**On signing** the role changes through the role door (`setRole`), which adds
+the person role they need. A non-wrestler who takes a wrestling job first gets
+a ring style (`styleForNewWrestler`: showman when charisma and presence lead,
+else high flyer or technician) and the wrestler role. A crew job (referee,
+announcer, producer, presenter) has no card position. A wrestler who moves out
+of the ring keeps the wrestler person role, so they can still wrestle the odd
+match; the roster lists them by their new job. Morale does not change.
+
 ## Offer kinds
 
 `registerOfferKind` lists the contract kinds a promotion may offer:

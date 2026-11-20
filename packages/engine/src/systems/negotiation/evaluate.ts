@@ -11,7 +11,8 @@
  * - The worker refuses outright when they will not renew (`ask.refusal`), when talks are blocked
  *   (`negotiationEligibility`), while they are still cooling off after walking away from this
  *   promotion (`cooldownUntil` on a closed negotiation; eligibility does not check it), or when
- *   they will not take the offered role (`roles.ts`).
+ *   they will not take the offered role (`roles.ts`), or, offered a different job on a renewal,
+ *   they do not want it (`jobChange.ts`, UNITY-38).
  * - Patience is the negotiation's, or the worker's starting patience before talks open.
  *
  * Nothing is rolled or written here.
@@ -40,6 +41,7 @@ import { contractValue } from './formulas/contractValue';
 import { offerReaction } from './formulas/offerReaction';
 import type { Offer } from './offer';
 import { listEnforcedTerms, type EnforceableTerm } from './registries';
+import { isJobChange, jobChangeAnswer, type JobChangeAnswer } from './jobChange';
 import { roleMismatch } from './roles';
 
 export const COOLING_OFF_CODE = 'contracts.coolingOff';
@@ -79,6 +81,11 @@ export interface OfferEvaluation {
   readonly refusal: Reason | null;
   /** Why they will not take the offered role, or null. */
   readonly roleMismatch: string | null;
+  /**
+   * On a renewal that offers a different job (UNITY-38), their answer to the job; else null. When
+   * they do not want it, `roleMismatch` is the answer's words and the reaction is `refuse`.
+   */
+  readonly jobChange: JobChangeAnswer | null;
 }
 
 /** The terms the game honours today. */
@@ -238,6 +245,7 @@ export function evaluateOffer(
     kind: offer.terms.kind,
     exclusive: offer.terms.exclusive,
     renewalOf,
+    role: offer.role,
   });
   const enforced = enforcedTermsNow();
   const expectedPush = ask.expectedPush.value;
@@ -266,7 +274,27 @@ export function evaluateOffer(
   );
   const refusal = refusalOf(read, tunables, request, ask);
   const person = read.tables.people.require(request.personId);
-  const mismatch = roleMismatch(person, offer.role, { tunables });
+  const contract = renewalOf === undefined ? undefined : read.tables.employments.get(renewalOf);
+  const jobChange =
+    contract !== undefined && isJobChange(contract, offer.role)
+      ? jobChangeAnswer(
+          {
+            person,
+            contract,
+            role: offer.role,
+            push: offer.push,
+            terms: offer.terms,
+            date: request.date,
+          },
+          { tunables },
+        )
+      : null;
+  const mismatch =
+    jobChange === null
+      ? roleMismatch(person, offer.role, { tunables })
+      : jobChange.willing.value
+        ? null
+        : jobChange.answer;
   const lastCounter = negotiation?.status === 'countered' ? negotiation.lastCounter : null;
   const matchesLastCounter = lastCounter !== null && meetsCounter(offer, lastCounter);
   const patience = negotiation === null ? ask.startPatience.value : roundPatience(negotiation);
@@ -278,6 +306,7 @@ export function evaluateOffer(
       refusal,
       roleMismatch: mismatch,
       matchesLastCounter,
+      jobChange: jobChange?.willing ?? null,
     },
     { tunables },
   );
@@ -291,5 +320,6 @@ export function evaluateOffer(
     patienceLeft: patienceAfter(reaction.value, patience, tunables),
     refusal,
     roleMismatch: mismatch,
+    jobChange,
   };
 }

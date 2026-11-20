@@ -331,6 +331,7 @@ export const negotiationQuery = defineQuery('contracts.negotiation', {
       kind: negotiation.offer.terms.kind,
       exclusive: negotiation.offer.terms.exclusive,
       renewalOf: renewable ? negotiation.employmentId : undefined,
+      role: negotiation.offer.role,
     });
     return {
       ...rowOf(ctx, negotiation),

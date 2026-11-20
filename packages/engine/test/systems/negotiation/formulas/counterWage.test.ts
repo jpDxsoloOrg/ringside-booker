@@ -144,6 +144,7 @@ function anAsk(overrides: Partial<AskingTerms> = {}): AskingTerms {
     startPatience: inputOf('Patience', 3),
     refusal: null,
     renewalDecision: null,
+    jobChangeFrom: null,
     ...overrides,
   };
 }

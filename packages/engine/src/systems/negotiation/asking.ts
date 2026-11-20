@@ -48,6 +48,7 @@ import { marketValue } from './formulas/marketValue';
 import { exclusiveContractShortfall } from './formulas/reachGate';
 import { ASKING_TERMS_DOC_REF, RENEWALS_DOC_REF, signedText, wholeText } from './formulas/shared';
 import { startPatience } from './formulas/startPatience';
+import { isJobChange } from './jobChange';
 import {
   isTermEnforced,
   listAskModifiers,
@@ -73,6 +74,12 @@ export interface AskingTermsRequest {
   readonly exclusive?: boolean | undefined;
   /** The contract with this promotion being renewed. The caller checks it belongs to them. */
   readonly renewalOf?: EmploymentId | undefined;
+  /**
+   * The job offered on a renewal (UNITY-38). Left out, or the job they have: an ordinary renewal.
+   * A different job is a job change: the ask is for that job, and an unhappy worker is not refused
+   * outright (their morale counts in their answer to the job instead). Ignored on a signing.
+   */
+  readonly role?: EmploymentRole | undefined;
 }
 
 /** A perk the worker insists on. Only perks the game honours are ever asked for. */
@@ -128,6 +135,8 @@ export interface AskingTerms {
   readonly refusal: Reason | null;
   /** On a renewal, the decision whether they are willing to renew at all; else null. */
   readonly renewalDecision: Traced<boolean> | null;
+  /** On a job change (UNITY-38), the job they have now; else null. */
+  readonly jobChangeFrom: EmploymentRole | null;
 }
 
 /** What the composer reads once per promotion and date, so a list can share it across rows. */
@@ -208,7 +217,15 @@ function liveDealWith(context: AskingContext, personId: PersonId): Row | null {
   return deal ?? null;
 }
 
-function roleFor(context: AskingContext, person: Person, deal: Row | null): EmploymentRole {
+function roleFor(
+  context: AskingContext,
+  person: Person,
+  deal: Row | null,
+  jobRole: EmploymentRole | null,
+): EmploymentRole {
+  if (jobRole !== null) {
+    return jobRole;
+  }
   if (deal !== null) {
     return deal.role;
   }
@@ -410,11 +427,12 @@ export function askBasisWith(
   person: Person,
   renewalOf: EmploymentId | undefined,
   eligibility: NegotiationEligibility,
+  jobRole: EmploymentRole | null = null,
 ): AskBasis {
   const { read, tunables, date } = context;
   const deal = liveDealWith(context, person.id);
   const renewing = renewalOf === undefined ? null : read.tables.employments.require(renewalOf);
-  const role = roleFor(context, person, renewing ?? deal);
+  const role = roleFor(context, person, renewing ?? deal, renewing === null ? null : jobRole);
   const { peak, world } = popularityOf(context, person);
   const allowedKinds = allowedKindsFor(context, person.id, renewing);
   const value = marketValue(
@@ -516,14 +534,19 @@ export function askingTermsWith(
 ): AskingTerms {
   const { read, tunables, promotion, date } = context;
   const person = read.tables.people.require(request.personId);
-  const basis = askBasisWith(context, person, request.renewalOf, eligibility);
+  const renewalRow =
+    request.renewalOf === undefined ? undefined : read.tables.employments.get(request.renewalOf);
+  const jobRole =
+    request.role !== undefined && isJobChange(renewalRow, request.role) ? request.role : null;
+  const basis = askBasisWith(context, person, request.renewalOf, eligibility, jobRole);
   const { renewing } = basis;
   const { kind, exclusive } = askedKind(context, basis, request);
   const { monthlyWage, perAppearanceFee } = askedPay(context, basis, kind, exclusive);
   const patienceModifiers = listPatienceModifiers()
     .map((modifier) => modifier.compute(read, person.id, promotion.id, date, tunables))
     .filter(nonNull);
-  const renewalCheck = renewing === null ? null : renewalDecisionFor(renewing.morale, tunables);
+  const renewalCheck =
+    renewing === null || jobRole !== null ? null : renewalDecisionFor(renewing.morale, tunables);
 
   return {
     personId: person.id,
@@ -539,7 +562,7 @@ export function askingTermsWith(
     perks: perksFor(context, person, basis.age),
     appearanceCap: appearanceCapFor(context, basis.age, basis.peak),
     preferredLengthMonths: preferredLength(person, tunables),
-    expectedPush: expectedPushAt(read, person.id, promotion.id, tunables),
+    expectedPush: expectedPushAt(read, person.id, promotion.id, tunables, jobRole ?? undefined),
     allowedKinds: basis.allowedKinds,
     bestKind: basis.bestKind,
     exclusiveAllowed: context.exclusiveReasons.length === 0,
@@ -554,6 +577,7 @@ export function askingTermsWith(
     ),
     refusal: renewalCheck?.refusal ?? null,
     renewalDecision: renewalCheck?.decision ?? null,
+    jobChangeFrom: jobRole === null || renewing === null ? null : renewing.role,
   };
 }
 

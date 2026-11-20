@@ -55,6 +55,21 @@ namespace RingsideBooker.Screens.Contracts
 
         public static readonly string[] EmploymentRoles = { "wrestler", "manager", "presenter", "announcer", "referee", "producer", "booker" };
 
+        // ---- A different job (UNITY-38) ----------------------------------------------------------
+
+        public const string OfferJobLabel = "Offer a different job";
+
+        /// <summary>The jobs a job change can offer (the engine's <c>JOB_CHANGE_ROLES</c>).</summary>
+        public static readonly string[] JobRoles = { "wrestler", "manager", "announcer", "presenter", "referee", "producer" };
+
+        /// <summary>Jobs with no card position (the engine's <c>CREW_ROLES</c>).</summary>
+        public static bool IsCrewJob(string role) =>
+            role == "referee" || role == "announcer" || role == "producer" || role == "presenter" || role == "booker";
+
+        /// <summary>"Wrestler (now)" for the job they have, else the job's name.</summary>
+        public static string JobChoiceLabel(string role, string currentRole) =>
+            role == currentRole ? $"{RoleLabel(role)} (now)" : RoleLabel(role);
+
         /// <summary>The web's <c>WORKER_ROLE_LABELS</c> (a person's roles on the Free agents list).</summary>
         public static string PersonRoleLabel(string role) => role switch
         {

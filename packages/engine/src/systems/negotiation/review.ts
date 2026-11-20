@@ -37,7 +37,7 @@ import { signNegotiation } from './sign';
 import { REVIEW_STREAM } from './streams';
 import { copyOffer } from './submit';
 import { reviewTraceId, reviewTraceRef } from './traceKinds';
-import { REFUSES_ROLE_CODE } from './validate';
+import { refusedRoleCode } from './validate';
 
 export const REVIEW_DOC_REF = 'negotiation.md#review';
 /** The label every offer's score node in the review decision starts with. */
@@ -119,7 +119,7 @@ function candidateOf(ctx: PhaseContext, negotiation: DeepReadonly<Negotiation>):
   if (evaluation.refusal !== null || evaluation.roleMismatch !== null) {
     closeTalks(ctx, negotiation, {
       status: 'declined',
-      outcomeCode: evaluation.refusal?.code ?? REFUSES_ROLE_CODE,
+      outcomeCode: evaluation.refusal?.code ?? refusedRoleCode(evaluation),
     });
     return null;
   }

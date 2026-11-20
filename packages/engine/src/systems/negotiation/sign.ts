@@ -16,12 +16,16 @@
 
 import { addMonths, compareDates, type GameDate } from '../../core/date';
 import { InvalidArgumentError } from '../../core/errors';
-import type { EmploymentId } from '../../core/ids';
+import type { EmploymentId, PersonId } from '../../core/ids';
 import { cents } from '../../core/money';
 import type { PhaseContext } from '../../core/pipeline/context';
 import { startCalc } from '../../core/trace/calc';
 import type { TraceRef } from '../../core/trace/store';
-import { canTransition, type Employment } from '../../model/entities/employment';
+import {
+  canTransition,
+  type Employment,
+  type EmploymentRole,
+} from '../../model/entities/employment';
 import type { Negotiation } from '../../model/entities/negotiation';
 import type { DeepReadonly } from '../../model/world';
 import { EXCLUSIVE_DEAL_REASON_KEY } from '../contracts/lifecycle';
@@ -29,8 +33,11 @@ import { endEmployment } from '../contracts/endEmployment';
 import { startContract } from '../contracts/lifecycle';
 import { postMoney } from '../finance/post';
 import { setPush, setRole, setRoleProblems, type DoorSource } from '../workers/doors';
+import { CREW_ROLES } from '../workers/formulas/expectedPush';
+import { STYLE_LABELS } from '../world/people/labels';
 import { closeTalks, SIGNED_OUTCOME } from './close';
 import { negotiationEligibility } from './eligibility';
+import { styleForNewWrestler } from './jobChange';
 import { moneyText } from './formulas/shared';
 import { offerKind } from './registries';
 import { signingBonusTraceRef } from './traceKinds';
@@ -171,6 +178,32 @@ function signNew(ctx: PhaseContext, negotiation: DeepReadonly<Negotiation>): Sig
   return { employmentId: employment.id, startsOn, endsOn, notes };
 }
 
+function isCrewRole(role: EmploymentRole): boolean {
+  return CREW_ROLES.some((crew) => crew === role);
+}
+
+/**
+ * A non-wrestler who takes a wrestling job (UNITY-38) gets a ring style and the wrestler role
+ * together (the person schema wants both or neither), so the role door then lets the job change.
+ */
+function giveRingStyle(
+  ctx: PhaseContext,
+  personId: PersonId,
+  role: EmploymentRole,
+  notes: string[],
+): void {
+  const person = ctx.read.tables.people.require(personId);
+  if (role !== 'wrestler' || person.style !== 'nonWrestler') {
+    return;
+  }
+  const style = styleForNewWrestler(person.attributes);
+  ctx.tx.update('people', person.id, {
+    style,
+    roles: person.roles.includes('wrestler') ? [...person.roles] : [...person.roles, 'wrestler'],
+  });
+  notes.push(`Starts wrestling as a ${STYLE_LABELS[style].toLowerCase()}`);
+}
+
 function signRenewal(ctx: PhaseContext, negotiation: DeepReadonly<Negotiation>): SignedDeal {
   const contract = ctx.read.tables.employments.require(negotiation.employmentId);
   const { offer } = negotiation;
@@ -188,7 +221,9 @@ function signRenewal(ctx: PhaseContext, negotiation: DeepReadonly<Negotiation>):
   const source = sourceOf(ctx, negotiation);
   const reason = { key: RENEWAL_REASON_KEY, label: 'Agreed in a contract renewal' };
   const notes: string[] = [];
-  if (offer.role !== contract.role) {
+  const jobChange = offer.role !== contract.role;
+  if (jobChange) {
+    giveRingStyle(ctx, contract.personId, offer.role, notes);
     const [problem] = setRoleProblems(ctx.read, contract.id, offer.role);
     if (problem === undefined) {
       setRole(ctx, { employmentId: contract.id, role: offer.role, source, reason });
@@ -196,7 +231,12 @@ function signRenewal(ctx: PhaseContext, negotiation: DeepReadonly<Negotiation>):
       notes.push(`Role kept: ${problem.message}`);
     }
   }
-  if (offer.push !== ctx.read.tables.employments.require(contract.id).push) {
+  // A crew job has no card position: the role door already ended the push (UNITY-38).
+  const crewNow = isCrewRole(ctx.read.tables.employments.require(contract.id).role);
+  if (
+    !(jobChange && crewNow) &&
+    offer.push !== ctx.read.tables.employments.require(contract.id).push
+  ) {
     setPush(ctx, { employmentId: contract.id, push: offer.push, source, reason });
   }
   if (previousEndsOn !== null) {

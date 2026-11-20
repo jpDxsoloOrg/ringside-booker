@@ -33,7 +33,7 @@ import { askedMoney, counterTermsFor, perkOfTerm } from './counter';
 import { evaluateOffer, type OfferEvaluation } from './evaluate';
 import { COUNTER_DOC_REF } from './formulas/shared';
 import type { Offer } from './offer';
-import { REFUSES_ROLE_CODE } from './validate';
+import { refusedRoleCode } from './validate';
 import { COUNTER_STREAM } from './streams';
 import { cappedHistory, copyOffer } from './submit';
 import { counterTraceRef, reactionTraceRef, roundTraceId } from './traceKinds';
@@ -241,7 +241,7 @@ export function reactToOffer(ctx: PhaseContext, negotiation: DeepReadonly<Negoti
       });
       closeTalks(ctx, ctx.read.tables.negotiations.require(negotiation.id), {
         status: 'declined',
-        outcomeCode: evaluation.refusal?.code ?? REFUSES_ROLE_CODE,
+        outcomeCode: evaluation.refusal?.code ?? refusedRoleCode(evaluation),
       });
       break;
   }

@@ -28,18 +28,23 @@ namespace RingsideBooker.Screens.Contracts
             Renewal,
         }
 
-        private NegotiationTarget(Kinds kind, string id)
+        private NegotiationTarget(Kinds kind, string id, bool jobFirst = false)
         {
             Kind = kind;
             Id = id;
+            JobFirst = jobFirst;
         }
 
         public Kinds Kind { get; }
         public string Id { get; }
+        /// <summary>A renewal opened to offer a different job (UNITY-38): the Job choice starts open.</summary>
+        public bool JobFirst { get; }
 
         public static NegotiationTarget Talks(string negotiationId) => new NegotiationTarget(Kinds.Talks, negotiationId);
         public static NegotiationTarget Signing(string personId) => new NegotiationTarget(Kinds.Signing, personId);
         public static NegotiationTarget Renewal(string employmentId) => new NegotiationTarget(Kinds.Renewal, employmentId);
+        /// <summary>A renewal of your contract that offers them a different job (UNITY-38).</summary>
+        public static NegotiationTarget JobChange(string employmentId) => new NegotiationTarget(Kinds.Renewal, employmentId, true);
 
         public override string ToString() => $"{Kind}:{Id}";
     }
@@ -100,12 +105,13 @@ namespace RingsideBooker.Screens.Contracts
                     return null;
                 }
             }
-            if (kind == "auto" || kind == "renew" || kind == "renewal" || kind == "talks")
+            if (kind == "auto" || kind == "renew" || kind == "renewal" || kind == "talks" || kind == "job")
             {
                 JToken own = await OwnContractOf(client, personId);
                 if (own != null)
                 {
-                    Open(anchor, NegotiationTarget.Renewal(Kit.Str(own, "employmentId")));
+                    string employmentId = Kit.Str(own, "employmentId");
+                    Open(anchor, kind == "job" ? NegotiationTarget.JobChange(employmentId) : NegotiationTarget.Renewal(employmentId));
                     return null;
                 }
                 if (kind != "auto") return "They are not under contract with you.";
@@ -146,6 +152,13 @@ namespace RingsideBooker.Screens.Contracts
         private int previewVersion;
         private VisualElement meterHost;
         private VisualElement askHost;
+        private VisualElement jobAnswerHost;
+        /// <summary>On a renewal, the job they have now (UNITY-38); null on a signing.</summary>
+        private string currentRole;
+        /// <summary>The Job choice is open (a different job is on offer, or the sheet opened for one).</summary>
+        private bool jobOpen;
+        /// <summary>A renewal outside the renewal window: only a different job can be offered.</summary>
+        private bool outsideWindow;
         private Label footerReaction;
         private List<string> bidders = new List<string>();
 
@@ -180,6 +193,19 @@ namespace RingsideBooker.Screens.Contracts
 
         public void Close() => handle?.Close();
 
+        /// <summary>On a renewal, the job they have now (UNITY-38); null on a signing.</summary>
+        public string CurrentRole => currentRole;
+
+        /// <summary>Picks a job on the Job choice, as a click would (tours, UNITY-38).</summary>
+        public Task OfferJob(string role)
+        {
+            jobOpen = true;
+            return ChangeJob(role);
+        }
+
+        /// <summary>Presses Offer renewal / Offer the new job, as a click would (tours).</summary>
+        public Task SubmitOffer() => Submit();
+
         // ---- Loading --------------------------------------------------------------------------------
 
         private async Task Load()
@@ -200,6 +226,9 @@ namespace RingsideBooker.Screens.Contracts
             preview = null;
             header = null;
             currentDeal = null;
+            currentRole = null;
+            outsideWindow = false;
+            jobOpen = target.JobFirst;
             bidders = new List<string>();
             switch (target.Kind)
             {
@@ -254,6 +283,9 @@ namespace RingsideBooker.Screens.Contracts
                 return;
             }
             currentDeal = ContractText.WageText(own) + (Kit.Str(own, "endsOn") is string ends ? $" until {ContractText.Date(ends)}" : string.Empty);
+            currentRole = Kit.Str(own, "role");
+            outsideWindow = Kit.Str(own, "endsOn") != null && Kit.Num(own, "daysLeft") is double daysLeft && daysLeft > rules.RenewalWindowDays;
+            jobOpen = jobOpen || outsideWindow;
             await LoadSigning(client, Kit.Str(own, "personId"), target.Id);
         }
 
@@ -278,6 +310,12 @@ namespace RingsideBooker.Screens.Contracts
             string status = Kit.Str(view, "status");
             phase = status == "submitted" || status == "awaitingReview" || status == "countered" ? status : "closed";
             ask = Kit.Obj(view, "ask");
+            if (Kit.Str(view, "kind") == "renewal")
+            {
+                // A job change's ask names the job they have now (UNITY-38).
+                currentRole = Kit.Str(ask, "jobChangeFrom") ?? Kit.Str(view, "offer.role");
+                jobOpen = currentRole != Kit.Str(view, "offer.role");
+            }
             if (phase == "countered")
             {
                 string renewalOf = Kit.Str(ask, "renewalOf");
@@ -288,7 +326,11 @@ namespace RingsideBooker.Screens.Contracts
                     ["kind"] = Kit.Str(view, "offer.terms.kind"),
                     ["exclusive"] = Kit.Bool(view, "offer.terms.exclusive"),
                 };
-                if (renewalOf != null) args["renewalOf"] = renewalOf;
+                if (renewalOf != null)
+                {
+                    args["renewalOf"] = renewalOf;
+                    if (Kit.Str(view, "offer.role") is string offeredRole) args["role"] = offeredRole;
+                }
                 QueryResult<JToken> askResult = await client.Query("contracts.askingTerms", args);
                 if (askResult.Ok) ask = askResult.Data;
                 draft = OfferDraft.FromOffer(Kit.Obj(view, "lastCounter") ?? Kit.Obj(view, "offer"));
@@ -304,6 +346,10 @@ namespace RingsideBooker.Screens.Contracts
 
         private string RingName => Kit.Str(header, "ringName") ?? Kit.Str(view, "ringName") ?? "Worker";
         private bool Renewal => target.Kind == NegotiationTarget.Kinds.Renewal || Kit.Str(view, "kind") == "renewal";
+        /// <summary>A different job is on the table (UNITY-38).</summary>
+        private bool JobChanging => currentRole != null && (draft?.Role ?? Kit.Str(view, "offer.role")) is string role && role != currentRole;
+        /// <summary>Outside the renewal window the same job cannot be offered yet.</summary>
+        private bool SameJobBlocked => outsideWindow && draft != null && draft.Role == currentRole;
 
         private void ShowLine(string text)
         {
@@ -352,11 +398,49 @@ namespace RingsideBooker.Screens.Contracts
                 ["kind"] = draft.Kind,
                 ["exclusive"] = draft.Exclusive,
             };
-            if (Kit.Str(ask, "renewalOf") is string renewalOf) args["renewalOf"] = renewalOf;
+            if (Kit.Str(ask, "renewalOf") is string renewalOf)
+            {
+                args["renewalOf"] = renewalOf;
+                args["role"] = draft.Role;
+            }
             QueryResult<JToken> result = await game.Client.Query("contracts.askingTerms", args);
             if (!IsOpen) return;
             if (result.Ok) ask = result.Data;
             Draw();
+        }
+
+        /// <summary>
+        /// A different job (UNITY-38): asks what they want for that job, and starts the offer from
+        /// it (money, length, card position). Their answer to the job comes with the preview.
+        /// </summary>
+        private async Task ChangeJob(string role)
+        {
+            EngineGame game = Kit.Game;
+            if (game == null || draft == null || role == null || role == draft.Role) return;
+            draft.SetRole(role);
+            var args = new JObject
+            {
+                ["promotionId"] = promotionId,
+                ["personId"] = Kit.Str(ask, "personId") ?? Kit.Str(view, "personId"),
+                ["kind"] = draft.Kind,
+                ["exclusive"] = draft.Exclusive,
+                ["role"] = role,
+            };
+            if (Kit.Str(ask, "renewalOf") is string renewalOf) args["renewalOf"] = renewalOf;
+            previewPending = true;
+            QueryResult<JToken> result = await game.Client.Query("contracts.askingTerms", args);
+            if (!IsOpen || draft.Role != role) return;
+            if (result.Ok)
+            {
+                ask = result.Data;
+                draft.Replace(OfferDraft.OfferFromAsk(ask, rules.MaxLengthMonths));
+                draft.SetRole(role);
+                errors.Clear();
+                if (Kit.Obj(ask, "refusal") is JToken refusal) errors.Add(Kit.Str(refusal, "message"));
+            }
+            preview = null;
+            Draw();
+            SchedulePreview(0);
         }
 
         // ---- Drawing --------------------------------------------------------------------------------
@@ -366,7 +450,7 @@ namespace RingsideBooker.Screens.Contracts
             if (!IsOpen) return;
             body.Clear();
             footer.Clear();
-            if (title != null) title.text = TextFormat.Upper(Renewal ? $"Renew {RingName}" : RingName);
+            if (title != null) title.text = TextFormat.Upper(JobChanging ? $"New job for {RingName}" : Renewal ? $"Renew {RingName}" : RingName);
 
             // Who they are.
             VisualElement hero = Ds.Row("ds-row--top", "ct-hero");
@@ -396,7 +480,9 @@ namespace RingsideBooker.Screens.Contracts
                 VisualElement line = Ds.Row("ct-notice", Ds.StateClass(ContractText.OfferState(Kit.Str(view, "status")))).Named("negotiation-outcome");
                 line.Add(new Icon(Kit.Str(view, "status") == "signed" ? "check-circle" : "info", "ds-icon--sm", "ct-notice__icon"));
                 line.Add(Ds.Text(outcome, "ct-notice__text"));
-                WhyButton why = ContractWhy.Words("How they decided", outcome, Kit.Obj(view, "reviewTrace"));
+                // A refusal is decided by their reaction, not a review: its Why? is the reaction's.
+                WhyButton why = ContractWhy.Words("How they decided", outcome, Kit.Obj(view, "reviewTrace"))
+                    ?? (Kit.Obj(view, "reactionTraceRef") is JObject reactionRef ? ContractWhy.RefWords("How they decided", outcome, reactionRef) : null);
                 if (why != null) line.Add(why);
                 body.Add(line);
                 if (Kit.Str(view, "status") == "signed")
@@ -456,6 +542,12 @@ namespace RingsideBooker.Screens.Contracts
             meterHost.Clear();
             if (footerReaction != null) footerReaction.text = string.Empty;
             if (draft == null) return;
+            if (SameJobBlocked)
+            {
+                // Outside the renewal window only a different job can be offered (UNITY-38).
+                meterHost.Add(Ds.Text("Pick a different job to see how they'd take it.", "ct-quiet", "ds-wrap"));
+                return;
+            }
             if (preview == null)
             {
                 meterHost.Add(Ds.Text("Working out how they would take it…", "ct-quiet"));
@@ -479,6 +571,7 @@ namespace RingsideBooker.Screens.Contracts
             double accept = Kit.Num(preview, "thresholds.accept") ?? 1;
             meterHost.Add(Ds.Meter(ContractText.MeterFraction(ratio, accept), state, $"{Math.Round(ratio * 100):0}% of their ask"));
             foreach (JToken note in Kit.Arr(preview, "notes")) meterHost.Add(Ds.Text("• " + (string)note, "ct-meter__note", "ds-wrap"));
+            DrawJobAnswer();
             if (footerReaction != null)
             {
                 footerReaction.text = label;
@@ -542,6 +635,7 @@ namespace RingsideBooker.Screens.Contracts
             useAsk.SetEnabled(!disabled);
             head.Add(useAsk);
             form.Add(head);
+            if (Renewal && currentRole != null) form.Add(JobChoice(disabled));
 
             // Kind: options you may not offer say why.
             var kinds = Kit.Arr(ask, "allowedKinds").Select(entry => (
@@ -583,14 +677,21 @@ namespace RingsideBooker.Screens.Contracts
             form.Add(Ds.Text($"They prefer {ContractText.Months(Kit.Num(ask, "preferredLengthMonths.value") ?? 0)}", "ct-field__hint"));
             AddError(form, "offer.lengthMonths");
 
-            form.Add(new ContractUi.ChoiceGroup<string>("Card position",
-                ContractText.PushLevels.Select(push => (push, ContractText.PushName(push), true, (string)null)), draft.Push, push =>
-                {
-                    draft.SetPush(push);
-                    SchedulePreview(PreviewDelayMs);
-                }, "offer-push"));
-            form.Add(Ds.Text($"Expects {ContractText.PushName(Kit.Str(ask, "expectedPush.value"))}", "ct-field__hint"));
-            AddError(form, "offer.push");
+            if (ContractText.IsCrewJob(draft.Role))
+            {
+                form.Add(Ds.Text($"No card position: {ContractText.RoleLabel(draft.Role).ToLowerInvariant()}s are not pushed", "ct-field__hint").Named("offer-no-push"));
+            }
+            else
+            {
+                form.Add(new ContractUi.ChoiceGroup<string>("Card position",
+                    ContractText.PushLevels.Select(push => (push, ContractText.PushName(push), true, (string)null)), draft.Push, push =>
+                    {
+                        draft.SetPush(push);
+                        SchedulePreview(PreviewDelayMs);
+                    }, "offer-push"));
+                form.Add(Ds.Text($"Expects {ContractText.PushName(Kit.Str(ask, "expectedPush.value"))}", "ct-field__hint"));
+                AddError(form, "offer.push");
+            }
 
             Button more = Ds.Button(moreTerms ? "Fewer terms" : "More terms", () =>
             {
@@ -601,6 +702,63 @@ namespace RingsideBooker.Screens.Contracts
             form.Add(more);
             if (moreTerms) form.Add(MoreTerms(disabled));
             return form;
+        }
+
+        /// <summary>
+        /// The Job choice of a renewal (UNITY-38): closed behind "Offer a different job" until you
+        /// want it; open, the jobs as chips and their answer to the one picked, with a quiet Why?.
+        /// </summary>
+        private VisualElement JobChoice(bool disabled)
+        {
+            VisualElement section = Ds.Column("ct-offer__job").Named("offer-job-section");
+            jobAnswerHost = null;
+            if (!jobOpen)
+            {
+                Button open = Ds.Button(ContractText.OfferJobLabel, () =>
+                {
+                    jobOpen = true;
+                    Draw();
+                }, DsButtonKind.Ghost, "users");
+                open.name = "offer-job-open";
+                open.SetEnabled(!disabled);
+                section.Add(open);
+                return section;
+            }
+            var roles = ContractText.JobRoles.ToList();
+            if (!roles.Contains(currentRole)) roles.Insert(0, currentRole);
+            section.Add(new ContractUi.ChoiceGroup<string>("Job",
+                roles.Select(role => (role, ContractText.JobChoiceLabel(role, currentRole), !disabled, (string)null)), draft.Role, role => _ = ChangeJob(role), "offer-job"));
+            AddError(section, "offer.role");
+            if (SameJobBlocked)
+            {
+                section.Add(Ds.Text($"{ContractText.RenewalWindow(rules.RenewalWindowDays)}. Until then, pick a different job to offer.", "ct-field__hint", "ds-wrap").Named("offer-job-window"));
+            }
+            jobAnswerHost = Ds.Column("ct-job-answer").Named("offer-job-answer");
+            section.Add(jobAnswerHost);
+            DrawJobAnswer();
+            return section;
+        }
+
+        /// <summary>Their answer to the job on offer, in plain words with a quiet Why? (UNITY-38).</summary>
+        private void DrawJobAnswer()
+        {
+            if (jobAnswerHost == null) return;
+            jobAnswerHost.Clear();
+            if (!JobChanging) return;
+            JToken job = Kit.Obj(preview, "jobChange");
+            if (job == null || Kit.Str(job, "to") != draft?.Role)
+            {
+                jobAnswerHost.Add(Ds.Text("Working out their answer…", "ct-quiet"));
+                return;
+            }
+            bool willing = Kit.Bool(job, "willing");
+            string answer = Kit.Str(job, "answer") ?? string.Empty;
+            VisualElement line = Ds.Row("ct-notice", Ds.StateClass(willing ? DsState.Good : DsState.Bad)).Named("offer-job-answer-line");
+            line.Add(new Icon(willing ? "check-circle" : "info", "ds-icon--sm", "ct-notice__icon"));
+            line.Add(Ds.Text(answer, "ct-notice__text", "ds-wrap"));
+            WhyButton why = ContractWhy.Words("Their answer to the new job", answer, Kit.Obj(job, "trace"));
+            if (why != null) line.Add(why);
+            jobAnswerHost.Add(line);
         }
 
         private VisualElement MoreTerms(bool disabled)
@@ -618,16 +776,20 @@ namespace RingsideBooker.Screens.Contracts
             }, exclusiveHint, !disabled && !draft.PerAppearance && exclusiveAllowed, "offer-exclusive"));
             AddError(more, "offer.terms.exclusive");
 
-            var roleOptions = new List<string> { Kit.Str(ask, "role") };
-            roleOptions.AddRange(Kit.Arr(header, "roles").Select(role => (string)role == "occasionalWrestler" ? "wrestler" : (string)role));
-            roleOptions.Add(draft.Role);
-            more.Add(new ContractUi.ChoiceGroup<string>("Role",
-                roleOptions.Where(role => role != null).Distinct().Select(role => (role, ContractText.RoleLabel(role), true, (string)null)), draft.Role, role =>
-                {
-                    draft.SetRole(role);
-                    SchedulePreview(PreviewDelayMs);
-                }, "offer-role"));
-            AddError(more, "offer.role");
+            // A renewal's job is the Job choice above (UNITY-38).
+            if (!(Renewal && currentRole != null))
+            {
+                var roleOptions = new List<string> { Kit.Str(ask, "role") };
+                roleOptions.AddRange(Kit.Arr(header, "roles").Select(role => (string)role == "occasionalWrestler" ? "wrestler" : (string)role));
+                roleOptions.Add(draft.Role);
+                more.Add(new ContractUi.ChoiceGroup<string>("Role",
+                    roleOptions.Where(role => role != null).Distinct().Select(role => (role, ContractText.RoleLabel(role), true, (string)null)), draft.Role, role =>
+                    {
+                        draft.SetRole(role);
+                        SchedulePreview(PreviewDelayMs);
+                    }, "offer-role"));
+                AddError(more, "offer.role");
+            }
 
             var brands = new List<(string, string, bool, string)> { (null, "Shared across every brand", true, null) };
             brands.AddRange(Kit.Arr(ask, "brandOptions").Select(brand => (Kit.Str(brand, "brandId"), Kit.Str(brand, "name"), true, (string)null)));
@@ -753,9 +915,9 @@ namespace RingsideBooker.Screens.Contracts
             footer.Add(Ds.Spacer());
             if (phase == "new")
             {
-                Button submit = Ds.Button(Renewal ? "Offer renewal" : "Submit offer", () => _ = Submit(), DsButtonKind.Primary, "handshake");
+                Button submit = Ds.Button(JobChanging ? "Offer the new job" : Renewal ? "Offer renewal" : "Submit offer", () => _ = Submit(), DsButtonKind.Primary, "handshake");
                 submit.name = "negotiation-submit";
-                submit.SetEnabled(!pending && draft != null && Kit.Obj(ask, "refusal") == null);
+                submit.SetEnabled(!pending && draft != null && Kit.Obj(ask, "refusal") == null && !SameJobBlocked);
                 footer.Add(submit);
             }
             else if (phase == "countered")

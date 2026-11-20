@@ -31,7 +31,8 @@ function roleAt(read: GameWorldView, personId: PersonId, promotionId: PromotionI
 }
 
 /**
- * The card position `personId` would expect at `promotionId` today. Throws `EntityNotFoundError`
+ * The card position `personId` would expect at `promotionId` today, in their job there or in
+ * `role` when given (a job change, UNITY-38). Throws `EntityNotFoundError`
  * for an unknown person or promotion.
  */
 export function expectedPushAt(
@@ -39,12 +40,13 @@ export function expectedPushAt(
   personId: PersonId,
   promotionId: PromotionId,
   tunables: EngineTunables,
+  role?: EmploymentRole,
 ): Traced<Push> {
   const person = read.tables.people.require(personId);
   const promotion = read.tables.promotions.require(promotionId);
   return expectedPush(
     {
-      employmentRole: roleAt(read, personId, promotionId),
+      employmentRole: role ?? roleAt(read, personId, promotionId),
       workerPop: person.regionalPop,
       promotionPop: promotion.regionalPop,
       promotionName: promotion.name,

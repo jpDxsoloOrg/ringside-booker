@@ -23,6 +23,7 @@ const ASKING_TERMS_DOC = `${NEGOTIATION_DOC}#asking-terms`;
 const PATIENCE_DOC = `${NEGOTIATION_DOC}#patience`;
 const CONTRACT_VALUE_DOC = `${NEGOTIATION_DOC}#contract-value`;
 const REACTION_DOC = `${NEGOTIATION_DOC}#reaction`;
+const JOB_CHANGE_DOC = `${NEGOTIATION_DOC}#job-change`;
 
 function days(defaultValue: number, min: number, max: number, description: string, docRef: string) {
   return {
@@ -763,9 +764,163 @@ const reviewTunables = defineTunables({
   ),
 });
 
+/**
+ * A different job (UNITY-38): how a worker on your roster weighs an offer to change jobs. Every
+ * number is points on one score; at or above `contracts.jobChange.acceptAt` they will take it.
+ */
+function jobPoints(defaultValue: number, max: number, description: string) {
+  return {
+    kind: 'integer',
+    default: defaultValue,
+    min: 0,
+    max,
+    unit: 'points',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description,
+    docRef: JOB_CHANGE_DOC,
+  } as const;
+}
+
+function jobWeight(defaultValue: number, max: number, description: string) {
+  return {
+    kind: 'number',
+    default: defaultValue,
+    min: 0,
+    max,
+    step: 0.01,
+    unit: 'multiplier',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description,
+    docRef: JOB_CHANGE_DOC,
+  } as const;
+}
+
+const jobChangeTunables = defineTunables({
+  'contracts.jobChange.acceptAt': {
+    kind: 'integer',
+    default: 5,
+    min: -100,
+    max: 100,
+    unit: 'points',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Score from which a worker takes a different job',
+    docRef: JOB_CHANGE_DOC,
+  },
+  'contracts.jobChange.fitPivot': jobPoints(
+    45,
+    100,
+    'Rating in the new job that neither helps nor hurts',
+  ),
+  'contracts.jobChange.fitWeight': jobWeight(
+    0.6,
+    5,
+    'Points for each rating point in the new job above (or below) the pivot',
+  ),
+  'contracts.jobChange.ringPull': jobPoints(
+    20,
+    100,
+    'Points against leaving the ring for a wrestler rated at least the refuse-crew line',
+  ),
+  'contracts.jobChange.ringPullFadeYears': {
+    kind: 'integer',
+    default: 15,
+    min: 0,
+    max: 40,
+    unit: 'years',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description:
+      'Years past the old age over which the wish to keep wrestling fades away (0 = never)',
+    docRef: JOB_CHANGE_DOC,
+  },
+  'contracts.jobChange.oldFromAge': {
+    kind: 'integer',
+    default: 38,
+    min: 18,
+    max: 80,
+    unit: 'years',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Age from which wrestling appeals less, and a job outside the ring more',
+    docRef: JOB_CHANGE_DOC,
+  },
+  'contracts.jobChange.perYearOld': jobWeight(
+    3,
+    20,
+    'Points for each year past that age (against wrestling, for leaving the ring)',
+  ),
+  'contracts.jobChange.ageMax': jobPoints(30, 100, 'Most points age can add or take away'),
+  'contracts.jobChange.youngUntil': {
+    kind: 'integer',
+    default: 30,
+    min: 14,
+    max: 60,
+    unit: 'years',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description:
+      'Below this age someone feels too young to leave the ring, and young enough to try it',
+    docRef: JOB_CHANGE_DOC,
+  },
+  'contracts.jobChange.young': jobPoints(
+    12,
+    100,
+    'Points against leaving the ring while young, and for trying it',
+  ),
+  'contracts.jobChange.injured': jobPoints(
+    25,
+    100,
+    'Points against wrestling while hurt (half of it for leaving the ring)',
+  ),
+  'contracts.jobChange.wornBelow': jobPoints(
+    60,
+    100,
+    'Condition of the worst body part below which the body counts as worn down',
+  ),
+  'contracts.jobChange.perPointWorn': jobWeight(
+    0.5,
+    5,
+    'Points for each condition point below that line (against wrestling, for leaving the ring)',
+  ),
+  'contracts.jobChange.moraleWeight': jobWeight(
+    0.15,
+    2,
+    'Points for each morale point: happy workers do you a favour, unhappy ones do not',
+  ),
+  'contracts.jobChange.thrill': jobPoints(
+    10,
+    100,
+    'Points a thrill-seeker gives wrestling (and takes from leaving the ring)',
+  ),
+  'contracts.jobChange.trait': jobPoints(
+    5,
+    100,
+    'Points a selfless worker adds, and an egotist takes away when the spotlight shrinks',
+  ),
+  'contracts.jobChange.payWeight': jobWeight(
+    40,
+    200,
+    'Points for the new pay against what they earn now, per whole share more or less',
+  ),
+  'contracts.jobChange.payMax': jobPoints(20, 100, 'Most points the pay can add or take away'),
+  'contracts.jobChange.appearancesPerMonth': {
+    kind: 'integer',
+    default: 4,
+    min: 1,
+    max: 31,
+    unit: 'count',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Appearances a month a per-appearance fee is counted at when comparing pay',
+    docRef: JOB_CHANGE_DOC,
+  },
+  'contracts.jobChange.prominenceWeight': jobPoints(
+    8,
+    50,
+    'Points for each step up (or down) in how much the job is in the spotlight',
+  ),
+});
+
 export const negotiationTunables = mergeTunables(
   paceTunables,
   askTunables,
   reactionTunables,
   reviewTunables,
+  jobChangeTunables,
 );

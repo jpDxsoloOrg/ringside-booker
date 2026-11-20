@@ -28,6 +28,8 @@ import { REFUSES_RENEWAL_CODE } from './asking';
 import { negotiationEligibility, OPEN_TO_OFFERS } from './eligibility';
 import { coolingOffUntil, evaluateOffer, type OfferEvaluation } from './evaluate';
 import type { Offer } from './offer';
+import { setRoleProblems } from '../workers/doors';
+import { isJobChange, REFUSES_JOB_CODE } from './jobChange';
 import { isTermEnforced, offerKind } from './registries';
 import { WANTS_TO_WRESTLE } from './roles';
 
@@ -52,6 +54,11 @@ export const NOT_YOUR_PROMOTION_TEXT = "You don't run that promotion";
 export const ALREADY_YOURS_TEXT = 'Already under contract with you: offer a renewal instead';
 export const ALREADY_NEGOTIATING_TEXT =
   'You are already talking to them: open those talks to see where they stand';
+
+/** The outcome code of talks a worker refused over the role: the new job (UNITY-38) or the role. */
+export function refusedRoleCode(evaluation: Pick<OfferEvaluation, 'jobChange'>): string {
+  return evaluation.jobChange === null ? REFUSES_ROLE_CODE : REFUSES_JOB_CODE;
+}
 
 /** What an offer is for. */
 export interface OfferInput {
@@ -215,7 +222,30 @@ function kindReasons(input: OfferInput, evaluation: OfferEvaluation): Reason[] {
   return reasons;
 }
 
-function roleReasons(input: OfferInput, evaluation: OfferEvaluation): Reason[] {
+/**
+ * A job change's own rules (UNITY-38): what the role door refuses, except a non-wrestler's ring
+ * style, which signing a wrestling job sets. Whether they want the job is their answer, not a rule.
+ */
+function jobChangeReasons(read: GameWorldView, contractId: EmploymentId, input: OfferInput) {
+  return setRoleProblems(read, contractId, input.offer.role)
+    .filter((problem) => problem.code !== 'styleForbidsWrestling')
+    .map((problem) =>
+      reason(BAD_ROLE_CODE, problem.message, {
+        field: 'offer.role',
+        subject: { kind: 'person', id: input.personId },
+      }),
+    );
+}
+
+function roleReasons(
+  read: GameWorldView,
+  input: OfferInput,
+  evaluation: OfferEvaluation,
+  renewalOf: EmploymentId | undefined,
+): Reason[] {
+  if (evaluation.jobChange !== null && renewalOf !== undefined) {
+    return jobChangeReasons(read, renewalOf, input);
+  }
   const mismatch = evaluation.roleMismatch;
   if (mismatch === null) {
     return [];
@@ -229,12 +259,16 @@ function roleReasons(input: OfferInput, evaluation: OfferEvaluation): Reason[] {
   ];
 }
 
-/** The renewal's own rules: a live contract of this worker with this promotion, inside its window. */
+/**
+ * The renewal's own rules: a live contract of this worker with this promotion, inside its window.
+ * A different job (`jobChange`, UNITY-38) may be offered whenever the contract is live.
+ */
 export function renewalReasons(
   read: GameWorldView,
   tunables: EngineTunables,
   employment: DeepReadonly<Employment> | undefined,
   date: GameDate,
+  jobChange = false,
 ): Reason[] {
   if (employment === undefined) {
     return [
@@ -252,7 +286,7 @@ export function renewalReasons(
       }),
     ];
   }
-  if (employment.endsOn === null) {
+  if (employment.endsOn === null || jobChange) {
     return [];
   }
   const windowDays = tunables.get('contracts.renewal.windowDays');
@@ -307,7 +341,7 @@ export function checkOffer(
     const contract = read.tables.employments.get(renewalOf);
     const yours = contract?.promotionId === input.promotionId && contract.personId === person.id;
     const reasons = yours
-      ? renewalReasons(read, tunables, contract, date)
+      ? renewalReasons(read, tunables, contract, date, isJobChange(contract, input.offer.role))
       : renewalReasons(read, tunables, undefined, date);
     if (reasons.length > 0) {
       return { reasons, evaluation: null };
@@ -367,7 +401,7 @@ export function checkOffer(
     ...kindReasons(input, evaluation),
     ...termReasons(input, tunables, date, !sameStart),
     ...brandReasons(read, input),
-    ...roleReasons(input, evaluation),
+    ...roleReasons(read, input, evaluation, renewalOf),
     ...extraReasons(input),
   );
   const refusal = evaluation.ask.refusal;

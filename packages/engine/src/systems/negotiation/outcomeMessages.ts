@@ -11,6 +11,7 @@ import { EXCLUSIVE_ELSEWHERE_REASON_CODE, UNAVAILABLE_REASON_CODE } from './elig
 import { CONTRACT_ENDED_OUTCOME } from './endedTalks';
 import { COOLING_OFF_CODE } from './evaluate';
 import { TALKS_ENDED_OUTCOME, WITHDRAWN_OUTCOME } from './submit';
+import { REFUSES_JOB_CODE, REFUSES_JOB_MESSAGE } from './jobChange';
 import { REFUSES_ROLE_CODE } from './validate';
 
 /** Plain words for the outcome codes the negotiation system closes talks with. */
@@ -31,4 +32,5 @@ export const OUTCOME_MESSAGES: Readonly<Record<string, string>> = {
   [EXCLUSIVE_ELSEWHERE_REASON_CODE]: 'Tied to an exclusive contract elsewhere',
   [COOLING_OFF_CODE]: 'Still cooling off after walking away from you',
   [REFUSES_ROLE_CODE]: "Won't take that role",
+  [REFUSES_JOB_CODE]: REFUSES_JOB_MESSAGE,
 };

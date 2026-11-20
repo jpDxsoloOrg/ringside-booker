@@ -62,8 +62,8 @@ namespace RingsideBooker.Screens.Contracts
         /// <summary>
         /// Opens the Negotiation sheet over whatever screen is showing (UNITY-15's worker profile
         /// calls this for its Offer contract / Renew contract button). <paramref name="kind"/> is
-        /// <c>"offer"</c> (a new contract), <c>"renew"</c> (a renewal of your contract with them) or
-        /// <c>"auto"</c>: your open talks with them if any, else a renewal when they work for you,
+        /// <c>"offer"</c> (a new contract), <c>"renew"</c> (a renewal of your contract with them),
+        /// <c>"job"</c> (a different job on your contract with them, UNITY-38) or <c>"auto"</c>: your open talks with them if any, else a renewal when they work for you,
         /// else a new offer. Returns null when it opened, else why it could not.
         /// </summary>
         public static Task<string> OpenNegotiation(string personId, string kind = "auto", VisualElement anchor = null) =>
@@ -84,7 +84,7 @@ namespace RingsideBooker.Screens.Contracts
         public bool Enabled { get; private set; }
         /// <summary>Why it is disabled, in words, or null.</summary>
         public string Reason { get; private set; }
-        /// <summary>What to pass to <see cref="ContractsScreen.OpenNegotiation"/>: <c>talks</c>, <c>renew</c> or <c>offer</c>.</summary>
+        /// <summary>What to pass to <see cref="ContractsScreen.OpenNegotiation"/>: <c>talks</c>, <c>renew</c>, <c>job</c> or <c>offer</c>.</summary>
         public string Kind { get; private set; }
 
         /// <summary>Opens the Negotiation sheet for it.</summary>
@@ -105,17 +105,14 @@ namespace RingsideBooker.Screens.Contracts
             JToken own = await NegotiationSheet.OwnContractOf(client, personId);
             if (own != null)
             {
-                if (Kit.Str(own, "endsOn") == null) return null;
+                // Outside the renewal window (or on an open-ended deal) you can still offer them a
+                // different job (UNITY-38); inside it, the renewal talks have the Job choice too.
                 ContractRules rules = await ContractRules.LoadAsync(client);
                 double? daysLeft = Kit.Num(own, "daysLeft");
-                bool inside = daysLeft.HasValue && daysLeft.Value <= rules.RenewalWindowDays;
-                return new ContractAction
-                {
-                    Label = "Renew contract",
-                    Enabled = inside,
-                    Reason = inside ? null : ContractText.RenewalWindow(rules.RenewalWindowDays),
-                    Kind = "renew",
-                };
+                bool inside = Kit.Str(own, "endsOn") != null && daysLeft.HasValue && daysLeft.Value <= rules.RenewalWindowDays;
+                return inside
+                    ? new ContractAction { Label = "Renew contract", Enabled = true, Kind = "renew" }
+                    : new ContractAction { Label = ContractText.OfferJobLabel, Enabled = true, Kind = "job" };
             }
             QueryResult<JToken> ask = await client.Query("contracts.askingTerms", new JObject { ["promotionId"] = promotionId, ["personId"] = personId });
             string situation = ask.Ok ? Kit.Str(ask.Data, "eligibility.situation") : null;

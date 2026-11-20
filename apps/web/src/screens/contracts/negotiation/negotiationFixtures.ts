@@ -62,6 +62,7 @@ export function anAsk(overrides: Partial<AskingTermsView> = {}): AskingTermsView
     startPatience: { value: 3, trace: input('Patience', 3, 'count') },
     refusal: null,
     renewalDecision: null,
+    jobChangeFrom: null,
     eligibility: {
       situation: 'freeAgent',
       earliestStart: parseGameDate('2027-01-04'),
@@ -110,6 +111,7 @@ export function aPreview(band: OfferBand, ratio: number): OfferPreview {
     askValueTrace: input('Ask value', 5_000_000),
     notes: band === 'counter' ? ['They will meet you part of the way'] : [],
     thresholds: { walkAway: 0.45, counter: 0.55, accept: 0.95 },
+    jobChange: null,
   };
 }
 
