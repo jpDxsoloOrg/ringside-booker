@@ -18,6 +18,8 @@ How I write an entry:
 
 ### Added
 
+- I added tester codes. Test builds ask for your tester code once on each computer, then play
+  offline too; Settings › About shows the code (partly hidden) and can remove it.
 - I added trades with rival promotions. Put workers and cash on each side, see how the rival and
   each worker feel about it as you build the offer, and send it; they answer the next day with a
   yes, a no or a counter-offer. Rivals now and then offer you a trade too. Start one from
