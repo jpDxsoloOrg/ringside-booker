@@ -16,6 +16,8 @@ How I write an entry:
 
 ## Unreleased
 
+## [0.1.0-alpha.1] - 2026-11-20
+
 ### Added
 
 - I turned Ringside Booker into a Windows game. The whole simulation from the web version runs
