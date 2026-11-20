@@ -478,6 +478,69 @@ show after a save and a reload, and an unbooked show after its day passes. If
 the world pack moves a show, that test fails and the script needs the new
 date.
 
+## Schedule editor
+
+The player shapes their own promotion's schedule (EVT8, Alpha scope): create,
+change and retire recurring shows, and add one-off specials (PPVs). The code is
+the `calendarEditor` system in `packages/engine/src/systems/calendar/editor/`;
+the Unity screens are in `game/Assets/Scripts/Screens/Schedule/`. Tours, the
+tour builder and neighbour suggestions are not in the Alpha.
+
+**Commands.** `calendar.createDefinition { promotionId, draft }`,
+`calendar.updateDefinition { eventDefinitionId, draft }` (the full draft the
+editor shows), `calendar.retireDefinition { eventDefinitionId, lastShowDate? }`
+and `calendar.addOneOff { promotionId, name, brandId, importance, format, date,
+regionId, venueId }`. Only the controller that would run the show may use them
+("You can only change your own shows"). A draft is a name, a brand (or the whole
+promotion), an importance, a recurrence (weekly on chosen days, every N weeks
+from a start date, monthly on the Nth or last weekday, once a year; set dates
+are for one-off specials), a format of main-card and pre-show slots (3..12 and
+0..3, D-10: never minutes), televised, and an optional preferred region and
+venue. Out-of-range slots are refused in the player's words ("A show needs at
+least 3 slots"), never as `invalidArgs`.
+
+**Re-sync.** Every change re-syncs the definition's stored shows from today +
+`calendar.editor.minLeadDays` (1) to the stored horizon. `planResync` is pure
+and the preview queries return the same plan, so `calendar.previewDefinition`
+and `calendar.previewRetire` predict exactly what Save does. Per show, in
+order: cancelled shows are left alone (their air date stays taken, so nothing
+is recreated); completed, taped (`date < airDate`), booked and card-in-progress
+shows are **kept** and listed with a reason; an unbooked show still on the rule
+is refreshed in place (same id) from `instanceFieldsFor`, the field copier that
+`scheduleDefinitionWindow` also uses; an unbooked show off the rule is removed,
+deleted when nothing points at it and cancelled (`byPromotion`) when mail,
+news, the ledger or any other table refers to it, so no reference dangles. New
+rule dates go through `scheduleDefinitionWindow`, the one creator.
+
+**Retiring** sets `activeUntil` to the chosen last show date, or the day before
+the first changeable day. A show retired before it ever ran moves `activeFrom`
+back to the same day, so the row stays valid and produces nothing. Retired
+definitions are never deleted (their past shows point at them). A show counts
+as retired once `activeUntil` is before the first changeable day.
+
+**One-off specials** are dated `eventInstances` with no definition. Refusals:
+a date before today + `minLeadDays` or after today + `calendar.editor.maxLeadDays`
+(730), a brand of another promotion, a venue outside the chosen region, closed
+on the day or kept for another promotion, and the slot ranges. Warnings never
+block: another show of yours that night, or the venue already hosting a show.
+
+**Queries.** `calendar.definitions`, `calendar.editorOptions` (brands,
+importances with their default card size from the `calendar.format.*`
+tunables, the date limits, the home region), `calendar.previewDefinition`,
+`calendar.previewRetire`, `calendar.placeChoices` (regions with home and its
+neighbours first, a region's venues with why one is unavailable) and
+`calendar.checkNewShow`. Queries never write.
+
+**Tunables** (category Schedule): `calendar.editor.minLeadDays`,
+`calendar.editor.maxLeadDays`, and the default card size per importance,
+`calendar.format.<importance>.slots` (house 5, minor 5, regular 6, major 8,
+flagship 10) and `.preShowSlots` (major 1, flagship 2, others 0).
+
+**For AI callers.** `createDefinitionIn`, `updateDefinitionIn`,
+`retireDefinitionIn` and `addOneOffIn` are exported from `@ringside/engine`
+for computer promotions (AIP7) and brand tools (CRTV6); they skip the
+controller check and throw on a draft the checks refuse.
+
 ## Integration
 
 The calendar is finished on its own: shows are scheduled, drawn, closed and

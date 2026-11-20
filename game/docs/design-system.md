@@ -106,6 +106,19 @@ a label that can ellipsize must have `letter-spacing: 0`.
 | Empty, loading                   | `Ds.Empty(icon, title, hint, action…)`, `Ds.Loading(text)`, `Ds.Skeleton(width%)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | App shell                        | `new AppShell(root)` clones `AppShell.uxml` with a sidebar from `NavigationModel` (`SetNav`, `SetCurrent`, `Collapsed`) and a top bar (`SetCrumbs`, `SetScore(ShellScore)`, `SetActions(cta, …)`). `Show(screen)` swaps the screen, and `Overlay` is its `OverlayLayer`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
+Form kit (EVT8, `UI/Design/Forms/`, stylesheet `Resources/Design/DsForm.uss` with `dsf-` classes; each
+component adds it to itself, so it works inside overlays):
+
+- `new DsTextField(label, value, changed, hint, name, maxLength, placeholder)` with `SetError` / `SetHint`.
+- `new NumberStepper(label, value, min, max, onChange, minTooltip, maxTooltip, name)`: − and +, a typed
+  input that accepts values outside the range (so the engine's words can show), Up/Down keys, `SetError`.
+- `new DateField(label, value, min, max, onChange, name)`: `YYYY-MM-DD` with the day in words under it;
+  `DateField.Check(text, min, max, out date)` is the pure rule.
+- `new RecurrenceBuilder(RecurrenceValue, onChange, effectiveFrom, maxDate, name)`: Weekly, Every few
+  weeks, Monthly and Yearly with their fields. `RecurrenceValue` is the engine's `Recurrence`
+  (`ToJson`/`FromJson`; weekdays 0 = Monday).
+- `new UpcomingDates(name)`: "Every Friday" and date chips; `SetDates(text, dates)`, `SetLoading(bool)`.
+
 Painted pieces, which USS can't draw: `SkewShape` (`--skew-fill`, `--skew-edge`), `GradientFill`
 (`--grad-top`, `--grad-bottom`) and `Icon`.
 

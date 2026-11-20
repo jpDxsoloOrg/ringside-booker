@@ -30,3 +30,14 @@ The pill under the header tells you if the card is ready. Click it for the list.
 ## Show night
 
 When the day comes, the day button takes you to the show. See [Show night](help:show-night).
+
+## Your schedule
+
+Your shows are yours to plan. On the **Calendar** (or your promotion's **Shows** tab), press **New show**:
+
+- **Weekly or recurring show** runs again and again: every Friday, every two weeks, the last Sunday of the month, or once a year.
+- **One-off special** is a single big night, such as a PPV, on a date you pick.
+
+Name the show and say how often it runs; the next dates show straight away. **Size** sets how big the card is, and the show starts in your home region. **More options** changes the slots, TV, venue and first date.
+
+**Manage shows** lists your recurring shows. Editing one shows **What changes** before you save: the dates added and removed. Shows already booked, carded, run or taped are always kept. Retire a show from the same list, or with **Retire show** on one of its dates.

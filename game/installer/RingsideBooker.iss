@@ -110,6 +110,9 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+; In-game update (POL9-11): the game starts this installer with /SILENT ... /RBUPDATE and quits;
+; start the updated game again when the install is done (as the player, not elevated).
+Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; Flags: nowait runasoriginaluser skipifnotsilent; Check: CmdLineHas('/RBUPDATE')
 
 [UninstallDelete]
 ; Unity writes nothing under {app} at run time, but clear the folder if anything was left.

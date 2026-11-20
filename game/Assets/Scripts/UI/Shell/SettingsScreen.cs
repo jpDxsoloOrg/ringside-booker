@@ -258,6 +258,7 @@ namespace RingsideBooker.UI.Shell
             whatsNew.style.alignSelf = Align.FlexStart;
             whatsNew.style.marginTop = 8;
             group.Add(whatsNew);
+            group.Add(Updates.UpdateUi.AboutBlock());
             return group;
         }
 

@@ -18,16 +18,22 @@ import {
   type GameDate,
 } from '../../core/date';
 import { EntityNotFoundError } from '../../core/errors';
-import type { EventDefinitionId, EventInstanceId, PromotionId } from '../../core/ids';
-import type { EventDefinition } from '../../model/entities/event-definition';
-import { definitionAirDateKey } from '../../model/entities/event-instance';
+import type {
+  EventDefinitionId,
+  EventInstanceId,
+  PromotionId,
+  RegionId,
+  VenueId,
+} from '../../core/ids';
+import type { EventDefinition, ShowFormat } from '../../model/entities/event-definition';
+import { definitionAirDateKey, type EventInstance } from '../../model/entities/event-instance';
 import { nextOccurrence, occursOn } from '../../model/recurrence';
 import type { GameTables } from '../../model/tables';
 import type { Tx } from '../../model/tx';
 import type { DeepReadonly, WorldView } from '../../model/world';
 import type { TraceStaging } from '../../core/trace/store';
 import { createEngineTunables, type EngineTunables } from '../tunables';
-import { adjustScheduledFormat } from './formatAdjusters';
+import { adjustScheduledFormat, type AdjustedFormat } from './formatAdjusters';
 import { placeShow } from './placement';
 
 /**
@@ -124,6 +130,44 @@ export function isSchedulable(
   return read.tables.brands.get(definition.brandId)?.active === true;
 }
 
+/** The fields a show copies from its definition when it is scheduled on a date. */
+export interface InstanceFields {
+  readonly name: string;
+  readonly brandId: EventInstance['brandId'];
+  readonly importance: EventInstance['importance'];
+  readonly format: ShowFormat;
+  readonly regionId: RegionId;
+  readonly venueId: VenueId | null;
+}
+
+/**
+ * What a show of `definition` on `date` copies from it: name, brand and importance as they are,
+ * the format after the scheduled-format adjusters (`formatAdjusters.ts`, e.g. the production bonus
+ * slot) and the place `placeShow` picks. A new show and a show the schedule editor refreshes both
+ * come from here, so they can never disagree. `traces` are the adjusters' traces, for the caller to
+ * record under the show's id.
+ */
+export function instanceFieldsFor(
+  read: WorldView<GameTables>,
+  definition: DeepReadonly<EventDefinition>,
+  date: GameDate,
+  tunables: EngineTunables,
+): { value: InstanceFields; traces: AdjustedFormat['traces'] } {
+  const placement = placeShow(read, definition, date).value;
+  const adjusted = adjustScheduledFormat(read, definition, date, tunables);
+  return {
+    value: {
+      name: definition.name,
+      brandId: definition.brandId,
+      importance: definition.importance,
+      format: adjusted.format,
+      regionId: placement.regionId,
+      venueId: placement.venueId,
+    },
+    traces: adjusted.traces,
+  };
+}
+
 /**
  * Stores a scheduled show for every date of the definition from `from` through `to` that has no
  * show yet, and returns the new shows' ids, earliest first. A date that already has a row for the
@@ -155,26 +199,25 @@ export function scheduleDefinitionWindow(
     if (existing !== undefined) {
       continue;
     }
-    const placement = placeShow(read, definition, occurrence).value;
-    const adjusted = adjustScheduledFormat(read, definition, occurrence, tunablesOf(options));
+    const fields = instanceFieldsFor(read, definition, occurrence, tunablesOf(options));
     const instance = tx.create('eventInstances', {
       promotionId: definition.promotionId,
       eventDefinitionId: definition.id,
-      brandId: definition.brandId,
-      name: definition.name,
-      importance: definition.importance,
-      format: adjusted.format,
+      brandId: fields.value.brandId,
+      name: fields.value.name,
+      importance: fields.value.importance,
+      format: fields.value.format,
       date: occurrence,
       airDate: occurrence,
       status: 'scheduled',
-      venueId: placement.venueId,
+      venueId: fields.value.venueId,
       genericVenue: null,
-      regionId: placement.regionId,
+      regionId: fields.value.regionId,
       result: null,
       cancellation: null,
     });
     if (options.recordTrace !== undefined) {
-      for (const trace of adjusted.traces) {
+      for (const trace of fields.traces) {
         options.recordTrace.record(
           { kind: trace.kind, id: instance.id },
           options.recordTrace.date,

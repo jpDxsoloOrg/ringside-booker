@@ -11,7 +11,7 @@
  *
  * Only countries some imported record refers to are added, so a mod listing every country on Earth
  * does not flood the world with empty markets. Records ask for region keys while they convert
- * (`resolveRegion`), which marks countries as used; `finish` then emits the records.
+ * (`resolvePlace`), which marks countries as used; `finish` then emits the records.
  */
 
 import type { ModRow, ModTables } from './rows';
@@ -61,6 +61,33 @@ interface ModRegion {
   key: string | null;
 }
 
+/**
+ * A record's place as the mod stores it. The mods are not consistent: venues and the map tables use
+ * numeric ids, while promotions, people and shows store the country and region *names* as text
+ * (and empty text for "none"). Each column is read as an id when it holds a number and as a name
+ * otherwise.
+ */
+export type PlaceRef = number | string | null;
+
+/** How a record's region was found, for the report. */
+export type PlaceSource = 'region' | 'country' | 'continent' | 'none';
+
+export interface ResolvedPlace {
+  readonly key: string | null;
+  readonly source: PlaceSource;
+  /** True when the record named a region or country that the mod's map does not have. */
+  readonly unmatched: boolean;
+}
+
+/** A location column as an id (a positive number, or numeric text) or a name (other text). */
+export function placeRef(row: ModRow, column: string): PlaceRef {
+  const numeric = id(row, column);
+  if (numeric !== null) return numeric;
+  const name = text(row, column);
+  if (name === null || /^[-0-9.]+$/.test(name)) return null;
+  return name;
+}
+
 /** A region of the finished map, for spreading continent popularity. */
 export interface MapRegion {
   readonly key: string;
@@ -80,6 +107,12 @@ function regionPopulation(row: ModRow): number {
 export class Geography {
   private readonly countries = new Map<number, ModCountry>();
   private readonly regionsById = new Map<number, { region: ModRegion; country: ModCountry }>();
+  private readonly countriesByName = new Map<string, ModCountry>();
+  /** Regions by name across every country; null when two countries share the name. */
+  private readonly regionsByName = new Map<
+    string,
+    { region: ModRegion; country: ModCountry } | null
+  >();
   private readonly used = new Set<number>();
   private readonly baseRegionsByCountry = new Map<string, BaseRegion[]>();
   private readonly continentKeys = new Set<string>();
@@ -154,7 +187,47 @@ export class Geography {
       const region: ModRegion = { id: regionId, name, row, key: null };
       country.regions.push(region);
       this.regionsById.set(regionId, { region, country });
+      const regionName = normaliseName(name);
+      this.regionsByName.set(
+        regionName,
+        this.regionsByName.has(regionName) ? null : { region, country },
+      );
     }
+    for (const country of [...this.countries.values()].sort((left, right) => left.id - right.id)) {
+      const countryName = normaliseName(country.name);
+      if (!this.countriesByName.has(countryName)) this.countriesByName.set(countryName, country);
+    }
+  }
+
+  /** The mod country a reference points at: by id, by name, or by a known alias of the name. */
+  private countryOf(ref: PlaceRef): ModCountry | undefined {
+    if (ref === null) return undefined;
+    if (typeof ref === 'number') return this.countries.get(ref);
+    const name = normaliseName(ref);
+    const direct = this.countriesByName.get(name);
+    if (direct !== undefined) return direct;
+    const alias = COUNTRY_ALIASES[name];
+    if (alias === undefined) return undefined;
+    for (const country of this.countriesByName.values()) {
+      const countryName = normaliseName(country.name);
+      if ((COUNTRY_ALIASES[countryName] ?? countryName) === alias) return country;
+    }
+    return undefined;
+  }
+
+  /** The mod region a reference points at; a name is looked up in `country` when one is known. */
+  private regionOf(
+    ref: PlaceRef,
+    country: ModCountry | undefined,
+  ): { region: ModRegion; country: ModCountry } | undefined {
+    if (ref === null) return undefined;
+    if (typeof ref === 'number') return this.regionsById.get(ref);
+    const name = normaliseName(ref);
+    if (country !== undefined) {
+      const inCountry = country.regions.find((region) => normaliseName(region.name) === name);
+      return inCountry === undefined ? undefined : { region: inCountry, country };
+    }
+    return this.regionsByName.get(name) ?? undefined;
   }
 
   /** Marks a country as used and gives its regions their keys. */
@@ -213,28 +286,35 @@ export class Geography {
   }
 
   /**
-   * The region key for a record's location: its region, else its country's main region, else the
-   * most populous base region of its continent, else `fallback`'s answer.
+   * The region key for a record's location (ids or names, see `PlaceRef`): its region, else its
+   * country's main region, else the most populous base region of its continent. `source` says
+   * which one answered, so the caller can report continent fallbacks.
    */
-  resolveRegion(
-    regionId: number | null,
-    countryId: number | null,
+  resolvePlace(
+    regionRef: PlaceRef,
+    countryRef: PlaceRef,
     continentName: string | null,
-  ): string | null {
-    if (regionId !== null) {
-      const found = this.regionsById.get(regionId);
-      if (found !== undefined) {
-        this.use(found.country);
-        if (found.region.key !== null) return found.region.key;
+  ): ResolvedPlace {
+    const country = this.countryOf(countryRef);
+    const region = this.regionOf(regionRef, country);
+    const unmatched =
+      (countryRef !== null && country === undefined) ||
+      (regionRef !== null && region === undefined && country === undefined);
+    if (region !== undefined) {
+      this.use(region.country);
+      if (region.region.key !== null) {
+        return { key: region.region.key, source: 'region', unmatched: false };
       }
     }
-    if (countryId !== null) {
-      const country = this.countries.get(countryId);
-      if (country !== undefined) return this.mainRegion(country);
+    if (country !== undefined) {
+      return { key: this.mainRegion(country), source: 'country', unmatched: false };
     }
     const continentKey = this.continentKey(continentName);
-    if (continentKey !== null) return this.fallbackRegionByContinent.get(continentKey) ?? null;
-    return null;
+    if (continentKey !== null) {
+      const key = this.fallbackRegionByContinent.get(continentKey) ?? null;
+      if (key !== null) return { key, source: 'continent', unmatched };
+    }
+    return { key: null, source: 'none', unmatched };
   }
 
   /** The country key for a network's coverage, or null when that country is not in the world. */
