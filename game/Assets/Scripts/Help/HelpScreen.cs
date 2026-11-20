@@ -428,7 +428,6 @@ namespace RingsideBooker.Help
 
             VisualElement body = Ui.El("hp-sheet");
             HelpScreen.Style(body);
-            body.Add(Ds.Text(article.Meta.Summary, "ds-type-body", "hp-summary"));
             OverlayHandle handle = null;
             body.Add(HelpRenderer.Render(article.Blocks, new HelpRenderOptions
             {

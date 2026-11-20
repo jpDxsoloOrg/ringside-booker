@@ -1,7 +1,7 @@
 {
   "version": 1,
   "sections": [
-    { "id": "basics", "title": "Getting started", "order": 1 },
+    { "id": "basics", "title": "The basics", "order": 1 },
     { "id": "promotion", "title": "Your promotion", "order": 2 },
     { "id": "business", "title": "Business", "order": 3 }
   ],

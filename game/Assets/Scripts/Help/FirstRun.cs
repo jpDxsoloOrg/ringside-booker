@@ -111,7 +111,7 @@ namespace RingsideBooker.Help
                 if (promotion != null)
                 {
                     body.Add(Para("You're the booker now. You decide who's on the card, who wins and who gets the push. The money is yours to worry about too."));
-                    body.Add(Para("Start on the Office: it lists what needs you today. Your first show is only a few days away, so book it, run it and see what the crowd thinks. The Getting started list on the Office walks you through it."));
+                    body.Add(Para("Start on the Office: it lists what needs you today. Your first show is close, so book it, run it and see what the crowd thinks. The Getting started list on the Office walks you through it."));
                 }
                 else
                 {

@@ -8,7 +8,7 @@ The top bar is on every screen.
 - **Cash** is the money in the bank. Below zero it says _In debt_.
 - **Popularity** is how well known you are at home, as a word and a number. Hover it to see your prestige too.
 
-On the right are the bell, the day button and **Skip days**. See [Getting started](help:getting-started#the-day-button) for how they work.
+On the right are the bell, the day button and **Skip days**. See [Your first week](help:getting-started#the-day-button) for how they work.
 
 ## What's on the Office
 
