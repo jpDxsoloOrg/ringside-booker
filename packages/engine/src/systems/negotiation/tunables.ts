@@ -798,7 +798,7 @@ function jobWeight(defaultValue: number, max: number, description: string) {
 const jobChangeTunables = defineTunables({
   'contracts.jobChange.acceptAt': {
     kind: 'integer',
-    default: 0,
+    default: 5,
     min: -100,
     max: 100,
     unit: 'points',
@@ -807,7 +807,7 @@ const jobChangeTunables = defineTunables({
     docRef: JOB_CHANGE_DOC,
   },
   'contracts.jobChange.fitPivot': jobPoints(
-    50,
+    45,
     100,
     'Rating in the new job that neither helps nor hurts',
   ),
@@ -821,6 +821,17 @@ const jobChangeTunables = defineTunables({
     100,
     'Points against leaving the ring for a wrestler rated at least the refuse-crew line',
   ),
+  'contracts.jobChange.ringPullFadeYears': {
+    kind: 'integer',
+    default: 15,
+    min: 0,
+    max: 40,
+    unit: 'years',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description:
+      'Years past the old age over which the wish to keep wrestling fades away (0 = never)',
+    docRef: JOB_CHANGE_DOC,
+  },
   'contracts.jobChange.oldFromAge': {
     kind: 'integer',
     default: 38,
@@ -844,10 +855,15 @@ const jobChangeTunables = defineTunables({
     max: 60,
     unit: 'years',
     category: CONTRACTS_TUNABLE_CATEGORY,
-    description: 'Below this age a wrestler feels too young to leave the ring',
+    description:
+      'Below this age someone feels too young to leave the ring, and young enough to try it',
     docRef: JOB_CHANGE_DOC,
   },
-  'contracts.jobChange.young': jobPoints(10, 100, 'Points against leaving the ring while young'),
+  'contracts.jobChange.young': jobPoints(
+    12,
+    100,
+    'Points against leaving the ring while young, and for trying it',
+  ),
   'contracts.jobChange.injured': jobPoints(
     25,
     100,
@@ -895,7 +911,7 @@ const jobChangeTunables = defineTunables({
     docRef: JOB_CHANGE_DOC,
   },
   'contracts.jobChange.prominenceWeight': jobPoints(
-    5,
+    8,
     50,
     'Points for each step up (or down) in how much the job is in the spotlight',
   ),

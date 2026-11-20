@@ -18,6 +18,7 @@ import type { Employment, EmploymentRole, Push } from '../../../src/model/entiti
 import type { Negotiation } from '../../../src/model/entities/negotiation';
 import type { Person } from '../../../src/model/entities/person';
 import { checkWorld } from '../../../src/model/integrity';
+import { parseContentKey } from '../../../src/core/content-key';
 import { TABLES, type GameWorld } from '../../../src/model/tables';
 import { encodeSave } from '../../../src/persistence/codec';
 import { loadSave } from '../../../src/persistence/load';
@@ -71,13 +72,13 @@ function condition(value: number): Person['condition'] {
   return { head: 100, neck: 100, back: value, arms: 100, torso: 100, legs: 100 };
 }
 
-const INJURY = {
-  kindKey: 'injury.torn-acl',
+const INJURY: NonNullable<Person['injury']> = {
+  kindKey: parseContentKey('injury.torn-acl'),
   bodyPart: 'legs',
   since: addDays(TODAY, -10),
   expectedReturn: addDays(TODAY, 60),
   canWorkAngles: true,
-} as const;
+};
 
 /** A manager who has never wrestled: charismatic, with fair ring skills. */
 function aManager(overrides: DeepPartial<Person> = {}): Person {
@@ -99,7 +100,7 @@ function answerFor(
   contract: Employment,
   role: EmploymentRole,
   push: Push,
-  monthlyWage = contract.terms.monthlyWage,
+  monthlyWage: number = contract.terms.monthlyWage,
 ) {
   return jobChangeAnswer(
     {
@@ -184,6 +185,46 @@ describe('jobChangeAnswer', () => {
     );
   });
 
+  // Tuned in UNITY-38 so a minority says yes at their ask in the default world (manager to
+  // wrestler 22%, wrestlers 35+ to manager 35% and to announcer 22%, wrestlers under 35 to
+  // manager 6%), and more when paid above it.
+  it('pins a clear yes from each direction', () => {
+    const youngManager = aManager({
+      birthDate: addYears(TODAY, -26),
+      attributes: attributes({ ringwork: 60, psychology: 55, athleticism: 60, charisma: 60 }, 45),
+    });
+    const toRing = answerFor(youngManager, aContract('manager', 'none'), 'wrestler', 'lowerCard');
+    expect(toRing.willing.value).toBe(true);
+    expect(toRing.answer).toMatch(/^Up for wrestling: /u);
+
+    const veteran = aPerson({
+      birthDate: addYears(TODAY, -45),
+      attributes: attributes(
+        { ringwork: 60, psychology: 60, charisma: 65, mic: 65, presence: 60 },
+        50,
+      ),
+    });
+    const toManager = answerFor(veteran, aContract('wrestler', 'midCard'), 'manager', 'none');
+    expect(toManager.willing.value).toBe(true);
+    expect(toManager.answer).toBe('Up for the manager job: ready to slow down at 45');
+  });
+
+  it('turns down the plain cases: a wrestler in their prime asked to stop', () => {
+    const prime = aPerson({ birthDate: addYears(TODAY, -29), attributes: attributes({}, 60) });
+    const answer = answerFor(prime, aContract('wrestler', 'midCard'), 'manager', 'none');
+    expect(answer.willing.value).toBe(false);
+  });
+
+  it('lets pay above what they earn tip a borderline no into a yes', () => {
+    const person = aManager({
+      birthDate: addYears(TODAY, -27),
+      attributes: attributes({}, 20),
+    });
+    const contract = aContract('manager', 'none', { terms: { monthlyWage: cents(500_000) } });
+    expect(answerFor(person, contract, 'wrestler', 'lowerCard', 500_000).willing.value).toBe(false);
+    expect(answerFor(person, contract, 'wrestler', 'lowerCard', 650_000).willing.value).toBe(true);
+  });
+
   it('gives a new wrestler a ring style that fits them', () => {
     expect(styleForNewWrestler(attributes({ charisma: 80, presence: 80 }))).toBe('showman');
     expect(styleForNewWrestler(attributes({ ringwork: 80, psychology: 80 }))).toBe('technician');
@@ -219,8 +260,8 @@ function jobEngine(setup: NegotiationWorld): Engine {
 function reshape(
   world: GameWorld,
   employmentId: EmploymentId,
-  person: DeepPartial<Person>,
-  employment: DeepPartial<Employment>,
+  person: Partial<Omit<Person, 'id'>>,
+  employment: Partial<Omit<Employment, 'id'>>,
 ): void {
   const result = world.transact('test reshape', (tx) => {
     const contract = world.tables.employments.require(employmentId);
@@ -320,7 +361,7 @@ async function reloadedThroughSave(engine: Engine, setup: NegotiationWorld): Pro
   return engineOver(engineStateFromSave(report.doc));
 }
 
-function managerWorld(person: DeepPartial<Person> = {}): NegotiationWorld {
+function managerWorld(person: Partial<Omit<Person, 'id'>> = {}): NegotiationWorld {
   const setup = negotiationWorld();
   reshape(
     setup.world,

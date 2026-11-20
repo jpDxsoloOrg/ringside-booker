@@ -1266,15 +1266,16 @@ whole cents (shown here in dollars); 0 means 0.
 | `contracts.counter.lengthTolerance`        | integer | 12       | 0–120          | months      | Months off their preferred length a counter-offer lets stand                                               |
 | `contracts.review.tieEpsilon`              | number  | 0.01     | 0–0.5          | ratio       | How close two offers must score (share of each ask) to count as a tie, broken by a roll                    |
 | `contracts.ai.acceptCounterUpTo`           | number  | 1        | 0–3            | multiplier  | A computer promotion accepts a counter-offer whose pay is at most this times the worker's ask              |
-| `contracts.jobChange.acceptAt`             | integer | 0        | -100–100       | points      | Score from which a worker takes a different job                                                            |
-| `contracts.jobChange.fitPivot`             | integer | 50       | 0–100          | points      | Rating in the new job that neither helps nor hurts                                                         |
+| `contracts.jobChange.acceptAt`             | integer | 5        | -100–100       | points      | Score from which a worker takes a different job                                                            |
+| `contracts.jobChange.fitPivot`             | integer | 45       | 0–100          | points      | Rating in the new job that neither helps nor hurts                                                         |
 | `contracts.jobChange.fitWeight`            | number  | 0.6      | 0–5            | multiplier  | Points for each rating point in the new job above (or below) the pivot                                     |
 | `contracts.jobChange.ringPull`             | integer | 20       | 0–100          | points      | Points against leaving the ring for a wrestler rated at least the refuse-crew line                         |
+| `contracts.jobChange.ringPullFadeYears`    | integer | 15       | 0–40           | years       | Years past the old age over which the wish to keep wrestling fades away (0 = never)                        |
 | `contracts.jobChange.oldFromAge`           | integer | 38       | 18–80          | years       | Age from which wrestling appeals less, and a job outside the ring more                                     |
 | `contracts.jobChange.perYearOld`           | number  | 3        | 0–20           | multiplier  | Points for each year past that age (against wrestling, for leaving the ring)                               |
 | `contracts.jobChange.ageMax`               | integer | 30       | 0–100          | points      | Most points age can add or take away                                                                       |
-| `contracts.jobChange.youngUntil`           | integer | 30       | 14–60          | years       | Below this age a wrestler feels too young to leave the ring                                                |
-| `contracts.jobChange.young`                | integer | 10       | 0–100          | points      | Points against leaving the ring while young                                                                |
+| `contracts.jobChange.youngUntil`           | integer | 30       | 14–60          | years       | Below this age someone feels too young to leave the ring, and young enough to try it                       |
+| `contracts.jobChange.young`                | integer | 12       | 0–100          | points      | Points against leaving the ring while young, and for trying it                                             |
 | `contracts.jobChange.injured`              | integer | 25       | 0–100          | points      | Points against wrestling while hurt (half of it for leaving the ring)                                      |
 | `contracts.jobChange.wornBelow`            | integer | 60       | 0–100          | points      | Condition of the worst body part below which the body counts as worn down                                  |
 | `contracts.jobChange.perPointWorn`         | number  | 0.5      | 0–5            | multiplier  | Points for each condition point below that line (against wrestling, for leaving the ring)                  |
@@ -1284,7 +1285,7 @@ whole cents (shown here in dollars); 0 means 0.
 | `contracts.jobChange.payWeight`            | number  | 40       | 0–200          | multiplier  | Points for the new pay against what they earn now, per whole share more or less                            |
 | `contracts.jobChange.payMax`               | integer | 20       | 0–100          | points      | Most points the pay can add or take away                                                                   |
 | `contracts.jobChange.appearancesPerMonth`  | integer | 4        | 1–31           | count       | Appearances a month a per-appearance fee is counted at when comparing pay                                  |
-| `contracts.jobChange.prominenceWeight`     | integer | 5        | 0–50           | points      | Points for each step up (or down) in how much the job is in the spotlight                                  |
+| `contracts.jobChange.prominenceWeight`     | integer | 8        | 0–50           | points      | Points for each step up (or down) in how much the job is in the spotlight                                  |
 
 ## Titles tunables
 

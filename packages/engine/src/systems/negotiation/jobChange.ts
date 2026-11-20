@@ -71,8 +71,8 @@ const WRESTLER_SPOTLIGHT: Readonly<Record<Push, number>> = {
   mainEvent: 5,
   upperCard: 4,
   midCard: 3,
-  lowerCard: 2,
-  enhancement: 1,
+  lowerCard: 2.5,
+  enhancement: 2,
   none: 2,
 };
 
@@ -167,18 +167,26 @@ export function jobChangeAnswer(
       : `Not cut out for ${jobWords(to)} (rated ${String(Math.round(fit))})`;
   add(fitWords, (fit - pivot) * fitWeight, `Rating above or below ${String(pivot)}`);
 
-  // A good wrestler still wants to wrestle.
-  if (leavesRing) {
-    const line = calc.tunable(tunables, 'contracts.react.refuseCrewRoleRating');
-    if (overallOf(person, 'wrestler', { tunables }).value >= line) {
-      add('Still wants to wrestle', -calc.tunable(tunables, 'contracts.jobChange.ringPull'));
-    }
-  }
-
   // Age.
   const age = ageInYears(person.birthDate, date);
   const oldFrom = calc.tunable(tunables, 'contracts.jobChange.oldFromAge');
   const yearsOver = Math.max(0, age - oldFrom);
+
+  // A good wrestler still wants to wrestle; the pull fades as the years pass.
+  if (leavesRing) {
+    const line = calc.tunable(tunables, 'contracts.react.refuseCrewRoleRating');
+    if (overallOf(person, 'wrestler', { tunables }).value >= line) {
+      const pull = calc.tunable(tunables, 'contracts.jobChange.ringPull');
+      const fade = calc.tunable(tunables, 'contracts.jobChange.ringPullFadeYears');
+      const left = fade <= 0 ? 1 : Math.max(0, 1 - yearsOver / fade);
+      add(
+        'Still wants to wrestle',
+        -pull * left,
+        left < 1 ? `Fades with each year past ${String(oldFrom)}` : undefined,
+      );
+    }
+  }
+
   if (yearsOver > 0 && (toRing || leavesRing)) {
     const perYear = calc.tunable(tunables, 'contracts.jobChange.perYearOld');
     const ageMax = calc.tunable(tunables, 'contracts.jobChange.ageMax');
@@ -189,11 +197,14 @@ export function jobChangeAnswer(
       add(`Ready to slow down at ${String(age)}`, amount);
     }
   }
-  if (leavesRing && age < calc.tunable(tunables, 'contracts.jobChange.youngUntil')) {
-    add(
-      `Too young to leave the ring at ${String(age)}`,
-      -calc.tunable(tunables, 'contracts.jobChange.young'),
-    );
+  const youngUntil = calc.tunable(tunables, 'contracts.jobChange.youngUntil');
+  if (age < youngUntil && (toRing || leavesRing)) {
+    const young = calc.tunable(tunables, 'contracts.jobChange.young');
+    if (toRing) {
+      add(`Young enough to give the ring a go at ${String(age)}`, young);
+    } else {
+      add(`Too young to leave the ring at ${String(age)}`, -young);
+    }
   }
 
   // Health.
