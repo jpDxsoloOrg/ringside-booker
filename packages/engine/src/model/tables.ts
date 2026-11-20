@@ -13,6 +13,7 @@ import { airingsTable } from './entities/airing';
 import { brandsTable } from './entities/brand';
 import { dealsTable } from './entities/deal';
 import { draftPicksTable, draftsTable } from './entities/draft';
+import { tradesTable } from './entities/trade';
 import { employmentsTable } from './entities/employment';
 import { eventDefinitionsTable } from './entities/event-definition';
 import { eventInstancesTable } from './entities/event-instance';
@@ -90,6 +91,8 @@ export const TABLES = {
   // DRF-01: the draft-start option's draft and its picks.
   drafts: draftsTable,
   draftPicks: draftPicksTable,
+  // TRD-01: trade talks between two promotions.
+  trades: tradesTable,
 } as const satisfies TableRegistry;
 
 export type GameTables = typeof TABLES;

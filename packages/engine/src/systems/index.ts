@@ -33,6 +33,7 @@ import { newsSystem } from './news';
 import { broadcastSystem } from './broadcast';
 import { calendarEditorSystem } from './calendar/editor';
 import { draftSystem } from './draft';
+import { tradesSystem } from './trades';
 
 export { calendarSystem, healthSystem, matchSystem, workersSystem };
 export { bookingSystem };
@@ -54,6 +55,7 @@ export { newsSystem };
 export { broadcastSystem };
 export { calendarEditorSystem };
 export { draftSystem };
+export { tradesSystem };
 
 export const defaultSystems: readonly SystemBundle[] = Object.freeze([
   simSystem,
@@ -80,4 +82,5 @@ export const defaultSystems: readonly SystemBundle[] = Object.freeze([
   broadcastSystem,
   calendarEditorSystem,
   draftSystem,
+  tradesSystem,
 ]);

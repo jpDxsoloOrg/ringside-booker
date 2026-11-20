@@ -39,6 +39,8 @@ namespace RingsideBooker.Screens.Contracts
         public const string TabEnded = "ended";
         public const string TabFreeAgents = "free-agents";
         public const string TabOffers = "offers";
+        /// <summary>TRD-02: trades with rival promotions (open, answered, history).</summary>
+        public const string TabTrades = "trades";
 
         /// <summary>The most rows a table draws; search or filter to narrow a long list.</summary>
         public const int MaxRows = 250;
@@ -84,6 +86,13 @@ namespace RingsideBooker.Screens.Contracts
             route != null && route.ScreenId == ScreenId && route.Param("tab") == TabOffers && !string.IsNullOrEmpty(route.Param("negotiation"))
                 ? route.Param("negotiation")
                 : null;
+
+        /// <summary>
+        /// The trade a route opens (<c>contracts?tab=trades&amp;trade=…</c>, as the day button's trade
+        /// stops go): arriving reads it, so its stop is cleared at once. Null otherwise.
+        /// </summary>
+        public static string TradeOnArrival(ShellRoute route) =>
+            route != null && route.ScreenId == ScreenId && !string.IsNullOrEmpty(route.Param("trade")) ? route.Param("trade") : null;
     }
 
     /// <summary>The worker profile's contract button, worked out for one person (see <see cref="ContractsScreen.ActionFor"/>).</summary>
@@ -161,7 +170,7 @@ namespace RingsideBooker.Screens.Contracts
             if (tab == ContractsScreen.TabActive && route.Param("wantsToLeave") == "1") tab = ContractsScreen.TabLeaving;
             if (!Tabs.Any(entry => entry.id == tab)) tab = ContractsScreen.TabActive;
             focusPending = route.Param("employment") != null || route.Param("negotiation") != null ||
-                           route.Param("person") != null || route.Param("renew") != null;
+                           route.Param("person") != null || route.Param("renew") != null || route.Param("trade") != null;
             // DRF-08: arriving on an answered offer (the day button's "Offer answered") reads the
             // answer, so it clears the stop now. Waiting for the talks sheet to load left a gap in
             // which the stop was still up and the day button asked again.
@@ -169,9 +178,15 @@ namespace RingsideBooker.Screens.Contracts
             {
                 _ = Kit.Run("contracts.markOffersSeen", new JObject { ["negotiationIds"] = new JArray(answered) });
             }
+            // TRD-02: the same for a trade's answer or offer.
+            if (ContractsScreen.TradeOnArrival(route) is string tradeSeen && Kit.Game?.PromotionId != null)
+            {
+                _ = Kit.Run("trades.markSeen", new JObject { ["tradeIds"] = new JArray(tradeSeen) });
+            }
 
             Root = Ds.Column("ct-page").Named("screen-contracts");
             ContractUi.Style(Root);
+            Trades.TradeSheet.Style(Root);
             VisualElement head = Ds.Row("ct-head");
             VisualElement titles = Ds.Column("ct-head__titles");
             titles.Add(Ds.Text("CONTRACTS", "ds-type-headline", "ct-head__title"));
@@ -201,6 +216,7 @@ namespace RingsideBooker.Screens.Contracts
             (ContractsScreen.TabEnded, "Ended"),
             (ContractsScreen.TabFreeAgents, "Free agents"),
             (ContractsScreen.TabOffers, "Offers"),
+            (ContractsScreen.TabTrades, "Trades"),
         };
 
         public VisualElement Root { get; }
@@ -245,6 +261,7 @@ namespace RingsideBooker.Screens.Contracts
             public List<JToken> Leaving = new List<JToken>();
             public List<JToken> OpenOffers = new List<JToken>();
             public List<JToken> ClosedOffers = new List<JToken>();
+            public List<JToken> Trades = new List<JToken>();
             public Dictionary<string, List<JToken>> Lists = new Dictionary<string, List<JToken>>();
             public string Problem;
         }
@@ -269,6 +286,7 @@ namespace RingsideBooker.Screens.Contracts
                 {
                     next.OpenOffers = Kit.Arr((await client.Query("contracts.offers", new JObject { ["promotionId"] = promotionId, ["status"] = "open" })).Data).ToList();
                     next.ClosedOffers = Kit.Arr((await client.Query("contracts.offers", new JObject { ["promotionId"] = promotionId, ["status"] = "closed" })).Data).ToList();
+                    next.Trades = Kit.Arr((await client.Query("trades.list", new JObject { ["promotionId"] = promotionId, ["status"] = "all", ["limit"] = 200 })).Data, "rows").ToList();
                 }
                 next.Lists[ContractsScreen.TabActive] = next.Active;
                 next.Lists[ContractsScreen.TabLeaving] = Kit.Arr((await client.Query("contracts.list", new JObject { ["tab"] = "active", ["wantsToLeave"] = true })).Data).ToList();
@@ -324,6 +342,18 @@ namespace RingsideBooker.Screens.Contracts
             {
                 OpenContract(employmentId);
             }
+            else if (ContractsScreen.TradeOnArrival(route) is string tradeId)
+            {
+                // A closed trade (an answer) is listed under Answered, not Open.
+                JToken row = data.Trades.FirstOrDefault(item => Kit.Str(item, "tradeId") == tradeId);
+                if (row != null && Kit.Str(row, "status") != "open")
+                {
+                    tradesView = TradeRows(TradesAnswered, data.Trades).Contains(row) ? TradesAnswered : TradesHistory;
+                    DrawToolbar();
+                    DrawList();
+                }
+                Trades.TradeSheet.OpenTrade(Root, tradeId);
+            }
             else if (route.Param("negotiation") is string negotiationId)
             {
                 NegotiationSheet.Open(Root, NegotiationTarget.Talks(negotiationId));
@@ -374,6 +404,21 @@ namespace RingsideBooker.Screens.Contracts
                 cards.Add(DecisionCard(DsState.Warn, "handshake", "COUNTER-OFFER", Kit.Str(row, "ringName"), Kit.Str(row, "imageRef"),
                     ContractText.OnTheTable(row) + (ContractText.OfferDue(row) is string due ? " · " + due : string.Empty),
                     ("Answer", () => NegotiationSheet.Open(Root, NegotiationTarget.Talks(negotiationId)), true), $"decision-counter-{negotiationId}"));
+            }
+            // TRD-02: a trade waiting for your answer, then a trade answer you have not opened.
+            foreach (JToken row in data.Trades.Where(row => Kit.Str(row, "status") == "open" && Kit.Bool(row, "awaitingYou")))
+            {
+                string tradeId = Kit.Str(row, "tradeId");
+                cards.Add(DecisionCard(DsState.Warn, "handshake", Trades.TradeText.Eyebrow(row), Kit.Str(row, "otherName"), null,
+                    Kit.Str(row, "headline") + (Trades.TradeText.NextLine(row) is string next ? " · " + next : string.Empty),
+                    ("Answer", () => Trades.TradeSheet.OpenTrade(Root, tradeId), true), $"decision-trade-{tradeId}"));
+            }
+            foreach (JToken row in data.Trades.Where(row => Kit.Str(row, "status") != "open" && Kit.Bool(row, "stopsSkip")))
+            {
+                string tradeId = Kit.Str(row, "tradeId");
+                cards.Add(DecisionCard(Trades.TradeText.StatusState(row), Trades.TradeText.StatusIcon(row), "TRADE ANSWER", Kit.Str(row, "otherName"), null,
+                    Trades.TradeText.Banner(row) ?? Kit.Str(row, "headline"),
+                    ("Open", () => Trades.TradeSheet.OpenTrade(Root, tradeId), false), $"decision-trade-{tradeId}"));
             }
             int unseen = (int)(Kit.Num(data.Counts, "unseenExpiring") ?? 0);
             if (unseen > 0)
@@ -444,6 +489,7 @@ namespace RingsideBooker.Screens.Contracts
                 case ContractsScreen.TabExpiring: return data.Lists.TryGetValue(id, out List<JToken> expiring) ? expiring.Count : (int?)null;
                 case ContractsScreen.TabLeaving: return data.Leaving.Count;
                 case ContractsScreen.TabOffers: return data.OpenOffers.Count;
+                case ContractsScreen.TabTrades: return data.Trades.Count(row => Kit.Str(row, "status") == "open");
                 default: return null;
             }
         }
@@ -462,6 +508,7 @@ namespace RingsideBooker.Screens.Contracts
             MarkUrgent(tabs, ContractsScreen.TabLeaving, data.Leaving.Count > 0);
             MarkUrgent(tabs, ContractsScreen.TabOffers, data.OpenOffers.Any(row => Kit.Str(row, "status") == "countered"));
             MarkUrgent(tabs, ContractsScreen.TabExpiring, (Kit.Num(data.Counts, "unseenExpiring") ?? 0) > 0);
+            MarkUrgent(tabs, ContractsScreen.TabTrades, data.Trades.Any(row => Kit.Str(row, "status") == "open" && Kit.Bool(row, "awaitingYou")));
             tabs.Selected += id =>
             {
                 tab = id;
@@ -490,7 +537,26 @@ namespace RingsideBooker.Screens.Contracts
             }, "contracts-search"));
 
             int filters = FilterCount();
-            if (tab != ContractsScreen.TabOffers)
+            if (tab == ContractsScreen.TabTrades)
+            {
+                var which = new DsTabs(segmented: true);
+                which.Add(TradesOpen, "Open").Add(TradesAnswered, "Answered").Add(TradesHistory, "History");
+                which.Select(tradesView, false);
+                which.name = "trades-view";
+                which.Selected += id =>
+                {
+                    tradesView = id;
+                    DrawList();
+                };
+                toolbar.Add(which);
+                if (Kit.Game?.PromotionId != null)
+                {
+                    Button propose = Ds.Button(Trades.TradeText.ProposeLabel, () => Trades.TradeSheet.Open(Root, Trades.TradeTarget.New()), DsButtonKind.Primary, "handshake");
+                    propose.name = "trades-propose";
+                    toolbar.Add(propose);
+                }
+            }
+            else if (tab != ContractsScreen.TabOffers)
             {
                 Button filter = Ds.Button(filters > 0 ? $"Filter ({filters})" : "Filter", null, filters > 0 ? DsButtonKind.Primary : DsButtonKind.Secondary, "filter");
                 filter.name = "contracts-filter";
@@ -529,10 +595,11 @@ namespace RingsideBooker.Screens.Contracts
         {
             ContractsScreen.TabFreeAgents => "Find a worker",
             ContractsScreen.TabOffers => "Find talks",
+            ContractsScreen.TabTrades => "Find a trade",
             _ => "Find a contract",
         };
 
-        private int FilterCount() => tab == ContractsScreen.TabFreeAgents ? freeAgentFilters.Count : tab == ContractsScreen.TabOffers ? 0 : contractFilters.Count(tab);
+        private int FilterCount() => tab == ContractsScreen.TabFreeAgents ? freeAgentFilters.Count : tab == ContractsScreen.TabOffers || tab == ContractsScreen.TabTrades ? 0 : contractFilters.Count(tab);
 
         private void OpenFilters(VisualElement anchor)
         {
@@ -582,7 +649,7 @@ namespace RingsideBooker.Screens.Contracts
                 return;
             }
             string promotionId = Kit.Game?.PromotionId;
-            if ((tab == ContractsScreen.TabFreeAgents || tab == ContractsScreen.TabOffers) && promotionId == null)
+            if ((tab == ContractsScreen.TabFreeAgents || tab == ContractsScreen.TabOffers || tab == ContractsScreen.TabTrades) && promotionId == null)
             {
                 listHost.Add(Ds.Empty("contracts", "Run a promotion to talk contracts.", null));
                 return;
@@ -605,7 +672,7 @@ namespace RingsideBooker.Screens.Contracts
             {
                 bool narrowed = filtered.Count != all.Count;
                 bool one = all.Count == 1;
-                string noun = tab == ContractsScreen.TabFreeAgents ? (one ? "free agent" : "free agents") : tab == ContractsScreen.TabOffers ? (one ? "talk" : "talks") : (one ? "contract" : "contracts");
+                string noun = tab == ContractsScreen.TabFreeAgents ? (one ? "free agent" : "free agents") : tab == ContractsScreen.TabOffers ? (one ? "talk" : "talks") : tab == ContractsScreen.TabTrades ? (one ? "trade" : "trades") : (one ? "contract" : "contracts");
                 shown.text = narrowed ? $"{TextFormat.Number(filtered.Count)} of {TextFormat.Number(all.Count)} {noun}" : $"{TextFormat.Number(all.Count)} {noun}";
             }
 
@@ -634,6 +701,8 @@ namespace RingsideBooker.Screens.Contracts
             {
                 case ContractsScreen.TabOffers:
                     return closedOffers ? data.ClosedOffers : data.OpenOffers;
+                case ContractsScreen.TabTrades:
+                    return TradeRows();
                 default:
                     if (data.Lists.TryGetValue(id, out List<JToken> rows)) return rows;
                     loading = true;
@@ -645,12 +714,14 @@ namespace RingsideBooker.Screens.Contracts
         {
             IEnumerable<JToken> kept = rows;
             if (tab == ContractsScreen.TabFreeAgents) kept = kept.Where(freeAgentFilters.Keeps);
-            else if (tab != ContractsScreen.TabOffers) kept = kept.Where(row => contractFilters.Keeps(row, tab));
+            else if (tab != ContractsScreen.TabOffers && tab != ContractsScreen.TabTrades) kept = kept.Where(row => contractFilters.Keeps(row, tab));
             searches.TryGetValue(tab, out string search);
             if (!string.IsNullOrWhiteSpace(search))
             {
                 string needle = search.Trim();
-                kept = kept.Where(row => (Kit.Str(row, "ringName") ?? string.Empty).IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0);
+                kept = tab == ContractsScreen.TabTrades
+                    ? kept.Where(row => ((Kit.Str(row, "headline") ?? string.Empty) + " " + (Kit.Str(row, "otherName") ?? string.Empty)).IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0)
+                    : kept.Where(row => (Kit.Str(row, "ringName") ?? string.Empty).IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0);
             }
             return kept.ToList();
         }
@@ -662,10 +733,12 @@ namespace RingsideBooker.Screens.Contracts
             ContractsScreen.TabEnded => "No contracts have ended yet",
             ContractsScreen.TabFreeAgents => "No free agents match",
             ContractsScreen.TabOffers => closedOffers ? "No closed talks yet" : "No open offers",
+            ContractsScreen.TabTrades => tradesView == TradesOpen ? "No open trades" : tradesView == TradesAnswered ? "No answers yet" : "No trades yet",
             _ => "No contracts to show",
         };
 
-        private string EmptyHint() => tab == ContractsScreen.TabOffers && !closedOffers ? "Make one from Free agents, or Renew an expiring contract." : null;
+        private string EmptyHint() => tab == ContractsScreen.TabOffers && !closedOffers ? "Make one from Free agents, or Renew an expiring contract."
+            : tab == ContractsScreen.TabTrades ? "Propose a trade here, from a rival's page, or with Offer in a trade on a worker." : null;
 
         private VisualElement ExpiringIntro()
         {
@@ -723,6 +796,10 @@ namespace RingsideBooker.Screens.Contracts
                 case ContractsScreen.TabFreeAgents:
                     table = new DsTable<JToken>(FreeAgentColumns(), Array.Empty<JToken>());
                     table.RowClicked += OpenFreeAgent;
+                    break;
+                case ContractsScreen.TabTrades:
+                    table = new DsTable<JToken>(TradeColumns(), Array.Empty<JToken>());
+                    table.RowClicked += row => Trades.TradeSheet.OpenTrade(Root, Kit.Str(row, "tradeId"));
                     break;
                 case ContractsScreen.TabOffers:
                     table = new DsTable<JToken>(OfferColumns(), Array.Empty<JToken>());
@@ -1054,6 +1131,83 @@ namespace RingsideBooker.Screens.Contracts
             new DsColumn<JToken>("patience", "Patience", row => ContractUi.Cell(ContractText.Patience(Kit.Num(row, "patienceLeft") ?? 0, Kit.Num(row, "startPatience") ?? 0)))
             {
                 Grow = 1.4f, Default = false, SortKey = row => Kit.Num(row, "patienceLeft") ?? 0,
+            },
+        };
+
+        // ---- Trades (TRD-02) -------------------------------------------------------------------------
+
+        public const string TradesOpen = "open";
+        public const string TradesAnswered = "answered";
+        public const string TradesHistory = "history";
+
+        private string tradesView = TradesOpen;
+
+        /// <summary>The Trades tab's view: open trades, answers from rivals, or every closed trade.</summary>
+        public void ShowTrades(string view)
+        {
+            tradesView = view;
+            Redraw();
+        }
+
+        /// <summary>
+        /// Open: every open trade, those waiting for you first. Answered: trades a rival answered
+        /// (done, turned down, fell through). History: every closed trade.
+        /// </summary>
+        private List<JToken> TradeRows() => TradeRows(tradesView, data.Trades);
+
+        private static List<JToken> TradeRows(string view, IEnumerable<JToken> all)
+        {
+            IEnumerable<JToken> rows = all;
+            switch (view)
+            {
+                case TradesAnswered:
+                    rows = rows.Where(row => Kit.Str(row, "status") is string status && (status == "completed" || status == "refused" || status == "cancelled"));
+                    break;
+                case TradesHistory:
+                    rows = rows.Where(row => Kit.Str(row, "status") != "open");
+                    break;
+                default:
+                    rows = rows.Where(row => Kit.Str(row, "status") == "open").OrderByDescending(row => Kit.Bool(row, "awaitingYou"));
+                    break;
+            }
+            return rows.ToList();
+        }
+
+        private List<DsColumn<JToken>> TradeColumns() => new List<DsColumn<JToken>>
+        {
+            new DsColumn<JToken>("rival", "Rival", row =>
+            {
+                VisualElement cell = Ds.Row("tr-rival-cell");
+                VisualElement logo = Ds.Row("wl-logo-slot");
+                cell.Add(logo);
+                PromotionsScreen.FillLogo(logo, Kit.Str(row, "otherId"), null, "ds-logo--sm");
+                cell.Add(ContractUi.Cell(Kit.Str(row, "otherName"), "ds-cell__text--strong"));
+                return cell;
+            }) { Grow = 1.6f, MinWidth = 180, Pinned = true, SortKey = row => Kit.Str(row, "otherName") ?? string.Empty },
+            new DsColumn<JToken>("deal", "Deal", row =>
+            {
+                Label label = ContractUi.Cell(Kit.Str(row, "headline"));
+                DsTooltip.Attach(label, Kit.Str(row, "headline"));
+                return label;
+            }) { Grow = 2.6f, MinWidth = 220, Help = "Who goes where: your side first, then theirs." },
+            new DsColumn<JToken>("status", "Status", row =>
+            {
+                VisualElement cell = Ds.Row("ct-chips");
+                if (Kit.Bool(row, "stopsSkip")) cell.Add(Ds.Pill(DsState.Live, "New", "bell", solid: true));
+                cell.Add(Ds.Pill(Trades.TradeText.StatusState(row), Trades.TradeText.StatusLabel(row)));
+                return cell;
+            }) { Grow = 2f, MinWidth = 200, SortKey = row => (Kit.Bool(row, "awaitingYou") ? "0" : "1") + Kit.Str(row, "status") },
+            new DsColumn<JToken>("next", "Next", row => Trades.TradeText.NextLine(row) is string next ? ContractUi.Cell(next) : ContractUi.Muted(ContractText.NoValue))
+            {
+                Grow = 1.8f, MinWidth = 180, SortKey = row => Kit.Str(row, "expiresOn") ?? Kit.Str(row, "closedOn") ?? string.Empty,
+            },
+            new DsColumn<JToken>("started", "Started", row => ContractUi.Cell(ContractText.Date(Kit.Str(row, "submittedOn"))))
+            {
+                Width = 130, Default = false, SortKey = row => Kit.Str(row, "submittedOn") ?? string.Empty,
+            },
+            new DsColumn<JToken>("rounds", "Offers", row => ContractUi.NumCell(Kit.Whole(Kit.Num(row, "rounds"))))
+            {
+                Width = 80, Align = DsAlign.Right, Default = false, SortKey = row => Kit.Num(row, "rounds") ?? 0,
             },
         };
 

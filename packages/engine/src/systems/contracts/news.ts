@@ -4,7 +4,8 @@
  *
  * - `contract.started` posts a `signing` story (topic `signing`).
  * - `contract.released` posts a `release` story (topic `release`): the promotion let them go. A
- *   signed deal withdrawn before it started posts nothing; the worker never arrived.
+ *   signed deal withdrawn before it started posts nothing; the worker never arrived, and neither
+ *   does a quiet release (a trade, TRD-01, posts its own story).
  * - `contract.expired` and a release granted at the worker's request (`contract.quit`, `granted`)
  *   post a `release` story (topic `departure`): they have left. A walk-out posts topic
  *   `walked-out`. Leaving for an exclusive deal elsewhere posts nothing here: the new promotion's
@@ -127,7 +128,10 @@ export const contractsNewsSubscriptions = [
     id: CONTRACT_NEWS_SUBSCRIPTION_IDS.released,
     type: 'contract.released',
     handler: (event, ctx) => {
-      if (ctx.read.tables.employments.get(event.payload.employmentId)?.status !== 'released') {
+      if (
+        event.payload.quiet === true ||
+        ctx.read.tables.employments.get(event.payload.employmentId)?.status !== 'released'
+      ) {
         return;
       }
       postContractStory(ctx, { kind: 'release', topic: RELEASE_TOPIC, ...event.payload });
