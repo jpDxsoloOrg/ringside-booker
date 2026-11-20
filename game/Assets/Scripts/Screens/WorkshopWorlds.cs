@@ -175,9 +175,73 @@ namespace RingsideBooker.Screens
             return string.Join(" · ", parts);
         }
 
+        private static ImportFolderSettings folders;
+
+        /// <summary>
+        /// The import settings that remember the mod folders the player chose (UNITY-34):
+        /// <c>persistentDataPath/import-settings.json</c>, never part of a save.
+        /// </summary>
+        public static ImportFolderSettings Folders
+        {
+            get => folders ??= new ImportFolderSettings(Path.Combine(Application.persistentDataPath, ImportFolderSettings.FileName));
+            set => folders = value;
+        }
+
+        /// <summary>Leaves the Steam libraries out of <see cref="ScanAsync"/> (the folder tour shows fictional mods only).</summary>
+        public static bool SkipSteamScan { get; set; }
+
+        /// <summary>Each remembered folder with the mods it holds now, or why it holds none (off the main thread).</summary>
+        public static async Task<List<FolderCheck>> ScanFoldersAsync()
+        {
+            List<FolderCheck> checks = await Task.Run(() => Folders.Folders.Select(InspectSafely).ToList());
+            foreach (FolderCheck check in checks)
+            {
+                foreach (WorkshopMod mod in check.Mods) ModsByPack[mod.PackId] = mod;
+            }
+            return checks;
+        }
+
+        /// <summary>
+        /// Checks a folder the player picked and remembers it when it holds a mod (one, or several
+        /// one level down). Logs counts only: a folder's path or name may carry the mod's name.
+        /// </summary>
+        public static async Task<FolderCheck> AddFolderAsync(string folder)
+        {
+            FolderCheck check = await Task.Run(() => InspectSafely(folder));
+            if (!check.Ok)
+            {
+                Debug.Log("[WorkshopWorlds] chosen folder has no world database; not added");
+                return check;
+            }
+            foreach (WorkshopMod mod in check.Mods) ModsByPack[mod.PackId] = mod;
+            bool added = Folders.Add(folder);
+            Debug.Log($"[WorkshopWorlds] chosen folder {(added ? "added" : "already listed")}: {check.Mods.Count} {(check.Mods.Count == 1 ? "mod" : "mods")}, {check.Mods.Count(mod => mod.IsWorld)} of them worlds");
+            return check;
+        }
+
+        /// <summary>Forgets a chosen folder (the folder and any world imported from it are left alone).</summary>
+        public static void RemoveFolder(string folder)
+        {
+            if (Folders.Remove(folder)) Debug.Log("[WorkshopWorlds] chosen folder removed from the list");
+        }
+
+        private static FolderCheck InspectSafely(string folder)
+        {
+            try
+            {
+                return ModFolders.Inspect(folder);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[WorkshopWorlds] checking a chosen folder failed ({exception.GetType().Name})");
+                return new FolderCheck(folder, null, ModFolders.MissingFolderProblem);
+            }
+        }
+
         /// <summary>Installed workshop mods in every Steam library (scanned off the main thread).</summary>
         public static async Task<List<WorkshopMod>> ScanAsync()
         {
+            if (SkipSteamScan) return new List<WorkshopMod>();
             List<WorkshopMod> mods = await Task.Run(() =>
             {
                 try

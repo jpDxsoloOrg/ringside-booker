@@ -181,6 +181,10 @@
 .choice-chip--selected .rb-option__text > .choice-chip__label { color: var(--color-data); }
 .rb-world-list, .rb-promo-list, .rb-mod-list, .rb-import-warnings { flex-direction: column; flex-shrink: 0; }
 .rb-import-progress { margin-top: 10px; color: var(--color-text-subtle); }
+/* Your folders (UNITY-34): the chosen folder's path, ellipsized, with a quiet Remove link. */
+.rb-folder-head { flex-shrink: 0; margin-top: 6px; }
+.rb-folder-head > .btn--link { flex-shrink: 0; }
+.rb-folder-path { flex-grow: 1; flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-subtle); }
 
 /* Two-column form: label left, field right, fixed row height. */
 .rb-form { flex-direction: column; flex-shrink: 0; }

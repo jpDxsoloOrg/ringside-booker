@@ -58,6 +58,9 @@ namespace RingsideBooker.Screens
         private WorkshopMod importedMod;
         private volatile string importStage;
         private bool importRunning;
+        // "Choose a folder…" and the remembered "Your folders" (UNITY-34).
+        private List<FolderCheck> folderChecks;
+        private string folderProblem;
         // "Manage imported worlds" inside the import sub-screen (UNITY-14).
         private bool managing;
         private string confirmRemove;
@@ -233,16 +236,27 @@ namespace RingsideBooker.Screens
             managing = false;
             importResult = null;
             importedMod = null;
+            folderProblem = null;
             Draw();
             if (mods == null) _ = Scan();
         }
 
         private async Task Scan()
         {
-            mods = await WorkshopWorlds.ScanAsync();
-            pickedMod ??= mods.FirstOrDefault(mod => mod.IsWorld);
+            Task<List<FolderCheck>> chosen = WorkshopWorlds.ScanFoldersAsync();
+            List<WorkshopMod> found = await WorkshopWorlds.ScanAsync();
+            folderChecks = await chosen;
+            mods = found;
+            pickedMod ??= AllMods.FirstOrDefault(mod => mod.IsWorld);
             if (importing && !importRunning) Draw();
         }
+
+        /// <summary>The installed mods and the mods in the player's own folders.</summary>
+        private IEnumerable<WorkshopMod> AllMods =>
+            (mods ?? Enumerable.Empty<WorkshopMod>()).Concat(FolderMods);
+
+        private IEnumerable<WorkshopMod> FolderMods =>
+            folderChecks?.SelectMany(check => check.Mods) ?? Enumerable.Empty<WorkshopMod>();
 
         private void CloseImport(bool selectImported)
         {
@@ -290,19 +304,25 @@ namespace RingsideBooker.Screens
             }
             if (mods.Count == 0)
             {
-                body.Add(Kit.Note("No workshop world mods are installed. Subscribe to world mods in the Steam workshop; they show up here."));
-                nav.Add(BackButton());
-                return;
+                body.Add(Kit.Note(folderChecks.Count == 0
+                    ? "No workshop world mods are installed. Subscribe to world mods in the Steam workshop and they show up here, or choose a mod's folder yourself."
+                    : "No workshop world mods are installed in Steam. Pick a world from your folders; a big world takes a few seconds."));
             }
+            else
+            {
+                body.Add(Kit.Note($"{mods.Count} installed workshop {(mods.Count == 1 ? "mod" : "mods")}. Pick a world to import; a big world takes a few seconds."));
+                VisualElement list = Ui.El("rb-mod-list").Named("workshop-mod-list");
+                foreach (WorkshopMod mod in mods) list.Add(ModOption(mod));
+                body.Add(list);
+            }
+            DrawYourFolders();
 
-            body.Add(Kit.Note($"{mods.Count} installed workshop {(mods.Count == 1 ? "mod" : "mods")}. Pick a world to import; a big world takes a few seconds."));
-            VisualElement list = Ui.El("rb-mod-list").Named("workshop-mod-list");
-            foreach (WorkshopMod mod in mods) list.Add(ModOption(mod));
-            body.Add(list);
-
-            body.Add(Ui.Text(TextFormat.Upper("Pictures"), "rb-wizard__section"));
-            body.Add(Kit.Chips(new[] { (false, "With pictures"), (true, "Roster only (no pictures)") }, WorkshopWorlds.RosterOnly,
-                picked => WorkshopWorlds.RosterOnly = picked, "import-roster-only"));
+            if (AllMods.Any())
+            {
+                body.Add(Ui.Text(TextFormat.Upper("Pictures"), "rb-wizard__section"));
+                body.Add(Kit.Chips(new[] { (false, "With pictures"), (true, "Roster only (no pictures)") }, WorkshopWorlds.RosterOnly,
+                    picked => WorkshopWorlds.RosterOnly = picked, "import-roster-only"));
+            }
 
             if (importRunning)
             {
@@ -312,15 +332,22 @@ namespace RingsideBooker.Screens
                 progress.schedule.Execute(() => progress.text = ImportProgressText(clock.Elapsed.TotalSeconds)).Every(250);
             }
 
+            // Quiet extras in one row: a mod folder of your own, and the kept worlds.
+            VisualElement extras = Ui.El("rb-row", "rb-row--wrap", "rb-gap-top").Named("import-extras");
+            Button choose = Ui.Btn("Choose a folder…", ChooseFolder, "btn--ghost");
+            choose.name = "import-choose-folder";
+            choose.tooltip = "Import a world mod from a folder you pick: the folder with the mod's .db file, or a folder of mod folders.";
+            choose.SetEnabled(!importRunning);
+            extras.Add(choose);
             if (WorkshopWorlds.Store.List().Count > 0)
             {
                 Button manage = Ui.Btn("Manage imported worlds…", OpenManage, "btn--ghost");
                 manage.name = "import-manage";
-                manage.AddToClassList("rb-gap-top");
-                manage.style.alignSelf = Align.FlexStart;
                 manage.SetEnabled(!importRunning);
-                body.Add(manage);
+                extras.Add(manage);
             }
+            body.Add(extras);
+            if (folderProblem != null) body.Add(Kit.Error(folderProblem).Named("import-folder-problem"));
 
             Button back = BackButton();
             back.SetEnabled(!importRunning);
@@ -330,6 +357,87 @@ namespace RingsideBooker.Screens
             import.SetEnabled(!importRunning && pickedMod != null && pickedMod.IsWorld);
             nav.Add(import);
         }
+
+        /// <summary>"Your folders": each folder the player chose, with its mods (or what is missing) and Remove.</summary>
+        private void DrawYourFolders()
+        {
+            if (folderChecks == null || folderChecks.Count == 0) return;
+            body.Add(Ui.Text(TextFormat.Upper("Your folders"), "rb-wizard__section"));
+            VisualElement list = Ui.El("rb-mod-list").Named("your-folders");
+            for (int index = 0; index < folderChecks.Count; index++)
+            {
+                FolderCheck check = folderChecks[index];
+                VisualElement head = Ui.El("rb-row", "rb-row--tight", "rb-folder-head").Named($"folder-{index}");
+                Label path = Ui.Text(check.Folder, "t-sm", "rb-folder-path");
+                path.tooltip = check.Folder;
+                head.Add(path);
+                Button remove = Ui.Btn("Remove", () => RemoveFolder(check.Folder), "btn--link");
+                remove.name = $"folder-remove-{index}";
+                remove.tooltip = "Forget this folder. Nothing is deleted.";
+                remove.SetEnabled(!importRunning);
+                head.Add(remove);
+                list.Add(head);
+                if (!check.Ok) list.Add(Kit.Note(check.Problem));
+                foreach (WorkshopMod mod in check.Mods) list.Add(ModOption(mod, chosen: true));
+            }
+            body.Add(list);
+        }
+
+        /// <summary>The Choose a folder… button: the Windows folder picker, then <see cref="AddFolder"/>.</summary>
+        private void ChooseFolder()
+        {
+            if (importRunning) return;
+            if (!FileDialogs.IsAvailable)
+            {
+                folderProblem = "The folder picker is only available on Windows.";
+                Draw();
+                return;
+            }
+            string last = folderChecks?.LastOrDefault()?.Folder;
+            string initial = last == null ? null : System.IO.Path.GetDirectoryName(last);
+            string folder = FileDialogs.PickFolder("Choose a workshop world mod's folder", initial);
+            if (folder != null) _ = AddFolder(folder);
+        }
+
+        /// <summary>
+        /// Checks a chosen folder: when it holds a mod (or several one level down) it is remembered
+        /// under Your folders and its first world is picked; otherwise the plain problem shows under
+        /// the button. The Choose a folder… button calls it; the tours call it too.
+        /// </summary>
+        public async Task<FolderCheck> AddFolder(string folder)
+        {
+            FolderCheck check = await WorkshopWorlds.AddFolderAsync(folder);
+            if (check.Ok)
+            {
+                folderProblem = null;
+                folderChecks = await WorkshopWorlds.ScanFoldersAsync();
+                WorkshopMod first = check.Mods.FirstOrDefault(mod => mod.IsWorld);
+                if (first != null) pickedMod = FolderMods.FirstOrDefault(mod => mod.DatabasePath == first.DatabasePath) ?? pickedMod;
+            }
+            else
+            {
+                folderProblem = check.Problem;
+            }
+            if (importing && !managing && !importRunning) Draw();
+            return check;
+        }
+
+        /// <summary>Forgets a chosen folder (Remove under Your folders).</summary>
+        public void RemoveFolder(string folder)
+        {
+            if (importRunning) return;
+            WorkshopWorlds.RemoveFolder(folder);
+            folderChecks?.RemoveAll(check => ImportFolderSettings.SameFolder(check.Folder, folder));
+            if (pickedMod != null && !AllMods.Contains(pickedMod)) pickedMod = AllMods.FirstOrDefault(mod => mod.IsWorld);
+            folderProblem = null;
+            Draw();
+        }
+
+        /// <summary>The folders under Your folders as last checked (the tours read it).</summary>
+        public IReadOnlyList<FolderCheck> YourFolders => folderChecks ?? new List<FolderCheck>();
+
+        /// <summary>The plain message under Choose a folder… (a folder that holds no mod), or null.</summary>
+        public string FolderProblem => folderProblem;
 
         private string ImportProgressText(double seconds)
         {
@@ -348,7 +456,7 @@ namespace RingsideBooker.Screens
             return back;
         }
 
-        private VisualElement ModOption(WorkshopMod mod)
+        private VisualElement ModOption(WorkshopMod mod, bool chosen = false)
         {
             Button option = Ui.Button(string.Empty, () =>
             {
@@ -358,13 +466,13 @@ namespace RingsideBooker.Screens
             }, "choice-chip", "rb-option");
             option.name = $"mod-{mod.ItemId}";
             option.Add(Ui.Text(mod.WorldName ?? $"Workshop item {mod.ItemId}", "choice-chip__label"));
-            option.Add(Ui.Text(ModDetail(mod), "choice-chip__detail", "t-wrap"));
+            option.Add(Ui.Text(ModDetail(mod, chosen), "choice-chip__detail", "t-wrap"));
             option.EnableInClassList("choice-chip--selected", mod == pickedMod);
             option.SetEnabled(mod.IsWorld);
             return option;
         }
 
-        private static string ModDetail(WorkshopMod mod)
+        private static string ModDetail(WorkshopMod mod, bool chosen = false)
         {
             if (!mod.IsWorld) return "Not a world: no people or promotions to import (an add-on mod)";
             var parts = new List<string>();
@@ -377,7 +485,8 @@ namespace RingsideBooker.Screens
                 StoredWorld stored = WorkshopWorlds.StoredFor(mod);
                 parts.Add(stored != null && ImportedWorldStore.ModState(stored) == StoredModState.Updated ? "imported, updated since" : "imported");
             }
-            parts.Add($"item {mod.ItemId}");
+            if (chosen && (mod.PictureFolder == null || !System.IO.Directory.Exists(mod.PictureFolder))) parts.Add("no picture folder");
+            if (ModFolders.IsWorkshopItemId(mod.ItemId)) parts.Add($"item {mod.ItemId}");
             return string.Join(" · ", parts);
         }
 
@@ -436,7 +545,7 @@ namespace RingsideBooker.Screens
             option.Add(Ui.Text($"{WorkshopWorlds.StoredDetail(world)} · item {world.ItemId}", "choice-chip__detail", "t-wrap"));
             if (WorkshopWorlds.ModNote(world) is string note) option.Add(Ui.Text(note, "choice-chip__detail", "t-wrap"));
 
-            WorkshopMod installed = mods?.FirstOrDefault(mod => mod.ItemId == world.ItemId && mod.IsWorld);
+            WorkshopMod installed = AllMods.FirstOrDefault(mod => mod.ItemId == world.ItemId && mod.IsWorld);
             VisualElement buttons = Ui.El("rb-row", "rb-row--wrap", "rb-gap-top");
             Button reimport = Ui.Btn("Re-import", () => _ = Reimport(installed, world.RosterOnly), "btn--ghost");
             reimport.name = $"stored-reimport-{world.ItemId}";
@@ -510,7 +619,7 @@ namespace RingsideBooker.Screens
         /// <summary>Selects the installed mod with this workshop item id on the import sub-screen.</summary>
         public bool PickMod(string itemId)
         {
-            WorkshopMod mod = mods?.FirstOrDefault(candidate => candidate.ItemId == itemId);
+            WorkshopMod mod = AllMods.FirstOrDefault(candidate => candidate.ItemId == itemId);
             if (mod == null) return false;
             pickedMod = mod;
             Draw();
