@@ -50,6 +50,7 @@ import { newsTunables } from './news/tunables';
 import { broadcastTunables } from './broadcast/tunables';
 import { calendarEditorTunables } from './calendar/editor/tunables';
 import { draftTunables } from './draft/tunables';
+import { tradeTunables } from './trades/tunables';
 
 export const ALL_TUNABLES = mergeTunables(
   simTunables,
@@ -85,6 +86,7 @@ export const ALL_TUNABLES = mergeTunables(
   broadcastTunables,
   calendarEditorTunables,
   draftTunables,
+  tradeTunables,
 );
 
 /** Every tunable key the engine knows. */

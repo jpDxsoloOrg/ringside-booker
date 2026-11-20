@@ -201,6 +201,7 @@ function emptyIdLists(): IdLists {
     airings: [],
     drafts: [],
     draftPicks: [],
+    trades: [],
   };
 }
 

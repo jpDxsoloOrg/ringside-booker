@@ -25,6 +25,8 @@ const CREATION_PATHS = [
   'systems/negotiation/offeredEmployment.ts',
   // DRF-03: the contract a draft pick signs, written before anyone has worked a day.
   'systems/draft/session.ts',
+  // TRD-01: a traded worker's new contract, carrying the old one's push, role and morale over.
+  'systems/trades/transfer.ts',
 ] as const;
 
 const GUARDED_TABLES = ['employments', 'people', 'promotions'] as const;

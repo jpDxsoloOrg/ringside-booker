@@ -145,6 +145,17 @@ describe('contracts on the news wire', () => {
     ]);
   });
 
+  it('tells nothing for a quiet release (a trade tells its own story, TRD-01)', async () => {
+    const built = contractWorld();
+    const wire = newsWire(built.world, [contractsSystem]);
+    wire.events.push({
+      type: 'contract.released',
+      payload: { ...ref(built, 5), severance: 0, source: 'player', mutual: false, quiet: true },
+    });
+    await wire.engine.advanceDays({ maxDays: 1 });
+    expect(storiesWithTopic(wire.engine, RELEASE_TOPIC)).toEqual([]);
+  });
+
   it('posts each story once when the event comes again', async () => {
     const built = contractWorld();
     const wire = newsWire(built.world, [contractsSystem]);
