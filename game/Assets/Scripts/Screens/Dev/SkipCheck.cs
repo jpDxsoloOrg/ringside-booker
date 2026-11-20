@@ -333,7 +333,8 @@ namespace RingsideBooker.Screens.Dev
                 }
             }
             await Settle();
-            if (lead.GateId == EngineGateActions.OfferAnswered)
+            // TRD-02: a trade stop opens its trade, which marks it seen; the same one-visit rule.
+            if (lead.GateId == EngineGateActions.OfferAnswered || lead.ActionHint == GateHints.Trades)
             {
                 // The stop must be gone after one visit (DRF-08); wait up to 5 s and say if it stays.
                 EngineGame game = EngineGame.Current;
@@ -347,7 +348,7 @@ namespace RingsideBooker.Screens.Dev
                         await Settle();
                     }
                 }
-                if (!cleared) Debug.LogWarning($"[SkipCheck] {lead.GateId}: still waiting after Contracts › Offers opened the talks");
+                if (!cleared) Debug.LogWarning($"[SkipCheck] {lead.GateId}: still waiting after Contracts opened it");
             }
             ShellController.Current.Overlay.CloseAll();
         }

@@ -254,6 +254,14 @@ namespace RingsideBooker.Screens
             foreach (JToken brand in Kit.Arr(header, "brands")) tags.Add(Ds.Tag(Kit.Str(brand, "name")));
             words.Add(tags);
             hero.Add(words);
+            // TRD-02: trade with a rival the computer runs.
+            if (by == "computer" && Kit.Str(header, "status") == "active" && Kit.Game?.PromotionId != null && id != Kit.Game.PromotionId)
+            {
+                hero.Add(Ds.Spacer());
+                Button propose = Ds.Button(Trades.TradeText.ProposeLabel, () => Trades.TradeSheet.ProposeTo(id), DsButtonKind.Primary, "handshake");
+                propose.name = "promotion-propose-trade";
+                hero.Add(propose);
+            }
             host.Add(hero);
 
             JToken kpis = Kit.Obj(profile, "kpis");
