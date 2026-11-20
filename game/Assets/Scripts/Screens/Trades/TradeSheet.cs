@@ -827,7 +827,7 @@ namespace RingsideBooker.Screens.Trades
                 column.Add(card);
             }
             double cash = Kit.Num(side, "cash") ?? 0;
-            if (cash > 0) column.Add(Ds.Text($"{(yours ? "Cash you send" : "Cash they send")}: {ContractText.Money(cash)}", "tr-cash-line").Named(yours ? "trade-give-cash-line" : "trade-get-cash-line"));
+            if (cash > 0) column.Add(Ds.Text($"{(yours ? (done ? "Cash you sent" : "Cash you send") : (done ? "Cash they sent" : "Cash they send"))}: {ContractText.Money(cash)}", "tr-cash-line").Named(yours ? "trade-give-cash-line" : "trade-get-cash-line"));
             return column;
         }
 
