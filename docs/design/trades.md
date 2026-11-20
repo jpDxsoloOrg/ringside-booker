@@ -60,15 +60,40 @@ The deal (`valueDeal`):
 - \+ **roster needs**: the AIP needs (`aip/formulas/needs.ts`: card-level depth, gender divisions
   with titles, faces against heels, crew) of its roster before and after the trade; the severity
   it loses × `needWeight` (negative when the deal opens a need);
-- \+ cash in, − cash out, ÷ `cashPerPoint`.
+- \+ cash in, − cash out, at the deal's own cash rate (see [Cash](#cash)).
+
+## Cash
+
+Cash is valued against what the workers cost, not at a flat rate, so a rich player can't buy anyone
+(the owner's rule: money should bite).
+
+- **Price of a worker**: their yearly pay × a multiple by card position
+  (`trades.cash.multiple.*`: main event 2.5, upper card 2, mid card 1.5, lower card 1.2,
+  enhancement 1, crew 1; a top star by draft value 3). Pay is the contract's monthly cost (wage, or
+  fee × appearances), at least `trades.cash.marketFloor` × their market value.
+- **The deal's cash rate** (cents per point): the price of every worker in the deal ÷ their points,
+  so cash equal to a worker's price is worth that worker's points.
+- **The rival's finances**: the rate is divided by a factor from its runway (cash ÷ monthly
+  payroll, against `trades.cash.runwayMonths`, power −`financeExponent`), within `financeMin`
+  (rich: cash is worth less) and `financeMax` (cash-poor: worth more).
+- **Never for money**: a rival won't sell a top star (draft value ≥ `trades.value.starValue`), its
+  ace (its best-valued wrestler), or two or more top-card workers (main event, upper card) at once,
+  unless the workers coming back are worth at least `trades.cash.starWorkerShare` of them. The
+  answer says "They won't sell their top star for money" and it refuses (no counter).
+
+Needs the sale opens, the accept margin and the finance factor come on top of the price. In the
+default world a midcarder costs about 1.5–3× their yearly pay in cash, an enhancement worker
+1.2–3.7× (token contracts hit the market floor), and a main eventer who is not the ace about 3×.
+The preview's lines say what cash is worth ("Cash is worth 1 point per $…") and the Why? has the
+rate's working.
 
 ## Answer
 
 `answer.ts`, `rivalAnswer`. Deterministic: the preview and the next day's answer agree unless the
 world changed.
 
-- **Accept**: worth at least `acceptMargin`, and any cash it sends is within `rivalCashShare` of
-  its cash.
+- **Accept**: worth at least `acceptMargin`, any cash it sends is within `rivalCashShare` of
+  its cash, and no top star goes for money.
 - **Counter**: short by no more than `counterRange` (and fewer than `maxRounds` offers so far).
 - **Refuse**: anything else.
 

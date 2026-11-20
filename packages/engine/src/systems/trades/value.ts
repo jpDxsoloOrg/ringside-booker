@@ -42,6 +42,7 @@ import type { EngineTunables } from '../tunables';
 import { TradeWorkerReader, type TradeWorker } from './workers';
 
 export const VALUATION_DOC_REF = 'trades.md#valuation';
+export const CASH_DOC_REF = 'trades.md#cash';
 
 /** One decimal, for points in plain words. */
 export function pointsText(value: number): string {
@@ -74,8 +75,108 @@ export interface DealValue {
   readonly needChanges: readonly NeedChange[];
   readonly cashIn: number;
   readonly cashOut: number;
+  /** What cash is worth to this side in this deal: cents per point (see `cashRate`). */
+  readonly cashPerPoint: number;
+  /** Set when the side would give up a top star mostly for cash: it won't. */
+  readonly starForCash: string | null;
   /** Plain-words lines for the answer, one per part. */
   readonly lines: readonly string[];
+}
+
+/**
+ * The pay a cash price is counted from, a month: the contract's cost, but at least
+ * `trades.cash.marketFloor` × their market value (so a token contract is no bargain).
+ */
+export function cashPayBasis(worker: TradeWorker, tunables: EngineTunables): number {
+  return Math.max(
+    worker.monthlyCost,
+    worker.marketMonthly * tunables.get('trades.cash.marketFloor'),
+  );
+}
+
+/** Years of pay a rival asks in cash for this worker (`trades.cash.multiple.*`). */
+export function cashMultiple(worker: TradeWorker, tunables: EngineTunables): number {
+  const band =
+    worker.push === 'none'
+      ? tunables.get('trades.cash.multiple.crew')
+      : tunables.get(`trades.cash.multiple.${worker.push}`);
+  return worker.value >= tunables.get('trades.value.starValue')
+    ? Math.max(band, tunables.get('trades.cash.multiple.star'))
+    : band;
+}
+
+/** The worker's price in cash: yearly pay × the multiple, in cents. */
+export function cashPrice(worker: TradeWorker, tunables: EngineTunables): number {
+  return cashPayBasis(worker, tunables) * 12 * cashMultiple(worker, tunables);
+}
+
+/**
+ * How much the side's money in the bank changes what cash is worth to it: (runway ÷
+ * `trades.cash.runwayMonths`) ^ −`financeExponent`, within `financeMin`–`financeMax`. Runway is its
+ * cash in months of payroll; a cash-poor side values cash more.
+ */
+export function financeFactor(
+  read: GameWorldView,
+  tunables: EngineTunables,
+  promotionId: PromotionId,
+): { factor: number; runwayMonths: number | null } {
+  const cash = read.tables.promotions.get(promotionId)?.cash ?? 0;
+  const appearances = tunables.get('trades.value.appearancesPerMonth');
+  let payroll = 0;
+  for (const row of read.tables.employments.lookup('byPromotionStatus', `${promotionId}|active`)) {
+    payroll += row.terms.monthlyWage + row.terms.perAppearanceFee * appearances;
+  }
+  const min = tunables.get('trades.cash.financeMin');
+  const max = tunables.get('trades.cash.financeMax');
+  if (payroll <= 0) {
+    return { factor: cash > 0 ? min : max, runwayMonths: null };
+  }
+  const runway = Math.max(0, cash) / payroll;
+  const reference = tunables.get('trades.cash.runwayMonths');
+  const raw =
+    runway <= 0 ? max : Math.pow(runway / reference, -tunables.get('trades.cash.financeExponent'));
+  return { factor: Math.min(max, Math.max(min, raw)), runwayMonths: runway };
+}
+
+/**
+ * What cash is worth to `promotionId` in a deal over `readings`, as cents per point, with its Why?:
+ * the cash price of the workers (yearly pay × the multiple) over their points, so buying a worker
+ * with cash costs their price, ÷ the finance factor. Null when no worker is in the deal.
+ */
+export function cashRate(
+  read: GameWorldView,
+  tunables: EngineTunables,
+  promotionId: PromotionId,
+  readings: readonly WorkerReading[],
+): Traced<number> | null {
+  if (readings.length === 0) {
+    return null;
+  }
+  let points = 0;
+  const calc = startCalc('What cash is worth to them (cents per point)', 0, {
+    unit: 'money',
+    docRef: CASH_DOC_REF,
+    startLabel: 'Nothing counted yet',
+  });
+  for (const reading of readings) {
+    const worker = reading.worker;
+    const multiple = cashMultiple(worker, tunables);
+    const workerPrice = cashPrice(worker, tunables);
+    points += Math.max(1, reading.points.value);
+    calc.add(
+      `Price of ${worker.name}: ${moneyText(cashPayBasis(worker, tunables) * 12)} a year × ${pointsText(multiple)}`,
+      workerPrice,
+    );
+  }
+  calc.divide(`Their worth: ${pointsText(points)} points`, points);
+  const finances = financeFactor(read, tunables, promotionId);
+  calc.divide(
+    finances.runwayMonths === null
+      ? 'Their finances: no payroll'
+      : `Their finances: ${pointsText(finances.runwayMonths)} months of payroll in the bank`,
+    finances.factor,
+  );
+  return calc.done();
 }
 
 function controlShare(worker: TradeWorker, tunables: EngineTunables): number {
@@ -257,6 +358,37 @@ export function sideWorkers(
   return workers;
 }
 
+/**
+ * A worker a rival won't sell for money: a top star by draft value (`trades.value.starValue`) or
+ * its ace, the best-valued wrestler on its roster.
+ */
+export function isProtectedStar(
+  read: GameWorldView,
+  reader: TradeWorkerReader,
+  worker: TradeWorker,
+  tunables: EngineTunables,
+): boolean {
+  if (worker.value >= tunables.get('trades.value.starValue')) {
+    return true;
+  }
+  if (worker.role !== 'wrestler') {
+    return false;
+  }
+  for (const row of read.tables.employments.lookup(
+    'byPromotionStatus',
+    `${worker.promotionId}|active`,
+  )) {
+    if (row.role !== 'wrestler' || row.id === worker.employmentId) {
+      continue;
+    }
+    const other = reader.worker(row.id);
+    if (other !== null && other.value > worker.value) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /** The deal as `promotionId`'s desk sees it. */
 export function valueDeal(
   read: GameWorldView,
@@ -315,19 +447,55 @@ export function valueDeal(
       );
     }
   }
-  const cashPerPoint = tunables.get('trades.value.cashPerPoint');
-  if (other.cash > 0) {
+  const rate = cashRate(read, tunables, promotionId, [...incoming, ...outgoing]);
+  const cashPerPoint = rate?.value ?? Number.POSITIVE_INFINITY;
+  if (rate !== null && (other.cash > 0 || own.cash > 0)) {
+    lines.push(
+      `Cash is worth 1 point per ${moneyText(rate.value)} to them (a few years of the workers' pay)`,
+    );
+  }
+  if (other.cash > 0 && rate !== null) {
     calc.add(
       `Cash from ${read.tables.promotions.get(other.promotionId)?.name ?? 'the other side'}: ${moneyText(other.cash)}`,
-      other.cash / cashPerPoint,
+      startCalc(`Cash from the other side`, other.cash, { unit: 'points', docRef: CASH_DOC_REF })
+        .divide('What cash is worth to them', rate)
+        .done(),
     );
     lines.push(
       `Cash in: ${moneyText(other.cash)} (${pointsText(other.cash / cashPerPoint)} points)`,
     );
   }
-  if (own.cash > 0) {
-    calc.subtract(`Cash they pay: ${moneyText(own.cash)}`, own.cash / cashPerPoint);
+  if (own.cash > 0 && rate !== null) {
+    calc.subtract(
+      `Cash they pay: ${moneyText(own.cash)}`,
+      startCalc('Cash they pay', own.cash, { unit: 'points', docRef: CASH_DOC_REF })
+        .divide('What cash is worth to them', rate)
+        .done(),
+    );
     lines.push(`Cash out: ${moneyText(own.cash)} (${pointsText(own.cash / cashPerPoint)} points)`);
+  }
+  // A top star or their ace never goes mostly for cash: the workers coming back must be worth enough.
+  let starForCash: string | null = null;
+  // Two or more from the top card (main event, upper card) at once all count too: cash can buy
+  // one top-card worker per trade, never the whole top of the card.
+  const topCard = outgoing.filter(
+    (reading) => reading.worker.push === 'mainEvent' || reading.worker.push === 'upperCard',
+  );
+  const stars = outgoing.filter(
+    (reading) =>
+      isProtectedStar(read, reader, reading.worker, tunables) ||
+      (topCard.length > 1 && topCard.includes(reading)),
+  );
+
+  if (stars.length > 0) {
+    const share = tunables.get('trades.cash.starWorkerShare');
+    const back = incoming.reduce((total, reading) => total + reading.points.value, 0);
+    const given = stars.reduce((total, reading) => total + reading.points.value, 0);
+    if (back < given * share) {
+      const names = stars.map((reading) => reading.worker.name).join(', ');
+      starForCash = `They won't sell their top star for money: ${names} only goes for workers worth at least ${pointsText(given * share)} points`;
+      lines.push(starForCash);
+    }
   }
   return {
     promotionId,
@@ -338,6 +506,8 @@ export function valueDeal(
     needChanges: needs.changes,
     cashIn: other.cash,
     cashOut: own.cash,
+    cashPerPoint,
+    starForCash,
     lines,
   };
 }

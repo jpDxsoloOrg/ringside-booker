@@ -113,12 +113,17 @@ function offerOf(
 }
 
 /** Cash the rival adds out of `spare` points, rounded down, within what it will pay. */
-function sweetener(ctx: PhaseContext, rivalId: PromotionId, spare: number): number {
+function sweetener(
+  ctx: PhaseContext,
+  rivalId: PromotionId,
+  spare: number,
+  cashPerPoint: number,
+): number {
+  if (!Number.isFinite(cashPerPoint)) {
+    return 0;
+  }
   const rounding = ctx.tunables.get('trades.answer.cashRounding');
-  const raw =
-    spare *
-    ctx.tunables.get('trades.value.cashPerPoint') *
-    ctx.tunables.get('trades.rivalOffer.cashShare');
+  const raw = spare * cashPerPoint * ctx.tunables.get('trades.rivalOffer.cashShare');
   const cash = Math.floor(raw / rounding) * rounding;
   return Math.max(0, Math.min(cash, rivalCashLimit(ctx.read, ctx.tunables, rivalId)));
 }
@@ -174,7 +179,7 @@ export function rivalProposal(
     );
     const value = valueDeal(read, tunables, date, swap, rivalId);
     if (value.score.value >= margin) {
-      const cash = sweetener(ctx, rivalId, value.score.value - margin);
+      const cash = sweetener(ctx, rivalId, value.score.value - margin, value.cashPerPoint);
       return offerOf(
         rivalId,
         humanId,
@@ -186,14 +191,12 @@ export function rivalProposal(
   }
   const alone = offerOf(rivalId, humanId, [], wanted.worker.employmentId, 0);
   const value = valueDeal(read, tunables, date, alone, rivalId);
-  if (value.score.value < margin) {
+  if (value.score.value < margin || !Number.isFinite(value.cashPerPoint)) {
     return null;
   }
   const rounding = tunables.get('trades.answer.cashRounding');
   const cash = Math.min(
-    Math.floor(
-      ((value.score.value - margin) * tunables.get('trades.value.cashPerPoint')) / rounding,
-    ) * rounding,
+    Math.floor(((value.score.value - margin) * value.cashPerPoint) / rounding) * rounding,
     rivalCashLimit(read, tunables, rivalId),
   );
   return cash >= rounding ? offerOf(rivalId, humanId, [], wanted.worker.employmentId, cash) : null;

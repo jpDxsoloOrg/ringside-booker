@@ -135,7 +135,7 @@ function buildCounter(
   cashLimit: number,
 ): CounterStep[] | null {
   const margin = tunables.get('trades.answer.acceptMargin');
-  const cashPerPoint = tunables.get('trades.value.cashPerPoint');
+  const cashPerPoint = value.cashPerPoint;
   const rounding = tunables.get('trades.answer.cashRounding');
   const steps: CounterStep[] = [];
   let current = copyOffer(offer);
@@ -146,7 +146,7 @@ function buildCounter(
   const otherName = read.tables.promotions.get(otherSide.promotionId)?.name ?? 'you';
 
   // (a) Pay less cash: down to what it can afford, and as far as the gap needs.
-  if (ownSide.cash > 0) {
+  if (ownSide.cash > 0 && Number.isFinite(cashPerPoint)) {
     const needed = gap > 0 ? roundUp(gap * cashPerPoint, rounding) : 0;
     const cash = Math.max(0, Math.min(cashLimit, ownSide.cash - needed));
     if (cash !== ownSide.cash) {
@@ -189,7 +189,7 @@ function buildCounter(
     }
   }
   // (c) Ask for cash, when the other side has it (and the rival is not paying any).
-  if (gap > 0 && ownSide.cash === 0) {
+  if (gap > 0 && ownSide.cash === 0 && Number.isFinite(cashPerPoint)) {
     const ask = roundUp(gap * cashPerPoint, rounding);
     const otherCash = read.tables.promotions.get(otherSide.promotionId)?.cash ?? 0;
     if (otherSide.cash + ask <= otherCash) {
@@ -263,7 +263,13 @@ export function rivalAnswer(
   const affordable = value.cashOut <= cashLimit;
   const shortfall = Math.max(0, margin - value.score.value);
   const lean: TradeLean =
-    shortfall === 0 && affordable ? 'yes' : shortfall <= range ? 'close' : 'far';
+    value.starForCash !== null
+      ? 'far'
+      : shortfall === 0 && affordable
+        ? 'yes'
+        : shortfall <= range
+          ? 'close'
+          : 'far';
   const decision = startDecision<TradeAnswerKind>(`${name}'s answer`, { docRef: ANSWER_DOC_REF });
   decision.include('What the deal is worth to them', value.score);
   decision.rule(
@@ -275,6 +281,9 @@ export function rivalAnswer(
       `Cash they send (${moneyText(value.cashOut)}) within what they will pay (${moneyText(cashLimit)})`,
       affordable,
     );
+  }
+  if (value.outgoing.some((reading) => reading.star)) {
+    decision.rule('Not giving up a top star mostly for cash', value.starForCash === null);
   }
   const lines = [...value.lines];
   let kind: TradeAnswerKind;
@@ -292,7 +301,8 @@ export function rivalAnswer(
       last !== undefined &&
       check !== null &&
       check.score.value >= margin &&
-      check.cashOut <= cashLimit
+      check.cashOut <= cashLimit &&
+      check.starForCash === null
     ) {
       kind = 'counter';
       counter = last.offer;
@@ -309,6 +319,9 @@ export function rivalAnswer(
     kind = 'refuse';
     because = 'Close, but they have talked enough';
     lines.push('They have talked enough: no more counter-offers');
+  } else if (value.starForCash !== null) {
+    kind = 'refuse';
+    because = "They won't sell their top star for money";
   } else {
     kind = 'refuse';
     because = `${pointsText(shortfall)} points short: too far apart to counter`;
