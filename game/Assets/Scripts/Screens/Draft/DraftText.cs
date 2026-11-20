@@ -81,6 +81,15 @@ namespace RingsideBooker.Screens.Draft
             _ => level ?? Kit.NoValue,
         };
 
+        /// <summary>A card level's colour: gold for main eventers, down to neutral for enhancement.</summary>
+        public static DsState LevelState(string level) => level switch
+        {
+            "mainEvent" => DsState.Gold,
+            "upperCard" => DsState.Good,
+            "midCard" => DsState.Info,
+            _ => DsState.Neutral,
+        };
+
         public static string WeightClassWord(string weightClass) => weightClass switch
         {
             "lightweight" => "Lightweight",

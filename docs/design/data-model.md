@@ -1577,8 +1577,9 @@ mid-draft resumes exactly.
 | `level`      | `{ cash, prestige, homePopularity }` | the level every promotion started at                                               |
 | `sitOut`     | `PersonId[]`                         | wrestlers left out of the pool (DRF-07), sorted                                    |
 | `poolMix`    | per card level                       | `level`, `inPool`, `available`, `female`, `male`, `other`                          |
+| `cardLevels` | `{ personId, level }[]`              | each pool wrestler's card level when the draft began (DRF-08), sorted by person    |
 
-Refs: `order[]`, `sitOut[]`. Index: `byStatus`.
+Refs: `order[]`, `sitOut[]`, `cardLevels[].personId`. Index: `byStatus`.
 
 ### Draft picks (`draftPicks`, `dpk_`)
 

@@ -97,6 +97,11 @@ player names and sets up their weekly show with the schedule editor.
 - **One show a week** (`weekly`): the schedule editor refuses a second
   recurring show, a one-off special, and an edit that is not weekly on one
   day (`draft.oneWeeklyShow`, `scheduleRule.ts`).
+  The schedule starts `draft.firstShowDelayDays` (7) after the start date (DRF-08): every weekly
+  show's `activeFrom` moves there, so no show runs in the first week and negotiate-after picks can
+  answer their offers before the first card has to be filled. Booking's "Call off this show" stays
+  as the fallback when too few have signed.
+
 - **Open** (`open`): the editor allows anything the player can afford. Rivals
   stay on their one weekly show until a rival feature schedules shows within
   its budget: there is no rival show creation yet (decision for the owner).
@@ -124,7 +129,9 @@ small | large>` wrestlers (1.25, 1.1, 1.6), never more than there are.
   can bring them in as debuts. Staff are never cut.
 
 The mix is stored on the draft row (`poolMix`: per level `inPool`,
-`available`, `female`, `male`, `other`).
+`available`, `female`, `male`, `other`), and so is each pool wrestler's level
+(`cardLevels`, DRF-08), which `draft.pool` returns as `level` and can filter
+and sort by.
 
 ## Draft value
 
@@ -240,9 +247,10 @@ Public: a draft is a public event. Money is never shown.
   turn (`{ round, picksAway }`), the newest `recent` picks (default 12),
   every roster's counts (`rosters`) and one roster's picks (`roster`, default
   yours). `null` in a game without a draft.
-- **`draft.pool { offset?, limit?, sort?, descending?, category?, gender?, role?, weightClass?, style?, search? }`**
+- **`draft.pool { offset?, limit?, sort?, descending?, category?, gender?, role?, weightClass?, style?, level?, search? }`**
   → `{ rows: DraftPoolRow[], total, offset, limit, poolLeft }`. Sorts:
-  `value` (default), `fit`, `rating`, `popularity`, `age`, `name`. Each row has
+  `value` (default), `fit`, `rating`, `popularity`, `age`, `name`, `level`
+  (main event first). Each row has its card level (`level`, null for staff),
   the draft value with a short Why? (`why`) and your pick score (`fit`,
   `fitWhy`).
 - **`draft.preview {}`** → `{ options, draft, equalised, notEqualised }`: the

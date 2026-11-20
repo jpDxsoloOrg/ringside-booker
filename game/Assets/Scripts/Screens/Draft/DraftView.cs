@@ -49,6 +49,7 @@ namespace RingsideBooker.Screens.Draft
         private string gender;
         private string weightClass;
         private string style;
+        private string cardLevel;
         private string category;
         private string sort = "value";
         private bool descending = true;
@@ -127,6 +128,12 @@ namespace RingsideBooker.Screens.Draft
         public string Status => Kit.Str(draft, "status");
         public bool YourTurn => Kit.Bool(draft, "onTheClock.isYou");
         public bool NegotiateAfter => Kit.Bool(draft, "settings.negotiateAfter");
+
+        /// <summary>Filters the pool to one card level (null: every level), as the picker does (tours).</summary>
+        public void FilterLevel(string level) => SetFilter(() => cardLevel = level);
+
+        /// <summary>Sorts the pool by a column, as a header click does (tours).</summary>
+        public void SortPool(string columnId, bool down) => table.SortBy(columnId, down);
 
         /// <summary>True while "Sim to my pick" ticks picks by.</summary>
         public bool Busy => animating;
@@ -407,6 +414,8 @@ namespace RingsideBooker.Screens.Draft
                 { Width = 120f, Grow = 0f, SortKey = row => Kit.Num(row, "value") ?? 0, Help = "Draft value, 0 to 100: skill in the job, popularity, and a little for youth." };
             yield return new DsColumn<JToken>("fit", "Fit", FitCell)
                 { Width = 130f, Grow = 0f, SortKey = row => Kit.Num(row, "fit") ?? 0, Help = "How well they fill your roster's needs: gender, divisions, style and faces against heels." };
+            yield return new DsColumn<JToken>("level", "Card level", row => LevelCell(row))
+                { Width = 130f, Grow = 0f, SortKey = row => Kit.Str(row, "level"), Help = "Where they were on the card before the draft, from main event down to enhancement." };
             yield return DsColumn<JToken>.Text("style", "Style", row => Kit.Str(row, "category") == "staff" ? W.RoleWord(Kit.Str(row, "role")) : W.StyleWord(Kit.Str(row, "style")));
             yield return new DsColumn<JToken>("age", "Age", row => W.Cell(W.Int(Kit.Num(row, "age")), number: true))
                 { Width = 60f, Grow = 0f, Align = DsAlign.Right, SortKey = row => Kit.Num(row, "age") ?? 0 };
@@ -421,6 +430,13 @@ namespace RingsideBooker.Screens.Draft
         {
             if (Kit.Str(row, "category") == "staff") return W.RoleWord(Kit.Str(row, "role"));
             return $"{DraftText.GenderWord(Kit.Str(row, "gender"))} · {DraftText.WeightClassWord(Kit.Str(row, "weightClass"))}";
+        }
+
+        private static VisualElement LevelCell(JToken row)
+        {
+            string level = Kit.Str(row, "level");
+            if (level == null) return W.Cell(Kit.NoValue);
+            return Ds.Dot(DraftText.LevelState(level), DraftText.LevelWord(level));
         }
 
         private VisualElement ValueCell(JToken row)
@@ -489,6 +505,10 @@ namespace RingsideBooker.Screens.Draft
                 new[] { ("", "Any division", (string)null) }.Concat(DraftText.WeightClasses.Select(entry => (entry, DraftText.WeightClassWord(entry), (string)null))).ToList(),
                 picked => SetFilter(() => weightClass = string.IsNullOrEmpty(picked) ? null : picked), name: "draft-division");
             toolbar.Add(division);
+            Button levels = ScreenDs.Picker(cardLevel == null ? "Any card level" : DraftText.LevelWord(cardLevel),
+                new[] { ("", "Any card level", (string)null) }.Concat(DraftText.CardLevels.Select(entry => (entry, DraftText.LevelWord(entry), (string)null))).ToList(),
+                picked => SetFilter(() => cardLevel = string.IsNullOrEmpty(picked) ? null : picked), name: "draft-level");
+            toolbar.Add(levels);
             Button styles = ScreenDs.Picker(style == null ? "Any style" : W.StyleWord(style),
                 new[] { ("", "Any style", (string)null) }.Concat(W.Styles.Where(entry => entry != "nonWrestler").Select(entry => (entry, W.StyleWord(entry), (string)null))).ToList(),
                 picked => SetFilter(() => style = string.IsNullOrEmpty(picked) ? null : picked), name: "draft-style");
@@ -500,9 +520,9 @@ namespace RingsideBooker.Screens.Draft
                     picked => SetFilter(() => category = string.IsNullOrEmpty(picked) ? null : picked), name: "draft-category");
                 toolbar.Add(kind);
             }
-            if (gender != null || weightClass != null || style != null || category != null)
+            if (gender != null || weightClass != null || style != null || category != null || cardLevel != null)
             {
-                Button clear = Ds.Button("Clear", () => SetFilter(() => { gender = null; weightClass = null; style = null; category = null; }), DsButtonKind.Ghost);
+                Button clear = Ds.Button("Clear", () => SetFilter(() => { gender = null; weightClass = null; style = null; category = null; cardLevel = null; }), DsButtonKind.Ghost);
                 clear.name = "draft-clear-filters";
                 toolbar.Add(clear);
             }
@@ -534,6 +554,7 @@ namespace RingsideBooker.Screens.Draft
             if (gender != null) args["gender"] = gender;
             if (weightClass != null) args["weightClass"] = weightClass;
             if (style != null) args["style"] = style;
+            if (cardLevel != null) args["level"] = cardLevel;
             if (category != null) args["category"] = category;
             QueryResult<JToken> pool = await game.Client.Query("draft.pool", args);
             if (Root.panel == null) return;

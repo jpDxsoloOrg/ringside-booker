@@ -182,6 +182,8 @@ export interface PoolChoice {
   /** The wrestlers who sit out, best first. */
   readonly sitOut: DraftCandidate[];
   readonly mix: PoolMixLevel[];
+  /** Every pool wrestler's card level. */
+  readonly levels: ReadonlyMap<PersonId, CardLevel>;
 }
 
 function groupKey(candidate: DraftCandidate): string {
@@ -278,5 +280,8 @@ export function choosePool(
       other: inPool.filter((wrestler) => wrestler.gender === 'nonBinary').length,
     };
   });
-  return { pool, sitOut, mix };
+  const poolLevels = new Map<PersonId, CardLevel>(
+    pool.map((wrestler) => [wrestler.personId, levelOf(wrestler)]),
+  );
+  return { pool, sitOut, mix, levels: poolLevels };
 }

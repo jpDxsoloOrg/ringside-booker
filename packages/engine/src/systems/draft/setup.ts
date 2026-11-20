@@ -20,7 +20,14 @@
  * Design: docs/design/draft.md#world-setup.
  */
 
-import { compareDates, isWeekday, weekday, type GameDate, type Weekday } from '../../core/date';
+import {
+  addDays,
+  compareDates,
+  isWeekday,
+  weekday,
+  type GameDate,
+  type Weekday,
+} from '../../core/date';
 import { InvariantError } from '../../core/errors';
 import type { PromotionId } from '../../core/ids';
 import type { Draft, DraftSettings } from '../../model/entities/draft';
@@ -186,6 +193,7 @@ function runsOnOrAfter(definition: DeepReadonly<EventDefinition>, date: GameDate
  * One weekly show per promotion: its main recurring show, made weekly on one weekday, or a new
  * "<SHORT> Weekly" on `draft.weeklyShowDay` when it has none. Every other show is retired before
  * the first day. Both schedule settings start this way; under Open the schedule editor may add more.
+ * The show starts `draft.firstShowDelayDays` (7) after the start date.
  */
 export function oneWeeklyShow(
   tx: Tx<GameTables>,
@@ -195,6 +203,8 @@ export function oneWeeklyShow(
 ): void {
   const read = tx.view;
   const promotion = read.tables.promotions.require(promotionId);
+  // The first show is at least `draft.firstShowDelayDays` out, so picks can answer offers first.
+  const firstShow = addDays(date, tunables.get('draft.firstShowDelayDays'));
   const definitions = read.tables.eventDefinitions
     .values()
     .filter(
@@ -220,7 +230,7 @@ export function oneWeeklyShow(
       televised: false,
       preferredRegionId: promotion.homeRegionId,
       preferredVenueId: null,
-      activeFrom: date,
+      activeFrom: firstShow,
       activeUntil: null,
       logoRef: null,
     });
@@ -231,8 +241,8 @@ export function oneWeeklyShow(
   if (!alreadyWeekly) {
     tx.update('eventDefinitions', main.id, { recurrence: { kind: 'weekly', weekdays: [day] } });
   }
-  if (compareDates(main.activeFrom, date) > 0) {
-    tx.update('eventDefinitions', main.id, { activeFrom: date });
+  if (compareDates(main.activeFrom, firstShow) !== 0) {
+    tx.update('eventDefinitions', main.id, { activeFrom: firstShow });
   }
 }
 
@@ -346,6 +356,9 @@ export function setUpDraftStart(
     poolLeft: { wrestlers: plan.pool.pool.length, staff: plan.staff.length },
     level,
     sitOut: plan.pool.sitOut.map((candidate) => candidate.personId).sort(compareIds),
+    cardLevels: [...plan.pool.levels.entries()]
+      .sort(([left], [right]) => compareIds(left, right))
+      .map(([personId, cardLevel]) => ({ personId, level: cardLevel })),
     poolMix: plan.pool.mix.map((entry) => ({
       level: entry.level,
       inPool: entry.inPool,

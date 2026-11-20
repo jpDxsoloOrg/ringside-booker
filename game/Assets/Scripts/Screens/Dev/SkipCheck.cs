@@ -333,6 +333,22 @@ namespace RingsideBooker.Screens.Dev
                 }
             }
             await Settle();
+            if (lead.GateId == EngineGateActions.OfferAnswered)
+            {
+                // The stop must be gone after one visit (DRF-08); wait up to 5 s and say if it stays.
+                EngineGame game = EngineGame.Current;
+                bool cleared = false;
+                for (int wait = 0; wait < 50 && !cleared; wait++)
+                {
+                    cleared = !game.DayControl.Gates.Any(hit => hit.GateId == lead.GateId && hit.Subject?.Id == lead.Subject?.Id);
+                    if (!cleared)
+                    {
+                        await Task.Delay(100);
+                        await Settle();
+                    }
+                }
+                if (!cleared) Debug.LogWarning($"[SkipCheck] {lead.GateId}: still waiting after Contracts › Offers opened the talks");
+            }
             ShellController.Current.Overlay.CloseAll();
         }
 

@@ -101,6 +101,14 @@ namespace RingsideBooker.Tests.Draft
         }
 
         [Test]
+        public void CardLevelsHaveWordsAndColoursTopDown()
+        {
+            Assert.That(DraftText.CardLevels.Select(DraftText.LevelWord), Is.EqualTo(new[] { "Main event", "Upper midcard", "Midcard", "Lower card", "Enhancement" }));
+            Assert.That(DraftText.LevelState("mainEvent"), Is.EqualTo(DsState.Gold));
+            Assert.That(DraftText.LevelState("enhancement"), Is.EqualTo(DsState.Neutral));
+        }
+
+        [Test]
         public void ContractStatesHaveWords()
         {
             Assert.That(DraftText.ContractWord("reserved").word, Is.EqualTo("Unsigned"));
