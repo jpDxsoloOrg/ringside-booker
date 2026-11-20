@@ -16,11 +16,26 @@ How I write an entry:
 
 ## Unreleased
 
+## [0.1.0-alpha.2] - 2026-11-20
+
 ### Added
 
 - I added an update check. When a new version is out, a quiet "Update available" chip shows on the
   title screen and in Settings › About. Download and install saves your game, updates it in place
   and keeps your saves. You can turn the check off in Settings › About.
+- I added your own shows. On the Calendar (or your promotion's Shows tab), New show adds a weekly
+  or recurring show or a one-off special, and Manage shows edits or retires them. Before you save,
+  it shows which dates move, and shows you've already booked stay put.
+- I added "Offer a different job" in contract talks. Ask a veteran wrestler to become a manager or
+  announcer, or a manager to step into the ring. They decide, and the Why? says why.
+
+### Fixed
+
+- Workshop world imports put promotions and people in the right country and region. Before, many
+  landed in the biggest region of their continent.
+- Workshop world imports keep yearly shows whose dates were in the year before your start date.
+  The import report now says why any show was left out.
+- Workshop world imports keep part-time wrestlers as wrestlers. Before, some came in as managers.
 
 ## [0.1.0-alpha.1] - 2026-11-20
 
