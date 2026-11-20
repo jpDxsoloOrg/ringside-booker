@@ -60,15 +60,42 @@ The deal (`valueDeal`):
 - \+ **roster needs**: the AIP needs (`aip/formulas/needs.ts`: card-level depth, gender divisions
   with titles, faces against heels, crew) of its roster before and after the trade; the severity
   it loses × `needWeight` (negative when the deal opens a need);
-- \+ cash in, − cash out, ÷ `cashPerPoint`.
+- \+ cash in, − cash out, at the deal's own cash rate (see [Cash](#cash)).
+
+## Cash
+
+Cash is valued against what the workers cost, not at a flat rate, so a rich player can't buy anyone
+(the owner's rule: money should bite).
+
+- **Price of a worker**: their yearly pay × a multiple by card position
+  (`trades.cash.multiple.*`: main event 2.5, upper card 2, mid card 1.5, lower card 1.2,
+  enhancement 1, crew 1; a top star by draft value 3). Pay is the contract's monthly cost (wage, or
+  fee × appearances), at least `trades.cash.marketFloor` × their market value.
+- **The deal's cash rate** (cents per point): the price of every worker in the deal ÷ their points,
+  so cash equal to a worker's price is worth that worker's points.
+- **The rival's finances**: the rate is divided by a factor from its runway (cash ÷ monthly
+  payroll, against `trades.cash.runwayMonths`, power −`financeExponent`), within `financeMin`
+  (rich: cash is worth less) and `financeMax` (cash-poor: worth more).
+- **Never for money**: a rival won't sell a top star (draft value ≥ `trades.value.starValue`), its
+  ace (its best-valued wrestler), or two or more top-card workers (main event, upper card) at once,
+  unless the workers coming back are worth at least `trades.cash.starWorkerShare` of them. The
+  answer says "They won't sell their top star for money" and it refuses (no counter).
+
+Needs the sale opens, the accept margin and the finance factor come on top of the price. The
+market floor defaults to 0.5 (the owner chose "partway up"): default-world wages are far below
+market value, so most prices follow the floor. In the default world a typical midcarder costs
+about 7–11× their yearly pay in cash (2.9–3.8× for the few paid near their worth, up to 13×),
+an enhancement worker 3–16×, and a main eventer who is not the ace 4–12×.
+The preview's lines say what cash is worth ("Cash is worth 1 point per $…") and the Why? has the
+rate's working.
 
 ## Answer
 
 `answer.ts`, `rivalAnswer`. Deterministic: the preview and the next day's answer agree unless the
 world changed.
 
-- **Accept**: worth at least `acceptMargin`, and any cash it sends is within `rivalCashShare` of
-  its cash.
+- **Accept**: worth at least `acceptMargin`, any cash it sends is within `rivalCashShare` of
+  its cash, and no top star goes for money.
 - **Counter**: short by no more than `counterRange` (and fewer than `maxRounds` offers so far).
 - **Refuse**: anything else.
 

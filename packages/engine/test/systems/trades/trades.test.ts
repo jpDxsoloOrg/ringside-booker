@@ -12,7 +12,14 @@ import { TABLES } from '../../../src/model/tables';
 import { tradeAnsweredGate, tradeOfferGate, tradeTunables } from '../../../src/systems/trades';
 import { rivalAnswer } from '../../../src/systems/trades/answer';
 import { hasNoTradeClause, wrestlerSay } from '../../../src/systems/trades/say';
-import { valueDeal, workerPoints } from '../../../src/systems/trades/value';
+import {
+  cashMultiple,
+  cashPayBasis,
+  cashPrice,
+  financeFactor,
+  valueDeal,
+  workerPoints,
+} from '../../../src/systems/trades/value';
 import { TradeWorkerReader } from '../../../src/systems/trades/workers';
 import { offerFromArgs } from '../../../src/systems/trades/views';
 import {
@@ -21,6 +28,7 @@ import {
   PLAYER,
   PLAYER_VIEW,
   run,
+  sidesOf,
   terms,
   tradable,
   tradeGame,
@@ -124,7 +132,12 @@ describe('valuation', () => {
       ),
       game.rival,
     );
-    expect(withCash.score.value - plain.score.value).toBeCloseTo(10, 5); // $250,000 ÷ $25,000 a point
+    // Cash is valued at the deal's own rate: the workers' cash price over their points.
+    expect(withCash.score.value - plain.score.value).toBeCloseTo(
+      (250_000 * DOLLAR) / plain.cashPerPoint,
+      5,
+    );
+    expect(withCash.lines.some((line) => line.startsWith('Cash is worth 1 point per'))).toBe(true);
     expect(plain.lines.some((line) => line.startsWith('They get '))).toBe(true);
     expect(plain.lines.some((line) => line.startsWith('They give up '))).toBe(true);
     expect(plain.score.trace.label).toContain('What the deal is worth to');
@@ -296,6 +309,143 @@ describe('the rival’s answer', () => {
       reasons: [{ code: 'trades.talkOpen' }],
     });
   });
+});
+
+describe('cash', () => {
+  /** The least cash (to $1,000) for which the rival says yes to selling `employmentId` for cash. */
+  function cashNeeded(game: TradeGame, employmentId: EmploymentId): number | null {
+    const yes = (cash: number) =>
+      preview(game, terms(game, [], [employmentId], { give: cash })).rival?.lean === 'yes';
+    let high = 40_000_000 * DOLLAR;
+    if (!yes(high)) {
+      return null;
+    }
+    let low = 0;
+    while (high - low > 1_000 * DOLLAR) {
+      const middle = Math.floor((low + high) / 2);
+      if (yes(middle)) {
+        high = middle;
+      } else {
+        low = middle;
+      }
+    }
+    return high;
+  }
+
+  function yearlyPay(row: { contract: { kind: string; pay: number } }): number {
+    return (row.contract.kind === 'perAppearance' ? row.contract.pay * 4 : row.contract.pay) * 12;
+  }
+
+  it('prices a worker at a multiple of their yearly pay by card level', () => {
+    const game = tradeGame();
+    const world = worldNow(game.engine);
+    const deps = tunables();
+    const reader = new TradeWorkerReader(world, deps, world.meta.currentDate);
+    const multiples = {
+      mainEvent: 2.5,
+      upperCard: 2,
+      midCard: 1.5,
+      lowerCard: 1.2,
+      enhancement: 1,
+    };
+    for (const row of candidates(game.engine, game.rival, game.me)) {
+      const worker = reader.worker(row.employmentId)!;
+      if (worker.push === 'none' || worker.value >= 65) {
+        continue;
+      }
+      expect(cashMultiple(worker, deps)).toBe(multiples[worker.push]);
+      expect(cashPrice(worker, deps)).toBeCloseTo(
+        cashPayBasis(worker, deps) * 12 * multiples[worker.push],
+        6,
+      );
+      expect(cashPayBasis(worker, deps)).toBeGreaterThanOrEqual(worker.monthlyCost);
+    }
+  });
+
+  it('buying with cash costs the multiple of yearly pay, before needs, margin and finances', () => {
+    // Needs, the margin and the rival's finances switched off: the price is the multiple exactly.
+    const game = tradeGame({
+      'trades.value.needWeight': 0,
+      'trades.answer.acceptMargin': 0,
+      'trades.cash.financeMin': 1,
+      'trades.cash.financeMax': 1,
+      'trades.cash.marketFloor': 0,
+    });
+    const rows = tradable(candidates(game.engine, game.rival, game.me));
+    const checked = { midCard: 1.5, enhancement: 1 } as const;
+    for (const push of ['midCard', 'enhancement'] as const) {
+      const row = rows.find((candidate) => candidate.push === push && candidate.value < 65)!;
+      const needed = cashNeeded(game, row.employmentId)!;
+      expect(needed / yearlyPay(row)).toBeGreaterThan(checked[push] * 0.9);
+      expect(needed / yearlyPay(row)).toBeLessThan(checked[push] * 1.1 + 0.2);
+    }
+  });
+
+  it('values cash more for a cash-poor rival and less for a rich one, within limits', () => {
+    const game = tradeGame();
+    const world = worldNow(game.engine);
+    const deps = tunables();
+    const factors = world.tables.promotions
+      .values()
+      .filter((row) => row.controller.kind === 'computer')
+      .map((row) => financeFactor(world, deps, row.id).factor);
+    expect(Math.min(...factors)).toBeGreaterThanOrEqual(0.85);
+    expect(Math.max(...factors)).toBeLessThanOrEqual(1.5);
+    expect(Math.max(...factors)).toBeGreaterThan(Math.min(...factors));
+  });
+
+  it('in the default world: midcarders cost about 6-12 years of pay, and $40M never buys a top star or ace', () => {
+    const engine = tradeEngine(tradeState());
+    const promotions = engine.exportState().world.tables.promotions;
+    const rivals = promotions.filter(
+      (row) => row.controller.kind === 'computer' && row.status === 'active',
+    );
+    const multiples: number[] = [];
+    let topCards = 0;
+    rivals.forEach((_rival, index) => {
+      const game = { engine, ...sidesOf(engine, index) };
+      const rows = candidates(engine, game.rival, game.me).filter(
+        (row) => row.tradable && !row.noTradeClause && row.role === 'wrestler',
+      );
+      // The top card: every main eventer and upper carder who can be traded. Two or more of
+      // them for all your money is still a no.
+      const top = rows
+        .filter((row) => row.push === 'mainEvent' || row.push === 'upperCard')
+        .map((row) => row.employmentId);
+      if (top.length >= 2) {
+        const all = preview(game, terms(game, [], top, { give: 40_000_000 * DOLLAR })).rival!;
+        expect(all.likely).toBe('refuse');
+        expect(all.lines.join(' ')).toMatch(/won't sell their top star for money/);
+        topCards += 1;
+      }
+      // Their ace (the best wrestler on the roster) alone, too, when they can be traded.
+      const ace = candidates(engine, game.rival, game.me).find((row) => row.role === 'wrestler');
+      if (ace?.tradable === true && !ace.noTradeClause) {
+        const answer = preview(
+          game,
+          terms(game, [], [ace.employmentId], { give: 40_000_000 * DOLLAR }),
+        ).rival!;
+        expect(answer.likely).toBe('refuse');
+      }
+      const mid = rows.find(
+        (row) => row.push === 'midCard' && row.employmentId !== rows[0]!.employmentId,
+      );
+      if (mid !== undefined) {
+        const needed = cashNeeded(game, mid.employmentId);
+        expect(needed).not.toBeNull();
+        multiples.push(needed! / yearlyPay(mid));
+      }
+    });
+    // Well-paid midcarders cost less (their contract is above the market floor); the typical one
+    // costs 6-12 years of pay, and none is cheap.
+    multiples.sort((left, right) => left - right);
+    expect(multiples.length).toBeGreaterThan(3);
+    const median = multiples[Math.floor(multiples.length / 2)]!;
+    expect(median).toBeGreaterThanOrEqual(6);
+    expect(median).toBeLessThanOrEqual(12);
+    expect(multiples[0]).toBeGreaterThan(2);
+    expect(topCards).toBeGreaterThan(2);
+  }, 120_000);
 });
 
 describe('the rules', () => {
@@ -678,7 +828,7 @@ describe('docs', () => {
     );
     for (const [key, def] of Object.entries(tradeTunables)) {
       expect(table, key).toContain(`\`${key}\``);
-      const anchor = def.docRef?.split('#')[1];
+      const anchor = def.docRef.split('#')[1];
       expect(anchors, `${key} → ${String(anchor)}`).toContain(anchor);
     }
   });
