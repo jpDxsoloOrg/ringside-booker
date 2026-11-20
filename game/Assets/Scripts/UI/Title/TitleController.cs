@@ -64,6 +64,10 @@ namespace RingsideBooker.UI.Title
             WhatsNewStyles.Apply(root);
             Label badge = ChannelBadge.Create("rb-channel-badge--title");
             if (badge != null) root.Q<VisualElement>(className: "title-wordmark")?.Add(badge);
+            // The app icon (ring B) above the wordmark.
+            VisualElement wordmark = root.Q<VisualElement>(className: "title-wordmark");
+            VisualElement icon = RingsideBooker.UI.Design.BrandIcon.Create(RingsideBooker.UI.Design.BrandIcon.Large, 96, "title-icon");
+            if (icon != null && wordmark?.parent != null) wordmark.parent.Insert(wordmark.parent.IndexOf(wordmark), icon);
 
             Label version = root.Q<Label>("title-version");
             ReleaseInfo.Stamp stamp = ReleaseInfo.Current;

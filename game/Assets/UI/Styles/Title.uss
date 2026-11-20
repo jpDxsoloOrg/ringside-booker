@@ -139,3 +139,9 @@
 .title-settings-scroll .settings-group {
     flex-shrink: 0;
 }
+
+/* The app icon (ring B) above the wordmark. */
+.title-icon {
+    margin-bottom: var(--space-4);
+    margin-left: -2px;
+}

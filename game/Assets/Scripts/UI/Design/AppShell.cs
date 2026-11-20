@@ -76,11 +76,21 @@ namespace RingsideBooker.UI.Design
             Scroll = root.Q<ScrollView>("ds-scroll");
             Overlay = new OverlayLayer(root.Q<VisualElement>(OverlayLayer.ElementName));
 
+            // The app icon (ring B) in the mark's old 38×26 box; the red "RB" shape if it is missing.
             VisualElement mark = root.Q<VisualElement>("ds-brand-mark");
-            var markShape = new SkewShape();
-            markShape.AddToClassList("ds-brand__mark-shape");
-            markShape.Add(Ui.Text("RB", "ds-brand__mark-text"));
-            mark.Add(markShape);
+            VisualElement icon = BrandIcon.Create(BrandIcon.Small, 32, "ds-brand__mark-icon");
+            if (icon != null)
+            {
+                mark.AddToClassList("ds-brand__mark--icon");
+                mark.Add(icon);
+            }
+            else
+            {
+                var markShape = new SkewShape();
+                markShape.AddToClassList("ds-brand__mark-shape");
+                markShape.Add(Ui.Text("RB", "ds-brand__mark-text"));
+                mark.Add(markShape);
+            }
             root.Q<VisualElement>("ds-brand").AddManipulator(new Clickable(() => navigate?.Invoke(NavigationModel.HomeItemId)));
             // The quiet ALPHA/BETA badge after the words (POL9-10); hidden when the sidebar is collapsed.
             WhatsNew.WhatsNewStyles.Apply(root);
