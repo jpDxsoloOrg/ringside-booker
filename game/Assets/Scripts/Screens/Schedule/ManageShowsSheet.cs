@@ -51,7 +51,7 @@ namespace RingsideBooker.Screens.Schedule
             Button close = Ds.Button("Close", () => sheet.handle?.Close(), DsButtonKind.Ghost);
             close.name = "manage-close";
             sheet.footer.Add(close);
-            sheet.handle = ScheduleEditor.Sheet(context, "Your shows", sheet.body, sheet.footer, "Schedule", 820f, "schedule-manage");
+            sheet.handle = ScheduleEditor.Sheet(context, "Your shows", sheet.body, sheet.footer, "Schedule", 900f, "schedule-manage");
             if (sheet.handle == null) return;
             EngineClient client = Kit.Game.Client;
             void Changed(long revision) => _ = sheet.Render();
@@ -102,24 +102,17 @@ namespace RingsideBooker.Screens.Schedule
             {
                 new DsColumn<JToken>("name", "Show", row =>
                 {
-                    VisualElement cell = Ds.Column("sc-show-cell");
-                    cell.Add(Ds.Text(Kit.Str(row, "name"), "sc-show-cell__name"));
-                    string brand = Kit.Str(row, "brandName");
-                    cell.Add(Ds.Text(brand ?? "Whole promotion", "sc-show-cell__brand"));
-                    return cell;
-                }) { Grow = 2f, MinWidth = 170, Pinned = true, SortKey = row => Kit.Str(row, "name") },
-                new DsColumn<JToken>("runs", "Runs", row => Cell(Kit.Str(row, "recurrenceText"))) { Grow = 1.8f, MinWidth = 160 },
-                new DsColumn<JToken>("size", "Size", row =>
-                {
-                    VisualElement cell = Ds.Column("sc-size-cell");
-                    string importance = Kit.Str(row, "importance");
-                    cell.Add(importance == "major" || importance == "flagship" ? Ds.Tag(W.Words(importance), "gold") : Ds.Tag(W.Words(importance)));
-                    cell.Add(Ds.Text(ScheduleEditor.SizeWords(Kit.Num(row, "format.slots"), Kit.Num(row, "format.preShowSlots")), "sc-show-cell__brand"));
-                    return cell;
-                }) { Grow = 1.2f, MinWidth = 120 },
-                new DsColumn<JToken>("next", "Next", row => Cell(Kit.Str(row, "nextDate") is string next ? Kit.Date(next, true) : "—")) { Grow = 1.1f, MinWidth = 110, SortKey = row => Kit.Str(row, "nextDate") ?? "9999" },
-                new DsColumn<JToken>("state", "State", row => StatePill(row)) { Grow = 1f, MinWidth = 100 },
-                new DsColumn<JToken>("actions", string.Empty, row => Actions(row)) { Grow = 1.3f, MinWidth = 170 },
+                    Label name = Ds.Text(Kit.Str(row, "name"), "sc-show-cell__name");
+                    DsTooltip.Attach(name, Kit.Str(row, "brandName") ?? "Whole promotion", Kit.Str(row, "name"));
+                    return name;
+                }) { Grow = 2f, MinWidth = 180, Pinned = true, SortKey = row => Kit.Str(row, "name") },
+                new DsColumn<JToken>("runs", "Runs", row => Cell(Kit.Str(row, "recurrenceText"))) { Grow = 1.8f, MinWidth = 170 },
+                new DsColumn<JToken>("size", "Size", row => Cell($"{W.Words(Kit.Str(row, "importance"))} · {ScheduleEditor.SizeWords(Kit.Num(row, "format.slots"), Kit.Num(row, "format.preShowSlots"))}"))
+                    { Grow = 1.6f, MinWidth = 190 },
+                new DsColumn<JToken>("brand", "Brand", row => Cell(Kit.Str(row, "brandName") ?? "Whole promotion")) { Grow = 1.2f, MinWidth = 120, Default = false },
+                new DsColumn<JToken>("next", "Next", row => Cell(Kit.Str(row, "nextDate") is string next ? DayMonth(next, true) : "—")) { Grow = 1f, MinWidth = 100, SortKey = row => Kit.Str(row, "nextDate") ?? "9999" },
+                new DsColumn<JToken>("state", "State", row => StatePill(row)) { Grow = 1.1f, MinWidth = 120 },
+                new DsColumn<JToken>("actions", string.Empty, row => Actions(row)) { Grow = 0.8f, MinWidth = 84 },
             };
             var table = new DsTable<JToken>(columns, Rows) { name = "manage-table" };
             body.Add(table);
@@ -132,17 +125,24 @@ namespace RingsideBooker.Screens.Schedule
             return label;
         }
 
+        /// <summary>"7 Jan", or "Thu 7 Jan" with the weekday.</summary>
+        private static string DayMonth(string iso, bool weekday = false)
+        {
+            if (!GameDate.TryParse(iso, out GameDate date)) return iso ?? "—";
+            return weekday ? UpcomingDates.ShortDay(date) : $"{date.Day} {RecurrenceValue.MonthShort[date.Month - 1]}";
+        }
+
         private static VisualElement StatePill(JToken row)
         {
             switch (Kit.Str(row, "state"))
             {
                 case "retired":
-                    return Ds.Pill(DsState.Neutral, Kit.Str(row, "activeUntil") is string until ? $"Ended {Kit.Date(until)}" : "Retired", "stop");
+                    return Ds.Pill(DsState.Neutral, Kit.Str(row, "activeUntil") is string until ? $"Ended {DayMonth(until)}" : "Retired", "stop");
                 case "starts":
-                    return Ds.Pill(DsState.Info, $"Starts {Kit.Date(Kit.Str(row, "activeFrom"))}", "calendar");
+                    return Ds.Pill(DsState.Info, $"Starts {DayMonth(Kit.Str(row, "activeFrom"))}", "calendar");
                 default:
                     return Kit.Str(row, "activeUntil") is string last
-                        ? Ds.Pill(DsState.Warn, $"Ends {Kit.Date(last)}", "warning")
+                        ? Ds.Pill(DsState.Warn, $"Ends {DayMonth(last)}", "warning")
                         : Ds.Pill(DsState.Good, "Running", "check");
             }
         }
@@ -152,10 +152,10 @@ namespace RingsideBooker.Screens.Schedule
             VisualElement cell = Ds.Row("sc-actions");
             if (!Kit.Bool(row, "editable")) return cell;
             string id = Kit.Str(row, "eventDefinitionId");
-            Button edit = Ds.Button("Edit", () => DefinitionEditorSheet.Open(context, promotionId, row), DsButtonKind.Ghost, "edit");
+            Button edit = Ds.IconButton("edit", "Edit this show", () => DefinitionEditorSheet.Open(context, promotionId, row));
             edit.name = $"manage-edit-{id}";
             cell.Add(edit);
-            Button retire = Ds.Button("Retire…", () => RetireShowDialog.Open(context, row), DsButtonKind.Ghost, "trash");
+            Button retire = Ds.IconButton("trash", "Retire this show…", () => RetireShowDialog.Open(context, row));
             retire.name = $"manage-retire-{id}";
             cell.Add(retire);
             return cell;

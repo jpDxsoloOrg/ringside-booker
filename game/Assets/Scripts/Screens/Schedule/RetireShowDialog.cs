@@ -158,7 +158,7 @@ namespace RingsideBooker.Screens.Schedule
                 preview.Add(Ds.SectionHeader("These dates come off the calendar"));
                 preview.Add(Ds.Text(ScheduleEditor.DateList(removed, 8), "sc-date-list").Named("retire-removed"));
             }
-            else preview.Add(Ds.Text("No booked dates come off the calendar.", "dsf-hint"));
+            else preview.Add(Ds.Text("No upcoming dates come off the calendar.", "dsf-hint"));
             if (kept.Count > 0)
             {
                 preview.Add(Ds.SectionHeader("These stay because they are already booked or run"));
