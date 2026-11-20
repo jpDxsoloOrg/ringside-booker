@@ -208,6 +208,11 @@ export const MIN_DEBUT_AGE = 14;
 /** The potential scale is a placeholder that the WRK epic may change with a migration. */
 export const POTENTIAL_MIN = -1000;
 export const POTENTIAL_MAX = 1000;
+/** Free-text bio and move names (optional profile flavour, e.g. from an imported league roster). */
+export const BIO_MAX_LENGTH = 600;
+export const MOVE_NAME_MAX_LENGTH = 60;
+export const MAX_FINISHERS = 6;
+export const MAX_SIGNATURES = 8;
 
 // ---------------------------------------------------------------------------------------------
 // Sub-schemas
@@ -301,6 +306,15 @@ export const TraitsSchema = z
     }
   });
 
+/** Named finishers and signature moves, shown on the worker profile. Flavour only: no rules use them. */
+export const MovesSchema = z.strictObject({
+  finishers: z.array(z.string().min(1).max(MOVE_NAME_MAX_LENGTH)).max(MAX_FINISHERS),
+  signatures: z.array(z.string().min(1).max(MOVE_NAME_MAX_LENGTH)).max(MAX_SIGNATURES),
+});
+export type Moves = z.infer<typeof MovesSchema>;
+
+export const BioSchema = z.string().min(1).max(BIO_MAX_LENGTH);
+
 export const VicesSchema = z.strictObject({
   alcohol: ViceStateSchema,
   substances: ViceStateSchema,
@@ -362,6 +376,10 @@ export const PersonSchema = z
     regionalPop: RegionalPopSchema,
     traits: TraitsSchema,
     vices: VicesSchema,
+
+    // Profile flavour. Optional and left out when unknown, so older saves and packs stay valid.
+    bio: BioSchema.optional(),
+    moves: MovesSchema.optional(),
   })
   .superRefine((person, context) => {
     if (person.debutDate !== null) {

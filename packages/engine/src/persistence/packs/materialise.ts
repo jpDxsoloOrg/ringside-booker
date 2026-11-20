@@ -466,6 +466,11 @@ function toPerson(
     regionalPop: resolve.regionalPop(record.regionalPop),
     traits: record.traits,
     vices: record.vices,
+    // Only present when the pack has them, so people without a bio or moves keep their old shape.
+    ...(record.bio === undefined ? {} : { bio: record.bio }),
+    ...(record.moves === undefined
+      ? {}
+      : { moves: { finishers: [...record.moves.finishers], signatures: [...record.moves.signatures] } }),
   };
 }
 
@@ -493,7 +498,7 @@ function toEmployment(
     push: record.push,
     terms: contractTerms(record.terms),
     morale: record.morale ?? 0,
-    momentum: null,
+    momentum: record.momentum ?? null,
     appearancesThisYear: 0,
     lastAppearanceOn: null,
     leave: null,
