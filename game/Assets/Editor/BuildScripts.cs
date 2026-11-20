@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Linq;
 using RingsideBooker;
+using RingsideBooker.Release;
+using UnityEditor.Build;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
@@ -16,17 +18,28 @@ public static class BuildScripts
     public const string BootScenePath = "Assets/Scenes/Boot.unity";
     private const string WindowsOutput = "Builds/Windows/RingsideBooker.exe";
 
-    /// <summary>The version a build gets without <c>-rbVersion</c>.</summary>
-    public const string DevVersion = "0.1.0-dev";
     public const string VersionArgument = "-rbVersion";
     private const string LicensesFolder = "Assets/StreamingAssets/licenses";
+    private const string VersionFile = "Assets/StreamingAssets/" + ReleaseInfo.FileName;
+    private const string ChangelogCopy = "Assets/StreamingAssets/" + ReleaseNotes.FileName;
+    private const string IconFolder = "Assets/UI/AppIcon";
+
+    /// <summary>Product name in the player settings (window, exe details, persistentDataPath).</summary>
+    public const string ProductName = "Ringside Booker";
+
+    /// <summary>
+    /// Company name. It is also the persistentDataPath folder (LocalLow/&lt;company&gt;/&lt;product&gt;)
+    /// where saves and PlayerPrefs live, so changing it would hide every tester's saves.
+    /// </summary>
+    public const string CompanyName = "jpDxsolo";
 
     /// <summary>
     /// Builds the Windows 64-bit player to game/Builds/Windows/RingsideBooker.exe. The version
-    /// (<c>Application.version</c>, shown on the title screen) comes from <c>-rbVersion &lt;v&gt;</c>
-    /// (game/tools/package-windows.sh passes <c>0.1.0-u1+&lt;sha&gt;</c>) and is not saved into the
-    /// project. The third-party notices are staged into StreamingAssets/licenses (the title's
-    /// Settings › Credits &amp; licences reads them), and no source map ships in the player.
+    /// (<c>Application.version</c>) comes from StreamingAssets/version.json when the package script
+    /// wrote one, else from <c>-rbVersion &lt;v&gt;</c>, else the project's bundleVersion; it is set
+    /// for the build only. The identity (product, company, icon) is applied, the third-party
+    /// notices are staged into StreamingAssets/licenses and the repo's CHANGELOG.md into
+    /// StreamingAssets (What's new reads it), and no source map ships in the player.
     /// </summary>
     public static void BuildWindows()
     {
@@ -35,7 +48,7 @@ public static class BuildScripts
         string projectRoot = Directory.GetParent(Application.dataPath).FullName;
         string outputPath = Path.Combine(projectRoot, WindowsOutput);
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
-        string version = CommandLineValue(VersionArgument) ?? DevVersion;
+        string version = VersionFromFile(projectRoot) ?? CommandLineValue(VersionArgument) ?? PlayerSettings.bundleVersion;
 
         if (!File.Exists(Path.Combine(Application.streamingAssetsPath, "engine", "engine.js")))
         {
@@ -45,6 +58,8 @@ public static class BuildScripts
             return;
         }
         StageLicenses(projectRoot);
+        StageChangelog(projectRoot);
+        ApplyIdentity();
 
         var options = new BuildPlayerOptions
         {
@@ -76,6 +91,76 @@ public static class BuildScripts
         {
             EditorApplication.Exit(summary.result == BuildResult.Succeeded ? 0 : 1);
         }
+    }
+
+    /// <summary>The version in StreamingAssets/version.json (written by package-windows.sh), or null.</summary>
+    private static string VersionFromFile(string projectRoot)
+    {
+        string path = Path.Combine(projectRoot, VersionFile);
+        if (!File.Exists(path)) return null;
+        ReleaseInfo.Stamp stamp = ReleaseInfo.Stamp.Parse(File.ReadAllText(path), null);
+        if (string.IsNullOrEmpty(stamp.Version) || stamp.Channel == ReleaseInfo.ChannelLocal)
+        {
+            Debug.LogWarning($"[BuildScripts] {VersionFile} has no version or channel; ignoring it");
+            return null;
+        }
+        Debug.Log($"[BuildScripts] Version {stamp.Version} ({stamp.Channel}) from {VersionFile}");
+        return stamp.Version;
+    }
+
+    /// <summary>
+    /// The game's identity in the player settings (POL9-10): product and company name and the app
+    /// icon (Assets/UI/AppIcon, rendered by game/tools/icon/build-app-icon.mjs) for every size the
+    /// Windows player asks for, plus the default icon. Saves the project settings.
+    /// </summary>
+    [MenuItem("Ringside Booker/Apply Game Identity")]
+    public static void ApplyIdentity()
+    {
+        PlayerSettings.productName = ProductName;
+        PlayerSettings.companyName = CompanyName;
+
+        Texture2D largest = LoadIcon(256);
+        if (largest == null)
+        {
+            Debug.LogWarning($"[BuildScripts] No app icon in {IconFolder}; the player keeps Unity's icon");
+            return;
+        }
+        PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { largest }, IconKind.Any);
+        int[] sizes = PlayerSettings.GetIconSizes(NamedBuildTarget.Standalone, IconKind.Application);
+        Texture2D[] icons = sizes.Select(size => LoadIcon(size) ?? largest).ToArray();
+        PlayerSettings.SetIcons(NamedBuildTarget.Standalone, icons, IconKind.Application);
+        AssetDatabase.SaveAssets();
+        Debug.Log($"[BuildScripts] Identity: {ProductName} by {CompanyName}, icon sizes {string.Join(",", sizes)}");
+    }
+
+    /// <summary>AppIcon-&lt;size&gt;.png, or the nearest larger size, or null.</summary>
+    private static Texture2D LoadIcon(int size)
+    {
+        int[] available = { 16, 32, 48, 64, 128, 256, 512, 1024 };
+        foreach (int candidate in available.Where(each => each >= size))
+        {
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>($"{IconFolder}/AppIcon-{candidate}.png");
+            if (texture != null) return texture;
+        }
+        return null;
+    }
+
+    /// <summary>Copies the repo's CHANGELOG.md into StreamingAssets (generated, gitignored) for What's new.</summary>
+    [MenuItem("Ringside Booker/Stage Changelog")]
+    public static void StageChangelog() => StageChangelog(Directory.GetParent(Application.dataPath).FullName);
+
+    private static void StageChangelog(string projectRoot)
+    {
+        string source = Path.GetFullPath(Path.Combine(projectRoot, "..", ReleaseNotes.FileName));
+        string target = Path.Combine(projectRoot, ChangelogCopy);
+        if (!File.Exists(source))
+        {
+            Debug.LogWarning($"[BuildScripts] {source} is missing; What's new will be empty");
+            return;
+        }
+        File.Copy(source, target, true);
+        AssetDatabase.Refresh();
+        Debug.Log($"[BuildScripts] Staged {ReleaseNotes.FileName} in StreamingAssets");
     }
 
     /// <summary>The value after <paramref name="name"/> on the command line, or null.</summary>

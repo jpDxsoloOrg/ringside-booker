@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using RingsideBooker.Release;
 using RingsideBooker.UI.Demo;
 using RingsideBooker.UI.Shell;
+using RingsideBooker.UI.WhatsNew;
 using RingsideBooker.UI.Widgets;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -30,7 +32,7 @@ namespace RingsideBooker.UI.Title
             overlay = new OverlayLayer(root.Q<VisualElement>(OverlayLayer.ElementName));
             panel = root.Q<VisualElement>("title-panel");
             root.Q<VisualElement>("title-stripe").Add(GradientStripe.Flame(1f));
-            root.Q<Label>("title-version").text = $"v{Application.version} · Unity {Application.unityVersion}";
+            SetUpRelease(root);
 
             saves = new TitleSaves(ResetPanel, overlay, GoToNewGame);
 
@@ -47,6 +49,43 @@ namespace RingsideBooker.UI.Title
             Select(menu[0]);
             ShowNewGame();
             menu[0].schedule.Execute(() => menu[0].Focus());
+        }
+
+        /// <summary>
+        /// The channel badge next to the wordmark, the version line (a link to What's new), and What's
+        /// new opening by itself once per new version (POL9-01/10).
+        /// </summary>
+        private void SetUpRelease(VisualElement root)
+        {
+            WhatsNewStyles.Apply(root);
+            Label badge = ChannelBadge.Create("rb-channel-badge--title");
+            if (badge != null) root.Q<VisualElement>(className: "title-wordmark")?.Add(badge);
+
+            Label version = root.Q<Label>("title-version");
+            ReleaseInfo.Stamp stamp = ReleaseInfo.Current;
+            version.text = TitleVersionLine(stamp);
+            version.tooltip = "What's new in this version";
+            version.focusable = true;
+            version.AddToClassList("title-version--link");
+            version.AddManipulator(new Clickable(() => WhatsNewSheet.Open(version)));
+            version.RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (evt.keyCode != KeyCode.Return && evt.keyCode != KeyCode.KeypadEnter && evt.keyCode != KeyCode.Space) return;
+                WhatsNewSheet.Open(version);
+                evt.StopPropagation();
+            });
+
+            if (!WhatsNewState.IsDevRun && WhatsNewState.CheckOnStart(ReleaseNotes.ForThisBuild().HasContent))
+            {
+                version.schedule.Execute(() => WhatsNewSheet.Open(version)).ExecuteLater(300);
+            }
+        }
+
+        /// <summary>"Alpha 0.1.0 (1) · 1a2b3c4d · What's new" (no commit on a local build).</summary>
+        public static string TitleVersionLine(ReleaseInfo.Stamp stamp)
+        {
+            string commit = string.IsNullOrEmpty(stamp.ShortCommit) ? string.Empty : $" · {stamp.ShortCommit}";
+            return $"{stamp.Label}{commit} · What's new";
         }
 
         private void Update()

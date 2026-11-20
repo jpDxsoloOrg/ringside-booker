@@ -82,6 +82,10 @@ namespace RingsideBooker.UI.Design
             markShape.Add(Ui.Text("RB", "ds-brand__mark-text"));
             mark.Add(markShape);
             root.Q<VisualElement>("ds-brand").AddManipulator(new Clickable(() => navigate?.Invoke(NavigationModel.HomeItemId)));
+            // The quiet ALPHA/BETA badge after the words (POL9-10); hidden when the sidebar is collapsed.
+            WhatsNew.WhatsNewStyles.Apply(root);
+            Label channel = WhatsNew.ChannelBadge.Create("rb-channel-badge--sidebar");
+            if (channel != null) root.Q<VisualElement>("ds-brand").Add(channel);
 
             VisualElement footer = root.Q<VisualElement>("ds-sidebar-footer");
             footer.Add(Link("settings", "Settings", "settings", null, () => navigate?.Invoke("settings")));
