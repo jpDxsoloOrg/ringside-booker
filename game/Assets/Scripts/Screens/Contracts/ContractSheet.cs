@@ -205,6 +205,13 @@ namespace RingsideBooker.Screens.Contracts
                     footer.Add(renew);
                 }
             }
+            // A different job can be offered any time the contract is yours (UNITY-38).
+            if (live && Kit.Str(detail, "promotionId") == promotionId && !insideWindow && renewalTalks == null)
+            {
+                Button job = Ds.Button(ContractText.OfferJobLabel, () => NegotiationSheet.Open(anchor, NegotiationTarget.JobChange(employmentId)), DsButtonKind.Ghost, "users");
+                job.name = "contract-job";
+                footer.Add(job);
+            }
             footer.Add(Ds.Spacer());
             if (!openRequest)
             {

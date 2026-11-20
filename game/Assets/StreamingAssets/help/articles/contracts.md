@@ -26,6 +26,10 @@ They might sign, turn you down or come back with a counter-offer. You can accept
 
 **Renew** works in the last stretch before a contract ends. Before that, the button is greyed out and says when talks open.
 
+## A different job
+
+You can offer someone on your roster a different job at any time: a manager can get a shot in the ring, or a wrestler can move to managing or commentary. Open their contract and press **Offer a different job** (in renewal talks, it sits at the top of your offer). Pick the job, and you'll see their answer straight away. Hover **Why?** to see what it's based on: how good they'd be at it, their age and health, how happy they are, and the pay and spotlight. They give their final answer after the next day.
+
 ## Letting people go
 
 Open a contract and press **Release**. You pay severance, and the sheet shows how much and what's left in the bank.

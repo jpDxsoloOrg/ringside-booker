@@ -10,6 +10,18 @@ namespace RingsideBooker.Tests.Contracts
     public sealed class ContractTextTests
     {
         [Test]
+        public void JobChoiceNamesTheJobTheyHaveAndCrewHaveNoCardPosition()
+        {
+            Assert.AreEqual("Manager (now)", ContractText.JobChoiceLabel("manager", "manager"));
+            Assert.AreEqual("Wrestler", ContractText.JobChoiceLabel("wrestler", "manager"));
+            CollectionAssert.AreEqual(new[] { "wrestler", "manager", "announcer", "presenter", "referee", "producer" }, ContractText.JobRoles);
+            Assert.IsTrue(ContractText.IsCrewJob("announcer"));
+            Assert.IsTrue(ContractText.IsCrewJob("referee"));
+            Assert.IsFalse(ContractText.IsCrewJob("manager"));
+            Assert.IsFalse(ContractText.IsCrewJob("wrestler"));
+        }
+
+        [Test]
         public void WageTextJoinsWageAndFee()
         {
             Assert.AreEqual("$8,000/mo", ContractText.WageText(JObject.Parse("{\"monthlyWage\":800000,\"perAppearanceFee\":0}")));
