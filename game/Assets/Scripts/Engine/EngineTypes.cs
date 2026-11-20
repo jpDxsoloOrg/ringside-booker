@@ -144,7 +144,18 @@ namespace RingsideBooker.Engine
         public LocalSeat Seat { get; set; }
         public string PromotionName { get; set; }
         public string GameDate { get; set; }
-        public List<string> MigrationsApplied { get; set; } = new List<string>();
+        /// <summary>The save-format upgrades that ran on load, oldest first (empty for a current save).</summary>
+        public List<AppliedMigration> MigrationsApplied { get; set; } = new List<AppliedMigration>();
+    }
+
+    /// <summary>One save-format upgrade that ran on load (the engine's <c>AppliedMigration</c>).</summary>
+    public sealed class AppliedMigration
+    {
+        public int From { get; set; }
+        public int To { get; set; }
+
+        /// <summary>What it changed, in words ("Adds venue capacity").</summary>
+        public string Title { get; set; }
     }
 
     /// <summary>

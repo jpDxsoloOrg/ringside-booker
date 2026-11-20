@@ -46,6 +46,9 @@ namespace RingsideBooker.UI.Title
 
             Select(menu[0]);
             ShowNewGame();
+            // After a crash loop (or the crash screen's Start safe), open on the safe-start choices.
+            if (Diagnostics.CrashGuard.ShouldOfferSafeStart) ShowSafeStart();
+            Crash.FeedbackUi.AddToTitle(root);
             menu[0].schedule.Execute(() => menu[0].Focus());
         }
 
@@ -116,6 +119,12 @@ namespace RingsideBooker.UI.Title
             demo.name = "start-demo";
             demo.style.marginTop = 16;
             inner.Add(demo);
+        }
+
+        private void ShowSafeStart()
+        {
+            VisualElement inner = ResetPanel("Start safe");
+            inner.Add(Crash.SafeStartPanel.Build(GoToNewGame));
         }
 
         private void ShowSettings()

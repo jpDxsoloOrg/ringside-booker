@@ -1,0 +1,315 @@
+/*
+ * The engine-stopped screen, the load notice banner, safe start and Send feedback (UNITY-24,
+ * POL1-02, POL9-10). The look comes from the UNITY-11 ds- tokens and components; cx- classes only
+ * place things. Loaded at run time by CrashStyles.Apply (Resources "Crash/Crash").
+ * Rows never shrink (UNITY-13 layout rule).
+ */
+
+/* ---- Engine stopped ------------------------------------------------------------------------- */
+
+.cx-stopped {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--ds-elev-0);
+}
+
+.cx-stopped__scroll {
+    flex-grow: 1;
+}
+
+.cx-stopped__scroll > .unity-scroll-view__content-viewport > .unity-scroll-view__content-container {
+    align-items: center;
+    padding: 48px 24px;
+}
+
+.cx-stopped__card {
+    flex-shrink: 0;
+    width: 760px;
+    max-width: 100%;
+    padding: 32px 36px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-top-width: 3px;
+    border-top-color: var(--ds-warn);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-elev-1);
+}
+
+.cx-stopped__icon {
+    flex-shrink: 0;
+    color: var(--ds-warn);
+    margin-bottom: 12px;
+}
+
+.cx-stopped__title {
+    flex-shrink: 0;
+    font-size: 40px;
+    color: var(--ds-text);
+    margin-bottom: 8px;
+}
+
+.cx-stopped__body {
+    flex-shrink: 0;
+    font-size: 17px;
+    color: var(--ds-text-2);
+    white-space: normal;
+    margin-bottom: 8px;
+}
+
+.cx-stopped__save {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: var(--ds-text-3);
+    white-space: normal;
+    margin-bottom: 4px;
+}
+
+.cx-stopped__actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    margin-top: 20px;
+}
+
+.cx-stopped__actions > .ds-btn {
+    margin-right: 12px;
+    margin-bottom: 8px;
+}
+
+.cx-stopped__status {
+    flex-shrink: 0;
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+.cx-stopped__status--problem {
+    color: var(--ds-bad);
+}
+
+.cx-stopped__more {
+    flex-shrink: 0;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top-width: 1px;
+    border-top-color: var(--ds-line-subtle);
+}
+
+.cx-stopped__more-title {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--ds-text-3);
+    margin-bottom: 8px;
+}
+
+.cx-stopped__more-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.cx-stopped__more-row > .ds-btn {
+    margin-right: 8px;
+    margin-bottom: 6px;
+}
+
+.cx-stopped__details-toggle {
+    align-self: flex-start;
+    margin-top: 16px;
+}
+
+.cx-stopped__details {
+    flex-shrink: 0;
+    margin-top: 8px;
+    padding: 12px;
+    font-size: 12px;
+    color: var(--ds-text-2);
+    white-space: normal;
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-0);
+}
+
+/* ---- Load notice banner --------------------------------------------------------------------- */
+
+.cx-load-notice-slot {
+    flex-shrink: 0;
+}
+
+.cx-load-notice {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+    padding: 6px 8px 6px 14px;
+    border-width: 1px;
+    border-color: var(--ds-line);
+    border-left-width: 3px;
+    border-left-color: var(--ds-state);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-1);
+}
+
+.cx-load-notice__row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cx-load-notice__icon {
+    flex-shrink: 0;
+    color: var(--ds-state);
+    margin-right: 10px;
+}
+
+.cx-load-notice__headline {
+    flex-grow: 1;
+    flex-shrink: 1;
+    font-size: 14px;
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.cx-load-notice__details {
+    flex-shrink: 0;
+    padding: 4px 0 8px 30px;
+}
+
+.cx-load-notice__line {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: var(--ds-text-2);
+    white-space: normal;
+    margin-bottom: 2px;
+}
+
+/* ---- Send feedback -------------------------------------------------------------------------- */
+
+.cx-feedback {
+    flex-shrink: 0;
+}
+
+.cx-feedback__buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cx-feedback__buttons > .ds-btn {
+    margin-right: 8px;
+    margin-bottom: 6px;
+}
+
+.cx-feedback__status {
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.cx-feedback__result {
+    flex-shrink: 0;
+    padding: 10px 12px;
+    border-left-width: 3px;
+    border-left-color: var(--ds-info);
+    border-radius: var(--ds-radius-sm);
+    background-color: var(--ds-elev-0);
+}
+
+.cx-feedback__lead {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: var(--ds-text);
+    white-space: normal;
+}
+
+.cx-feedback__path {
+    flex-shrink: 0;
+    margin: 6px 0;
+    font-size: 12px;
+    color: var(--ds-text-2);
+    white-space: normal;
+}
+
+.cx-feedback__hint {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.cx-feedback__problem {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: var(--ds-warn);
+    white-space: normal;
+}
+
+.cx-feedback--title {
+    margin-top: 16px;
+}
+
+/* ---- Safe start ----------------------------------------------------------------------------- */
+
+.cx-safe {
+    flex-shrink: 0;
+    max-width: 760px;
+}
+
+.cx-safe__lead {
+    flex-shrink: 0;
+    font-size: 17px;
+    color: var(--ds-text-2);
+    white-space: normal;
+    margin-bottom: 16px;
+}
+
+.cx-safe__save {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: var(--ds-text-3);
+    white-space: normal;
+    margin-bottom: 12px;
+}
+
+.cx-safe__choices {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+}
+
+.cx-safe__choice {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-bottom: 10px;
+}
+
+.cx-safe__choice > .ds-btn {
+    flex-shrink: 0;
+    min-width: 300px;
+    margin-right: 14px;
+}
+
+.cx-safe__choice-hint {
+    flex-shrink: 1;
+    font-size: 13px;
+    color: var(--ds-text-3);
+    white-space: normal;
+}
+
+.cx-safe__status {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: var(--ds-text-2);
+    white-space: normal;
+    margin-bottom: 12px;
+}
+
+.cx-safe__status--problem {
+    color: var(--ds-bad);
+}
+
+.cx-safe__hint {
+    flex-shrink: 0;
+    margin: 12px 0 8px 0;
+}
