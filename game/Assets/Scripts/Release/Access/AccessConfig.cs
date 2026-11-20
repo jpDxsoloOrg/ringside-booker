@@ -12,10 +12,10 @@ namespace RingsideBooker.Release.Access
     public static class AccessConfig
     {
         /// <summary>The HTTP API's base URL (no trailing slash).</summary>
-        public const string ApiUrl = "";
+        public const string ApiUrl = "https://g7qny0ctd8.execute-api.us-east-1.amazonaws.com";
 
         /// <summary>The Ed25519 public key, raw 32 bytes in base64.</summary>
-        public const string PublicKey = "";
+        public const string PublicKey = "W8fGPzwgv+adtdo1zJs7GpH0AVU18cNNqkdLhEJYCdE=";
 
         private static byte[] publicKeyBytes;
 

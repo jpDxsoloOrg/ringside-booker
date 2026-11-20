@@ -102,7 +102,7 @@ async function main(): Promise<void> {
         if (await store.create(record)) {
           console.log(code);
           console.error(
-            `Made a ${channel} code for ${label}: up to ${String(max)} computers, expires ${day(expires)}.`,
+            `Made an ${channel} code for ${label}: ${max === 1 ? 'one computer' : `up to ${String(max)} computers`}, ${expires === undefined ? 'no expiry' : `expires ${day(expires)}`}.`,
           );
           return;
         }

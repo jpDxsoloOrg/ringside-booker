@@ -78,6 +78,26 @@ namespace RingsideBooker.Tests.Release
             Assert.That(payload.MaskedCode, Is.EqualTo("RB-7K3M-••••"));
         }
 
+        /// <summary>
+        /// Live check harness (no network here): set <c>RB_ACCESS_LIVE</c> to a file holding
+        /// <c>{"token": "...", "installId": "..."}</c> from a real <c>/activate</c> call, and this checks
+        /// the token with the public key the game ships. Skipped when the variable isn't set.
+        /// </summary>
+        [Test]
+        public void LiveToken_FromTheDeployedServiceChecksOutWithTheShippedKey()
+        {
+            string path = Environment.GetEnvironmentVariable("RB_ACCESS_LIVE");
+            if (string.IsNullOrEmpty(path) || !File.Exists(path)) Assert.Ignore("RB_ACCESS_LIVE not set (live check only)");
+            var json = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(path));
+            string token = json.Value<string>("token");
+            string install = json.Value<string>("installId");
+            Assert.That(AccessConfig.IsConfigured, Is.True);
+            Assert.That(LicenceToken.Read(token, AccessConfig.PublicKeyBytes, out LicencePayload payload), Is.EqualTo(TokenRead.Ok));
+            Assert.That(AccessPolicy.Evaluate(token, AccessConfig.PublicKeyBytes, "alpha", install, DateTime.UtcNow, out _), Is.EqualTo(AccessVerdict.Active));
+            Assert.That(LicenceToken.Read(token, KeyA, out _), Is.EqualTo(TokenRead.BadSignature), "the test key must not verify a real token");
+            UnityEngine.Debug.Log($"[AccessTests] live token ok: {payload.MaskedCode}, {payload.Channel}, expires {payload.ExpiresUtc:yyyy-MM-dd}");
+        }
+
         [Test]
         public void Verdict_ValidTokenIsActive()
         {
