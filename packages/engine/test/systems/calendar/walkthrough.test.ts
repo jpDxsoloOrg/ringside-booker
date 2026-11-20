@@ -165,7 +165,7 @@ describe('the calendar on a new default-world game', () => {
     }
     expect(mainstage).toMatchObject({
       importance: 'regular',
-      brand: { name: 'Altura Mainstage' },
+      brand: { name: 'SLW Mainstage' },
       format: { slots: 6, preShowSlots: 0 },
       televised: true,
       status: 'scheduled',

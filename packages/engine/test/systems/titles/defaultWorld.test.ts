@@ -70,13 +70,13 @@ describe('the titles queries on the default world, playing Altura', () => {
   const ownRows = own.groups.flatMap((group) => group.titles);
   const worldRows = world.groups.flatMap((group) => group.titles);
 
-  it('lists our 9 titles under Mainstage, Overclock and Promotion-wide', () => {
-    expect(own.groups.map((group) => group.brandName)).toEqual([
-      'Altura Mainstage',
-      'Altura Overclock',
-      'Promotion-wide',
+  it('lists our 3 league titles, all promotion-wide', () => {
+    expect(own.groups.map((group) => group.brandName)).toEqual(['Promotion-wide']);
+    expect(ownRows.map((row) => row.name).sort()).toEqual([
+      'Mid Card Championship',
+      'SZN World Tag Team Championship',
+      'World Heavyweight Championship',
     ]);
-    expect(ownRows).toHaveLength(9);
     expect(ownRows.every((row) => row.editable)).toBe(true);
   });
 
@@ -92,8 +92,8 @@ describe('the titles queries on the default world, playing Altura', () => {
     }
   });
 
-  it('opens all 34 titles and their eligible holders', () => {
-    expect(ownRows.length + worldRows.length).toBe(34);
+  it('opens all 28 titles and their eligible holders', () => {
+    expect(ownRows.length + worldRows.length).toBe(28);
     for (const row of [...ownRows, ...worldRows]) {
       const lineage = data(
         engine.query('titles.detail', { titleId: row.titleId }, PLAYER),

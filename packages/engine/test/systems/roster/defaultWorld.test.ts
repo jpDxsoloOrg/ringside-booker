@@ -87,8 +87,8 @@ describe('roster.rows on the default world as Altura', () => {
   it('lists all 100 contracts in the groups and brands the content gives them', () => {
     expect(view.promotion?.promotionId).toBe(altura);
     expect(view.promotion?.brands.map((brand) => brand.name)).toEqual([
-      'Altura Mainstage',
-      'Altura Overclock',
+      'SLW Mainstage',
+      'SLW Overclock',
     ]);
     expect(view.rows).toHaveLength(100);
     expect(countBy(view.rows, (row) => row.group)).toEqual({
@@ -99,8 +99,8 @@ describe('roster.rows on the default world as Altura', () => {
       producers: 2,
     });
     const brandKeyName: Readonly<Record<string, string>> = {
-      'flagship-main-brand': 'Altura Mainstage',
-      'flagship-young-brand': 'Altura Overclock',
+      'flagship-main-brand': 'SLW Mainstage',
+      'flagship-young-brand': 'SLW Overclock',
     };
     const fromContent = records
       .map((record) => [
@@ -168,8 +168,8 @@ describe('roster.summary and roster.explain on the default world as Altura (WRK2
       others: 0,
     });
     expect(summary.byBrand.map((brand) => [brand.name, brand.total])).toEqual([
-      ['Altura Mainstage', 46],
-      ['Altura Overclock', 43],
+      ['SLW Mainstage', 46],
+      ['SLW Overclock', 43],
       ['Shared', 11],
     ]);
     expect(summary.expectsMore).toBe(0);

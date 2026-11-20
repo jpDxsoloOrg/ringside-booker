@@ -27,7 +27,7 @@ import { anEmployment } from '../../support/builders/promotions';
 import { startDefaultGame } from '../calendar/default-game';
 import { storedTrace } from './title-commands-world';
 
-const TITLE_NAME = 'Altura World Championship';
+const TITLE_NAME = 'World Heavyweight Championship';
 const GRACE_DAYS = titlesTunables['titles.orphanGraceDays'].default;
 
 /** The default world with the World Champion's Altura contract ended (released) yesterday. */
