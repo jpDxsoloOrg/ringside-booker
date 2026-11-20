@@ -16,6 +16,8 @@ How I write an entry:
 
 ## Unreleased
 
+## [0.1.0-alpha.3] - 2026-11-20
+
 ### Added
 
 - I added a draft start. Turn on "Start with a draft" in the new-game options and every wrestler
@@ -27,6 +29,23 @@ How I write an entry:
   worlds faster.
 - I added "Call off this show" on Booking when you don't have enough wrestlers signed to fill a
   card.
+- I added a card level column and filter to the draft pool, from main eventers down to enhancement
+  talent, and a draft plan in the new-game options that shows the pool's mix.
+
+### Changed
+
+- In a draft game, the first weekly show is a week after the start, so your draftees have time to
+  sign before you need a card.
+
+### Fixed
+
+- Manage shows only lists dates that are on the calendar. Shows further out say "Not yet", and a
+  show that can't run says why, with an Edit button where that fixes it.
+- An "Offer answered" stop no longer comes back a second time after you've seen the answer.
+
+### Heads up
+
+- Saves from alpha.2 don't open in this version. Start a new game.
 
 ## [0.1.0-alpha.2] - 2026-11-20
 
