@@ -51,12 +51,26 @@ namespace RingsideBooker.Saves
 
         public int FormatVersion { get; set; }
 
+        /// <summary>The game build that wrote this slot (POL9-10), e.g. <c>0.1.0-alpha.3+1a2b3c4d</c>; null when unknown (imported, or older builds).</summary>
+        public string BuildVersion { get; set; }
+
+        /// <summary>That build's release channel (<c>alpha</c>, <c>beta</c>, <c>release</c>, <c>local</c>); null when unknown.</summary>
+        public string BuildChannel { get; set; }
+
+        /// <summary>True when an Alpha build wrote the save (the Load list tags it).</summary>
+        [JsonIgnore]
+        public bool MadeByAlpha => string.Equals(BuildChannel, SaveBuild.ChannelAlpha, StringComparison.Ordinal);
+
         /// <summary>The save file's size in bytes.</summary>
         public long SizeBytes { get; set; }
 
-        /// <summary>True when the previous save is kept as <c>&lt;slot&gt;.rbsave.bak</c>.</summary>
+        /// <summary>True when at least one earlier save is kept as a backup (<see cref="SaveStore.ListBackups"/>).</summary>
         [JsonIgnore]
-        public bool HasBackup { get; set; }
+        public bool HasBackup => BackupCount > 0;
+
+        /// <summary>How many backups the slot keeps right now.</summary>
+        [JsonIgnore]
+        public int BackupCount { get; set; }
 
         /// <summary>True when no readable sidecar exists yet (a file dropped into the folder); <see cref="SaveStore.ListAsync"/> repairs it.</summary>
         [JsonIgnore]
@@ -87,6 +101,9 @@ namespace RingsideBooker.Saves
             Cash = header.Value<long?>("cash");
             SchemaFingerprint = Text(header, "schemaFingerprint");
         }
+
+        /// <summary>A copy (the store keeps a backup's header this way).</summary>
+        public SaveSlotInfo Clone() => (SaveSlotInfo)MemberwiseClone();
 
         /// <summary>The saved time in the player's local time, for the list.</summary>
         public string SavedAtText()

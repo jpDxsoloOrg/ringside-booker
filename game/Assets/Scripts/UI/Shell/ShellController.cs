@@ -53,6 +53,7 @@ namespace RingsideBooker.UI.Shell
             Overlay = shell.Overlay;
             sidebar = new SidebarView(shell, Navigator, GoToMainMenu);
             topBar = new TopBarView(shell);
+            SaveUi.LastSavedChip.Attach(shell);
             VisualElement dayHost = new VisualElement { name = "day-control" };
             dayHost.AddToClassList("day-control");
             shell.Actions.Add(dayHost);
