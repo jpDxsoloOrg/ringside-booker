@@ -99,6 +99,36 @@ namespace RingsideBooker.Screens.Dev
             yield return Capture("manager-to-wrestler");
             Log($"answer: {Kit.Str(talks.Preview, "jobChange.answer")} (willing {Kit.Bool(talks.Preview, "jobChange.willing")}, reaction {Kit.Str(talks.Preview, "reaction")})");
 
+            // The other managers' answers; send the job to the first who is up for it (else the first).
+            if (!Kit.Bool(talks.Preview, "jobChange.willing"))
+            {
+                foreach (JToken other in view.ShownRows.Where(row => Kit.Str(row, "role") == "manager" && Kit.Str(row, "employmentId") != employmentId).Take(6).ToList())
+                {
+                    ShellController.Current.Overlay.CloseAll();
+                    NegotiationView next = NegotiationSheet.Open(view.Root, NegotiationTarget.JobChange(Kit.Str(other, "employmentId")));
+                    yield return WaitFor(() => next?.Preview != null, 15f);
+                    yield return Await(next.OfferJob("wrestler"));
+                    yield return WaitFor(() => Kit.Str(next.Preview, "jobChange.to") == "wrestler", 15f);
+                    yield return Wait(0.6f);
+                    Log($"{Kit.Str(other, "ringName")}: {Kit.Str(next.Preview, "jobChange.answer")}");
+                    if (!Kit.Bool(next.Preview, "jobChange.willing")) continue;
+                    yield return Capture("manager-says-yes");
+                    talks = next;
+                    ringName = Kit.Str(other, "ringName");
+                    employmentId = Kit.Str(other, "employmentId");
+                    break;
+                }
+                if (talks != NegotiationSheet.Current)
+                {
+                    ShellController.Current.Overlay.CloseAll();
+                    talks = NegotiationSheet.Open(view.Root, NegotiationTarget.JobChange(employmentId));
+                    yield return WaitFor(() => talks?.Preview != null, 15f);
+                    yield return Await(talks.OfferJob("wrestler"));
+                    yield return WaitFor(() => Kit.Str(talks.Preview, "jobChange.to") == "wrestler", 15f);
+                }
+            }
+            Log($"sending to {ringName}");
+
             yield return Await(talks.SubmitOffer());
             yield return WaitIdle(1f);
             yield return Capture("job-offer-sent");
