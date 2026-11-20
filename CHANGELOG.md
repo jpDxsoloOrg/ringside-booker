@@ -16,6 +16,8 @@ How I write an entry:
 
 ## Unreleased
 
+## [0.1.0-alpha.1] - 2026-11-20
+
 ### Added
 
 - I turned Ringside Booker into a Windows game. The whole simulation from the web version runs
@@ -39,6 +41,22 @@ How I write an entry:
   4K.
 - I added an ALPHA badge, the version on the title screen and in Settings › About, and this
   What's new sheet.
+- I added my league's wrestlers to the default world. Two promotions are now SLW (Szn League
+  Wrestling) and BLX, with the league's titles, weekly shows and PPVs, and each wrestler's
+  moves and bio where the league has them.
+- I added an installer. It puts the game in your Start menu, updates in place when you run a
+  newer one, and keeps your saves when you uninstall.
+- I added a crash screen. If the game's engine stops, nothing overwrites your last good save,
+  and you can reload, load a backup or start safe.
+- I added Send feedback. It packs a bug report and opens an email to me with the version
+  filled in.
+- I added backups. Every save keeps up to five earlier copies you can go back to, and the top
+  bar shows when the game last saved.
+- I added Help: short articles for the main screens, a "?" on each screen, a welcome sheet for
+  new games and a Getting started list in the Office.
+- I added Choose a folder… to the workshop import, so you can play a mod from any folder, not
+  just Steam's.
+- I gave the game its own ring icon.
 
 ### Changed
 
@@ -51,3 +69,5 @@ How I write an entry:
 
 - This is an early test build. Saves may need a fresh start between versions.
 - The Inbox, Teams & Stables, Tournaments and Brands screens are still placeholders.
+- The game isn't signed yet, so Windows may say "Windows protected your PC". Choose More info,
+  then Run anyway.
