@@ -142,7 +142,7 @@ namespace RingsideBooker.Release.Updates
                 foreach (ReleaseAsset asset in release.Assets)
                 {
                     if (string.IsNullOrEmpty(asset.Url) || asset.Url.Contains("://")) continue;
-                    asset.Url = new Uri(Path.Combine(folder, asset.Url)).AbsoluteUri;
+                    asset.Url = new Uri(Path.Combine(folder, asset.Url)).AbsoluteUri.Replace("+", "%2B");
                 }
             }
         }
