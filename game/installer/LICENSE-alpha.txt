@@ -1,0 +1,19 @@
+Ringside Booker - Alpha test licence
+====================================
+
+Copyright (c) 2026 jpDxsolo. All rights reserved.
+
+This is an Alpha test build of Ringside Booker. You may install it and play it
+on your own computers to test the game and send feedback. Please don't sell,
+rent out or redistribute it, or share it outside the test, without permission.
+
+Alpha builds are unfinished. Expect bugs, missing features and changes that
+may stop older saves from loading. Keep a copy of saves you care about.
+
+THE GAME IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY ARISING FROM THE USE OF THE GAME.
+
+The game includes third-party software and fonts under their own licences.
+The next page lists them, and the full texts are installed in the game's
+licenses folder.
