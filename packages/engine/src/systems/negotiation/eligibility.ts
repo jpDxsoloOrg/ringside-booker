@@ -5,7 +5,9 @@
  * The first rule that matches decides the situation:
  *
  * 1. `unavailable`: retired, deceased or out of the business, or not debuted yet;
- * 2. `yours`: a signed or active contract with this promotion already (a renewal, not a signing);
+ *    A wrestler a draft left out of its pool sits out (DRF-07) and is `unavailable` too;
+ * 2. `yours`: a signed or active contract with this promotion already (a renewal, not a signing).
+ *    Next, an unsigned draft pick whose rights another promotion holds is `underContract` (DRF-03);
  * 3. `underContract`: a signed exclusive deal elsewhere that has not started yet, or an active
  *    exclusive deal elsewhere with more than `contracts.offer.approachWindowDays` left (or no end
  *    date). Talks are blocked;
@@ -30,6 +32,12 @@ import type { DeepReadonly } from '../../model/world';
 import { plainDate } from '../health/gate';
 import type { EngineTunables } from '../tunables';
 import { availabilityOf } from '../workers/helpers/availability';
+import {
+  DRAFT_RIGHTS_REASON_CODE,
+  heldRights,
+  isSittingOut,
+  SITTING_OUT_REASON_CODE,
+} from '../draft/rights';
 
 export const NEGOTIATION_SITUATIONS = [
   'freeAgent',
@@ -147,8 +155,42 @@ export function negotiationEligibility(
     };
   }
 
+  // DRF-07: a wrestler a draft left out of its pool sits out; nobody can sign them.
+  if (live.length === 0 && isSittingOut(read, personId)) {
+    return {
+      situation: 'unavailable',
+      earliestStart: date,
+      otherPromotionIds,
+      reasons: [
+        {
+          code: SITTING_OUT_REASON_CODE,
+          message: 'Sitting out: left out of the draft pool',
+          subject: { kind: 'person', id: personId },
+        },
+      ],
+    };
+  }
+
   if (live.some((employment) => employment.promotionId === promotionId)) {
     return { situation: 'yours', earliestStart: date, otherPromotionIds, reasons: [] };
+  }
+
+  // DRF-03: an unsigned draft pick talks only to the promotion holding their rights.
+  const rights = heldRights(read, personId, date);
+  if (rights !== null && rights.promotionId !== promotionId && rights.reservedUntil !== null) {
+    const holder = read.tables.promotions.get(rights.promotionId)?.name ?? 'another promotion';
+    return {
+      situation: 'underContract',
+      earliestStart: addDays(rights.reservedUntil, 1),
+      otherPromotionIds,
+      reasons: [
+        {
+          code: DRAFT_RIGHTS_REASON_CODE,
+          message: `${holder} holds their draft rights until ${plainDate(rights.reservedUntil)}`,
+          subject: { kind: 'person', id: personId },
+        },
+      ],
+    };
   }
 
   const windowDays = tunables.get('contracts.offer.approachWindowDays');

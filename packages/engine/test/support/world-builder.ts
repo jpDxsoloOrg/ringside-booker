@@ -199,6 +199,8 @@ function emptyIdLists(): IdLists {
     contractConcerns: [],
     negotiations: [],
     airings: [],
+    drafts: [],
+    draftPicks: [],
   };
 }
 
