@@ -255,6 +255,7 @@ namespace RingsideBooker.Screens.Dev
         private void GiveUp()
         {
             Debug.LogError("[CrashShots] timed out");
+            CrashGuard.Clear();
             Application.Quit(1);
         }
     }

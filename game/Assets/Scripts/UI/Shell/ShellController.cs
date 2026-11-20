@@ -164,6 +164,8 @@ namespace RingsideBooker.UI.Shell
         {
             // Save first: the final save is queued on the engine thread before the bridge unloads the world.
             Saves.GameSession.EndCurrent();
+            // Then unload the world and forget the game, so the title screen (its Settings) sees no world.
+            EngineGame.Current?.Dispose();
             ShellServices.Clear();
             SceneFlow.LoadTitle();
         }

@@ -165,7 +165,7 @@ namespace RingsideBooker.Help
             box.Add(Para("Saves may need a fresh start between versions: a save from an older Alpha might not open in a newer one."));
             box.Add(Para("When something goes wrong or feels off, press Send feedback. It packs a bug report and opens an email you can send me. It's the best way to help."));
             VisualElement row = Ds.Row("fr-alpha__row");
-            Button send = Ds.Button("Send feedback", Feedback.Send, DsButtonKind.Secondary, "megaphone");
+            Button send = Ds.Button("Send feedback", () => Feedback.Send(), DsButtonKind.Secondary, "megaphone");
             send.name = "first-run-feedback";
             row.Add(send);
             box.Add(row);

@@ -170,7 +170,14 @@ namespace RingsideBooker.UI.Title
         private void ShowSettings()
         {
             VisualElement inner = ResetPanel("Settings");
-            inner.Add(SettingsScreen.BuildPanel());
+            // Top-aligned like the wizard, and the groups scroll inside the panel instead of
+            // squeezing into each other on a short window (2000×840).
+            panel.AddToClassList("title-panel--wizard");
+            inner.AddToClassList("title-panel__inner--wizard");
+            var scroll = new ScrollView(ScrollViewMode.Vertical) { name = "title-settings-scroll", horizontalScrollerVisibility = ScrollerVisibility.Hidden };
+            scroll.AddToClassList("title-settings-scroll");
+            scroll.Add(SettingsScreen.BuildPanel());
+            inner.Add(scroll);
         }
 
         /// <summary>The Help center before a game is loaded (POL5-02): screen links are plain text here.</summary>

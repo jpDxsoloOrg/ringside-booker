@@ -127,3 +127,13 @@
     flex-shrink: 1;
     min-height: 0;
 }
+
+/* The title's Settings: the groups scroll inside the panel, and none of them squeezes (S13). */
+.title-panel__inner--wizard > .title-settings-scroll {
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.title-settings-scroll .settings-group {
+    flex-shrink: 0;
+}
