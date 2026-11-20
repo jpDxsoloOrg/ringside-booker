@@ -929,6 +929,15 @@ Systems add their own next to their code. The calendar's
 | `show.cancelled`           | `eventInstanceId`, `promotionId`, `date`, `reason` | A show's day ends with it still open, or it is called off |
 | `calendar.horizonExtended` | `from`, `through`, `created`                       | A new game stores its opening schedule                    |
 
+The schedule editor's ([calendar.md](calendar.md#schedule-editor)):
+
+| Event                     | Payload                                                        | Published when                                 |
+| ------------------------- | -------------------------------------------------------------- | ---------------------------------------------- |
+| `eventDefinition.created` | `eventDefinitionId`, `promotionId`                             | A promotion starts a new recurring show        |
+| `eventDefinition.updated` | `eventDefinitionId`, `promotionId`, `added`, `removed`, `kept` | A recurring show changes and its dates re-sync |
+| `eventDefinition.retired` | `eventDefinitionId`, `promotionId`, `activeUntil`              | A recurring show is retired                    |
+| `show.added`              | `eventInstanceId`, `promotionId`, `date`                       | A one-off special is put on the calendar       |
+
 The workers system's events, one per [door](workers.md#doors). Each payload
 also carries `source` (`player`, `ai` or `system`) and `reasonKey`:
 

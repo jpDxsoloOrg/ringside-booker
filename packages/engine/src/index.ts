@@ -4084,3 +4084,31 @@ export {
   SHOW_TIME_CHECK_LABEL,
   showTimeCheck,
 } from './systems/match/showTimeCheck';
+// The schedule editor (EVT8): the player's recurring shows and one-off specials, and the helpers a
+// computer promotion (AIP7) or a brand tool (CRTV6) calls without a command. See
+// docs/design/calendar.md#schedule-editor.
+export {
+  addOneOffIn,
+  applyResync,
+  calendarEditorSystem,
+  calendarEditorTunables,
+  checkDraft,
+  checkNewShow,
+  controlsSchedule,
+  createDefinitionIn,
+  defaultFormatFor,
+  DefinitionDraftSchema,
+  instanceIsReferenced,
+  planResync,
+  retireDefinitionIn,
+  updateDefinitionIn,
+} from './systems/calendar/editor/index';
+export type {
+  DefinitionDraft,
+  EditorContext,
+  NewShowWarning,
+  OneOffInput,
+  ResyncOutcome,
+  ResyncPlan,
+} from './systems/calendar/editor/index';
+export { instanceFieldsFor, type InstanceFields } from './systems/calendar/schedule';
