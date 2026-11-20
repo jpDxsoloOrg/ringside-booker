@@ -27,6 +27,10 @@ How I write an entry:
   worlds faster.
 - I added "Call off this show" on Booking when you don't have enough wrestlers signed to fill a
   card.
+- I added trades with rival promotions. Put workers and cash on each side, see how the rival and
+  each worker feel about it as you build the offer, and send it; they answer the next day with a
+  yes, a no or a counter-offer. Rivals now and then offer you a trade too. Start one from
+  Contracts › Trades, a rival's page, or "Offer in a trade" on any worker.
 
 ## [0.1.0-alpha.2] - 2026-11-20
 

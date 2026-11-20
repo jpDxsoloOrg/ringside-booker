@@ -16,6 +16,11 @@ namespace RingsideBooker.UI.Day
         public const string News = "news";
         /// <summary>DRF-02: the draft before day 1 (<c>draft.unfinished</c>, "Finish the draft").</summary>
         public const string Draft = "draft";
+        /// <summary>TRD-02: a rival answered your trade, or a trade offer waits for you.</summary>
+        public const string Trades = "trades";
+
+        public const string TradeOfferGateId = "trades.offerReceived";
+        public const string TradeAnsweredGateId = "trades.answered";
 
         public const string CounterWaitingGateId = "contracts.counterWaiting";
         public const string ReleaseRequestedGateId = "contracts.releaseRequested";
@@ -87,6 +92,8 @@ namespace RingsideBooker.UI.Day
         public const string OpenNewsLabel = "Open news";
         public const string GenericGateLabel = "Needs attention";
         public const string FinishDraftLabel = "Finish the draft";
+        public const string TradeOfferLabel = "Trade offer";
+        public const string TradeAnsweredLabel = "Trade answered";
         public const string DraftScreenId = ScreenIds.Draft;
         public const string InjuriesTabId = "injuries";
 
@@ -104,6 +111,7 @@ namespace RingsideBooker.UI.Day
             GateHints.Roster,
             GateHints.Contracts,
             GateHints.OfferAnswered,
+            GateHints.Trades,
             GateHints.News,
         };
 
@@ -113,7 +121,11 @@ namespace RingsideBooker.UI.Day
         {
             public Func<int, string> Label;
             public Func<int, string> ShortLabel;
+            /// <summary>A label that depends on the stop itself (overrides <see cref="Label"/>).</summary>
+            public Func<GateHit, string> HitLabel;
             public RouteFor To;
+
+            public string LabelFor(GateHit hit, int count) => HitLabel != null ? HitLabel(hit) : Label(count);
         }
 
         private static readonly Dictionary<string, GateRoute> Routes = new Dictionary<string, GateRoute>
@@ -137,6 +149,12 @@ namespace RingsideBooker.UI.Day
             {
                 Label = _ => OfferAnsweredLabel,
                 To = hit => ShellRoute.With("contracts", "tab", "offers", "negotiation", SubjectId(hit, "negotiation")),
+            },
+            [GateHints.Trades] = new GateRoute
+            {
+                Label = _ => TradeOfferLabel,
+                HitLabel = hit => hit.GateId == GateHints.TradeAnsweredGateId ? TradeAnsweredLabel : TradeOfferLabel,
+                To = TradesDestination,
             },
             [GateHints.News] = new GateRoute
             {
@@ -176,6 +194,12 @@ namespace RingsideBooker.UI.Day
             }
             return ShellRoute.With("contracts", "tab", "expiring");
         }
+
+        /// <summary>A trade stop opens Contracts › Trades on that trade (TRD-02).</summary>
+        public static ShellRoute TradesDestination(GateHit hit) =>
+            SubjectId(hit, "trade") is string tradeId
+                ? ShellRoute.With("contracts", "tab", "trades", "trade", tradeId)
+                : ShellRoute.With("contracts", "tab", "trades");
 
         private static GateRoute LiveShowRoute(bool underWay) => new GateRoute
         {
@@ -241,7 +265,7 @@ namespace RingsideBooker.UI.Day
             GateRoute route = RouteForHit(hit, showNight);
             if (route == null) return null;
             int count = SameHintCount(gates ?? new[] { hit }, hit);
-            return (route.Label(count), route.To(hit));
+            return (route.LabelFor(hit, count), route.To(hit));
         }
 
         /// <summary>
@@ -263,7 +287,7 @@ namespace RingsideBooker.UI.Day
             }
             int count = SameHintCount(gates, leading);
             return new DayControlState(
-                new DayPrimaryAction(DayPrimaryKind.Gate, route.Label(count), route.ShortLabel?.Invoke(count), leading.Reason, route.To(leading)),
+                new DayPrimaryAction(DayPrimaryKind.Gate, route.LabelFor(leading, count), route.ShortLabel?.Invoke(count), leading.Reason, route.To(leading)),
                 false);
         }
     }

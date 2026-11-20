@@ -74,6 +74,8 @@ namespace RingsideBooker.Screens
             VisualElement sheetSlot = Ds.Row("wl-contract-slot");
             footer.Add(sheetSlot);
             WorkerProfileScreen.FillContractAction(sheetSlot, personId, DsButtonKind.Secondary, () => handle?.Close(), showReason: false);
+            // TRD-02: trade them (yours) or for them (a rival's).
+            if (Trades.TradeSheet.OfferButton(personId, header, () => handle?.Close()) is Button trade) footer.Add(trade);
             footer.Add(Ds.Spacer());
             Button full = Ds.Button("Full profile", () =>
             {
@@ -145,6 +147,11 @@ namespace RingsideBooker.Screens
             Button back = Ds.Button("Back", () => context.Navigator.Back(), DsButtonKind.Ghost, "chevron-left");
             back.name = "worker-back";
             crumbs.Add(back);
+            if (Trades.TradeSheet.OfferButton(personId, header) is Button trade)
+            {
+                crumbs.Add(Ds.Spacer());
+                crumbs.Add(trade);
+            }
             host.Add(crumbs);
 
             VisualElement top = Ds.Row("ds-row--top", "wl-profile-top");

@@ -276,6 +276,19 @@ describe('the rival’s answer', () => {
     expect(tradeRow(game, tradeId)).toMatchObject({ status: 'completed', stopsSkip: false });
   });
 
+  it('previews a change to an open trade with its tradeId: its own workers are not "in another trade"', () => {
+    const game = tradeGame();
+    const { mine, theirs } = best(game);
+    const args = terms(game, [mine[0]!.employmentId], [theirs[0]!.employmentId]);
+    const { tradeId } = run(game.engine.command('trades.propose', args, PLAYER));
+    const busy = preview(game, args).problems.map((problem) => problem.code);
+    expect(busy).toContain('trades.alreadyInTrade');
+    const counter = run(
+      game.engine.query('trades.preview', { ...args, tradeId }, PLAYER_VIEW),
+    ).problems.map((problem) => problem.code);
+    expect(counter).not.toContain('trades.alreadyInTrade');
+  });
+
   it('lets you withdraw your offer, and keeps one open trade per pair', () => {
     const game = tradeGame();
     const { args } = goodDeal(game);

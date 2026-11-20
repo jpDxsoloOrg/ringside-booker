@@ -215,7 +215,7 @@ what it has to spare as cash. In the default world that is about one to three of
 
 | Query               | Args                                                       | Result                                  |
 | ------------------- | ---------------------------------------------------------- | --------------------------------------- |
-| `trades.preview`    | as `trades.propose`                                        | `{ problems, offer, rival }`            |
+| `trades.preview`    | as `trades.propose`, plus `tradeId?` for a counter         | `{ problems, offer, rival }`            |
 | `trades.list`       | `{ promotionId?, status?: open \| closed \| all, limit? }` | `{ rows: TradeSummaryView[] }`          |
 | `trades.get`        | `{ tradeId }`                                              | `TradeView`                             |
 | `trades.candidates` | `{ promotionId, partnerId, search?, limit? }`              | `{ rows: TradeCandidateView[], total }` |
