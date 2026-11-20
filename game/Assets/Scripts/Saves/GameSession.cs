@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using RingsideBooker.Engine;
 using UnityEngine;
 
@@ -15,6 +16,17 @@ namespace RingsideBooker.Saves
         public static SaveOutcome Saved(SaveSlotInfo slot) => new SaveOutcome { Ok = true, Slot = slot };
 
         public static SaveOutcome Failed(string problem) => new SaveOutcome { Problem = problem };
+    }
+
+    /// <summary>How a session's slot was last written or opened (the "Last saved" chip says it).</summary>
+    public enum SaveKind
+    {
+        Loaded,
+        LoadedBackup,
+        Created,
+        Autosave,
+        Manual,
+        Final,
     }
 
     public enum OpenStatus
@@ -76,8 +88,22 @@ namespace RingsideBooker.Saves
             Engine.OnAdvanceFinished += OnAdvanceFinished;
         }
 
+        private static GameSession current;
+
         /// <summary>The running game, or null on the title screen.</summary>
-        public static GameSession Current { get; private set; }
+        public static GameSession Current
+        {
+            get => current;
+            private set
+            {
+                if (ReferenceEquals(current, value)) return;
+                current = value;
+                CurrentChanged?.Invoke(value);
+            }
+        }
+
+        /// <summary>Raised on the main thread when <see cref="Current"/> changes (the "Last saved" chip follows it).</summary>
+        public static event Action<GameSession> CurrentChanged;
 
         /// <summary>The last session's final save while it is still writing (the title waits on it).</summary>
         public static Task Ending => ending;
@@ -100,6 +126,12 @@ namespace RingsideBooker.Saves
 
         public SaveSlotInfo LastSaved { get; private set; }
 
+        /// <summary>Why the last save failed, or null when it worked (the chip shows a warning).</summary>
+        public string LastProblem { get; private set; }
+
+        /// <summary>How the slot was last written or opened.</summary>
+        public SaveKind LastSaveKind { get; private set; }
+
         public bool HasUnsavedChanges => autosave.Pending;
 
         public bool IsEnded => endTask != null;
@@ -117,7 +149,7 @@ namespace RingsideBooker.Saves
             string name = string.IsNullOrWhiteSpace(label) ? "New career" : label.Trim();
             var session = new GameSession(engine, store, store.NewSlotId(name), name, seat, revision);
             Current = session;
-            SaveOutcome first = await session.TimedSaveAsync();
+            SaveOutcome first = await session.TimedSaveAsync(SaveKind.Created);
             if (!first.Ok) Debug.LogWarning("GameSession: the first save failed: " + first.Problem);
             return session;
         }
@@ -127,17 +159,37 @@ namespace RingsideBooker.Saves
         /// it the running game. A failed load leaves no session; the result says why and whether it
         /// is the older-build case.
         /// </summary>
-        public static async Task<OpenResult> OpenSlotAsync(EngineClient engine, SaveSlotInfo slot, SaveStore store = null, bool backup = false)
+        public static Task<OpenResult> OpenSlotAsync(EngineClient engine, SaveSlotInfo slot, SaveStore store = null, bool backup = false)
         {
-            if (engine == null) throw new ArgumentNullException(nameof(engine));
             if (slot == null) throw new ArgumentNullException(nameof(slot));
             store = store ?? new SaveStore();
+            SaveStore reader = store;
+            return OpenAsync(engine, slot, store, () => reader.Read(slot.SlotId, backup), backup);
+        }
+
+        /// <summary>
+        /// Loads one of the slot's backups (<see cref="SaveStore.ListBackups"/>) and makes it the
+        /// running game in that slot. The slot's latest save stays as it is until the game saves over
+        /// it, and then it becomes a backup itself. Same outcomes as <see cref="OpenSlotAsync"/>.
+        /// </summary>
+        public static Task<OpenResult> OpenBackupAsync(EngineClient engine, SaveSlotInfo slot, string backupId, SaveStore store = null)
+        {
+            if (slot == null) throw new ArgumentNullException(nameof(slot));
+            if (string.IsNullOrEmpty(backupId)) throw new ArgumentNullException(nameof(backupId));
+            store = store ?? new SaveStore();
+            SaveStore reader = store;
+            return OpenAsync(engine, slot, store, () => reader.LoadBackup(slot.SlotId, backupId), true);
+        }
+
+        private static async Task<OpenResult> OpenAsync(EngineClient engine, SaveSlotInfo slot, SaveStore store, Func<byte[]> read, bool backup)
+        {
+            if (engine == null) throw new ArgumentNullException(nameof(engine));
             await EndCurrentAsync();
 
             byte[] bytes;
             try
             {
-                bytes = await Task.Run(() => store.Read(slot.SlotId, backup));
+                bytes = await Task.Run(read);
             }
             catch (Exception error) when (error is System.IO.IOException || error is UnauthorizedAccessException)
             {
@@ -150,6 +202,7 @@ namespace RingsideBooker.Saves
                 var session = new GameSession(engine, store, slot.SlotId, slot.Label ?? loaded.Summary?.Label, loaded.Summary?.Seat, loaded.Revision)
                 {
                     LastSaved = slot,
+                    LastSaveKind = backup ? SaveKind.LoadedBackup : SaveKind.Loaded,
                 };
                 Current = session;
                 return new OpenResult { Status = OpenStatus.Opened, Session = session, Slot = slot, Load = loaded };
@@ -203,13 +256,13 @@ namespace RingsideBooker.Saves
         /// <summary>The longest the autosave waits after the last change.</summary>
         public const int MaxAutosaveDelayMs = 10000;
 
-        private Task AutosaveAsync() => TimedSaveAsync();
+        private Task AutosaveAsync() => TimedSaveAsync(SaveKind.Autosave);
 
         // Saves now and sets the autosave's delay from how long the save took.
-        private async Task<SaveOutcome> TimedSaveAsync()
+        private async Task<SaveOutcome> TimedSaveAsync(SaveKind kind)
         {
             var clock = System.Diagnostics.Stopwatch.StartNew();
-            SaveOutcome outcome = await SaveNowAsync();
+            SaveOutcome outcome = await SaveNowAsync(kind);
             if (outcome.Ok)
             {
                 long delay = clock.ElapsedMilliseconds * AutosaveDelayPerSaveTime;
@@ -219,7 +272,9 @@ namespace RingsideBooker.Saves
             return outcome;
         }
 
-        public Task<SaveOutcome> SaveNowAsync()
+        public Task<SaveOutcome> SaveNowAsync() => SaveNowAsync(SaveKind.Manual);
+
+        private Task<SaveOutcome> SaveNowAsync(SaveKind kind)
         {
             DateTimeOffset savedAt = DateTimeOffset.UtcNow;
             Task<SaveResult> engineSave;
@@ -235,7 +290,7 @@ namespace RingsideBooker.Saves
             Task previousWrite = writeChain;
             var written = new TaskCompletionSource<bool>();
             writeChain = written.Task;
-            return FinishSave(engineSave, previousWrite, written, savedAt);
+            return FinishSave(engineSave, previousWrite, written, savedAt, kind);
         }
 
         /// <summary>
@@ -247,7 +302,7 @@ namespace RingsideBooker.Saves
             if (endTask != null) return endTask;
             bool save = alwaysSave || autosave.Pending;
             if (Engine.IsAdvancing) Engine.CancelAdvance();
-            Task<SaveOutcome> finalSave = save ? SaveNowAsync() : null;
+            Task<SaveOutcome> finalSave = save ? SaveNowAsync(SaveKind.Final) : null;
             Task running = autosave.WhenIdle();
             Detach();
             endTask = FinishEnd(finalSave, running);
@@ -276,7 +331,7 @@ namespace RingsideBooker.Saves
             if (Current == this) Current = null;
         }
 
-        private async Task<SaveOutcome> FinishSave(Task<SaveResult> engineSave, Task previousWrite, TaskCompletionSource<bool> written, DateTimeOffset savedAt)
+        private async Task<SaveOutcome> FinishSave(Task<SaveResult> engineSave, Task previousWrite, TaskCompletionSource<bool> written, DateTimeOffset savedAt, SaveKind kind)
         {
             SaveOutcome outcome;
             try
@@ -300,10 +355,30 @@ namespace RingsideBooker.Saves
                     EngineInfo engineInfo = Engine.Ready.IsCompleted && !Engine.Ready.IsFaulted ? Engine.Ready.Result : null;
                     info.EngineVersion = engineInfo?.EngineVersion;
                     info.FormatVersion = engineInfo?.SaveFormatVersion ?? 0;
+                    info.BuildVersion = SaveBuild.Version;
+                    info.BuildChannel = SaveBuild.Channel;
                     byte[] bytes = result.Bytes;
-                    LastSaved = await Task.Run(() => Store.Write(info, bytes));
-                    outcome = SaveOutcome.Saved(LastSaved);
+                    JToken header = result.Header;
+                    string fingerprint = engineInfo?.SchemaFingerprint;
+                    // Verify before rotating (POL1-04): bytes that do not check out never replace the save.
+                    string problem = await Task.Run(() => SaveVerifier.Check(bytes, header, fingerprint));
+                    if (problem != null)
+                    {
+                        Debug.LogWarning("GameSession: the save did not check out: " + problem);
+                        outcome = SaveOutcome.Failed(SaveVerifier.NotReplacedMessage);
+                    }
+                    else
+                    {
+                        LastSaved = await Task.Run(() => Store.Write(info, bytes));
+                        outcome = SaveOutcome.Saved(LastSaved);
+                    }
                 }
+            }
+            catch (SaveVerifyException error)
+            {
+                // Verify after writing: the disk kept something else, so nothing was replaced.
+                Debug.LogWarning("GameSession: the written save did not read back: " + error.Message);
+                outcome = SaveOutcome.Failed(SaveVerifier.NotReplacedMessage);
             }
             catch (Exception error)
             {
@@ -315,6 +390,8 @@ namespace RingsideBooker.Saves
                 written.TrySetResult(true);
             }
 
+            LastProblem = outcome.Ok ? null : outcome.Problem;
+            if (outcome.Ok) LastSaveKind = kind;
             Saved?.Invoke(outcome);
             return outcome;
         }

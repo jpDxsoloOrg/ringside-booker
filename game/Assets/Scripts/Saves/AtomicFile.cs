@@ -14,10 +14,14 @@ namespace RingsideBooker.Saves
 
         /// <summary>Writes <paramref name="bytes"/> to <paramref name="path"/>.</summary>
         /// <param name="backupPath">Where the file being replaced goes (overwriting the older backup); null keeps none.</param>
-        public static void WriteAllBytes(string path, byte[] bytes, string backupPath = null)
+        /// <param name="verify">
+        /// Read the written temp file back and compare every byte before it replaces anything
+        /// (verify-after-write, POL1-04); a mismatch throws <see cref="SaveVerifyException"/>.
+        /// </param>
+        public static void WriteAllBytes(string path, byte[] bytes, string backupPath = null, bool verify = false)
         {
             if (bytes == null) throw new ArgumentNullException(nameof(bytes));
-            Write(path, stream => stream.Write(bytes, 0, bytes.Length), backupPath);
+            Write(path, stream => stream.Write(bytes, 0, bytes.Length), backupPath, verify ? bytes : null);
         }
 
         /// <summary>
@@ -25,7 +29,11 @@ namespace RingsideBooker.Saves
         /// <paramref name="write"/> throws, the old file (and its backup) stay as they were, the temp
         /// file is removed and the exception goes on to the caller.
         /// </summary>
-        public static void Write(string path, Action<Stream> write, string backupPath = null)
+        /// <param name="expected">
+        /// When given, the temp file is read back after the flush and must equal these bytes before it
+        /// replaces the file; otherwise <see cref="SaveVerifyException"/> and nothing is replaced.
+        /// </param>
+        public static void Write(string path, Action<Stream> write, string backupPath = null, byte[] expected = null)
         {
             if (string.IsNullOrEmpty(path)) throw new ArgumentException("A path is needed", nameof(path));
             if (write == null) throw new ArgumentNullException(nameof(write));
@@ -42,12 +50,27 @@ namespace RingsideBooker.Saves
                     stream.Flush(true);
                 }
 
+                if (expected != null) VerifyStored(temp, expected);
                 Replace(temp, path, backupPath);
             }
             catch
             {
                 TryDelete(temp);
                 throw;
+            }
+        }
+
+        private static void VerifyStored(string temp, byte[] expected)
+        {
+            byte[] stored = File.ReadAllBytes(temp);
+            if (stored.Length != expected.Length)
+            {
+                throw new SaveVerifyException($"The disk kept {stored.Length} bytes of {expected.Length}.");
+            }
+
+            for (int index = 0; index < stored.Length; index++)
+            {
+                if (stored[index] != expected[index]) throw new SaveVerifyException($"The disk kept a different byte at {index}.");
             }
         }
 
@@ -91,6 +114,15 @@ namespace RingsideBooker.Saves
             catch (UnauthorizedAccessException)
             {
             }
+        }
+    }
+
+    /// <summary>A file read back after writing was not what was written (verify-after-write).</summary>
+    public sealed class SaveVerifyException : IOException
+    {
+        public SaveVerifyException(string message)
+            : base(message)
+        {
         }
     }
 }
