@@ -1,23 +1,153 @@
 # Ringside Booker
 
-A wrestling promotion management sim that runs in your browser. You book the shows, sign the
-talent and keep the money coming in while rival promotions run themselves around you. The
-promotions, wrestlers and titles are all original and fictional, there is no server, and your
-saves stay on your machine.
+A wrestling promotion management game for Windows. You run a promotion: sign the talent, book the
+shows, watch them play out and keep the money coming in, while rival promotions run themselves
+around you. Every number in the game can explain itself with a **Why?** panel.
 
-Work in progress. Design docs are in [`docs/design/`](docs/design/), and the build log is in
-[`docs/dev-journal/`](docs/dev-journal/).
+It's in **Alpha**, a personal project tested by the owner and a few friends. Saves can break
+between Alpha versions.
 
-## Docs
+- [Play it](#play-it)
+- [What's in the game](#whats-in-the-game)
+- [In development](#in-development)
+- [Run it from source](#run-it-from-source)
+- [For developers](#for-developers)
 
-- Design: [`docs/design/`](docs/design/) for the game and technical design, starting with
-  [`architecture.md`](docs/design/architecture.md)
-- Dev journal: [`docs/dev-journal/README.md`](docs/dev-journal/README.md), dated notes on how
-  the game gets built
-- Blog: [`docs/blog/README.md`](docs/blog/README.md), the public post series, with its tooling in
-  [`tools/blog/`](tools/blog/)
+## Play it
 
-## Requirements
+1. Go to [Releases](https://github.com/jpDxsoloOrg/ringside-booker/releases) and download the
+   newest `RingsideBooker-Setup-<version>.exe` (Windows 10 or 11, 64-bit).
+2. Run it. Windows may say **"Windows protected your PC"**, because the installer isn't signed.
+   Choose **More info**, then **Run anyway**.
+3. Keep **Install for me only**, and click through. No admin rights are needed.
+4. On first start, enter your **tester code** (the owner gives you one). The game remembers it and
+   works offline after that.
+
+Updates arrive inside the game: when a new version is out, the title screen shows **Update
+available**, and one click saves, updates and restarts. Your saves live in
+`%USERPROFILE%\AppData\LocalLow\jpDxsolo\Ringside Booker\Saves` and survive updates and
+uninstalls. A zip of each version is on the Releases page too, if you'd rather not install.
+
+Found a bug? **Settings › Send feedback** opens an email with a bug report attached.
+
+## What's in the game
+
+**Starting a game**
+
+- Take over a promotion in the default world, or found your own from scratch.
+- Import a world from a workshop mod: pick one from your Steam workshop folder, or choose any
+  folder. The game shows a report of what came in.
+- Choose which promotions are active in your world.
+- **Draft start:** every wrestler goes into a pool, every promotion starts level (same money and
+  popularity, no TV deals, titles vacant), and you draft your roster against the rivals. Picks sign
+  for a season, or you negotiate their contracts after the draft.
+
+**Running your promotion**
+
+- **Office:** what needs you today, the lead story, standings, money at a glance and power
+  rankings.
+- **Roster:** cards or a sortable table, quick looks and full profiles, pushes, injuries and morale.
+- **Booking:** build each card from matches and talking segments, with Auto-fill, lengths, a
+  running order, venues and a card check that tells you what to fix.
+- **Show night:** run the show segment by segment, or sim the rest. **Results** show the rating,
+  crowd, gate, viewers, popularity change and a report for every segment.
+- **Calendar:** your shows and the whole world's. Create, edit and retire weekly shows, and add
+  one-off specials.
+- **Match lab:** try any match or talking segment as often as you like without touching your game.
+
+**Creative**
+
+- **Titles:** champions, lineage and prestige; create, award, vacate, retire and reactivate belts.
+- **Storylines:** feuds with sides and heat that builds and cools, and a payoff when they end.
+
+**Business**
+
+- **Contracts:** sign free agents through negotiation (they can refuse or counter), renew, release,
+  handle people who want to leave, and offer someone a different job.
+- **Trades:** swap wrestlers and cash with rival promotions. They accept, refuse or counter, and
+  wrestlers have a say. Rivals sometimes offer you trades.
+- **Finances:** the verdict, monthly money in and out, a full ledger and spending policies.
+- **Networks:** TV deals, proposals, renegotiation and cancellation. **Production** sets how good
+  your shows can look and what that costs.
+
+**The world**
+
+- Rival promotions book their own shows, sign people and change their titles.
+- **Workers**, **Promotions**, **Event history** and **News** browse the whole world.
+
+**Always there**
+
+- Skip days, weeks or months; a skip stops for your shows and anything that needs you.
+- Autosave with backups, a crash screen that gets you back to your last save, in-game Help, and
+  the in-game update check.
+
+## In development
+
+The road to the Beta, in order (each finished sprint ships as an Alpha update):
+
+| Next                          | What                                                                                                                         |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Division rankings             | Wrestlers ranked in their divisions by record, strength of victory and streak; #1 contender matches; every wrestler's record |
+| Seasons                       | Season rollover with a recap, awards and a record book                                                                       |
+| Polish and speed              | Faster skips for big imported worlds, and the screens still missing parts                                                    |
+| Match options                 | Stipulations, production notes and match plans                                                                               |
+| Card flow                     | How the whole card plays, a live forecast while booking, and crews and stakes in ratings                                     |
+| Chemistry and prestige        | Pairs build chemistry; titles gain and lose prestige                                                                         |
+| Tag teams, stables and brands | Real teams and stables, and brands with a roster split                                                                       |
+| Character work                | Gimmicks, turns, managers and tournaments                                                                                    |
+| Careers                       | Wrestlers age, grow, decline and retire                                                                                      |
+| Morale and the inbox          | Contract morale and an inbox for decisions                                                                                   |
+| Goals and difficulty          | Season goals, owner goals, job security and difficulty modes                                                                 |
+| Money and business            | Sponsors, merchandise, loans, financial pressure and takeovers                                                               |
+| Tours                         | Runs of shows through neighbouring towns                                                                                     |
+
+After the Beta: the locker room, scouting and training (with a free agent mode), smarter rivals, a
+living world, development territories, brand wars, editors and mod tools, and localization.
+Multiplayer is a stretch goal.
+
+## Run it from source
+
+You can build and run the game yourself. Playing in the Unity editor, or a plain Unity build, doesn't
+ask for a tester code. Builds packaged with `game/tools/package-windows.sh` are alpha-channel tester
+builds and do, unless you package with `RB_CHANNEL=release`.
+
+**You need:** Windows 10 or 11, [Unity Hub](https://unity.com/download) with Unity
+**6000.6.9f1** (the version in `game/ProjectSettings/ProjectVersion.txt`), Node.js 20 and npm 10,
+and Git with [Git LFS](https://git-lfs.com/).
+
+1. Clone the repository to a Windows drive (Unity is slow on WSL paths) and fetch the LFS files:
+
+   ```sh
+   git clone https://github.com/jpDxsoloOrg/ringside-booker.git
+   cd ringside-booker
+   git lfs pull
+   ```
+
+2. Install the packages and build the engine bundle the game loads:
+
+   ```sh
+   npm ci
+   node packages/engine-host/scripts/build-bundle.mjs --outfile game/Assets/StreamingAssets/engine/engine.js
+   ```
+
+3. In Unity Hub, **Add** the `game` folder and open it with Unity 6000.6.9f1. Open
+   `Assets/Scenes/Boot.unity` and press **Play**.
+
+4. To build the game instead: in Unity, **File › Build Profiles › Windows › Build**. From WSL,
+   `game/tools/package-windows.sh` builds and zips it, and `game/tools/build-installer.sh` makes
+   the installer (it needs Inno Setup 6). See [`game/README.md`](game/README.md) and
+   [`game/docs/installer.md`](game/docs/installer.md).
+
+## For developers
+
+The simulation is a TypeScript engine in [`packages/engine`](packages/engine/), embedded in the
+Unity game through a JavaScript runtime. The design docs are in [`docs/design/`](docs/design/),
+starting with [`architecture.md`](docs/design/architecture.md); the build log is in
+[`docs/dev-journal/`](docs/dev-journal/) and the blog in [`docs/blog/`](docs/blog/README.md).
+Game-side docs are in [`game/docs/`](game/docs/), and the release notes in
+[`CHANGELOG.md`](CHANGELOG.md).
+
+## Requirements (engine and tools)
 
 - Node.js 20.11 or newer (`.nvmrc` pins the 20 line, so `nvm use` picks it up)
 - npm 10
@@ -39,7 +169,7 @@ Run these from the repository root.
 
 | Script                 | What it does                                                                                  |
 | ---------------------- | --------------------------------------------------------------------------------------------- |
-| `npm run dev`          | Starts the web app's Vite dev server at http://localhost:5173/                                |
+| `npm run dev`          | Starts the retired web app's Vite dev server at http://localhost:5173/                        |
 | `npm test`             | Runs every Vitest project once (engine, web, tools), without the slow suites                  |
 | `npm run test:slow`    | `npm test` with the slow suites too (`RB_SLOW_TESTS=1`)                                       |
 | `npm run test:tz`      | Runs the engine's calendar tests in two far-apart time zones                                  |
@@ -56,36 +186,6 @@ Run these from the repository root.
 
 Each workspace also has its own `test` and `typecheck` scripts, for example
 `npm test -w @ringside/engine`.
-
-## Running end-to-end tests
-
-The web app has a Playwright suite in [`apps/web/e2e/`](apps/web/e2e/). It builds the app,
-serves it with `vite preview` on http://localhost:4173/ and runs every spec on two
-projects: `desktop` (Chromium, 1440×900) and `phone` (Chromium, 390×844 with touch). A third
-project, `phone-webkit`, runs the phone settings on WebKit; it only joins the run when
-`E2E_WEBKIT=1` is set, which CI does on every pull request and push to `main`.
-
-| Script                                 | What it does                                                     |
-| -------------------------------------- | ---------------------------------------------------------------- |
-| `npm run e2e:install -w @ringside/web` | Downloads Chromium and WebKit plus their system libraries (once) |
-| `npm run e2e -w @ringside/web`         | Builds the app and runs the suite headless                       |
-| `npm run e2e:ui -w @ringside/web`      | Opens Playwright's UI mode to run and debug specs one at a time  |
-
-To run one project, pass it after `--`:
-
-```sh
-npm run e2e -w @ringside/web -- --project=phone
-E2E_WEBKIT=1 npm run e2e -w @ringside/web -- --project=phone-webkit
-```
-
-`e2e:install` uses `--with-deps`, which installs system packages and may ask for `sudo`. Without
-it, `npx playwright install chromium` from `apps/web` is enough for the two Chromium projects.
-
-Every route listed in [`apps/web/e2e/routes-under-test.ts`](apps/web/e2e/routes-under-test.ts)
-gets the smoke sweep: exactly one `h1`, no horizontal scrolling and no serious axe accessibility
-violations. Any console error or uncaught exception fails the test that caused it. Failed runs
-leave an HTML report in `apps/web/playwright-report/` (`npx playwright show-report` from
-`apps/web` opens it).
 
 ## Headless runner
 
@@ -169,9 +269,7 @@ Every pull request and every push to `main` runs two jobs side by side in
 
 A PR merges only when both are green. Each job stops after 15 minutes.
 
-The end-to-end suite runs only on demand (`workflow_dispatch` from the Actions tab), after both
-jobs pass, on the `desktop`, `phone` and `phone-webkit` projects. When it fails, the Playwright
-report and test output are uploaded as the `playwright-report` artifact.
+Run CI on any branch by hand with `workflow_dispatch` from the Actions tab.
 
 To run the pull request checks locally before pushing:
 
@@ -209,8 +307,7 @@ npm run verify:full
 
 It runs the format check, lint, typecheck, `npm run test:slow`, `npm run test:tz` (the calendar
 tests in two far-apart time zones), the 60-day determinism sim, the 365-day strict sim, the world
-validator, the blog check and the build, stopping at the first failure. The Playwright suite runs
-at the same point (see [Running end-to-end tests](#running-end-to-end-tests)).
+validator, the blog check and the build, stopping at the first failure.
 
 The lint config ([`eslint.config.js`](eslint.config.js)) is where the engine rules below are
 enforced: no `any` anywhere, and inside `packages/engine` no `Math.random` (including through
@@ -262,8 +359,11 @@ ringside-booker/
 │       │   ├── persistence/  save format, versioning, migrations
 │       │   └── index.ts   public API
 │       └── test/
+├── game/                  the Windows game: a Unity project that embeds the engine (see game/README.md)
+├── services/
+│   └── access/            the small tester-code service (AWS Lambda + DynamoDB)
 ├── apps/
-│   └── web/               the game UI. React + Vite. Talks to the engine through a Web Worker.
+│   └── web/               the retired web UI (React + Vite), kept for reference
 │       └── src/
 │           ├── app/       shell, routing, layout, providers
 │           ├── screens/   one folder per screen
@@ -294,7 +394,10 @@ The full architecture is in [`docs/design/architecture.md`](docs/design/architec
 - **Every number is traced.** Formulas return a value plus the trace that explains it.
 - **The engine has no DOM.** It runs the same in the browser, a Web Worker and Node.
 
-## Content is fictional
+## Content
 
-Every promotion, wrestler, title and event in this repository is made up. Any resemblance to
-real people or companies is a coincidence.
+The base world's promotions, wrestlers, titles and events are made up, and any resemblance to
+real people or companies is a coincidence. The Alpha's default world also adds the roster of the
+owner's own online league; those names are cleared before any wider release (#10905). Worlds
+imported from workshop mods are read from the player's own computer and never stored in this
+repository.
