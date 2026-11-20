@@ -61,9 +61,19 @@ export const DraftLevelSchema = z.strictObject({
 });
 export type DraftLevel = z.infer<typeof DraftLevelSchema>;
 
+/** The card levels a draft pool is mixed by, top down. */
+export const DraftCardLevelSchema = z.enum([
+  'mainEvent',
+  'upperCard',
+  'midCard',
+  'lowerCard',
+  'enhancement',
+]);
+export type DraftCardLevel = z.infer<typeof DraftCardLevelSchema>;
+
 /** One card level of the pool when the draft began. */
 export const DraftPoolLevelSchema = z.strictObject({
-  level: z.enum(['mainEvent', 'upperCard', 'midCard', 'lowerCard', 'enhancement']),
+  level: DraftCardLevelSchema,
   inPool: zNonNegativeInt,
   available: zNonNegativeInt,
   female: zNonNegativeInt,
@@ -109,6 +119,8 @@ export const DraftSchema = z.strictObject({
   sitOut: z.array(zId('person')),
   /** The pool's mix by card level when the draft began, top level first (DRF-07). */
   poolMix: z.array(DraftPoolLevelSchema),
+  /** Each pool wrestler's card level when the draft began, sorted by person (DRF-08). */
+  cardLevels: z.array(z.strictObject({ personId: zId('person'), level: DraftCardLevelSchema })),
 });
 export type Draft = z.infer<typeof DraftSchema>;
 
@@ -152,6 +164,7 @@ export const draftsTable = defineTable({
   refs: [
     { path: 'order[]', target: 'promotion', nullable: false },
     { path: 'sitOut[]', target: 'person', nullable: false },
+    { path: 'cardLevels[].personId', target: 'person', nullable: false },
   ],
   indexes: [{ name: 'byStatus', key: (row) => row.status }],
 });

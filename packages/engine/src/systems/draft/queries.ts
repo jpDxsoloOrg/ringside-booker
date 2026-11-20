@@ -11,14 +11,16 @@ import { viewerPromotionIds } from '../../core/api/controller';
 import { compareDates, type GameDate } from '../../core/date';
 import { zId } from '../../model/primitives';
 import type { PersonId, PromotionId } from '../../core/ids';
-import type {
-  Draft,
-  DraftCategory,
-  DraftLevel,
-  DraftPick,
-  DraftPickSource,
-  DraftPoolLevel,
-  DraftSettings,
+import {
+  DraftCardLevelSchema,
+  type Draft,
+  type DraftCardLevel,
+  type DraftCategory,
+  type DraftLevel,
+  type DraftPick,
+  type DraftPickSource,
+  type DraftPoolLevel,
+  type DraftSettings,
 } from '../../model/entities/draft';
 import type { EmploymentRole } from '../../model/entities/employment';
 import type { Gender, RingStyle } from '../../model/entities/person';
@@ -108,7 +110,16 @@ export interface DraftStateView {
   roster: { promotionId: PromotionId; picks: DraftPickView[] } | null;
 }
 
-export const POOL_SORTS = ['value', 'fit', 'rating', 'popularity', 'age', 'name'] as const;
+export const POOL_SORTS = ['value', 'fit', 'rating', 'popularity', 'age', 'name', 'level'] as const;
+
+/** Card levels top down, for sorting: main event first. */
+const LEVEL_RANK: Readonly<Record<DraftCardLevel, number>> = {
+  mainEvent: 5,
+  upperCard: 4,
+  midCard: 3,
+  lowerCard: 2,
+  enhancement: 1,
+};
 export type PoolSort = (typeof POOL_SORTS)[number];
 
 export interface DraftPoolRow {
@@ -128,6 +139,8 @@ export interface DraftPoolRow {
   popularity: { best: number; world: number };
   /** Draft value, 0-100, one decimal. */
   value: number;
+  /** Card level when the draft began (DRF-08); null for staff. */
+  level: DraftCardLevel | null;
   /** The draft value's Why?, one line per part. */
   why: string[];
   /** How well they fit the viewer's roster (value plus needs), one decimal; null without one. */
@@ -183,6 +196,7 @@ declare module '../../core/api/maps' {
         role?: EmploymentRole | undefined;
         weightClass?: DraftWeightClass | undefined;
         style?: RingStyle | undefined;
+        level?: DraftCardLevel | undefined;
         search?: string | undefined;
       };
       result: DraftPoolView;
@@ -374,6 +388,8 @@ function sortValue(row: DraftPoolRow, sort: PoolSort): number | string {
       return row.age;
     case 'name':
       return row.name.toLowerCase();
+    case 'level':
+      return row.level === null ? 0 : LEVEL_RANK[row.level];
   }
 }
 
@@ -413,6 +429,7 @@ export const draftPoolQuery = defineQuery('draft.pool', {
     role: z.enum(['wrestler', ...DRAFT_STAFF_ROLES]).optional(),
     weightClass: z.enum(DRAFT_WEIGHT_CLASSES).optional(),
     style: z.enum(RING_STYLES).optional(),
+    level: DraftCardLevelSchema.optional(),
     search: z.string().max(60).optional(),
   }),
   run: (ctx, args) => {
@@ -429,6 +446,10 @@ export const draftPoolQuery = defineQuery('draft.pool', {
     const search = args.search?.trim().toLowerCase() ?? '';
     const weights = draftValueWeights(tunables);
     const sort = args.sort ?? 'value';
+    const levels = new Map<string, DraftCardLevel>(
+      draft.cardLevels.map((entry) => [entry.personId, entry.level]),
+    );
+    const levelOf = (personId: string): DraftCardLevel | null => levels.get(personId) ?? null;
     const descending = args.descending ?? sort !== 'name';
     const matching = loaded.board
       .poolMembers()
@@ -439,6 +460,7 @@ export const draftPoolQuery = defineQuery('draft.pool', {
           (args.role === undefined || candidate.role === args.role) &&
           (args.weightClass === undefined || candidate.weightClass === args.weightClass) &&
           (args.style === undefined || candidate.style === args.style) &&
+          (args.level === undefined || levelOf(candidate.personId) === args.level) &&
           (search === '' || candidate.name.toLowerCase().includes(search)),
       );
     const rows = matching.map((candidate): DraftPoolRow => {
@@ -458,6 +480,7 @@ export const draftPoolQuery = defineQuery('draft.pool', {
         rating: one(candidate.rating),
         popularity: { best: one(candidate.peakPop), world: one(candidate.worldPop) },
         value: one(candidate.value),
+        level: candidate.category === 'staff' ? null : levelOf(candidate.personId),
         why: [],
         fit: fit === null ? null : one(fit),
         fitWhy: roster === undefined ? [] : fitWhy,

@@ -762,6 +762,7 @@ function addTinyDraft(context: BuildContext): void {
     level: { cash: cents(100_000_000), prestige: 50, homePopularity: 30 },
     sitOut: [],
     poolMix: [{ level: 'mainEvent', inPool: 1, available: 1, female: 0, male: 1, other: 0 }],
+    cardLevels: [],
   });
   context.insert('draftPicks', {
     id: sequence.id('draftPick'),

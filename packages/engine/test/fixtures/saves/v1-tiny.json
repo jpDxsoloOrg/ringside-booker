@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "5ced599f1d3cd18d3961c019a0e23fc3",
+    "schemaFingerprint": "85bebdb351d1774381accea69a873401",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -1895,6 +1895,7 @@
         ],
         "drafts": [
           {
+            "cardLevels": [],
             "createdOn": "2026-01-05",
             "finishedOn": "2026-01-05",
             "id": "drf_0000000001",

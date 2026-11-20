@@ -44,8 +44,8 @@ A new game can **Start with a draft** (Options, Draft). Every wrestler goes into
 
 - **Active promotions** (Options, Promotions, **Choose…**) picks who takes part, in any game. Search, filter by country or size, or keep **Only the biggest** few. Your promotion is always in. Fewer promotions also play faster.
 - The **draft plan** under the options shows the pool, how many sit out and the mix from main eventers down.
-- In the **draft room**, the banner says who is on the clock and when you pick next. Sort and filter the pool; **Value** and **Fit** each have a quiet Why?. Press **Draft** on your turn, **Sim to my pick** to let the rivals go, or **Auto-pick the rest**. When every pick is made, **Finish the draft**.
-- By default each pick signs for one season. With **Negotiate contracts after the draft**, your picks join unsigned: offer each one a contract from the draft room or release them. If your first show comes before they sign, call it off on Booking.
+- In the **draft room**, the banner says who is on the clock and when you pick next. Sort and filter the pool, by card level too; **Value** and **Fit** each have a quiet Why?. Press **Draft** on your turn, **Sim to my pick** to let the rivals go, or **Auto-pick the rest**. When every pick is made, **Finish the draft**.
+- By default each pick signs for one season. With **Negotiate contracts after the draft**, your picks join unsigned: offer each one a contract from the draft room or release them. In a draft game the first show is a week after the start, so they have time to answer. If too few sign, call the show off on Booking.
 
 Until the draft is finished, the day button says **Finish the draft** and takes you back to the room.
 

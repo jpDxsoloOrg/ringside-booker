@@ -26,7 +26,7 @@ namespace RingsideBooker.Screens.Dev
     /// the draft", <c>-rbDraftBiggest N</c> for how many promotions stay active, default 6). In the
     /// default world it keeps only the biggest N promotions, turns the draft on, starts, makes a pick,
     /// sims to the next pick, auto-picks the rest and finishes, then (negotiate-after) releases one
-    /// draftee and offers the rest contracts, and plays 7 days so the shows run. A PNG per step; logs
+    /// draftee and offers the rest contracts, and plays two weeks so the first show (a week out, DRF-08) runs. A PNG per step; logs
     /// <c>[DraftShots]</c>; exit 0 when every check passes. Its save slot is deleted on quit (TourSlots).
     /// </summary>
     public sealed class DraftShots : MonoBehaviour
@@ -115,6 +115,16 @@ namespace RingsideBooker.Screens.Dev
             Check(view.YourTurn, "Sim to my pick stops on your pick");
             yield return Capture("draft-your-pick");
 
+            // ---- Card level: filter to main eventers, then sort the whole pool by level ----
+            view.FilterLevel("mainEvent");
+            yield return WaitIdle(1f);
+            Check(view.PoolRows.Count > 0 && view.PoolRows.All(row => Kit.Str(row, "level") == "mainEvent"), $"the card level filter shows {view.PoolRows.Count} main eventers");
+            yield return Capture("draft-main-eventers");
+            view.FilterLevel(null);
+            yield return WaitIdle(0.5f);
+            view.SortPool("value", true);
+            yield return WaitIdle(0.8f);
+
             // ---- A pick, with the confirm ----
             JToken first = view.PoolRows.FirstOrDefault();
             string firstId = Kit.Str(first, "personId");
@@ -201,10 +211,13 @@ namespace RingsideBooker.Screens.Dev
 
             // ---- Play a week so the shows run ----
             // Under negotiate-after a day-1 show comes before the answers: a second week shows a show running.
-            int days = negotiate ? Days * 2 : Days;
+            int days = Days * 2;
             Task<(bool ok, int shows)> played = PlayDays(days);
             yield return Await(played);
-            Check(played.Result.ok && played.Result.shows > 0, $"played {days} days with {played.Result.shows} show nights ({calledOff} called off before anyone signed)");
+            Check(played.Result.ok && played.Result.shows > 0, $"played {days} days with {played.Result.shows} show nights");
+            Check(calledOff == 0, $"no show had to be called off ({calledOff})");
+            Check(firstShow != null && startDay != null && startDay.Value.DaysUntil(firstShow.Value) >= 7, $"the first show is on {firstShow?.Iso}, at least a week after the start ({startDay?.Iso})");
+            Check(doubleStops == 0, $"every stop cleared on the first visit ({doubleStops} came back)");
             ShellController.Current.Navigator.Go("roster");
             yield return WaitIdle(1.5f);
             yield return Capture("roster-after-a-week");
@@ -223,6 +236,9 @@ namespace RingsideBooker.Screens.Dev
             GameDate target = start.AddDays(days);
             int shows = 0;
             calledOff = 0;
+            doubleStops = 0;
+            firstShow = null;
+            startDay ??= start;
             string lastStop = null;
             int same = 0;
             for (int step = 0; step < 200; step++)
@@ -255,6 +271,7 @@ namespace RingsideBooker.Screens.Dev
                 GateHit lead = DayControlLogic.LeadingGate(gates);
                 string key = $"{lead.GateId}|{lead.Reason}";
                 same = key == lastStop ? same + 1 : 0;
+                if (same > 0 && lead.GateId != EngineGateActions.ShowsTonight) doubleStops++;
                 lastStop = key;
                 if (same >= 3)
                 {
@@ -264,6 +281,7 @@ namespace RingsideBooker.Screens.Dev
                 Log($"{today.Iso}: {lead.GateId} ({lead.Reason})");
                 if (lead.GateId == EngineGateActions.ShowsTonight)
                 {
+                    firstShow ??= today;
                     bool? live = await SkipCheck.ShowNight(game, lead);
                     if (live == null && await TooFewToBook(game))
                     {
@@ -290,6 +308,9 @@ namespace RingsideBooker.Screens.Dev
         }
 
         private static int calledOff;
+        private static int doubleStops;
+        private static GameDate? firstShow;
+        private static GameDate? startDay;
 
         private static async Task<bool> TooFewToBook(EngineGame game)
         {

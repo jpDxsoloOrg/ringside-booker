@@ -78,6 +78,17 @@ export const draftTunables = defineTunables({
       'Weekday (0 = Monday) of the weekly show made for a promotion that has no recurring show',
     docRef: `${DOC}#schedule`,
   },
+  'draft.firstShowDelayDays': {
+    kind: 'integer',
+    default: 7,
+    min: 0,
+    max: 60,
+    unit: 'days',
+    category: CATEGORY,
+    description:
+      'Days after the start date before any show runs in a draft game, so negotiate-after picks can answer first',
+    docRef: `${DOC}#schedule`,
+  },
   'draft.pool.ratio.auto': {
     kind: 'number',
     default: 1.25,
