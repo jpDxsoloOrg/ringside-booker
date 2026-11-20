@@ -39,6 +39,7 @@ namespace RingsideBooker.UI.Title
             Wire(root, "menu-continue", () => saves.Continue());
             Wire(root, "menu-load", () => saves.ShowLoad());
             Wire(root, "menu-settings", ShowSettings);
+            if (root.Q<Button>("menu-help") != null) Wire(root, "menu-help", ShowHelp);
             Wire(root, "menu-quit", SceneFlow.Quit);
 
             VisualElement menuRoot = root.Q<VisualElement>("title-menu");
@@ -122,6 +123,15 @@ namespace RingsideBooker.UI.Title
         {
             VisualElement inner = ResetPanel("Settings");
             inner.Add(SettingsScreen.BuildPanel());
+        }
+
+        /// <summary>The Help center before a game is loaded (POL5-02): screen links are plain text here.</summary>
+        private void ShowHelp()
+        {
+            VisualElement inner = ResetPanel("Help");
+            panel.AddToClassList("title-panel--wizard");
+            inner.AddToClassList("title-panel__inner--wizard");
+            inner.Add(RingsideBooker.Help.HelpScreen.BuildOutOfGame().Root);
         }
 
         private static void StartDemo()

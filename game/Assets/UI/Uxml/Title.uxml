@@ -13,6 +13,7 @@
                 <ui:Button name="menu-continue" text="CONTINUE" class="menu-button" />
                 <ui:Button name="menu-load" text="LOAD" class="menu-button" />
                 <ui:Button name="menu-settings" text="SETTINGS" class="menu-button" />
+                <ui:Button name="menu-help" text="HELP" class="menu-button" />
                 <ui:Button name="menu-quit" text="QUIT" class="menu-button" />
             </ui:VisualElement>
             <ui:Label name="title-version" class="title-version" />

@@ -23,6 +23,12 @@ namespace RingsideBooker.UI.Shell
         /// </summary>
         public static Action<VisualElement, ShellSnapshot> CashChipDecorator { get; set; }
 
+        /// <summary>
+        /// Called after the screen title is drawn, to add to it (the Help center adds the screen's
+        /// quiet "?", POL5-02). Null draws the title alone.
+        /// </summary>
+        public static Action<VisualElement, ShellRoute> CrumbsDecorator { get; set; }
+
         private readonly AppShell shell;
 
         public TopBarView(AppShell shell) => this.shell = shell;
@@ -33,6 +39,7 @@ namespace RingsideBooker.UI.Shell
             (NavSection section, NavItem item) = NavigationModel.Find(route.ScreenId);
             bool inSection = section != null && item != null;
             shell.SetCrumbs(inSection ? section.Label : null, NavigationModel.ScreenLabel(route.ScreenId));
+            CrumbsDecorator?.Invoke(shell.Crumbs, route);
         }
 
         public void Render(ShellSnapshot snapshot)
