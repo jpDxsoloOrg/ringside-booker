@@ -16,6 +16,8 @@ How I write an entry:
 
 ## Unreleased
 
+## [0.1.0-alpha.4] - 2026-11-20
+
 ### Added
 
 - I added tester codes. Test builds ask for your tester code once on each computer, then play
