@@ -21,6 +21,8 @@ namespace RingsideBooker.Screens.Dev
     /// world, adds one mod folder, a folder of two mods and a folder with no database (the plain
     /// message), removes one folder, imports the single mod and uses it, with a PNG at each step.
     /// Afterwards it forgets the folders it added and removes the world it stored. Exit 0 = PASSED.
+    /// The Windows folder picker itself is modal, so the tour adds folders through
+    /// <see cref="NewGameWizard.AddFolder"/>, the method the button calls with the picked folder.
     /// </summary>
     public sealed class FolderImportShots : MonoBehaviour
     {
@@ -129,7 +131,7 @@ namespace RingsideBooker.Screens.Dev
             Task<EngineClient> clientTask = EngineRuntime.GetClientAsync();
             yield return Await(clientTask);
             if (WorkshopWorlds.StoredFor(mod) != null) yield return Await(WorkshopWorlds.RemoveStoredAsync(clientTask.Result, mod.PackId));
-            foreach (string folder in added.Where(folder => !before.Contains(ModFolders.Normalize(folder)))) WorkshopWorlds.RemoveFolder(folder);
+            foreach (string folder in WorkshopWorlds.Folders.Folders.Where(folder => !before.Contains(folder)).ToList()) WorkshopWorlds.RemoveFolder(folder);
             WorkshopWorlds.SkipSteamScan = false;
 
             Debug.Log($"[FolderShots] {(problems.Count == 0 ? "PASSED" : "FAILED: " + string.Join("; ", problems))}");
