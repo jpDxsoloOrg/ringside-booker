@@ -5,7 +5,7 @@
 - **People:** 549
 - **Wrestlers:** 491
 - **Promotions:** 12
-- **Titles:** 34
+- **Titles:** 28
 - **Contracts running:** 368
 - **Free-agent wrestlers:** 172
 - **People without a contract:** 181
@@ -225,7 +225,7 @@ Contracts running on the start date; the push columns count wrestler contracts o
 | pro-au-indie        |      1 |       0 |             1 |
 | pro-ca              |      5 |       0 |             5 |
 | pro-de              |      2 |       0 |             2 |
-| pro-flagship        |      9 |       0 |             9 |
+| pro-flagship        |      3 |       0 |             3 |
 | pro-jp-kansai-indie |      1 |       0 |             1 |
 | pro-jp-major        |      3 |       0 |             3 |
 | pro-mx-major        |      3 |       0 |             3 |

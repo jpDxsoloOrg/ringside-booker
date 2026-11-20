@@ -2,7 +2,7 @@
   {
     "key": "flagship-main-brand",
     "promotionKey": "pro-flagship",
-    "name": "Altura Mainstage",
+    "name": "SLW Mainstage",
     "logoRef": null,
     "priority": 0,
     "active": true
@@ -10,7 +10,7 @@
   {
     "key": "flagship-young-brand",
     "promotionKey": "pro-flagship",
-    "name": "Altura Overclock",
+    "name": "SLW Overclock",
     "logoRef": null,
     "priority": 1,
     "active": true

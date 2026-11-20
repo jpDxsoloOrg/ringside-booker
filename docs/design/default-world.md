@@ -98,25 +98,26 @@ case for drafts and brand-war seasons later
 
 ## Titles
 
-28 titles, all active, each with a champion and a short history (see
+28 titles, all active (the six league belts start with only their current reign; the rest have a
+champion and a short history, see
 [Title histories](#title-histories)). Each
 title's prestige is set from its promotion's by rank, always within 15: the
 top title sits 6-13 above the promotion, the lowest rung 5-12 below it. Weight limits appear only on the
 junior and light heavyweight titles. Every title has a `color` and a null
 `imageRef`, so UI-06 draws a placeholder belt.
 
-| Promotion               | Titles                                                                                                           |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Altura                  | World (Mainstage), Grand (Overclock), Keystone (Mainstage), Breakout (Overclock), Women's (female), Tag Team (2) |
-| Tessen                  | Heavyweight, Junior Heavyweight (up to 100 kg), Tag Team (2)                                                     |
-| Cielo Alto              | Heavyweight, Light Heavyweight (up to 97 kg), Trios (3)                                                          |
-| Longleaf                | Heavyweight, Tag Team (2)                                                                                        |
-| Blast Furnace           | Championship, Tag Team (2)                                                                                       |
-| Golden Poppy            | Championship (female), Tag Team (2, female)                                                                      |
-| Boreal                  | Heavyweight, Tag Team (2)                                                                                        |
-| Ashlar                  | Championship, Tag Team (2), Women's (female)                                                                     |
-| Eisenwerk               | Championship, Tag Team (2)                                                                                       |
-| Hardpan, Hibari, Wattle | One title each                                                                                                   |
+| Promotion               | Titles                                                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| SLW (Altura)            | The league's three only: World Heavyweight, Mid Card, SZN World Tag Team (2) ([The league roster](#the-league-roster)) |
+| Tessen                  | Heavyweight, Junior Heavyweight (up to 100 kg), Tag Team (2)                                                           |
+| Cielo Alto              | Heavyweight, Light Heavyweight (up to 97 kg), Trios (3)                                                                |
+| Longleaf                | Heavyweight, Tag Team (2)                                                                                              |
+| Blast Furnace           | Championship, Tag Team (2)                                                                                             |
+| Golden Poppy            | Championship (female), Tag Team (2, female)                                                                            |
+| Boreal                  | Heavyweight, Tag Team (2)                                                                                              |
+| Ashlar                  | Championship, Tag Team (2), Women's (female)                                                                           |
+| Eisenwerk               | Championship, Tag Team (2)                                                                                             |
+| Hardpan, Hibari, Wattle | One title each                                                                                                         |
 
 Golden Poppy is women-only through its titles' `division.gender` and the
 WLD-09 roster spec; promotions have no women's-division flag.
@@ -468,8 +469,9 @@ Opponent"), duplicate ring names (the one with the most matches stays) and any r
 generated world already uses.
 
 **Promotions.** Altura (`pro-flagship`) is **Szn League Wrestling (SLW)** and Boreal (`pro-ca`)
-is **BLX**. Both keep their own titles and add the league's three: SLW under the league's names
-(World Heavyweight, Mid Card, SZN World Tag Team), BLX as "BLX World Heavyweight", "BLX Mid Card"
+is **BLX**. SLW's six old Altura belts are gone and it holds only the league's three; BLX keeps its own
+titles and adds the league's three too. SLW's brands are SLW Mainstage and SLW Overclock. SLW's belts keep the league's names
+(World Heavyweight, Mid Card, SZN World Tag Team), BLX's are "BLX World Heavyweight", "BLX Mid Card"
 and "BLX World Tag Team". The league's champion holds a belt when they are imported and work
 there; otherwise it goes to the promotion's best league wrestler of that division (tag: best
 league team), or stays vacant.

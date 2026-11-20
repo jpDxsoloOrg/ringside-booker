@@ -77,8 +77,7 @@
       "brandKey": "flagship-main-brand",
       "push": "mainEvent",
       "alignment": "face"
-    },
-    "holdsTitleKey": "flagship-world-main"
+    }
   },
   {
     "key": "hl-callum-brindabella",
@@ -233,8 +232,7 @@
       "brandKey": "flagship-young-brand",
       "push": "mainEvent",
       "alignment": "face"
-    },
-    "holdsTitleKey": "flagship-world-young"
+    }
   },
   {
     "key": "hl-kip-santangelo",
@@ -252,8 +250,7 @@
       "brandKey": "flagship-young-brand",
       "push": "upperCard",
       "alignment": "face"
-    },
-    "holdsTitleKey": "flagship-secondary-young"
+    }
   },
   {
     "key": "hl-lukas-hartrampf",
@@ -371,8 +368,7 @@
       "brandKey": "flagship-main-brand",
       "push": "upperCard",
       "alignment": "heel"
-    },
-    "holdsTitleKey": "flagship-secondary-main"
+    }
   },
   {
     "key": "hl-sable-whitcombe",
@@ -393,8 +389,7 @@
       "brandKey": "flagship-main-brand",
       "push": "mainEvent",
       "alignment": "heel"
-    },
-    "holdsTitleKey": "flagship-women"
+    }
   },
   {
     "key": "hl-shuhei-kurobane",

@@ -107,7 +107,7 @@ describe('the default roster build', () => {
       build.files.employment.map((employment) => [employment.personKey, employment.promotionKey]),
     );
     const ownTitles = build.titles.filter((title) => !title.key.startsWith(LEAGUE_TITLE_PREFIX));
-    expect(ownTitles).toHaveLength(28);
+    expect(ownTitles).toHaveLength(22);
     for (const title of ownTitles) {
       const titleKey = title.key;
       const open = build.files.titleReign.filter(
