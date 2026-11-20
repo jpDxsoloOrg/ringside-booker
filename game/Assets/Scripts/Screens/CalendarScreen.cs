@@ -75,6 +75,16 @@ namespace RingsideBooker.Screens
             todayButton.name = "calendar-today";
             bar.Add(todayButton);
             bar.Add(Ds.Spacer());
+            // EVT8: the player's own schedule (new weekly show, one-off special, manage shows).
+            Button newShow = Schedule.ScheduleEditor.NewShowButton(context);
+            if (newShow != null)
+            {
+                VisualElement scheduleActions = Ds.Row("sc-toolbar-actions");
+                Schedule.ScheduleEditor.Style(scheduleActions);
+                scheduleActions.Add(Schedule.ScheduleEditor.ManageButton(context));
+                scheduleActions.Add(newShow);
+                bar.Add(scheduleActions);
+            }
             VisualElement legend = Ds.Row("wl-legend");
             legend.Add(Ds.Dot(DsState.Live, "Yours"));
             legend.Add(Ds.Dot(DsState.Gold, "Big show"));
@@ -234,6 +244,7 @@ namespace RingsideBooker.Screens
             tags.Add(importance == "major" || importance == "flagship" ? Ds.Tag(W.Words(importance), "gold") : Ds.Tag(W.Words(importance)));
             if (Kit.Bool(show, "televised")) tags.Add(Ds.Tag("TV", "live"));
             if (own) tags.Add(Ds.Tag("Yours", "live"));
+            if (Kit.Str(show, "definitionId") == null) tags.Add(Ds.Tag("One-off special", "gold"));
             words.Add(tags);
             hero.Add(words);
             body.Add(hero);
@@ -292,6 +303,7 @@ namespace RingsideBooker.Screens
                 card.name = "show-sheet-book";
                 footer.Add(card);
             }
+            if (status != "completed" && status != "cancelled") Schedule.ScheduleEditor.AddShowActions(footer, show, context, () => handle?.Close());
             handle = DsOverlay.SideSheet(context.Overlay.Layer, Kit.Str(show, "name") ?? "Show", body, Kit.Str(show, "promotion.shortName"), footer, 460f);
             if (handle != null) handle.Content.name = "show-sheet";
         }
