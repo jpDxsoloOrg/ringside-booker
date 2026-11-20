@@ -323,3 +323,18 @@
 .sc-toolbar-actions > .ds-btn {
     margin-left: 8px;
 }
+
+/* UNITY-40: Manage shows' Next column when a show is not on the calendar. */
+.sc-cell--quiet {
+    color: var(--ds-text-3);
+}
+
+.sc-cell--warn {
+    color: var(--ds-warn);
+}
+
+.sc-notice__action {
+    flex-shrink: 0;
+    margin-left: auto;
+    align-self: center;
+}

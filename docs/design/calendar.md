@@ -531,6 +531,17 @@ tunables, the date limits, the home region), `calendar.previewDefinition`,
 neighbours first, a region's venues with why one is unavailable) and
 `calendar.checkNewShow`. Queries never write.
 
+**Next dates in Manage shows (UNITY-40).** A `calendar.definitions` row's
+`nextDate` is only ever a stored show (scheduled or booked, today or later), so
+it is always on the Calendar. Without one, `scheduling` says why, in plain
+words (`text`), with `fix: 'edit'` when editing the show fixes it:
+`later` (the next rule date, `ruleDate`, is past the stored horizon and goes on
+the calendar on `addedOn`, horizon days before; most imported annual shows are
+here), `blocked` (the promotion has closed, or the show's brand is not
+running), `noDates` (the rule has no dates left) or `retired`. Placement never
+keeps a show off the calendar: a preferred venue that cannot be used leaves the
+venue unchosen, and the region falls back to the venue's or the home region.
+
 **Tunables** (category Schedule): `calendar.editor.minLeadDays`,
 `calendar.editor.maxLeadDays`, and the default card size per importance,
 `calendar.format.<importance>.slots` (house 5, minor 5, regular 6, major 8,

@@ -36,13 +36,14 @@ import {
   type Recurrence,
   type ShowFormat,
 } from '../../../model/entities/event-definition';
+import { definitionAirDateKey } from '../../../model/entities/event-instance';
 import { isVenueOpenOn, type VenueKind } from '../../../model/entities/venue';
 import { nextOccurrence, occursOn } from '../../../model/recurrence';
 import { zGameDate, zId } from '../../../model/primitives';
 import type { GameWorldView } from '../../../model/tables';
 import type { DeepReadonly } from '../../../model/world';
 import { recurrenceText } from '../recurrenceText';
-import { isSchedulable } from '../schedule';
+import { addDaysWithinCalendar } from '../schedule';
 import { copyRecurrence, draftedDefinition, planFor, retiredRange } from './apply';
 import {
   AddOneOffArgsSchema,
@@ -54,6 +55,7 @@ import {
 import { controlsSchedule, NOT_YOUR_SHOW_MESSAGE } from './control';
 import {
   checkDraft,
+  dateWords,
   DefinitionDraftSchema,
   effectiveFromOf,
   IMPORTANCE_LABELS,
@@ -67,6 +69,27 @@ import { defaultFormatFor } from './tunables';
 
 /** Where a recurring show is in its life. */
 export type DefinitionState = 'running' | 'starts' | 'retired';
+
+/**
+ * Where a recurring show stands on the calendar:
+ * - `onCalendar`: its next show is stored (`nextDate`).
+ * - `later`: its next rule date (`ruleDate`) goes on the calendar on `addedOn`, when the stored
+ *   horizon reaches it.
+ * - `blocked`: it cannot be scheduled (closed promotion, brand not running).
+ * - `noDates`: its rule has no dates left.
+ * - `retired`: it has ended.
+ */
+export type SchedulingStatus = 'onCalendar' | 'later' | 'blocked' | 'noDates' | 'retired';
+
+export interface DefinitionScheduling {
+  status: SchedulingStatus;
+  ruleDate: GameDate | null;
+  addedOn: GameDate | null;
+  /** The row's note in plain words; null when the show is on the calendar or retired. */
+  text: string | null;
+  /** `edit` when editing the show can fix it. */
+  fix: 'edit' | null;
+}
 
 /** One recurring show as Manage shows lists it. */
 export interface DefinitionRow {
@@ -87,8 +110,13 @@ export interface DefinitionRow {
   activeFrom: GameDate;
   activeUntil: GameDate | null;
   state: DefinitionState;
-  /** The next stored or rule date from today, or null when there is none. */
+  /**
+   * The date of the next show already on the calendar (scheduled or booked, today or later), or
+   * null when none is stored. Never a date the rule only promises: the Calendar shows stored shows.
+   */
   nextDate: GameDate | null;
+  /** Why there is no `nextDate`, in plain words, and what fixes it. */
+  scheduling: DefinitionScheduling;
   /** True when the viewer may edit or retire it. */
   editable: boolean;
 }
@@ -234,12 +262,15 @@ function stateOf(
   return compareDates(definition.activeFrom, today) > 0 ? 'starts' : 'running';
 }
 
-function nextDateOf(
+/**
+ * The next open show of the definition already on the calendar (scheduled or booked, today or
+ * later), or null. Only stored shows count: the Calendar shows nothing else.
+ */
+function nextStoredDateOf(
   read: GameWorldView,
   definition: DeepReadonly<EventDefinition>,
-  checks: DraftCheckContext,
+  today: GameDate,
 ): GameDate | null {
-  const today = checks.today;
   let soonest: GameDate | null = null;
   for (const show of read.tables.eventInstances.lookup('byDefinition', definition.id)) {
     if (
@@ -253,10 +284,135 @@ function nextDateOf(
       soonest = show.date;
     }
   }
-  if (soonest !== null || isRetired(definition, checks) || !isSchedulable(read, definition)) {
-    return soonest;
+  return soonest;
+}
+
+/**
+ * The first date from `from` the definition's rule gives that has no show at all yet (a date that
+ * already has a row, whatever its status, is never scheduled again), or null when the rule has no
+ * such date left. Looks at most {@link MAX_RULE_LOOKAHEAD} dates ahead.
+ */
+function nextUnstoredRuleDate(
+  read: GameWorldView,
+  definition: DeepReadonly<EventDefinition>,
+  from: GameDate,
+): GameDate | null {
+  const start = compareDates(definition.activeFrom, from) > 0 ? definition.activeFrom : from;
+  let candidate: GameDate | null = occursOn(definition.recurrence, start)
+    ? start
+    : nextOccurrence(definition.recurrence, start);
+  for (let looked = 0; candidate !== null && looked < MAX_RULE_LOOKAHEAD; looked += 1) {
+    if (definition.activeUntil !== null && compareDates(candidate, definition.activeUntil) > 0) {
+      return null;
+    }
+    const stored = read.tables.eventInstances.lookupOne(
+      'byDefinitionAirDate',
+      definitionAirDateKey(definition.id, candidate),
+    );
+    if (stored === undefined) {
+      return candidate;
+    }
+    candidate = nextOccurrence(definition.recurrence, candidate);
   }
-  return nextDates(definition, today, 1)[0] ?? null;
+  return null;
+}
+
+/** How many rule dates `nextUnstoredRuleDate` steps over before it gives up. */
+const MAX_RULE_LOOKAHEAD = 800;
+
+/**
+ * Whether a recurring show has a date on the calendar and, when it has none, why, in plain words
+ * (UNITY-40). `nextDate` is only ever a stored show's date, so Manage shows never lists a date the
+ * Calendar does not have.
+ */
+export function schedulingOf(
+  read: GameWorldView,
+  definition: DeepReadonly<EventDefinition>,
+  checks: DraftCheckContext,
+): { nextDate: GameDate | null; scheduling: DefinitionScheduling } {
+  const today = checks.today;
+  const nextDate = nextStoredDateOf(read, definition, today);
+  if (isRetired(definition, checks)) {
+    return {
+      nextDate,
+      scheduling: { status: 'retired', ruleDate: null, addedOn: null, text: null, fix: null },
+    };
+  }
+  if (nextDate !== null) {
+    return {
+      nextDate,
+      scheduling: { status: 'onCalendar', ruleDate: null, addedOn: null, text: null, fix: null },
+    };
+  }
+  const promotion = read.tables.promotions.get(definition.promotionId);
+  if (promotion?.status !== 'active') {
+    return {
+      nextDate,
+      scheduling: {
+        status: 'blocked',
+        ruleDate: null,
+        addedOn: null,
+        text: `Not on the calendar: ${promotion?.name ?? 'the promotion'} has closed, so it runs no shows.`,
+        fix: null,
+      },
+    };
+  }
+  if (definition.brandId !== null) {
+    const brand = read.tables.brands.get(definition.brandId);
+    if (brand?.active !== true) {
+      return {
+        nextDate,
+        scheduling: {
+          status: 'blocked',
+          ruleDate: null,
+          addedOn: null,
+          text: `Not on the calendar: the ${brand?.name ?? "show's"} brand is not running. Edit the show to move it to another brand or the whole promotion.`,
+          fix: 'edit',
+        },
+      };
+    }
+  }
+  // Today's shows are already made (the day's scheduling starts at tomorrow), so a rule date today
+  // without a show never gets one.
+  const ruleDate = nextUnstoredRuleDate(read, definition, addDaysWithinCalendar(today, 1));
+  if (ruleDate === null) {
+    return {
+      nextDate,
+      scheduling: {
+        status: 'noDates',
+        ruleDate: null,
+        addedOn: null,
+        text: 'Not on the calendar: its schedule has no dates left. Edit the show to give it new dates, or retire it.',
+        fix: 'edit',
+      },
+    };
+  }
+  const horizonDays = checks.tunables.get('calendar.scheduleHorizonDays');
+  const horizonEnd = addDaysWithinCalendar(today, horizonDays);
+  if (compareDates(ruleDate, horizonEnd) > 0) {
+    const addedOn = addDaysWithinCalendar(ruleDate, -horizonDays);
+    return {
+      nextDate,
+      scheduling: {
+        status: 'later',
+        ruleDate,
+        addedOn,
+        text: `Not on the calendar yet: the next show is ${dateWords(ruleDate)}. Shows go on the calendar ${String(horizonDays)} days ahead, so it is added on ${dateWords(addedOn)}.`,
+        fix: null,
+      },
+    };
+  }
+  // Inside the horizon but not stored yet: the next day's scheduling adds it.
+  return {
+    nextDate,
+    scheduling: {
+      status: 'later',
+      ruleDate,
+      addedOn: addDaysWithinCalendar(today, 1),
+      text: `Not on the calendar yet: ${dateWords(ruleDate)} is added when the day ends.`,
+      fix: null,
+    },
+  };
 }
 
 /** The next `count` dates the definition runs on from `from` (included). */
@@ -329,7 +485,7 @@ export const definitionsQuery: QueryDefinition<'calendar.definitions'> = defineQ
             activeFrom: definition.activeFrom,
             activeUntil: definition.activeUntil,
             state,
-            nextDate: nextDateOf(ctx.read, definition, checksOf(ctx)),
+            ...schedulingOf(ctx.read, definition, checksOf(ctx)),
             editable: state !== 'retired' && ownership(ctx, definition).length === 0,
           });
         }
