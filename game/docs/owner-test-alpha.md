@@ -9,8 +9,8 @@ and the screen it was on.
 
 - Installer: `F:\source\rb-wt\S13-alpha\game\Builds\RingsideBooker-Setup-<version>.exe` (about
   38 MB). `<version>` is `0.1.0-alpha.1+<commit>`.
-- The app icon is the current flat one (`game/installer/RingsideBooker.ico`). The Blender icon can
-  replace it later; nothing else changes.
+- The app icon is the Blender ring icon B (`game/branding/ring-B.ico`). Check it on the
+  installer, the Start menu and desktop shortcuts, the taskbar and Apps & features.
 - Your saves live in `%USERPROFILE%\AppData\LocalLow\jpDxsolo\Ringside Booker\Saves`. **Copy that
   folder somewhere safe first** if you want to keep it exactly as it is. Nothing in this test
   deletes it unless you tick the box in step 8.
