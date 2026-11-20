@@ -30,6 +30,7 @@ import {
   generatePromotionPeople,
   reserveHeadlinerNames,
 } from './people';
+import { buildLeagueRoster, LEAGUE_TITLE_PREFIX, type LeagueBuild } from './league/roster';
 import { buildReigns } from './reigns';
 import { buildTeams } from './teams';
 import { compareText } from './stats';
@@ -68,7 +69,12 @@ export interface RosterBuild {
   readonly titles: readonly RosterTitle[];
   readonly members: readonly RosterMember[];
   readonly files: RosterFiles;
+  /** Everyone, league roster included. */
   readonly summary: RosterSummary;
+  /** The generated roster alone, which the targets are checked against. */
+  readonly generatedSummary: RosterSummary;
+  /** The league roster step's output, or null when the world has no league snapshot. */
+  readonly league: LeagueBuild | null;
 }
 
 function summarise(
@@ -180,19 +186,39 @@ export function buildDefaultRoster(inputs: BuildInputs): RosterBuild {
   placeOnCards(context, members);
   fitPopularity(context, members);
   const teams = buildTeams(context, members);
-  const { reigns, championSince, leftAfter } = buildReigns(context, members, teams);
+  // The league's belts get their champions from the league step below.
+  const ownTitles = context.titles.filter((title) => !title.key.startsWith(LEAGUE_TITLE_PREFIX));
+  const { reigns, championSince, leftAfter } = buildReigns(
+    { ...context, titles: ownTitles },
+    members,
+    teams,
+  );
   const employments = buildEmployments(context, members);
   alignWithReigns(employments, championSince, leftAfter);
 
   const rest = { employment: employments, team: teams.map((team) => team.out), titleReign: reigns };
   const summary = summarise(context, members, rest);
   checkTargets(context, summary);
+
+  // The league roster goes on top, after every check on the generated roster.
+  const league =
+    inputs.league === null
+      ? null
+      : buildLeagueRoster(context, members, inputs.league.snapshot, inputs.league.blocklist);
+  const everyone: RosterMember[] = league === null ? members : [...members, ...league.members];
+  const all = {
+    employment: league === null ? employments : [...employments, ...league.employments],
+    team: league === null ? rest.team : [...rest.team, ...league.teams],
+    titleReign: league === null ? reigns : [...reigns, ...league.reigns],
+  };
   return {
     startDate: context.startDate,
     titles: context.titles,
-    members,
-    files: { person: members.map((member) => personRecordOf(context, member)), ...rest },
-    summary,
+    members: everyone,
+    files: { person: everyone.map((member) => personRecordOf(context, member)), ...all },
+    summary: league === null ? summary : summarise(context, everyone, all),
+    generatedSummary: summary,
+    league,
   };
 }
 

@@ -470,7 +470,12 @@ function toPerson(
     ...(record.bio === undefined ? {} : { bio: record.bio }),
     ...(record.moves === undefined
       ? {}
-      : { moves: { finishers: [...record.moves.finishers], signatures: [...record.moves.signatures] } }),
+      : {
+          moves: {
+            finishers: [...record.moves.finishers],
+            signatures: [...record.moves.signatures],
+          },
+        }),
   };
 }
 

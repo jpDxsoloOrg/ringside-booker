@@ -6,9 +6,12 @@
  * output of the previous one: the same spec and seed always give the same files.
  */
 
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { packManifestSchema, RECORD_KINDS, type RawPack, type RecordKind } from '@ringside/engine';
+import { blocklistFromText, BLOCKLIST_PATH, type LeagueBlocklist } from './league/blocklist';
+import { LEAGUE_SNAPSHOT_FILE, leagueSnapshotSchema, type LeagueSnapshot } from './league/snapshot';
 import { headlinersSchema, rosterSpecSchema, type Headliner, type RosterSpec } from './specSchema';
 
 /** The default world pack, relative to the repository root. */
@@ -62,6 +65,8 @@ export interface BuildInputs {
   readonly packs: readonly RawPack[];
   readonly spec: RosterSpec;
   readonly headliners: readonly Headliner[];
+  /** The league roster snapshot added on top of the generated roster, if the world has one. */
+  readonly league: { snapshot: LeagueSnapshot; blocklist: LeagueBlocklist } | null;
 }
 
 /** Reads the packs (without generated files), the spec and the headliners from `repoRoot`. */
@@ -71,5 +76,12 @@ export async function readBuildInputs(repoRoot: string): Promise<BuildInputs> {
   const world = await readPackWithout(worldDir, isGeneratedKind);
   const spec = rosterSpecSchema.parse(await readJson(join(worldDir, SPEC_FILE)));
   const headliners = headlinersSchema.parse(await readJson(join(worldDir, HEADLINERS_FILE)));
-  return { packs: [base, world], spec, headliners };
+  let league: BuildInputs['league'] = null;
+  if (existsSync(join(worldDir, LEAGUE_SNAPSHOT_FILE))) {
+    league = {
+      snapshot: leagueSnapshotSchema.parse(await readJson(join(worldDir, LEAGUE_SNAPSHOT_FILE))),
+      blocklist: blocklistFromText(await readFile(join(repoRoot, BLOCKLIST_PATH), 'utf8')),
+    };
+  }
+  return { packs: [base, world], spec, headliners, league };
 }

@@ -38,20 +38,20 @@ the roster spec, the reigns or anyone's add-on.
 
 | Slot                  | Name                            | Short  | Tier     | Home                 | Style           | Player experience                                                                    |
 | --------------------- | ------------------------------- | ------ | -------- | -------------------- | --------------- | ------------------------------------------------------------------------------------ |
-| `pro-flagship`        | Altura Wrestling Entertainment  | ALTURA | Flagship | US Northeast         | `entertainment` | Defend the crown: deep pockets, huge expectations, two brands to keep fed            |
+| `pro-flagship`        | Szn League Wrestling            | SLW    | Flagship | US Northeast         | `entertainment` | Defend the crown: deep pockets, huge expectations, two brands to keep fed            |
 | `pro-jp-major`        | Tessen Pro Wrestling            | TESSEN | National | Japan, Kanto         | `hardHitting`   | Own your country: protect a proud style while the leader circles your stars          |
 | `pro-mx-major`        | Cielo Alto Lucha Libre          | CIELO  | National | Mexico City          | `highFlying`    | Own your country: a lucha house with a following across the border                   |
 | `pro-us-southeast`    | Longleaf Championship Wrestling | LEAF   | Regional | US Southeast         | `traditional`   | Grow a territory: a streaming deal, a loyal crowd, and a ceiling to break            |
 | `pro-us-greatlakes`   | Blast Furnace Wrestling         | BLAST  | Regional | US Great Lakes       | `hardcore`      | Grow a territory: a cult following with no TV and a style that burns through rosters |
 | `pro-us-west-women`   | Golden Poppy Wrestling          | POPPY  | Regional | US California        | `technical`     | Rebuild: an all-women company with a small footprint in the biggest market           |
-| `pro-ca`              | Boreal Championship Wrestling   | BOREAL | Regional | Canada, Ontario      | `traditional`   | Grow a territory: the biggest regional, living in the leader's shadow                |
+| `pro-ca`              | BLX                             | BLX    | Regional | Canada, Ontario      | `traditional`   | Grow a territory: the biggest regional, living in the leader's shadow                |
 | `pro-uk`              | Ashlar Pro Wrestling            | ASHLAR | Regional | UK, Northern England | `technical`     | Grow a territory: a weekly streaming show and the whole of Britain to win            |
 | `pro-de`              | Eisenwerk Wrestling             | EISEN  | Regional | Germany, West        | `mainstream`    | Rebuild: thin cash, a fortnightly show and a country with no national company        |
 | `pro-us-texas-indie`  | Hardpan Pro Wrestling           | HARDPN | Local    | US Texas             | `hardHitting`   | Hard mode: a 350-seat room in a state the leader already owns                        |
 | `pro-jp-kansai-indie` | Hibari Pro Wrestling            | HIBARI | Local    | Japan, Kansai        | `highFlying`    | Hard mode: a high-flying indie in a country with one giant                           |
 | `pro-au-indie`        | Wattle Pro Wrestling            | WATTLE | Local    | Australia, Victoria  | `traditional`   | Hard mode: the smallest company in the world, on a continent with no rival           |
 
-That is seven countries on five continents (North America, Latin America,
+Altura and Boreal were renamed SLW and BLX for the league roster ([The league roster](#the-league-roster)); the rest of this page still calls them by their old names. That is seven countries on five continents (North America, Latin America,
 Europe, Asia and Oceania).
 
 ### Tier values
@@ -445,6 +445,70 @@ Every title has one open reign and 1-4 past reigns.
   holder never wins a title straight back from themselves.
 
 All current reigns are settled first so that no past reign can overlap one.
+
+## The league roster
+
+On top of the generated roster, the default world carries the owner's wrestling league
+(leagueszn.jpdxsolo.com): every league wrestler whose ring name is not on the real-name
+blocklist. They are added after every other roster step, from their own RNG, so the generated
+people, contracts, teams and reigns above come out exactly as before.
+
+| File                                        | What it is                                                      | Written by             |
+| ------------------------------------------- | --------------------------------------------------------------- | ---------------------- |
+| `content/worlds/default/league-roster.json` | The league fields the build uses, snapshotted (not a pack file) | `npm run league:fetch` |
+| `people.json`, `employments.json`, ...      | League people are keyed `league-<ring-name>`, tagged `league`   | `worldgen:default`     |
+
+`npm run league:fetch` reads the league's **public** API (GET only) and rewrites the snapshot;
+`worldgen:default` then rebuilds the world from it with no network. The snapshot keeps ring names
+and wrestling data only. It never holds a member's own name, gamer tag, ID, picture or account
+fields: a ring name that is the member's own name or tag is left out, and so is a bio that
+mentions either. Ring names, move names and bios that hit the blocklist are left out (the
+`blocklist` rule also checks bios and move names), as are placeholder entries (byes, "Mystery
+Opponent"), duplicate ring names (the one with the most matches stays) and any ring name the
+generated world already uses.
+
+**Promotions.** Altura (`pro-flagship`) is **Szn League Wrestling (SLW)** and Boreal (`pro-ca`)
+is **BLX**. Both keep their own titles and add the league's three: SLW under the league's names
+(World Heavyweight, Mid Card, SZN World Tag Team), BLX as "BLX World Heavyweight", "BLX Mid Card"
+and "BLX World Tag Team". The league's champion holds a belt when they are imported and work
+there; otherwise it goes to the promotion's best league wrestler of that division (tag: best
+league team), or stays vacant.
+
+**Who goes where.** Each promotion has room for a set number of league wrestlers (SLW 45, BLX 35,
+the national companies 10, the other regionals 5, the locals 2, Golden Poppy none: the league
+lists no women). Tag teams go first, in turns, to SLW and BLX. Then each division, strongest
+first, goes to the promotion furthest behind its share of the room; heavyweights only go to SLW
+and BLX. Everyone past the room is a free agent.
+
+**Card and skill.** The division sets the push, career stage and a talent band (the people
+generator's talent z-score: generated wrestlers roll N(0, 1)):
+
+| Division    | Push        | Stage                                             | Talent base (band)  |
+| ----------- | ----------- | ------------------------------------------------- | ------------------- |
+| Heavyweight | main event  | established, veteran after 3+ seasons             | 1.5 (1.0 to 2.2)    |
+| Mid Card    | midcard     | established, prospect with 0-1 seasons            | 0.5 (0.0 to 1.0)    |
+| Young Boys  | lower card  | rookie, prospect after 2+ seasons; +150 potential | -0.6 (-1.3 to 0.1)  |
+| Jobber      | enhancement | prospect, established after 2+ seasons            | -1.0 (-1.6 to -0.5) |
+| none        | lower card  | prospect                                          | -0.5 (-1.2 to 0.0)  |
+
+```
+shrunkWinRate = (wins + draws/2 + 4) / (matches + 8)        // 8 imaginary .500 matches
+recordScore   = 2 × (shrunkWinRate − 0.5)                    // −1..1
+capScore      = clamp((overallCap − 75) / 15, −1, 1)         // 0 without a league overall
+talent        = clamp(base + halfBand × (0.8 × recordScore + 0.3 × capScore) ± 0.1, band)
+```
+
+The ±0.1 comes from a hash of the ring name. The people generator then rolls the attributes,
+body, traits and popularity from that talent and stage with an RNG seeded from the ring name, so
+every league wrestler is the same on every build whatever else changes. Popularity is fitted to
+the promotion like everyone else's, then scaled by `1 + 0.2 × recordScore`; anyone with 3 or
+more matches starts with momentum `40 × recordScore`. League alignment maps face → face,
+heel → heel, neutral or none → tweener. Everyone is listed as male and from the United States,
+based in their promotion's home region when it is abroad.
+
+**Moves and bio.** A league finisher or signature is stored by its custom name, else its game
+name (up to 6 finishers and 8 signatures), in the person's optional `moves`; the league bio goes
+in the optional `bio`. The worker profile shows both.
 
 ## Naming rules
 

@@ -270,6 +270,114 @@
     "color": "#1f2937"
   },
   {
+    "key": "league-blx-mid-card-championship",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "name": "BLX Mid Card Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 52,
+    "status": "active",
+    "introducedOn": "2026-03-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#0369a1"
+  },
+  {
+    "key": "league-blx-world-heavyweight-championship",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "name": "BLX World Heavyweight Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 64,
+    "status": "active",
+    "introducedOn": "2026-03-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#a16207"
+  },
+  {
+    "key": "league-blx-world-tag-team-championship",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "name": "BLX World Tag Team Championship",
+    "holderCount": 2,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 50,
+    "status": "active",
+    "introducedOn": "2026-03-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#6d28d9"
+  },
+  {
+    "key": "league-slw-mid-card-championship",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "Mid Card Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 70,
+    "status": "active",
+    "introducedOn": "2026-03-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#2563eb"
+  },
+  {
+    "key": "league-slw-world-heavyweight-championship",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "World Heavyweight Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 84,
+    "status": "active",
+    "introducedOn": "2026-03-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#b8860b"
+  },
+  {
+    "key": "league-slw-world-tag-team-championship",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "SZN World Tag Team Championship",
+    "holderCount": 2,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 74,
+    "status": "active",
+    "introducedOn": "2026-03-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#7c3aed"
+  },
+  {
     "key": "mx-major-heavyweight",
     "promotionKey": "pro-mx-major",
     "brandKey": null,

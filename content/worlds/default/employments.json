@@ -7500,5 +7500,3943 @@
     },
     "startsOn": "2026-04-22",
     "endsOn": "2027-08-24"
+  },
+  {
+    "key": "emp-league-abyss",
+    "personKey": "league-abyss",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Abyss",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-05-06",
+    "endsOn": "2027-05-21"
+  },
+  {
+    "key": "emp-league-ace-austin",
+    "personKey": "league-ace-austin",
+    "promotionKey": "pro-jp-kansai-indie",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Ace Austin",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "perAppearance",
+      "exclusive": false,
+      "monthlyWage": 0,
+      "perAppearanceFee": 180,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": false
+      }
+    },
+    "startsOn": "2026-12-04",
+    "endsOn": "2027-09-05"
+  },
+  {
+    "key": "emp-league-akira-ultimo",
+    "personKey": "league-akira-ultimo",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Akira Ultimo",
+    "alignment": "tweener",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 15000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-08-10",
+    "endsOn": "2027-10-08",
+    "momentum": -7
+  },
+  {
+    "key": "emp-league-alan",
+    "personKey": "league-alan",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Alan",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-07-16",
+    "endsOn": "2027-07-30"
+  },
+  {
+    "key": "emp-league-alberto-del-rio",
+    "personKey": "league-alberto-del-rio",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Alberto Del Rio",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-09-17",
+    "endsOn": "2028-12-24"
+  },
+  {
+    "key": "emp-league-amazing-red",
+    "personKey": "league-amazing-red",
+    "promotionKey": "pro-uk",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Amazing Red",
+    "alignment": "face",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 900,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-01-13",
+    "endsOn": "2027-09-25"
+  },
+  {
+    "key": "emp-league-amir",
+    "personKey": "league-amir",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Amir",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-05-18",
+    "endsOn": "2027-05-10",
+    "momentum": 4
+  },
+  {
+    "key": "emp-league-andrade-el-idolo",
+    "personKey": "league-andrade-el-idolo",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Andrade El Idolo",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-09-06",
+    "endsOn": "2028-02-19"
+  },
+  {
+    "key": "emp-league-angus-wolf",
+    "personKey": "league-angus-wolf",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Angus Wolf",
+    "alignment": "tweener",
+    "push": "mainEvent",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2700,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-09-23",
+    "endsOn": "2028-11-12",
+    "momentum": 6
+  },
+  {
+    "key": "emp-league-antdottho",
+    "personKey": "league-antdottho",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "antdottho",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-06-20",
+    "endsOn": "2029-01-24"
+  },
+  {
+    "key": "emp-league-ar-fox",
+    "personKey": "league-ar-fox",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Ar Fox",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-09-02",
+    "endsOn": "2029-01-21"
+  },
+  {
+    "key": "emp-league-astro-ace",
+    "personKey": "league-astro-ace",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Astro Ace",
+    "alignment": "face",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-07-02",
+    "endsOn": "2027-07-07",
+    "momentum": -5
+  },
+  {
+    "key": "emp-league-austin-aries",
+    "personKey": "league-austin-aries",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Austin Aries",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-09-18",
+    "endsOn": "2029-03-26"
+  },
+  {
+    "key": "emp-league-ayds",
+    "personKey": "league-ayds",
+    "promotionKey": "pro-au-indie",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Ayds",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "perAppearance",
+      "exclusive": false,
+      "monthlyWage": 0,
+      "perAppearanceFee": 200,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": false
+      }
+    },
+    "startsOn": "2026-07-16",
+    "endsOn": "2027-04-06"
+  },
+  {
+    "key": "emp-league-bandido",
+    "personKey": "league-bandido",
+    "promotionKey": "pro-us-greatlakes",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Bandido",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-09-13",
+    "endsOn": "2028-05-24"
+  },
+  {
+    "key": "emp-league-baron-corbin",
+    "personKey": "league-baron-corbin",
+    "promotionKey": "pro-jp-kansai-indie",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Baron Corbin",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "perAppearance",
+      "exclusive": false,
+      "monthlyWage": 0,
+      "perAppearanceFee": 180,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": false
+      }
+    },
+    "startsOn": "2026-10-16",
+    "endsOn": "2028-01-09"
+  },
+  {
+    "key": "emp-league-blockbrothersgamingtv",
+    "personKey": "league-blockbrothersgamingtv",
+    "promotionKey": "pro-us-greatlakes",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Blockbrothersgamingtv",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-07-27",
+    "endsOn": "2028-09-08"
+  },
+  {
+    "key": "emp-league-bray-wyatt",
+    "personKey": "league-bray-wyatt",
+    "promotionKey": "pro-us-southeast",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Bray Wyatt",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-01-11",
+    "endsOn": "2028-01-28"
+  },
+  {
+    "key": "emp-league-brian-cage",
+    "personKey": "league-brian-cage",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Brian Cage",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-05-12",
+    "endsOn": "2028-02-08"
+  },
+  {
+    "key": "emp-league-bron-breakker",
+    "personKey": "league-bron-breakker",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Bron Breakker",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-05-10",
+    "endsOn": "2028-01-22"
+  },
+  {
+    "key": "emp-league-buddy-mathew",
+    "personKey": "league-buddy-mathew",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Buddy Mathew",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-09-26",
+    "endsOn": "2029-04-22"
+  },
+  {
+    "key": "emp-league-buddy-mathews",
+    "personKey": "league-buddy-mathews",
+    "promotionKey": "pro-de",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Buddy Mathews",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-05-31",
+    "endsOn": "2028-10-10"
+  },
+  {
+    "key": "emp-league-callum-newman",
+    "personKey": "league-callum-newman",
+    "promotionKey": "pro-uk",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Callum Newman",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-10-07",
+    "endsOn": "2027-12-01"
+  },
+  {
+    "key": "emp-league-cam",
+    "personKey": "league-cam",
+    "promotionKey": "pro-us-texas-indie",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Cam",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "perAppearance",
+      "exclusive": false,
+      "monthlyWage": 0,
+      "perAppearanceFee": 180,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": false
+      }
+    },
+    "startsOn": "2026-04-17",
+    "endsOn": "2027-05-03"
+  },
+  {
+    "key": "emp-league-carmelo-hayes",
+    "personKey": "league-carmelo-hayes",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Carmelo Hayes",
+    "alignment": "heel",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 4000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-07-30",
+    "endsOn": "2028-06-19"
+  },
+  {
+    "key": "emp-league-carson-creed",
+    "personKey": "league-carson-creed",
+    "promotionKey": "pro-uk",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Carson Creed",
+    "alignment": "tweener",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 300,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-12-03",
+    "endsOn": "2027-11-16",
+    "momentum": -9
+  },
+  {
+    "key": "emp-league-chad-gable",
+    "personKey": "league-chad-gable",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Chad Gable",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-10-20",
+    "endsOn": "2029-06-24"
+  },
+  {
+    "key": "emp-league-cj-rekless",
+    "personKey": "league-cj-rekless",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "CJ REKLESS",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-08-22",
+    "endsOn": "2027-12-16"
+  },
+  {
+    "key": "emp-league-cody-furner-jr",
+    "personKey": "league-cody-furner-jr",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Cody Furner Jr.",
+    "alignment": "face",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-01-29",
+    "endsOn": "2027-12-05",
+    "momentum": -6
+  },
+  {
+    "key": "emp-league-cody-rodes",
+    "personKey": "league-cody-rodes",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Cody rodes",
+    "alignment": "face",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1200,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-12-11",
+    "endsOn": "2027-12-24"
+  },
+  {
+    "key": "emp-league-crimson",
+    "personKey": "league-crimson",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Crimson",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-08-03",
+    "endsOn": "2027-11-05",
+    "momentum": 0
+  },
+  {
+    "key": "emp-league-cyco",
+    "personKey": "league-cyco",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Cyco",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-09-23",
+    "endsOn": "2028-03-06"
+  },
+  {
+    "key": "emp-league-damian-priest",
+    "personKey": "league-damian-priest",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Damian Priest",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-10-28",
+    "endsOn": "2027-06-16"
+  },
+  {
+    "key": "emp-league-daniel-garcia",
+    "personKey": "league-daniel-garcia",
+    "promotionKey": "pro-de",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Daniel Garcia",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-02-10",
+    "endsOn": "2027-07-28",
+    "momentum": 0
+  },
+  {
+    "key": "emp-league-danny-wolf",
+    "personKey": "league-danny-wolf",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Danny Wolf",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-01-10",
+    "endsOn": "2027-07-25",
+    "momentum": 6
+  },
+  {
+    "key": "emp-league-dawn-drago",
+    "personKey": "league-dawn-drago",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Dawn Drago",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-03-18",
+    "endsOn": "2028-08-20"
+  },
+  {
+    "key": "emp-league-desmond-xavier",
+    "personKey": "league-desmond-xavier",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Desmond Xavier",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-09-23",
+    "endsOn": "2027-03-24"
+  },
+  {
+    "key": "emp-league-diamond-dallas-page",
+    "personKey": "league-diamond-dallas-page",
+    "promotionKey": "pro-us-greatlakes",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Diamond Dallas Page",
+    "alignment": "tweener",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 300,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-10-03",
+    "endsOn": "2028-06-26"
+  },
+  {
+    "key": "emp-league-doink-the-clown",
+    "personKey": "league-doink-the-clown",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Doink the clown",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-12-09",
+    "endsOn": "2028-07-29"
+  },
+  {
+    "key": "emp-league-dominik-mysterio",
+    "personKey": "league-dominik-mysterio",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Dominik Mysterio",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-11-26",
+    "endsOn": "2028-03-26"
+  },
+  {
+    "key": "emp-league-dragon-kid",
+    "personKey": "league-dragon-kid",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Dragon Kid",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-04-04",
+    "endsOn": "2029-05-30"
+  },
+  {
+    "key": "emp-league-dustin-rhodes",
+    "personKey": "league-dustin-rhodes",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Dustin Rhodes",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-10-30",
+    "endsOn": "2028-09-18"
+  },
+  {
+    "key": "emp-league-el-faraon",
+    "personKey": "league-el-faraon",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "El Faraon",
+    "alignment": "tweener",
+    "push": "mainEvent",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2700,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-08-04",
+    "endsOn": "2029-02-02",
+    "momentum": -11
+  },
+  {
+    "key": "emp-league-el-hijo-del-vikingo",
+    "personKey": "league-el-hijo-del-vikingo",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "El Hijo del Vikingo",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-02-13",
+    "endsOn": "2027-04-20"
+  },
+  {
+    "key": "emp-league-el-vipero",
+    "personKey": "league-el-vipero",
+    "promotionKey": "pro-us-greatlakes",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "El Vipero",
+    "alignment": "face",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 900,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-12-22",
+    "endsOn": "2028-11-22",
+    "momentum": 0
+  },
+  {
+    "key": "emp-league-enzo-kamura",
+    "personKey": "league-enzo-kamura",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Enzo kamura",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-06-29",
+    "endsOn": "2029-01-06"
+  },
+  {
+    "key": "emp-league-ethan-page",
+    "personKey": "league-ethan-page",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Ethan Page",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-12-09",
+    "endsOn": "2028-04-01"
+  },
+  {
+    "key": "emp-league-faced-killa",
+    "personKey": "league-faced-killa",
+    "promotionKey": "pro-us-southeast",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Faced Killa",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-08-31",
+    "endsOn": "2027-05-09"
+  },
+  {
+    "key": "emp-league-fenix-carmesi",
+    "personKey": "league-fenix-carmesi",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Fénix Carmesí",
+    "alignment": "face",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 4000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-09-05",
+    "endsOn": "2028-07-01"
+  },
+  {
+    "key": "emp-league-g",
+    "personKey": "league-g",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "G",
+    "alignment": "tweener",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 5000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-05-05",
+    "endsOn": "2028-11-10"
+  },
+  {
+    "key": "emp-league-harry-vernon",
+    "personKey": "league-harry-vernon",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Harry Vernon",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-11-27",
+    "endsOn": "2027-10-12"
+  },
+  {
+    "key": "emp-league-henry-hawk",
+    "personKey": "league-henry-hawk",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Henry Hawk",
+    "alignment": "heel",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 300,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-01-08",
+    "endsOn": "2027-08-15"
+  },
+  {
+    "key": "emp-league-hook",
+    "personKey": "league-hook",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Hook",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-05-27",
+    "endsOn": "2028-08-06"
+  },
+  {
+    "key": "emp-league-hoss",
+    "personKey": "league-hoss",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Hoss",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-07-12",
+    "endsOn": "2029-03-02"
+  },
+  {
+    "key": "emp-league-ilja-dragunov",
+    "personKey": "league-ilja-dragunov",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Ilja Dragunov",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-01-19",
+    "endsOn": "2028-06-09"
+  },
+  {
+    "key": "emp-league-jackson-wolf",
+    "personKey": "league-jackson-wolf",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Jackson wolf",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-06-19",
+    "endsOn": "2028-11-11",
+    "momentum": 12
+  },
+  {
+    "key": "emp-league-jacob-fatu",
+    "personKey": "league-jacob-fatu",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Jacob Fatu",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-01-07",
+    "endsOn": "2028-03-03"
+  },
+  {
+    "key": "emp-league-jaden-irvin",
+    "personKey": "league-jaden-irvin",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Jaden Irvin",
+    "alignment": "face",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 15000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-10-25",
+    "endsOn": "2028-01-07",
+    "momentum": -3
+  },
+  {
+    "key": "emp-league-jake-saturn",
+    "personKey": "league-jake-saturn",
+    "promotionKey": "pro-de",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Jake Saturn",
+    "alignment": "face",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 400,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-12-21",
+    "endsOn": "2027-08-04",
+    "momentum": -2
+  },
+  {
+    "key": "emp-league-james-buster",
+    "personKey": "league-james-buster",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "James Buster",
+    "alignment": "tweener",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 4000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-01-22",
+    "endsOn": "2028-04-16"
+  },
+  {
+    "key": "emp-league-jaxon-alexzander",
+    "personKey": "league-jaxon-alexzander",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Jaxon Alexzander",
+    "alignment": "heel",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 300,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-04-03",
+    "endsOn": "2028-09-21",
+    "momentum": 0
+  },
+  {
+    "key": "emp-league-jay-lethal",
+    "personKey": "league-jay-lethal",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Jay Lethal",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-04-23",
+    "endsOn": "2028-04-11"
+  },
+  {
+    "key": "emp-league-jay-white",
+    "personKey": "league-jay-white",
+    "promotionKey": "pro-us-greatlakes",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Jay White",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-08-27",
+    "endsOn": "2028-10-07"
+  },
+  {
+    "key": "emp-league-jbl",
+    "personKey": "league-jbl",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "JBL",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-11-09",
+    "endsOn": "2028-12-24"
+  },
+  {
+    "key": "emp-league-jd-mysterio",
+    "personKey": "league-jd-mysterio",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "JD Mysterio",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-12-25",
+    "endsOn": "2027-05-02",
+    "momentum": -6
+  },
+  {
+    "key": "emp-league-jimmy-uso",
+    "personKey": "league-jimmy-uso",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Jimmy Uso",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-11-14",
+    "endsOn": "2028-08-13"
+  },
+  {
+    "key": "emp-league-jmart",
+    "personKey": "league-jmart",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Jmart",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-09-07",
+    "endsOn": "2027-08-20"
+  },
+  {
+    "key": "emp-league-johnny-gargano",
+    "personKey": "league-johnny-gargano",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "johnny gargano",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-02-28",
+    "endsOn": "2028-01-05"
+  },
+  {
+    "key": "emp-league-jordan-jericho",
+    "personKey": "league-jordan-jericho",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Jordan Jericho",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-08-27",
+    "endsOn": "2029-02-06"
+  },
+  {
+    "key": "emp-league-juan-fenix-jr",
+    "personKey": "league-juan-fenix-jr",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Juan Fenix Jr.",
+    "alignment": "tweener",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 4000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-09-24",
+    "endsOn": "2027-11-19",
+    "momentum": -11
+  },
+  {
+    "key": "emp-league-kade-king",
+    "personKey": "league-kade-king",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Kade King",
+    "alignment": "face",
+    "push": "mainEvent",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2700,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-12-24",
+    "endsOn": "2028-03-27",
+    "momentum": 4
+  },
+  {
+    "key": "emp-league-keo",
+    "personKey": "league-keo",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Keo",
+    "alignment": "tweener",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 15000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-05-03",
+    "endsOn": "2028-10-30"
+  },
+  {
+    "key": "emp-league-khaos",
+    "personKey": "league-khaos",
+    "promotionKey": "pro-us-southeast",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Khaos",
+    "alignment": "face",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 900,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-04-18",
+    "endsOn": "2027-10-19",
+    "momentum": -12
+  },
+  {
+    "key": "emp-league-khi-born",
+    "personKey": "league-khi-born",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "khi born",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-04-27",
+    "endsOn": "2028-01-17"
+  },
+  {
+    "key": "emp-league-kofi-kingston",
+    "personKey": "league-kofi-kingston",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Kofi Kingston",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-09-03",
+    "endsOn": "2028-05-08"
+  },
+  {
+    "key": "emp-league-konosuke-takeshita",
+    "personKey": "league-konosuke-takeshita",
+    "promotionKey": "pro-us-southeast",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Konosuke Takeshita",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-06-05",
+    "endsOn": "2027-12-30"
+  },
+  {
+    "key": "emp-league-kushida",
+    "personKey": "league-kushida",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Kushida",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2027-01-02",
+    "endsOn": "2027-05-29"
+  },
+  {
+    "key": "emp-league-l-a-park",
+    "personKey": "league-l-a-park",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "L.A. Park",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-03-05",
+    "endsOn": "2027-10-02"
+  },
+  {
+    "key": "emp-league-la-knight",
+    "personKey": "league-la-knight",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "LA Knight",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-08-13",
+    "endsOn": "2028-09-04"
+  },
+  {
+    "key": "emp-league-la-parka",
+    "personKey": "league-la-parka",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "La Parka",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-04-23",
+    "endsOn": "2027-08-20"
+  },
+  {
+    "key": "emp-league-la-sangre-rosa",
+    "personKey": "league-la-sangre-rosa",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "La Sangre Rosa",
+    "alignment": "tweener",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1200,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-06-12",
+    "endsOn": "2028-02-01"
+  },
+  {
+    "key": "emp-league-ljw",
+    "personKey": "league-ljw",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "LJW",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-10-16",
+    "endsOn": "2028-10-20"
+  },
+  {
+    "key": "emp-league-logan-paul",
+    "personKey": "league-logan-paul",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Logan Paul",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-05-19",
+    "endsOn": "2027-12-01"
+  },
+  {
+    "key": "emp-league-lucas",
+    "personKey": "league-lucas",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Lucas",
+    "alignment": "heel",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 5000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-12-10",
+    "endsOn": "2028-12-15",
+    "momentum": 0
+  },
+  {
+    "key": "emp-league-malachi-crawford",
+    "personKey": "league-malachi-crawford",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Malachi Crawford",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-05-09",
+    "endsOn": "2027-06-14"
+  },
+  {
+    "key": "emp-league-malachi-knox",
+    "personKey": "league-malachi-knox",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Malachi Knox",
+    "alignment": "heel",
+    "push": "mainEvent",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 60000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-01-26",
+    "endsOn": "2027-12-07",
+    "momentum": 4
+  },
+  {
+    "key": "emp-league-malakai-black",
+    "personKey": "league-malakai-black",
+    "promotionKey": "pro-us-texas-indie",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Malakai Black",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "perAppearance",
+      "exclusive": false,
+      "monthlyWage": 0,
+      "perAppearanceFee": 180,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": false
+      }
+    },
+    "startsOn": "2026-07-28",
+    "endsOn": "2027-12-22"
+  },
+  {
+    "key": "emp-league-matt-riddle",
+    "personKey": "league-matt-riddle",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Matt Riddle",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-04-19",
+    "endsOn": "2027-05-22"
+  },
+  {
+    "key": "emp-league-matthew-parker",
+    "personKey": "league-matthew-parker",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Matthew Parker",
+    "alignment": "heel",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-08-12",
+    "endsOn": "2027-10-20",
+    "momentum": -2
+  },
+  {
+    "key": "emp-league-max-caster",
+    "personKey": "league-max-caster",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Max Caster",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-08-02",
+    "endsOn": "2027-03-08"
+  },
+  {
+    "key": "emp-league-moose",
+    "personKey": "league-moose",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Moose",
+    "alignment": "heel",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-05-06",
+    "endsOn": "2027-08-18"
+  },
+  {
+    "key": "emp-league-mugen",
+    "personKey": "league-mugen",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Mugen",
+    "alignment": "tweener",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-03-13",
+    "endsOn": "2029-01-02",
+    "momentum": -11
+  },
+  {
+    "key": "emp-league-nick-wayne",
+    "personKey": "league-nick-wayne",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Nick Wayne",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-03-07",
+    "endsOn": "2028-05-27"
+  },
+  {
+    "key": "emp-league-oba-femi",
+    "personKey": "league-oba-femi",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Oba Femi",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-10-17",
+    "endsOn": "2028-07-21"
+  },
+  {
+    "key": "emp-league-octagon-jr",
+    "personKey": "league-octagon-jr",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Octagón Jr.",
+    "alignment": "tweener",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 300,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-02-24",
+    "endsOn": "2029-02-12",
+    "momentum": -11
+  },
+  {
+    "key": "emp-league-otis",
+    "personKey": "league-otis",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Otis",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-10-06",
+    "endsOn": "2027-04-17"
+  },
+  {
+    "key": "emp-league-pac",
+    "personKey": "league-pac",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "PAC",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-10-21",
+    "endsOn": "2028-01-09"
+  },
+  {
+    "key": "emp-league-penta",
+    "personKey": "league-penta",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Penta",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-12-17",
+    "endsOn": "2029-03-06"
+  },
+  {
+    "key": "emp-league-percy-earl",
+    "personKey": "league-percy-earl",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Percy Earl",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-03-04",
+    "endsOn": "2027-09-09"
+  },
+  {
+    "key": "emp-league-playboy-yosh",
+    "personKey": "league-playboy-yosh",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Playboy Yosh",
+    "alignment": "tweener",
+    "push": "mainEvent",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 60000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-03-02",
+    "endsOn": "2029-05-24",
+    "momentum": -2
+  },
+  {
+    "key": "emp-league-psycho-clown",
+    "personKey": "league-psycho-clown",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Psycho Clown",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-09-04",
+    "endsOn": "2028-07-12"
+  },
+  {
+    "key": "emp-league-raiden-hallow",
+    "personKey": "league-raiden-hallow",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "raiden hallow",
+    "alignment": "tweener",
+    "push": "mainEvent",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 60000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-02-12",
+    "endsOn": "2027-09-20",
+    "momentum": 11
+  },
+  {
+    "key": "emp-league-raphael-torres",
+    "personKey": "league-raphael-torres",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Raphael Torres",
+    "alignment": "tweener",
+    "push": "mainEvent",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 60000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-09-10",
+    "endsOn": "2028-11-21",
+    "momentum": -9
+  },
+  {
+    "key": "emp-league-rey-fenix",
+    "personKey": "league-rey-fenix",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Rey Fenix",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-03-28",
+    "endsOn": "2029-01-01"
+  },
+  {
+    "key": "emp-league-ricky-saints",
+    "personKey": "league-ricky-saints",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Ricky Saints",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-04-04",
+    "endsOn": "2027-10-04"
+  },
+  {
+    "key": "emp-league-rico-valen",
+    "personKey": "league-rico-valen",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Rico Valen",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-12-14",
+    "endsOn": "2028-01-28"
+  },
+  {
+    "key": "emp-league-royce-keys",
+    "personKey": "league-royce-keys",
+    "promotionKey": "pro-uk",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Royce Keys",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-08-27",
+    "endsOn": "2027-05-08"
+  },
+  {
+    "key": "emp-league-ryback",
+    "personKey": "league-ryback",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Ryback",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-12-11",
+    "endsOn": "2027-10-20"
+  },
+  {
+    "key": "emp-league-ryoma-yamakawa",
+    "personKey": "league-ryoma-yamakawa",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Ryoma Yamakawa",
+    "alignment": "tweener",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 15000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-02-10",
+    "endsOn": "2027-12-02",
+    "momentum": 5
+  },
+  {
+    "key": "emp-league-sid-vicious",
+    "personKey": "league-sid-vicious",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Sid Vicious",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-07-05",
+    "endsOn": "2027-12-24"
+  },
+  {
+    "key": "emp-league-solo-sikoa",
+    "personKey": "league-solo-sikoa",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Solo Sikoa",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 8000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-05-17",
+    "endsOn": "2027-08-26"
+  },
+  {
+    "key": "emp-league-sonic",
+    "personKey": "league-sonic",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Sonic",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-06-30",
+    "endsOn": "2028-04-23"
+  },
+  {
+    "key": "emp-league-swerve-strickland",
+    "personKey": "league-swerve-strickland",
+    "promotionKey": "pro-de",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Swerve Strickland",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-09-21",
+    "endsOn": "2027-12-19"
+  },
+  {
+    "key": "emp-league-talla-tonga",
+    "personKey": "league-talla-tonga",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Talla Tonga",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-09-16",
+    "endsOn": "2029-02-09"
+  },
+  {
+    "key": "emp-league-tama-tonga",
+    "personKey": "league-tama-tonga",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Tama Tonga",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-04-25",
+    "endsOn": "2027-06-02"
+  },
+  {
+    "key": "emp-league-tanga-loa",
+    "personKey": "league-tanga-loa",
+    "promotionKey": "pro-uk",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Tanga Loa",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-08-15",
+    "endsOn": "2027-12-28"
+  },
+  {
+    "key": "emp-league-terrell-williams",
+    "personKey": "league-terrell-williams",
+    "promotionKey": "pro-us-southeast",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Terrell Williams",
+    "alignment": "heel",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 300,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-02-20",
+    "endsOn": "2029-02-07",
+    "momentum": -17
+  },
+  {
+    "key": "emp-league-the-red-giant",
+    "personKey": "league-the-red-giant",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "The red giant",
+    "alignment": "heel",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 15000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-02-19",
+    "endsOn": "2029-03-18"
+  },
+  {
+    "key": "emp-league-tommaso-ciampa",
+    "personKey": "league-tommaso-ciampa",
+    "promotionKey": "pro-au-indie",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Tommaso Ciampa",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "perAppearance",
+      "exclusive": false,
+      "monthlyWage": 0,
+      "perAppearanceFee": 200,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": false
+      }
+    },
+    "startsOn": "2025-10-13",
+    "endsOn": "2028-02-19"
+  },
+  {
+    "key": "emp-league-tre",
+    "personKey": "league-tre",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "role": "wrestler",
+    "ringName": "Tre",
+    "alignment": "face",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 15000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-03-20",
+    "endsOn": "2029-01-25",
+    "momentum": -6
+  },
+  {
+    "key": "emp-league-trent",
+    "personKey": "league-trent",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Trent",
+    "alignment": "face",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 300,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-11-27",
+    "endsOn": "2028-12-29"
+  },
+  {
+    "key": "emp-league-trick-williams",
+    "personKey": "league-trick-williams",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Trick Williams",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-12-13",
+    "endsOn": "2027-06-06"
+  },
+  {
+    "key": "emp-league-victor-van-daigle",
+    "personKey": "league-victor-van-daigle",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Victor van daigle",
+    "alignment": "heel",
+    "push": "mainEvent",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2700,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2024-09-02",
+    "endsOn": "2028-06-11",
+    "momentum": -2
+  },
+  {
+    "key": "emp-league-yesmepleasecauseyes",
+    "personKey": "league-yesmepleasecauseyes",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "yesmepleasecauseyes",
+    "alignment": "tweener",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 600,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-11-29",
+    "endsOn": "2028-03-18"
+  },
+  {
+    "key": "emp-league-yuri-brooks",
+    "personKey": "league-yuri-brooks",
+    "promotionKey": "pro-de",
+    "brandKey": null,
+    "role": "wrestler",
+    "ringName": "Yuri Brooks",
+    "alignment": "tweener",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1100,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2026-10-25",
+    "endsOn": "2028-11-21",
+    "momentum": -8
+  },
+  {
+    "key": "emp-league-zayn-vanta",
+    "personKey": "league-zayn-vanta",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "role": "wrestler",
+    "ringName": "Zayn Vanta",
+    "alignment": "face",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 4000,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 0,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2023-10-13",
+    "endsOn": "2029-02-06"
   }
 ]

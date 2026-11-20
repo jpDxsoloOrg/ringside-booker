@@ -590,6 +590,80 @@
     "defences": 12
   },
   {
+    "key": "reign-league-blx-mid-card-championship-01",
+    "titleKey": "league-blx-mid-card-championship",
+    "holderPersonKeys": [
+      "league-mugen"
+    ],
+    "teamKey": null,
+    "wonOn": "2026-07-28",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 6
+  },
+  {
+    "key": "reign-league-blx-world-heavyweight-championship-01",
+    "titleKey": "league-blx-world-heavyweight-championship",
+    "holderPersonKeys": [
+      "league-angus-wolf"
+    ],
+    "teamKey": null,
+    "wonOn": "2026-11-08",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 4
+  },
+  {
+    "key": "reign-league-blx-world-tag-team-championship-01",
+    "titleKey": "league-blx-world-tag-team-championship",
+    "holderPersonKeys": [
+      "league-danny-wolf",
+      "league-jd-mysterio"
+    ],
+    "teamKey": "team-league-savage-velocity",
+    "wonOn": "2026-09-06",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 3
+  },
+  {
+    "key": "reign-league-slw-mid-card-championship-01",
+    "titleKey": "league-slw-mid-card-championship",
+    "holderPersonKeys": [
+      "league-akira-ultimo"
+    ],
+    "teamKey": null,
+    "wonOn": "2026-05-12",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 1
+  },
+  {
+    "key": "reign-league-slw-world-heavyweight-championship-01",
+    "titleKey": "league-slw-world-heavyweight-championship",
+    "holderPersonKeys": [
+      "league-raiden-hallow"
+    ],
+    "teamKey": null,
+    "wonOn": "2026-12-05",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 4
+  },
+  {
+    "key": "reign-league-slw-world-tag-team-championship-01",
+    "titleKey": "league-slw-world-tag-team-championship",
+    "holderPersonKeys": [
+      "league-enzo-kamura",
+      "league-khi-born"
+    ],
+    "teamKey": "team-league-class-of-born",
+    "wonOn": "2026-09-01",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 4
+  },
+  {
     "key": "reign-mx-major-heavyweight-01",
     "titleKey": "mx-major-heavyweight",
     "holderPersonKeys": [

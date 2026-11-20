@@ -1,0 +1,4407 @@
+{
+  "source": "leagueszn.jpdxsolo.com public API (GET /players, /players/{id}, /divisions, /championships, /wrestlers, /tag-teams)",
+  "fetchedOn": "2026-11-20",
+  "skipped": {
+    "blocklist": 64,
+    "personalName": 37,
+    "duplicate": 30,
+    "noRingName": 1,
+    "placeholder": 4
+  },
+  "titles": [
+    {
+      "name": "Mid Card Championship",
+      "kind": "singles",
+      "division": "midCard",
+      "championRingNames": []
+    },
+    {
+      "name": "SZN World Tag Team Championship",
+      "kind": "tag",
+      "division": null,
+      "championRingNames": []
+    },
+    {
+      "name": "World Heavyweight Championship",
+      "kind": "singles",
+      "division": "heavyweight",
+      "championRingNames": []
+    }
+  ],
+  "teams": [
+    {
+      "name": "Class of born",
+      "memberRingNames": ["Enzo kamura", "khi born"],
+      "wins": 0,
+      "losses": 0
+    },
+    {
+      "name": "SICK A$$ FOOs",
+      "memberRingNames": ["Alan", "Hoss"],
+      "wins": 0,
+      "losses": 0
+    },
+    {
+      "name": "Savage Velocity",
+      "memberRingNames": ["Danny Wolf", "JD Mysterio"],
+      "wins": 0,
+      "losses": 0
+    }
+  ],
+  "wrestlers": [
+    {
+      "ringName": "AJ REED",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["House Visit 2"],
+      "signatures": ["Bicycle knee strike 5"],
+      "bio": null
+    },
+    {
+      "ringName": "Aaron",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 1,
+      "losses": 5,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 5,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Electric Chair facebuster"],
+      "signatures": ["Edgecator"],
+      "bio": null
+    },
+    {
+      "ringName": "Abyss",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 85,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Ace Austin",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 1,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 0,
+          "draws": 0
+        }
+      ],
+      "overallCap": 85,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Adam page",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Paradise ship", "Hidden blade 2"],
+      "signatures": ["five-star frog splash", "hidden blade 1"],
+      "bio": "I'm the face of the company and I want the midcard title and I will win it and earn it"
+    },
+    {
+      "ringName": "Akira Ultimo",
+      "division": "midCard",
+      "alignment": "neutral",
+      "wins": 3,
+      "losses": 6,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 3,
+          "losses": 6,
+          "draws": 0
+        }
+      ],
+      "overallCap": 80,
+      "finishers": ["Sister Abagail 4"],
+      "signatures": ["The Message", "Final Cut 1"],
+      "bio": null
+    },
+    {
+      "ringName": "Alan",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Alberto Del Rio",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 86,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Alex sander",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Un-pretty-her2", "Casket drop", "Adios amigo"],
+      "signatures": ["Stundog millionaire", "Code red", "Middle rope natural selection"],
+      "bio": null
+    },
+    {
+      "ringName": "Amazing Red",
+      "division": "midCard",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 2,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 2",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        },
+        {
+          "name": "Season 3",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Code Red", "Infrared"],
+      "signatures": ["718", "Red star press", "Red eye"],
+      "bio": null
+    },
+    {
+      "ringName": "Amir",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 2,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 2,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [
+        "Phantom Driver(Mir-Driver)",
+        "Kross hammer(Ham-mired)",
+        "Clothesline29 (Mir-line)",
+        "23 MPH Mir-Line"
+      ],
+      "signatures": [
+        "Tombstone Piledriver 5 (Mir-stone)",
+        "Flammer Driver",
+        "Spinning Back Elbow 2"
+      ],
+      "bio": null
+    },
+    {
+      "ringName": "Anderson Kane",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Full Metal Jacket", "Lasso From Alaska"],
+      "signatures": ["The Icebreaker", "Kimura Lock", "Hanging Full Metal Jacket"],
+      "bio": null
+    },
+    {
+      "ringName": "Andrade El Idolo",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 89,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Angel Murray",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["In The Blink Of An Eye 1 & 2", "Avalanche ITBOAE"],
+      "signatures": ["Excalibur!", "Murray Special Deluxe"],
+      "bio": null
+    },
+    {
+      "ringName": "Angus Wolf",
+      "division": "heavyweight",
+      "alignment": "neutral",
+      "wins": 24,
+      "losses": 16,
+      "draws": 2,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 1,
+          "losses": 0,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 13,
+          "losses": 9,
+          "draws": 0
+        },
+        {
+          "name": "Season 3",
+          "wins": 1,
+          "losses": 1,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 9,
+          "losses": 6,
+          "draws": 2
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Wolf Plex"],
+      "signatures": ["The final verdict"],
+      "bio": null
+    },
+    {
+      "ringName": "Ar Fox",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Astro Ace",
+      "division": "midCard",
+      "alignment": "face",
+      "wins": 7,
+      "losses": 10,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 7,
+          "losses": 10,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Event Horizon", "Cosmic Collapse", "Cosmo Cutter"],
+      "signatures": ["Cosmic Connection", "Meteor Crash", "Starshot"],
+      "bio": null
+    },
+    {
+      "ringName": "Austin Aries",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 89,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Austin Gates",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Hidden blade", "StormBreaker"],
+      "signatures": ["Styles clash", "Springboard cutter", "Og cutter 3"],
+      "bio": null
+    },
+    {
+      "ringName": "Ayds",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Cave-in"],
+      "signatures": ["Cutthroat"],
+      "bio": null
+    },
+    {
+      "ringName": "BPL",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": ["Superkick"],
+      "bio": null
+    },
+    {
+      "ringName": "Bandido",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 86,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Bandit",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Paul veriser"],
+      "signatures": ["Spinning tombstone driver"],
+      "bio": "Just let me have my match bruh"
+    },
+    {
+      "ringName": "Baron Corbin",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 86,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Barry Taylor",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [
+        "Brainbuster 5",
+        "Northern lights/brainbuster",
+        "Rear basement forearm",
+        "Lariet, back elbow, forearm"
+      ],
+      "signatures": ["Discus knee strike", "Corner meteora", "Basement dropkick"],
+      "bio": "Wrestling fan looking for a fun community"
+    },
+    {
+      "ringName": "Bastion Bone",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Pumphandle Olympic Slam"],
+      "signatures": ["Twist Of Fate 4"],
+      "bio": null
+    },
+    {
+      "ringName": "Berdan JR",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Fall from Grace"],
+      "signatures": ["Butterfly lift twist cutter"],
+      "bio": null
+    },
+    {
+      "ringName": "Big E",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 85,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Billy banks",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 70,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Blockbrothersgamingtv",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Boxer from Canada",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["H-Bomb 2", "Lariat/Forearm Combo", "Flying Forearm Smash"],
+      "signatures": ["Chaos Theory", "Sleeper Slam", "Electric Chair German Suplex"],
+      "bio": "Greatest wrestler of ALL TIME"
+    },
+    {
+      "ringName": "Bray Wyatt",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 93,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Brian Cage",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 85,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Bron Breakker",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 86,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Buddy Mathew",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Buddy Mathews",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 1,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 0,
+          "draws": 0
+        }
+      ],
+      "overallCap": 89,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Bully Ray",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "CJ REKLESS",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["End of days"],
+      "signatures": ["The reckoning"],
+      "bio": null
+    },
+    {
+      "ringName": "CLAWZY",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [
+        "The Eradicator",
+        "Falling Five Star Splash",
+        "Falling Face Breaker",
+        "Head Knocker",
+        "Running Face Breaker"
+      ],
+      "signatures": ["Final Twist", "5X Slam", "Impaler", "Drop it on em", "Bloody Murder"],
+      "bio": "I AM THE CULTURE."
+    },
+    {
+      "ringName": "Callum Newman",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 86,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Cam",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Hidden blade", "Corkscrew shooting star"],
+      "signatures": ["URANAGE5", "Og cutter"],
+      "bio": "KING IF HIGH FLYERS."
+    },
+    {
+      "ringName": "Carmelo Hayes",
+      "division": "jobber",
+      "alignment": "heel",
+      "wins": 1,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 2",
+          "wins": 1,
+          "losses": 0,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Nothing But Net"],
+      "signatures": ["Tilt-a-Whirl Facebuster"],
+      "bio": null
+    },
+    {
+      "ringName": "Carson Creed",
+      "division": "jobber",
+      "alignment": "neutral",
+      "wins": 1,
+      "losses": 4,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 2",
+          "wins": 1,
+          "losses": 3,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Chad Gable",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 89,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Chris Torres",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Wicked stepsister"],
+      "signatures": ["Jumping complete shot 2"],
+      "bio": "Here to win some championships, make friends, and make some enemies."
+    },
+    {
+      "ringName": "Claudio Castagnoli",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Cody Furner Jr.",
+      "division": "midCard",
+      "alignment": "face",
+      "wins": 12,
+      "losses": 18,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 2,
+          "losses": 2,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 6,
+          "losses": 5,
+          "draws": 0
+        },
+        {
+          "name": "Season 3",
+          "wins": 1,
+          "losses": 1,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 3,
+          "losses": 10,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["H-Bomb", "Furners Fortune", "Float over Alabama slam"],
+      "signatures": ["Pedigree", "Spin, headlock elbow drop", "Springboard spear"],
+      "bio": null
+    },
+    {
+      "ringName": "Cody Riley",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Trick shot"],
+      "signatures": ["Mexican destroyer"],
+      "bio": null
+    },
+    {
+      "ringName": "Cody rodes",
+      "division": "jobber",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Cross rodes"],
+      "signatures": ["Cody cutter"],
+      "bio": null
+    },
+    {
+      "ringName": "Crimson",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 2,
+      "losses": 2,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 2,
+          "losses": 2,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Crimson Dragon",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Raging Crimson Fire", "Crimson Night"],
+      "signatures": ["Diving Meteora", "Michinoku Driver"],
+      "bio": null
+    },
+    {
+      "ringName": "Cyco",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 87,
+      "finishers": ["Dark void"],
+      "signatures": ["Cyco cutter", "Circle back"],
+      "bio": "¿Why so serious ?"
+    },
+    {
+      "ringName": "D KNIGHTT",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["KROSS HAMMER", "ELECTRIC CHAIR / GERMAN SUPLEX", "JUGGERNAUT DRIVER"],
+      "signatures": ["THE SILENCER", "CANADIAN DESTROYER", "SUPLEX FALCON ARTOW COMBO"],
+      "bio": "ACHIVE AND PROPSER."
+    },
+    {
+      "ringName": "DEVON BLADE",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [
+        "Blade Driver V2",
+        "Knee of Blade",
+        "Spear",
+        "Avalanche Yemen Destroyer",
+        "SuperKick of Death"
+      ],
+      "signatures": ["Midnight Point"],
+      "bio": null
+    },
+    {
+      "ringName": "Dame Watts",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 1,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 0,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["The Concrete Burial", "Street Sweeper", "Sit Out Last Ride ( Super Fin )"],
+      "signatures": ["Bully Buster", "German German", "Bully Bomb"],
+      "bio": "Powerhouse"
+    },
+    {
+      "ringName": "Damian Priest",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 86,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Daniel Garcia",
+      "division": null,
+      "alignment": "heel",
+      "wins": 2,
+      "losses": 2,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 2,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Danny Wolf",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 4,
+      "losses": 2,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 4,
+          "losses": 2,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Thrill of the hunt"],
+      "signatures": ["Full Moon"],
+      "bio": "DANNY WOLF — THE ALPHA WOLF Hometown: Lebanon, Pennsylvania Nickname: The Alpha Wolf Wrestling Style: Powerhouse / Brawler Personality: Dark, Fearless, Dangerous The Story of Danny Wolf Born and raised in Lebanon, Pennsylvania, Danny Wolf grew up with one dream: becoming a professional wrestler. But his journey was never easy. Throughout his life, Danny faced betrayal, heartbreak, and people who constantly doubted him. Instead of giving up, Danny turned his pain into strength. Inspired by th"
+    },
+    {
+      "ringName": "Darby Allin",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "David Garcia",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["pop up power bomb", "paulvariser"],
+      "signatures": ["blue thunder bomb"],
+      "bio": null
+    },
+    {
+      "ringName": "Dawn Drago",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 87,
+      "finishers": ["Spear"],
+      "signatures": ["Fist Drop", "Running Spinning Elbow"],
+      "bio": null
+    },
+    {
+      "ringName": "Desmond Xavier",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 86,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Devlin O'Brian",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 3,
+      "draws": 1,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 3,
+          "draws": 1
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Irish Curse/Brian's Boot Combo", "Brian's Boot"],
+      "signatures": ["Irish Skull-Crusher", "Iron Claw 3", "Iron Claw 2"],
+      "bio": null
+    },
+    {
+      "ringName": "Diamond Dallas Page",
+      "division": "jobber",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 2",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Dion sterling",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Claymore"],
+      "signatures": ["Standing Shooting Star Press"],
+      "bio": null
+    },
+    {
+      "ringName": "Doink the clown",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Dominik Mysterio",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 87,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Donnie Jackson",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 5,
+      "losses": 2,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 5,
+          "losses": 2,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["DonnieSpiral", "HeadTAP", "ChinBOP"],
+      "signatures": ["THE SIN OF DONNIE", "DONNIERONNIE"],
+      "bio": "im Donnie The best JOBBER THERE is THE BEST POWERHOUSE"
+    },
+    {
+      "ringName": "Dragon Kid",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Dragon lee",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Style clash"],
+      "signatures": ["Powerbomb/V-trigger"],
+      "bio": null
+    },
+    {
+      "ringName": "Drew Galloway",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Dustin Rhodes",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 87,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Dwayne earl",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["THE SLIDING EARL", "D END"],
+      "signatures": ["THE D-BONE", "THE DDE"],
+      "bio": null
+    },
+    {
+      "ringName": "EL FERRARI",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [
+        "Mexican destroyer",
+        "Deadlift Yokosuka cutter",
+        "Canadian destroyer",
+        "Bridging package powerbomb",
+        "Mexican muscle buster"
+      ],
+      "signatures": [
+        "Cave in",
+        "Five star frog splash",
+        "H bomb",
+        "Phenomenal forearm",
+        "Apron piledriver"
+      ],
+      "bio": null
+    },
+    {
+      "ringName": "Eddie Cruz",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Lethal Weapon", "Cruz Cutter", "Lethal Injection", "Springboard Cruz Cutter"],
+      "signatures": ["Jaw Adjustment", "Emerald Flowsion", "Insult To Injury"],
+      "bio": "I am the next best, I am the personification of EXTREME, I ALONE AM LETHAL"
+    },
+    {
+      "ringName": "Eddie Edwards",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "El Dorado Sangrande",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Torture Rack Bomb 2"],
+      "signatures": ["Penta Driver"],
+      "bio": "Heel Luchador"
+    },
+    {
+      "ringName": "El Faraon",
+      "division": "heavyweight",
+      "alignment": "neutral",
+      "wins": 3,
+      "losses": 8,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 1,
+          "losses": 3,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 2,
+          "losses": 4,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "El Hijo del Vikingo",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "El Vipero",
+      "division": "midCard",
+      "alignment": "face",
+      "wins": 7,
+      "losses": 7,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 7,
+          "losses": 7,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Snakebite", "Spinning cobra hood drop", "Cobra hood drop"],
+      "signatures": [
+        "Rattletrap",
+        "La mordida",
+        "Fever Dream",
+        "La vuelo fatal (the fatal flight)",
+        "Middle Rope Mordida"
+      ],
+      "bio": "Born in Mexico city, Mexico to irish heritage, my parents died when I was very young resulting in having to bounce around foster homes until i was adopted by a Hispanic family of 6. I was brought up by these people, raised, and loved by this massive family like he was their own blood. I fell in love with lucha libre young. When I was 18, the family all moved to Georgia in america, where I trained with my siblings. Now im here in the R.S.L to prove I am the greatest luchador of all time!"
+    },
+    {
+      "ringName": "Elijah Hall",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 1,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 0,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Primetime Elbow"],
+      "signatures": ["Michinoku Driver"],
+      "bio": null
+    },
+    {
+      "ringName": "Elijah Hero",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [
+        "Flaming Star press",
+        "SuperPlex/final cut combo",
+        "Jay driller",
+        "Moonsault feint"
+      ],
+      "signatures": [
+        "Standing shooting Star",
+        "Middle rope Phoenix splash",
+        "Corkscrew shooting Star press",
+        "Springboard 450 2",
+        "Running blockbuster 2"
+      ],
+      "bio": "I'm just trying have matches and have fun"
+    },
+    {
+      "ringName": "Enzo kamura",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["One winged angel", "Diving swanton 450", "Kimura destroyer"],
+      "signatures": ["619", "Cutthroat 1", "Paulverizer", "Bitterfly twisting cutter"],
+      "bio": null
+    },
+    {
+      "ringName": "Essence",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Spear"],
+      "signatures": ["Silencer (Running back elbow)"],
+      "bio": "Former leagues participated in: 2010-2011 UWF 2012-2013 MCW 2012 FaM"
+    },
+    {
+      "ringName": "Ethan Page",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Evil maysin",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["The stomp"],
+      "signatures": ["Buckle bomb"],
+      "bio": "The deystro"
+    },
+    {
+      "ringName": "Exility Josh",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Spiral Tap / exhilaration"],
+      "signatures": ["190"],
+      "bio": "The Hopster, The Hopaholic, The one with the springs in his feet. Truly Gravity’s Finest. That’s why they call me hops"
+    },
+    {
+      "ringName": "Faced Killa",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Fénix Carmesí",
+      "division": "jobber",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Mexican Destroyer"],
+      "signatures": ["Penta driver"],
+      "bio": null
+    },
+    {
+      "ringName": "G",
+      "division": "midCard",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Gabriel Garcia",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["SKO"],
+      "signatures": ["Shining Wizard"],
+      "bio": null
+    },
+    {
+      "ringName": "Ghost",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [
+        "Sweet chin music",
+        "Running block buster 2",
+        "Springboard codebreaker/cutter",
+        "Sweet chin music 1",
+        "Superkick/german suplex"
+      ],
+      "signatures": [
+        "Samoan drop 9",
+        "Mexican destroyer",
+        "Og cutter 2",
+        "Apron piledriver",
+        "Springboard stomp"
+      ],
+      "bio": null
+    },
+    {
+      "ringName": "Hangman Adam Page",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Hank",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Tsunami"],
+      "signatures": ["Seven star lariat"],
+      "bio": null
+    },
+    {
+      "ringName": "Harry Vernon",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Harvey",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Northern lights bomb"],
+      "signatures": ["Powerbomb 10"],
+      "bio": null
+    },
+    {
+      "ringName": "Henry Hawk",
+      "division": "jobber",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Casket Drop 5", "Casket Drop 1", "RKO 3"],
+      "signatures": ["Mexican Destroyer", "Whisper In The Wind"],
+      "bio": "Henry Hawk's not here to make friends he's here to make his way up to the very top of the mountain"
+    },
+    {
+      "ringName": "Hoodie",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Flatliner", "Lil Jimmy"],
+      "signatures": ["The Message", "Cut Throat"],
+      "bio": null
+    },
+    {
+      "ringName": "Hook",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Hoss",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Canadian Destroyer", "RKO"],
+      "signatures": ["Omega Driver"],
+      "bio": null
+    },
+    {
+      "ringName": "Ian Parker",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["SYMBIOTE"],
+      "signatures": ["Fisherman skies"],
+      "bio": null
+    },
+    {
+      "ringName": "Ilja Dragunov",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 87,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Isaac Fernandez",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Poison driver"],
+      "signatures": ["Poison blade"],
+      "bio": null
+    },
+    {
+      "ringName": "Ish",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Float over liger bomb"],
+      "signatures": ["Stundog millionaire"],
+      "bio": null
+    },
+    {
+      "ringName": "J-roc",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Kick-Roc", "Roc-slide"],
+      "signatures": ["J-driver", "Roc-Solid"],
+      "bio": null
+    },
+    {
+      "ringName": "JBL",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 89,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "JD Mysterio",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 3,
+      "losses": 6,
+      "draws": 2,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 3,
+          "losses": 6,
+          "draws": 2
+        }
+      ],
+      "overallCap": 80,
+      "finishers": ["Frog Splash", "West Coast Pop", "Dragonrana", "Sunset Flip Piledriver"],
+      "signatures": ["619", "Canadian Destroyer"],
+      "bio": null
+    },
+    {
+      "ringName": "JOOLZ MANSON",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["ELEVATED FLATLINER"],
+      "signatures": ["ELEVATED FLATLINER"],
+      "bio": null
+    },
+    {
+      "ringName": "Jack Rock",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["UFO cutter and corkscrew shooting star press"],
+      "signatures": ["Mexican destroyer and shooting star stomp"],
+      "bio": null
+    },
+    {
+      "ringName": "Jackson wolf",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 7,
+      "losses": 2,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 7,
+          "losses": 2,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["The flying wolf", "Wolfs final hour"],
+      "signatures": ["The wolf extractor", "The howling storm"],
+      "bio": null
+    },
+    {
+      "ringName": "Jacob Fatu",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 85,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Jaden Irvin",
+      "division": "midCard",
+      "alignment": "face",
+      "wins": 2,
+      "losses": 3,
+      "draws": 1,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 2,
+          "losses": 3,
+          "draws": 1
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["201 Facebreaker"],
+      "signatures": ["KO Knee"],
+      "bio": null
+    },
+    {
+      "ringName": "Jake",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Corkscrew shooting star press"],
+      "signatures": ["Cutthroat 2"],
+      "bio": null
+    },
+    {
+      "ringName": "Jake Saturn",
+      "division": "jobber",
+      "alignment": "face",
+      "wins": 6,
+      "losses": 7,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 4,
+          "losses": 1,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 2,
+          "losses": 6,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "James Buster",
+      "division": "jobber",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 2",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Busterbomb", "Jawdonzo"],
+      "signatures": ["Knickerbocker"],
+      "bio": null
+    },
+    {
+      "ringName": "Jarrett Kennedy",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Jaxon Alexzander",
+      "division": "jobber",
+      "alignment": "heel",
+      "wins": 3,
+      "losses": 3,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 1,
+          "losses": 1,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 1,
+          "losses": 0,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 2,
+          "draws": 0
+        }
+      ],
+      "overallCap": 77,
+      "finishers": ["Spear"],
+      "signatures": ["Patella Drop Brainbuster", "Concussion Protocol", "Spinebuster 18"],
+      "bio": null
+    },
+    {
+      "ringName": "Jay Frost",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Rear Choke", "Rear Choke variant 2", "Rear Choke variant 3"],
+      "signatures": ["Fishman Driver", "Palm Strike Armbar", "Armbar variant 2", "Triangle Choke"],
+      "bio": null
+    },
+    {
+      "ringName": "Jay Johnson",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Chokeslam 11", "Johnson way", "Johnson knee"],
+      "signatures": ["Running blockbuster 2"],
+      "bio": null
+    },
+    {
+      "ringName": "Jay Lethal",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Jay White",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Jay wayne",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Spear"],
+      "signatures": ["Rolling thunder flatliner"],
+      "bio": null
+    },
+    {
+      "ringName": "Jeff Cobb",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Jett Reckless",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Inverted Phoenix Splash", "Twist Of Fate 2", "Paul-Verizer"],
+      "signatures": ["Jumping TKO", "Spear 16", "H-Bomb 2"],
+      "bio": null
+    },
+    {
+      "ringName": "Jey uso",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 2",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Cody cutter"],
+      "signatures": ["Spear"],
+      "bio": null
+    },
+    {
+      "ringName": "Jimmy Uso",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Jin Kurogane",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Jmart",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [
+        "150th Headshot",
+        "Red Tiger Execution",
+        "Blood Moonsault",
+        "Hardscope",
+        "Tactical Nuke"
+      ],
+      "signatures": [
+        "Quickscope",
+        "Red Tiger Suplex",
+        "Ferocious Forearm",
+        "Red Tiger Driver",
+        "Red Tiger Bomb"
+      ],
+      "bio": "A small-town kid who grew up glued to wrestling, I'm stepping into a league for the very first time. Bringing heavy-hitting size into the ring, he pairs his physical presence with the grind—studying film like map layouts, learning from veterans, and adjusting his loadout on the fly. Quiet, observant, and eager to prove he belongs, he stays out of the crosshairs, controls the ring, and waits for the right window to close out the match."
+    },
+    {
+      "ringName": "Joel Stephen",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Crown Fall"],
+      "signatures": ["Scottish Revenge"],
+      "bio": null
+    },
+    {
+      "ringName": "John Adam’s",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Penta driver"],
+      "signatures": ["Pedigree"],
+      "bio": null
+    },
+    {
+      "ringName": "Jordan Jericho",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 86,
+      "finishers": ["Judas effect", "Lion tamer"],
+      "signatures": ["Code Breaker"],
+      "bio": null
+    },
+    {
+      "ringName": "Jordan Rush",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Suplex Cutter"],
+      "signatures": ["Somersault Unprettier", "401k"],
+      "bio": null
+    },
+    {
+      "ringName": "Joseph Karr",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Karr Krash", "Avalanche Karr Krash", "Papa Roach Special", "Coast to Coast"],
+      "signatures": [
+        "Discus Big Boot",
+        "Rolling Elbow",
+        "Spinning Back Elbow",
+        "Ankle Pick Back Elbow"
+      ],
+      "bio": null
+    },
+    {
+      "ringName": "Josh Alexander",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Ankle lock"],
+      "signatures": ["Pop up gut wrench suplex"],
+      "bio": null
+    },
+    {
+      "ringName": "Joshua Briggs",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["23 MPH Steiner-Line, High Angle Spinebuster"],
+      "signatures": ["Bearhug Spinebuster, Chockslam Takedoewn"],
+      "bio": null
+    },
+    {
+      "ringName": "Jt Angel",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Back breaker/lariat combo"],
+      "signatures": ["Sliding lariat"],
+      "bio": null
+    },
+    {
+      "ringName": "Juan Fenix Jr.",
+      "division": "jobber",
+      "alignment": "neutral",
+      "wins": 1,
+      "losses": 5,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 2",
+          "wins": 0,
+          "losses": 5,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 0,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Justin Cannon",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 1,
+      "losses": 3,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 3,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Cannon Killswitch", "Flying Cannon", "Package Cannon Driver"],
+      "signatures": [
+        "Cannon Pedigree",
+        "Cannon Cutter",
+        "Handspring Cannon Cutter",
+        "Super Cannon Cutter"
+      ],
+      "bio": null
+    },
+    {
+      "ringName": "KENTA",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Kade King",
+      "division": "heavyweight",
+      "alignment": "face",
+      "wins": 11,
+      "losses": 8,
+      "draws": 1,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 5,
+          "losses": 2,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 4,
+          "losses": 1,
+          "draws": 1
+        },
+        {
+          "name": "Season 3",
+          "wins": 1,
+          "losses": 0,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 5,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Pop Up Samoan Drop"],
+      "signatures": ["Spinning Solo"],
+      "bio": null
+    },
+    {
+      "ringName": "Kahari Mitts",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Double winged facebuster", "avalanche double winged face buster"],
+      "signatures": ["Clothesline from Heaven"],
+      "bio": null
+    },
+    {
+      "ringName": "Kaleb",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [
+        "Stun gun neckbreaker",
+        "Slingshot body splash",
+        "Side effect 3",
+        "Teardrop suplex combo",
+        "Half nelson choke suplex(vertigo effect)"
+      ],
+      "signatures": [
+        "Snatch Spinebuster",
+        "Base Drop",
+        "Rebound Lariat/do it like dean",
+        "Greetings from asbury park/Skull crusher"
+      ],
+      "bio": null
+    },
+    {
+      "ringName": "Kalisto",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Kasheem Richards",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 86,
+      "finishers": ["The Kashout", "Gts’18", "Interceptor", "Mexican destroyer", "Dark uranage"],
+      "signatures": [
+        "Rich hammer",
+        "Rolling thunder frog splash",
+        "Gts/german suplex combo",
+        "Pop up bubba cutter",
+        "Powerbomb/final flash"
+      ],
+      "bio": "I am Kasheem Richards coming the roots of Japan and New York my i have a mixed style of wrestling strong style mixed with technique preparation"
+    },
+    {
+      "ringName": "Kazuma",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Lights Out", "Wing Clipper 2"],
+      "signatures": ["GN"],
+      "bio": "First time in a league and wanted to see if can make it."
+    },
+    {
+      "ringName": "Kento Miyahara",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Keo",
+      "division": "midCard",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 2,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 2,
+          "draws": 0
+        }
+      ],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Khaos",
+      "division": "midCard",
+      "alignment": "face",
+      "wins": 7,
+      "losses": 17,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 2",
+          "wins": 3,
+          "losses": 8,
+          "draws": 0
+        },
+        {
+          "name": "Season 3",
+          "wins": 1,
+          "losses": 0,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 2,
+          "losses": 9,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Khaos Theory", "The Dream Skar"],
+      "signatures": ["Pharaohs Keep", "Red Ratio"],
+      "bio": null
+    },
+    {
+      "ringName": "King Vinji",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 70,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "King kaysen",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Fall from the kingdom"],
+      "signatures": ["Throne breaker"],
+      "bio": "I’m king KAYSEN I’m Big. I’m bad and I’ll break you bad custom character, obviously my finisher is spirit bomb, but I call it fall from the kingdom my signature is Bam Bam Bigelow finisher but I call it throne breaker"
+    },
+    {
+      "ringName": "Knight",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Dagger Cutta (cutter)"],
+      "signatures": [
+        "Bouncesault (moonsault)",
+        "Brain crusher (destroyer)",
+        "Sky high (frog splash)"
+      ],
+      "bio": null
+    },
+    {
+      "ringName": "Kofi Kingston",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Konosuke Takeshita",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 87,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Kota Ibushi",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Kushida",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 90,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Kyle Fletcher",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 85,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "L.A. Park",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 84,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "LA Knight",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 89,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "LJ Sabbath",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Golden Knee", "Downward Fate"],
+      "signatures": ["Adios Amigos"],
+      "bio": "I’m a British Independent wrestler trying to figure out my path to the Throne."
+    },
+    {
+      "ringName": "LJW",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Cave-In"],
+      "signatures": ["Springboard 450 Splash"],
+      "bio": null
+    },
+    {
+      "ringName": "La Parka",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 85,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "La Sangre Rosa",
+      "division": "jobber",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 2,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 2",
+          "wins": 0,
+          "losses": 2,
+          "draws": 0
+        }
+      ],
+      "overallCap": 89,
+      "finishers": ["La Ultima Rosa", "La Espina", "Rosa Veneno", "Caida De La Rosa"],
+      "signatures": ["Espina Mortal", "La Trampa"],
+      "bio": null
+    },
+    {
+      "ringName": "Lazer",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["The simply better knee", "The Lazer punt", "The jp"],
+      "signatures": ["The better end", "The Lazer cutter"],
+      "bio": null
+    },
+    {
+      "ringName": "Lee Freeman",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Sit-Out Facebuster 1"],
+      "signatures": ["Full Nelson slam 3"],
+      "bio": null
+    },
+    {
+      "ringName": "Lee Moriarty",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 79,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Leon slater",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Lex Luger",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Loco Helix",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Loco Driver", "Helix Splash", "Tequila and Goodnight"],
+      "signatures": ["Loco Spinner", "305", "Package piledriver", "Mexican Fly", "Taco Down"],
+      "bio": "As the sun sets over Mexico City and the sky turns red and gold, a luchador steps out of the shadows. His name is Loco Helix — a mysterious warrior whose face has never been seen without his mask. Wearing the colors of green and red, he carries the pride of Mexico with him into every match. His mask is more than just a symbol — it represents strength, honor, and an identity that no opponent can ever take away from him."
+    },
+    {
+      "ringName": "Logan Paul",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 90,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Logan Wayne",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["D.O.R (Days Of Rage)", "Raging Knee", "One Winged Angel"],
+      "signatures": ["Holy Demise"],
+      "bio": null
+    },
+    {
+      "ringName": "Lucas",
+      "division": "midCard",
+      "alignment": "heel",
+      "wins": 5,
+      "losses": 5,
+      "draws": 1,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 5,
+          "losses": 5,
+          "draws": 1
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Lash extension"],
+      "signatures": ["Sunset split"],
+      "bio": null
+    },
+    {
+      "ringName": "Luke Wolf",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [
+        "Arriverderci",
+        "Coast to coast 3",
+        "Gamengiri/Moonsault Knee drop",
+        "Mexican destroyer",
+        "Discus Pump kick"
+      ],
+      "signatures": [
+        "Bicycle knee strike 3",
+        "GTS German Suplex combo",
+        "Hbic Combo",
+        "slingshot lariat 2",
+        "running springboard top rope Moonsault"
+      ],
+      "bio": null
+    },
+    {
+      "ringName": "Malachi Crawford",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [
+        "End of heartache",
+        "Back suplex facebuster 2",
+        "Ganso Bomb",
+        "Lumbar Check",
+        "Brainnnn bustaaaa"
+      ],
+      "signatures": ["SVB", "Avalanche German suplex 2", "Bow and arrow", "Clothesline 12"],
+      "bio": "I'm am the Malachi Crawford and I'm the best player in out of my friends and we had a whole different league and I want something more challenging so I joined this league and I'm ready to have fun and kick sum mfn azz."
+    },
+    {
+      "ringName": "Malachi Knox",
+      "division": "heavyweight",
+      "alignment": "heel",
+      "wins": 12,
+      "losses": 9,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 12,
+          "losses": 9,
+          "draws": 0
+        }
+      ],
+      "overallCap": 83,
+      "finishers": ["Knox out", "Cave In", "Gamengirl/moonsault knee drop"],
+      "signatures": ["Diamond destroyer", "Swanton bomb 1"],
+      "bio": null
+    },
+    {
+      "ringName": "Malakai Black",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 86,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Manuel Carrero",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Canadian Destroyer"],
+      "signatures": ["450 Splash"],
+      "bio": null
+    },
+    {
+      "ringName": "Marvin-Lee",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Cave in"],
+      "signatures": ["Batman bite"],
+      "bio": null
+    },
+    {
+      "ringName": "Matt Cardona",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Matt Riddle",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 90,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Matthew Parker",
+      "division": "midCard",
+      "alignment": "heel",
+      "wins": 8,
+      "losses": 9,
+      "draws": 1,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 8,
+          "losses": 9,
+          "draws": 1
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["In The Cut", "2 - 6 Driver", "Carry The Cross"],
+      "signatures": ["Spin The Block", "A-Town Stomp", "5150"],
+      "bio": null
+    },
+    {
+      "ringName": "Max Caster",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 85,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Michna the Murdera",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 70,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Miguel",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Mike Awesome",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 1,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 1,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Mike Bowman",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Bowman Blackout", "The final chapter"],
+      "signatures": ["The Iron Driver", "Redlining"],
+      "bio": null
+    },
+    {
+      "ringName": "Moose",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Mugen",
+      "division": "midCard",
+      "alignment": "neutral",
+      "wins": 3,
+      "losses": 8,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 3,
+          "losses": 8,
+          "draws": 0
+        }
+      ],
+      "overallCap": 88,
+      "finishers": ["Back Suplex Spin-Out Powerbomb"],
+      "signatures": ["Knee smasher face buster"],
+      "bio": null
+    },
+    {
+      "ringName": "Mustafa Ali",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Nick Wayne",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 85,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Noah Taylor",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 2,
+      "losses": 3,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 2,
+          "losses": 3,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Taylor Made", "The Final Judgment"],
+      "signatures": ["Animal Instinct", "Taylor's Wrath"],
+      "bio": null
+    },
+    {
+      "ringName": "Oba Femi",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Octagón Jr.",
+      "division": "jobber",
+      "alignment": "neutral",
+      "wins": 3,
+      "losses": 8,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 2,
+          "losses": 3,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 1,
+          "losses": 4,
+          "draws": 0
+        }
+      ],
+      "overallCap": 80,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Otis",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 86,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "PAC",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Pagano",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 78,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Penta",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 90,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Penta El Zero Miedo",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Percy Earl",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Percy drop"],
+      "signatures": ["P spine buster"],
+      "bio": null
+    },
+    {
+      "ringName": "Phoenix Jax",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 10,
+      "losses": 11,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 10,
+          "losses": 11,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Rise of the phoenix", "Gravity check", "Ashen verdict"],
+      "signatures": ["Jax-ecution", "Redline press"],
+      "bio": "Im a high flyer athlete and, of course, the best high flyer ever Acknowledge Akira ultimo as my partner !"
+    },
+    {
+      "ringName": "Playboy Yosh",
+      "division": "heavyweight",
+      "alignment": "neutral",
+      "wins": 5,
+      "losses": 6,
+      "draws": 2,
+      "seasons": [
+        {
+          "name": "Season 2",
+          "wins": 2,
+          "losses": 4,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 3,
+          "losses": 2,
+          "draws": 2
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["The Playboy Stomp", "Playboy Party"],
+      "signatures": ["Playmaker", "Lights Out"],
+      "bio": null
+    },
+    {
+      "ringName": "Pled Crow",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Crow Encore"],
+      "signatures": ["Bird’s Prey"],
+      "bio": null
+    },
+    {
+      "ringName": "Prettyboy Prince Ricky",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Greetings from asbury"],
+      "signatures": ["Greeting from asbury"],
+      "bio": null
+    },
+    {
+      "ringName": "Psycho",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Psycho Clown",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 82,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "RK Styles",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 2,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 2,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Raphael Torres",
+      "division": "heavyweight",
+      "alignment": "neutral",
+      "wins": 7,
+      "losses": 14,
+      "draws": 1,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 1,
+          "losses": 3,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 3,
+          "losses": 5,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 3,
+          "losses": 6,
+          "draws": 1
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Torres Express (Spear)"],
+      "signatures": ["La Sentencia (Chokeslam)"],
+      "bio": null
+    },
+    {
+      "ringName": "Ray The BombTaylor",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Knelling powerbomb"],
+      "signatures": ["Clothesline"],
+      "bio": null
+    },
+    {
+      "ringName": "Reed",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 1,
+      "losses": 4,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 4,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Rey Fenix",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": 86,
+      "finishers": ["Standing shurai"],
+      "signatures": ["Tombstone slam"],
+      "bio": null
+    },
+    {
+      "ringName": "Rey Umbra",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": 86,
+      "finishers": ["Final Point"],
+      "signatures": ["Sombra Rana"],
+      "bio": null
+    },
+    {
+      "ringName": "Rich Swann",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 2,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        },
+        {
+          "name": "Season 3",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Richard Knox",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Ricky Saints",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Rico Valen",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 70,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Royce Keys",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 87,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Ryback",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 87,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Ryoma Yamakawa",
+      "division": "midCard",
+      "alignment": "neutral",
+      "wins": 24,
+      "losses": 17,
+      "draws": 2,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 8,
+          "losses": 4,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 11,
+          "losses": 6,
+          "draws": 1
+        },
+        {
+          "name": "Season 3",
+          "wins": 1,
+          "losses": 0,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 4,
+          "losses": 7,
+          "draws": 1
+        }
+      ],
+      "overallCap": 70,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Say",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 1,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Northern Lights bomb", "Moonsault feint"],
+      "signatures": ["Snap German suplex", "Un-pretty-her", "054 splash"],
+      "bio": null
+    },
+    {
+      "ringName": "Shane Wolf",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Black Mass"],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Sheamus",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "SheltonBenjamin",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Sid Vicious",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Silas Von Kross",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 2,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 2,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Krossing Over"],
+      "signatures": ["Final Destination"],
+      "bio": null
+    },
+    {
+      "ringName": "SoFaygo",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["054 splash", "360 double knee face breaker", "Power bomb/final flash combo"],
+      "signatures": ["Snap dragon Supplex", "450 elbow drop"],
+      "bio": "What’s good everybody I am mixed. I am 30% Italian 50% Mexican. The other percentage is just nothing. It’s basically just like German and stuff. My mom side of the family is from Italy. My dad side of the family is from Costa Rica. I am 5.6ft I love wrestling and I love taking bumps."
+    },
+    {
+      "ringName": "Solo Sikoa",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Sonic",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Sonic dash"],
+      "signatures": ["Excalibur"],
+      "bio": null
+    },
+    {
+      "ringName": "Swerve Strickland",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 91,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Syko Soulja",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 1,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 0,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Sliced Bread", "Electric Chair Driver"],
+      "signatures": ["Snap German Suplex", "Boxing Right Hook"],
+      "bio": "you will see when i’m in that ring thank you. and tiko is my parrtnneerrrr"
+    },
+    {
+      "ringName": "Talla Tonga",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 85,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Tama Tonga",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Tanga Loa",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Terrell Williams",
+      "division": "jobber",
+      "alignment": "heel",
+      "wins": 7,
+      "losses": 24,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 1,
+          "losses": 4,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 5,
+          "losses": 17,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 3,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Jacked driver", "Jumpman", "Neck killer"],
+      "signatures": ["Cyclone driver"],
+      "bio": null
+    },
+    {
+      "ringName": "The Blade Viktor Crowe",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Heavens Calling", "Hells Calling", "Sit-out Heavens Calling"],
+      "signatures": ["Divine Intervention", "Sleep Tight", "The Step Back"],
+      "bio": null
+    },
+    {
+      "ringName": "The Demon",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Tilt-A-Whirl Backstabber", "Sliced Bread 4", "Double Rotation Moonsault"],
+      "signatures": ["Tilt-A-Whirl Facebuster 1", "Moonsault Feint", "Shaky Knee Drop"],
+      "bio": null
+    },
+    {
+      "ringName": "The Fiend",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Mandible claw"],
+      "signatures": ["Sister abigal"],
+      "bio": null
+    },
+    {
+      "ringName": "The archetype",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Cactus driver"],
+      "signatures": ["Diving theze press"],
+      "bio": null
+    },
+    {
+      "ringName": "The prince Amir Marshall",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Public execution", "Rings of Saturn", "Saving grace"],
+      "signatures": [
+        "Spinning tombstone pile driver",
+        "Running knee smash",
+        "Lawn dart",
+        "Constantin special"
+      ],
+      "bio": null
+    },
+    {
+      "ringName": "The red giant",
+      "division": "midCard",
+      "alignment": "heel",
+      "wins": 1,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["South of heaven", "The accolade"],
+      "signatures": ["World's strongest splash", "Tsunami"],
+      "bio": "HES THE BIG RED GIANT"
+    },
+    {
+      "ringName": "Thunderbolt Tre",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Tijani Young",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Final Decent"],
+      "signatures": ["DeadShot"],
+      "bio": null
+    },
+    {
+      "ringName": "Tommaso Ciampa",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Travis Danger",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["TKO", "Pop-Up Powerbomb", "Frog Splash"],
+      "signatures": ["Last Shot 1", "Last Shot 2", "Last Shot 3"],
+      "bio": null
+    },
+    {
+      "ringName": "Tre",
+      "division": "midCard",
+      "alignment": "face",
+      "wins": 5,
+      "losses": 8,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 3",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 5,
+          "losses": 7,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["“SIMPLY BETTER” Knee", "“FREAKY” Frog Splash", "“TRUTTER” (Tre’s Cutter)"],
+      "signatures": ["“BLK MAN” Destroyer", "“COD” (CAUSE OF DEATH)"],
+      "bio": null
+    },
+    {
+      "ringName": "Trent",
+      "division": "jobber",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Avalanche Mexican destroyer"],
+      "signatures": ["The stomp 1"],
+      "bio": "Let’s have fun"
+    },
+    {
+      "ringName": "Trevor Stone",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 70,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Trick Williams",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 88,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Vanta",
+      "division": "youngBoys",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 1,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 0,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Sole Kick", "Nightfall", "The kick of Death"],
+      "signatures": ["Phoenix Splash", "Blackout Kick", "Fall From Hell"],
+      "bio": "Vanta is a masked luchador known for his unpredictable style explosive offense and insane aerial ability He is not the biggest wrestler around but he makes up for it by moving faster than almost anyone he steps in the ring with"
+    },
+    {
+      "ringName": "Vashon Visco",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": "I’m a Dawg (curt hawkins reincarnated)"
+    },
+    {
+      "ringName": "Victor Vane",
+      "division": "youngBoys",
+      "alignment": "heel",
+      "wins": 1,
+      "losses": 2,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 2,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["Victor's Lane", "Lock The Truth", "Good Souls and Better Dictators"],
+      "signatures": ["V Bullet", "Dirty Things Done Right or DTDR", "Vaults of 100's Secrets"],
+      "bio": "Im a type of guy to use anything around me to gain advantage and when i see opening im taking it and never looking back."
+    },
+    {
+      "ringName": "Victor van daigle",
+      "division": "heavyweight",
+      "alignment": "heel",
+      "wins": 8,
+      "losses": 9,
+      "draws": 1,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 1,
+          "losses": 2,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 3,
+          "losses": 2,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 4,
+          "losses": 5,
+          "draws": 1
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Super Smooth Cutter", "Victors Claw"],
+      "signatures": ["Most elegant clothesline", "Castration", "Canadian excellence"],
+      "bio": null
+    },
+    {
+      "ringName": "Vincent Hail",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [
+        "Rolling elbow 5",
+        "Discus forearm smash 2",
+        "H-Bomb 1",
+        "H-Bomb 2",
+        "Discus punch 1"
+      ],
+      "signatures": [
+        "Kamigoye 3",
+        "Running knee strike 6",
+        "Ripcord knee strike",
+        "Arrivederci",
+        "Kamigoye 1"
+      ],
+      "bio": null
+    },
+    {
+      "ringName": "Viole Grace",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Scissor kick"],
+      "signatures": ["Spinebuster 20"],
+      "bio": null
+    },
+    {
+      "ringName": "Will osperay",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": ["Cutthroat 2"],
+      "signatures": ["Styles clash 1"],
+      "bio": null
+    },
+    {
+      "ringName": "Will osprey",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [
+        "Storm breaker",
+        "Hidden blade",
+        "Hidden blade 2.0",
+        "Hidden blade 3.0",
+        "Tiger driver"
+      ],
+      "signatures": ["Styles, clash", "Tigers, bomb", "Oz cutter", "Oz cutter 2.0"],
+      "bio": null
+    },
+    {
+      "ringName": "Yuri Brooks",
+      "division": "midCard",
+      "alignment": "neutral",
+      "wins": 11,
+      "losses": 18,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 1,
+          "losses": 1,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 7,
+          "losses": 10,
+          "draws": 0
+        },
+        {
+          "name": "Season 3",
+          "wins": 2,
+          "losses": 0,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 1,
+          "losses": 7,
+          "draws": 0
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Caught Lacking", "L7"],
+      "signatures": ["Thug Cutter"],
+      "bio": null
+    },
+    {
+      "ringName": "Zayn Vanta",
+      "division": "jobber",
+      "alignment": "face",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 87,
+      "finishers": ["Frog Splash", "Full Nelson Slam", "Backslide Driver"],
+      "signatures": [
+        "Tiger Suplex",
+        "Running Knee Lift",
+        "Middle Rope Meteora",
+        "Butterfly NeckBreaker",
+        "Super kick / German Suplex Combo"
+      ],
+      "bio": null
+    },
+    {
+      "ringName": "Zilla Fatu",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 86,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Zion Carter",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 2,
+      "losses": 1,
+      "draws": 2,
+      "seasons": [
+        {
+          "name": "Season 4",
+          "wins": 2,
+          "losses": 1,
+          "draws": 2
+        }
+      ],
+      "overallCap": 70,
+      "finishers": ["Borne Again 2", "Gamengiri/Moonsault Knee Drop", "Broward County Driver"],
+      "signatures": [
+        "Tombstone Piledriver 4",
+        "Running Blockbuster 2",
+        "Half Nelson Uranage",
+        "sliding german suplex"
+      ],
+      "bio": null
+    },
+    {
+      "ringName": "antdottho",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "johnny gargano",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": 90,
+      "finishers": ["Gremlin Drop", "Crown Snatcher", "Frog Splash 4", "Springboard Stunner 2"],
+      "signatures": ["Kaos kick", "Cave Dive", "Goblin Sweep", "The Ambush"],
+      "bio": null
+    },
+    {
+      "ringName": "khi born",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [
+        "from the soul",
+        "sliding knee strike",
+        "Cody cutter 2",
+        "from the heavens",
+        "born knee"
+      ],
+      "signatures": ["fatality", "falling distress", "coup de grace"],
+      "bio": null
+    },
+    {
+      "ringName": "raiden hallow",
+      "division": "heavyweight",
+      "alignment": "neutral",
+      "wins": 17,
+      "losses": 8,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 5,
+          "losses": 2,
+          "draws": 0
+        },
+        {
+          "name": "Season 2",
+          "wins": 8,
+          "losses": 5,
+          "draws": 0
+        },
+        {
+          "name": "Season 4",
+          "wins": 4,
+          "losses": 1,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": ["raiden hallow knee"],
+      "signatures": ["raiden buster"],
+      "bio": null
+    },
+    {
+      "ringName": "yesmepleasecauseyes",
+      "division": null,
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "seasons": [],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    },
+    {
+      "ringName": "Último Mykee",
+      "division": "youngBoys",
+      "alignment": "neutral",
+      "wins": 0,
+      "losses": 3,
+      "draws": 0,
+      "seasons": [
+        {
+          "name": "Season 1",
+          "wins": 0,
+          "losses": 3,
+          "draws": 0
+        }
+      ],
+      "overallCap": null,
+      "finishers": [],
+      "signatures": [],
+      "bio": null
+    }
+  ]
+}

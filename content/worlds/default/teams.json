@@ -48,6 +48,42 @@
     "status": "active"
   },
   {
+    "key": "team-league-class-of-born",
+    "kind": "tag",
+    "name": "Class of born",
+    "memberKeys": [
+      "league-enzo-kamura",
+      "league-khi-born"
+    ],
+    "formedOn": "2026-09-01",
+    "experience": 20,
+    "status": "active"
+  },
+  {
+    "key": "team-league-savage-velocity",
+    "kind": "tag",
+    "name": "Savage Velocity",
+    "memberKeys": [
+      "league-danny-wolf",
+      "league-jd-mysterio"
+    ],
+    "formedOn": "2026-05-15",
+    "experience": 20,
+    "status": "active"
+  },
+  {
+    "key": "team-league-sick-a-foos",
+    "kind": "tag",
+    "name": "SICK A$$ FOOs",
+    "memberKeys": [
+      "league-alan",
+      "league-hoss"
+    ],
+    "formedOn": "2026-08-01",
+    "experience": 20,
+    "status": "active"
+  },
+  {
     "key": "team-pro-ca-01",
     "kind": "tag",
     "name": "Seismic Knight",

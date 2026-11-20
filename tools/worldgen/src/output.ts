@@ -56,6 +56,15 @@ export function personRecordOf(context: BuildContext, member: RosterMember): Per
     regionalPop,
     traits: [...person.traits],
     vices: { ...person.vices },
+    ...(person.bio === undefined ? {} : { bio: person.bio }),
+    ...(person.moves === undefined
+      ? {}
+      : {
+          moves: {
+            finishers: [...person.moves.finishers],
+            signatures: [...person.moves.signatures],
+          },
+        }),
   };
 }
 

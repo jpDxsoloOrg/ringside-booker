@@ -1,7 +1,7 @@
 /**
  * `blocklist`: no real performer, promotion, show, title or network name appears in the content.
  *
- * Checks every person's legal name and default ring name, every contract's ring name, every
+ * Checks every person's legal name, default ring name, bio and move names, every contract's ring name, every
  * promotion's full and short name, and the names of brands, titles, venues, networks, event
  * definitions, teams and the match and segment catalogs (match types, angle types, methods) and the
  * injury catalog's labels against the blocklist (see `../blocklist.ts` for how names are compared).
@@ -60,6 +60,19 @@ export function createBlocklistRule(blocklist: Blocklist): ContentRule {
         ...checkKind(content, blocklist, 'person', (person) => [
           { field: ['givenName'], label: 'Legal name', value: legalName(person) },
           { field: ['defaultRingName'], label: 'Ring name', value: person.defaultRingName },
+          ...(person.bio === undefined
+            ? []
+            : [{ field: ['bio'], label: 'Bio', value: person.bio }]),
+          ...(person.moves?.finishers ?? []).map((move, index) => ({
+            field: ['moves', 'finishers', String(index)],
+            label: 'Finisher',
+            value: move,
+          })),
+          ...(person.moves?.signatures ?? []).map((move, index) => ({
+            field: ['moves', 'signatures', String(index)],
+            label: 'Signature move',
+            value: move,
+          })),
         ]),
         ...checkKind(content, blocklist, 'employment', (employment) => [
           { field: ['ringName'], label: 'Ring name', value: employment.ringName },
