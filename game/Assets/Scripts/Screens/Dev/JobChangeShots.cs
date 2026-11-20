@@ -47,7 +47,7 @@ namespace RingsideBooker.Screens.Dev
 
         private IEnumerator Start()
         {
-            Invoke(nameof(GiveUp), 300f);
+            Invoke(nameof(GiveUp), 900f);
             Directory.CreateDirectory(folder);
             while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != SceneFlow.TitleScene) yield return null;
             while (NewGameWizard.Last == null) yield return null;
@@ -121,7 +121,7 @@ namespace RingsideBooker.Screens.Dev
                 // No manager wants to wrestle: look for a wrestler who would take the manager job.
                 if (talks != NegotiationSheet.Current)
                 {
-                    foreach (JToken other in view.ShownRows.Where(row => Kit.Str(row, "role") == "wrestler").Take(30).ToList())
+                    foreach (JToken other in view.ShownRows.Where(row => Kit.Str(row, "role") == "wrestler").OrderByDescending(row => Kit.Num(row, "age") ?? 0).ToList())
                     {
                         ShellController.Current.Overlay.CloseAll();
                         NegotiationView next = NegotiationSheet.Open(view.Root, NegotiationTarget.JobChange(Kit.Str(other, "employmentId")));
