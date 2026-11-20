@@ -175,6 +175,7 @@ namespace RingsideBooker.UI.Title
                 switch (result.Status)
                 {
                     case OpenStatus.Opened:
+                        Crash.LoadNotice.ShowFor(result.Load);
                         GameEntry.Enter(engine, result.Session.Seat);
                         return;
                     case OpenStatus.OlderBuild:

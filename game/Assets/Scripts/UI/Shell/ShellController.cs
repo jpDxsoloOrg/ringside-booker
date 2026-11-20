@@ -59,6 +59,7 @@ namespace RingsideBooker.UI.Shell
             shell.Actions.Add(dayHost);
             dayControl = new DayControlView(dayHost, Navigator, Overlay, OpenSkipDays);
             summary = new AdvanceSummaryView(shell.SummarySlot, Navigator, Overlay);
+            Crash.LoadNoticeView.Attach(shell);
             progressOverlay = new AdvanceProgressOverlay(Overlay);
 
             Navigator.Navigated += ShowScreen;
