@@ -125,7 +125,7 @@ namespace RingsideBooker.Screens.Dev
             yield return Wait(0.4f);
 
             // ---- 2a. Cash for their ace: refused --------------------------------------------------------
-            sheet.SetCash(true, 100_000_000);
+            sheet.SetCash(true, 1_000_000);
             yield return WaitFor(() => sheet.PreviewCurrent, 15f);
             yield return Wait(0.6f);
             string likely = Kit.Str(sheet.Preview, "rival.likely");
@@ -216,7 +216,7 @@ namespace RingsideBooker.Screens.Dev
             yield return Capture("change-and-send-back");
             Check(!Kit.Arr(TradeSheet.Current?.Preview, "problems").Any(), "the counter's preview has no rule broken by its own trade");
             Click(Q<Button>(button => button.name == "trade-cancel-changes"));
-            yield return WaitFor(() => TradeSheet.Current?.Trade != null && TradeSheet.Current.Draft == null, 15f);
+            yield return WaitFor(() => TradeSheet.Current != null && !TradeSheet.Current.Loading && TradeSheet.Current.Draft == null && Q<Button>(button => button.name == "trade-accept") != null, 15f);
 
             // ---- 3. Accept the counter -----------------------------------------------------------------
             Click(Q<Button>(button => button.name == "trade-accept"));

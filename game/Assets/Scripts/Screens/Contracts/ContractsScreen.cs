@@ -344,6 +344,14 @@ namespace RingsideBooker.Screens.Contracts
             }
             else if (ContractsScreen.TradeOnArrival(route) is string tradeId)
             {
+                // A closed trade (an answer) is listed under Answered, not Open.
+                JToken row = data.Trades.FirstOrDefault(item => Kit.Str(item, "tradeId") == tradeId);
+                if (row != null && Kit.Str(row, "status") != "open")
+                {
+                    tradesView = TradeRows(TradesAnswered, data.Trades).Contains(row) ? TradesAnswered : TradesHistory;
+                    DrawToolbar();
+                    DrawList();
+                }
                 Trades.TradeSheet.OpenTrade(Root, tradeId);
             }
             else if (route.Param("negotiation") is string negotiationId)
@@ -1145,10 +1153,12 @@ namespace RingsideBooker.Screens.Contracts
         /// Open: every open trade, those waiting for you first. Answered: trades a rival answered
         /// (done, turned down, fell through). History: every closed trade.
         /// </summary>
-        private List<JToken> TradeRows()
+        private List<JToken> TradeRows() => TradeRows(tradesView, data.Trades);
+
+        private static List<JToken> TradeRows(string view, IEnumerable<JToken> all)
         {
-            IEnumerable<JToken> rows = data.Trades;
-            switch (tradesView)
+            IEnumerable<JToken> rows = all;
+            switch (view)
             {
                 case TradesAnswered:
                     rows = rows.Where(row => Kit.Str(row, "status") is string status && (status == "completed" || status == "refused" || status == "cancelled"));

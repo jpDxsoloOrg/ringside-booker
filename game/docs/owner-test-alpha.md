@@ -247,6 +247,54 @@ Quick look without playing (PNGs in the folder; add `-rbDraftNegotiate` for the 
 & "$env:LOCALAPPDATA\Programs\Ringside Booker\RingsideBooker.exe" -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -rbDraftShots "C:\Temp\rb-draft-shots"
 ```
 
+## 11. Trades (Beta 03, TRD-02/03/04)
+
+Start a new game in the default world (no draft), then play a day or two so the first show is out
+of the way.
+
+**Build an offer:**
+
+- [ ] **Promotions**, open a rival: **Propose a trade** sits top right. On any rival wrestler's
+      profile (or quick look from their roster), **Offer in a trade** opens the trade sheet with
+      the rival picked and that wrestler on **You get**. On one of your own, they go on **You give**.
+- [ ] **Add one of theirs**: champions are greyed out with "Champion: drop or vacate the title
+      first"; workers with a no-trade clause have a tag.
+- [ ] As you add workers and cash, **How they'd take it** changes at once: Likely yes / Close /
+      Far apart, a meter and plain lines. Hover the **?** for the rival's reasons. Each worker shows
+      whether they're happy to move and the morale change, with their own **?**.
+- [ ] **More terms** on a worker: a new wage or length. A pay rise can turn "doesn't want to move"
+      round. A no-trade clause who won't go shows in red under them with **Take them out**, and
+      **Send offer** stays off until every rule is fixed.
+
+**Answers:**
+
+- [ ] Offer a little cash for one of their best wrestlers and **Send offer**. Press Next day: the
+      day button says **Trade answered** and opens Contracts › Trades on the answer: **They
+      refuse**, with the lines and a **?**. The stop doesn't come back.
+- [ ] **New offer to …**: offer one of your wrestlers for one of theirs until it reads **Close**,
+      and send it. Next day: **Trade offer** opens their counter-offer (usually cash on top or one
+      more worker). Try **Change and send back** (the meter reads the changed offer), then **Keep
+      their offer** and **Accept**.
+
+**After the trade:**
+
+- [ ] The sheet says who moved. Your Roster has who you got, and the rival's page has who you gave.
+      Contracts › Active has the new contract with the same pay (or your change).
+- [ ] News has "… trades for …" stories. Titles are untouched.
+- [ ] If the wrestler you gave was booked on one of your future shows, that card no longer has
+      them (Booking).
+- [ ] Contracts › Trades › **History** lists both trades.
+
+**A rival's offer:** rivals offer now and then (Mondays, after the first two months, about one to
+three a year). When **Trade offer** says a rival offered you a trade, it opens with **Accept**,
+**Refuse** and **Counter**, and says when it lapses (a week).
+
+Quick look without playing (it forces a rival offer with dev overrides; PNGs in the folder):
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\Ringside Booker\RingsideBooker.exe" -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -rbSeed trd -rbTradeShots "C:\Temp\rb-trade-shots"
+```
+
 ## Known gaps
 
 - The feedback address is a placeholder until you set it.

@@ -182,6 +182,8 @@ namespace RingsideBooker.Screens.Trades
         /// <summary>True once the preview answers the draft as it stands.</summary>
         public bool PreviewCurrent => draft != null && preview != null && !previewPending && previewKey == draft.Key;
         public bool Busy => busy;
+        /// <summary>True while the sheet loads its trade or draft (tours wait for it).</summary>
+        public bool Loading { get; private set; }
         public string Notice => notice;
         public IReadOnlyList<string> Errors => errors;
         public IReadOnlyList<JToken> Rivals => rivals;
@@ -193,6 +195,19 @@ namespace RingsideBooker.Screens.Trades
         // ---- Loading ---------------------------------------------------------------------------------
 
         private async Task Load()
+        {
+            Loading = true;
+            try
+            {
+                await LoadInner();
+            }
+            finally
+            {
+                Loading = false;
+            }
+        }
+
+        private async Task LoadInner()
         {
             EngineGame game = Kit.Game;
             if (game == null) return;
@@ -1017,7 +1032,15 @@ namespace RingsideBooker.Screens.Trades
             }
             notice = answer == "accept" ? "Trade done. The rosters are updated and the news has it." : "You turned the offer down.";
             if (answer == "accept") DsOverlay.Toast(anchor, $"Trade with {RivalName} done", DsState.Good);
-            await LoadTrade(tradeId);
+            Loading = true;
+            try
+            {
+                await LoadTrade(tradeId);
+            }
+            finally
+            {
+                Loading = false;
+            }
             return null;
         }
 

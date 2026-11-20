@@ -89,7 +89,16 @@
       "summary": "Sign free agents, renew contracts and let people go.",
       "section": "business",
       "order": 1,
-      "keywords": ["contracts", "sign", "free agents", "offer", "renew", "release", "wage"],
+      "keywords": [
+        "contracts",
+        "sign",
+        "free agents",
+        "offer",
+        "renew",
+        "release",
+        "wage",
+        "trade"
+      ],
       "screens": ["contracts"]
     },
     {
