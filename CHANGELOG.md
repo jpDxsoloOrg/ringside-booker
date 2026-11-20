@@ -16,6 +16,12 @@ How I write an entry:
 
 ## Unreleased
 
+### Added
+
+- I added an update check. When a new version is out, a quiet "Update available" chip shows on the
+  title screen and in Settings › About. Download and install saves your game, updates it in place
+  and keeps your saves. You can turn the check off in Settings › About.
+
 ## [0.1.0-alpha.1] - 2026-11-20
 
 ### Added

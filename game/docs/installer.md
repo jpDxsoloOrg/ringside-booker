@@ -62,7 +62,8 @@ Environment variables:
 - **Version:** the same string as the zip and the title screen (`0.1.0-u1+<sha>` now,
   `0.1.0-alpha.N+<sha>` once version.json lands). The installer's own file version is four numbers:
   `0.1.0.N` for `-alpha.N`, otherwise `0.1.0.0`.
-- **Upgrade in place:** the AppId never changes, so a newer installer goes into the same folder.
+- **Upgrade in place:** the AppId never changes, so a newer installer goes into the same folder
+  (also when the game starts it, see [In-game updates](#in-game-updates-pol9-11)).
   It closes a running game first (Windows Restart Manager, `CloseApplications=force`), removes the
   old `RingsideBooker_Data`, `MonoBleedingEdge`, `D3D12` and `licenses` folders so no stale files
   stay behind, and remembers the earlier choices (folder, desktop shortcut). Saves and settings are
@@ -71,6 +72,85 @@ Environment variables:
   and the shortcuts. A dialog first offers **Also delete my saves and imported worlds**, unticked.
   Ticked, it deletes `AppData\LocalLow\jpDxsolo\Ringside Booker` (saves, imported workshop worlds,
   logs). Settings (PlayerPrefs, `HKCU\Software\jpDxsolo\Ringside Booker`) are always kept.
+
+## In-game updates (POL9-11)
+
+The game checks for a newer release itself and can install it. Code:
+`Assets/Scripts/Release/Updates/` (check, download, launch) and `Assets/Scripts/UI/Updates/`
+(chip and sheet). Tests:
+`game/tools/unity-test-editmode.sh RingsideBooker.Tests.Release.UpdateCheckTests`.
+
+**The check**
+
+- At start-up, at most once a day, and only when **Settings › About › Check for updates
+  automatically** is on (the default), the game asks
+  `https://api.github.com/repos/jpDxsoloOrg/ringside-booker/releases?per_page=10`. No auth, no
+  personal data, and a generic User-Agent `RingsideBooker/<version>`. It doesn't use
+  `/releases/latest`, because that one skips prereleases, and every Alpha is a prerelease.
+- Drafts are never offered (GitHub doesn't send them without auth, and the game skips them too).
+  Releases are read by their tag (`v0.1.0-alpha.2`) and compared with the build's version by semver
+  with prerelease ordering: `0.1.0-alpha.2 > 0.1.0-alpha.1`, `alpha.10 > alpha.9`, `beta > alpha`,
+  and `0.1.0 > 0.1.0-beta.N`.
+- **Channels:** an alpha build takes alpha, beta and full releases; a beta build takes beta and full
+  releases; a release build only full releases. A tag's channel comes from its version
+  (`-alpha.N` = alpha, other pre-releases = beta). Still mark Alphas as prereleases on GitHub.
+- **Offline or any error** (no network, rate limit, odd answer): nothing is shown, and the next
+  start tries again. **Settings › About › Check now** says "Couldn't check for updates".
+- The offer is cached in `AppData\LocalLow\jpDxsolo\Ringside Booker\update-check.json`, so the chip
+  still shows on a day without a check. After an update, the cached release is no longer newer, so
+  it disappears. The settings live in PlayerPrefs: `rb.update.automatic`,
+  `rb.update.lastCheckUtc` and `rb.update.skippedVersion`.
+- Local builds (no `version.json`) and dev runs (any `-rb…` switch) never check by themselves.
+
+**What the player sees**
+
+- A quiet chip, **Update available: v0.1.0-alpha.2**, above the version line on the title screen
+  and in **Settings › About**. Never a popup during play.
+- The chip opens a side sheet with the release notes (the GitHub release's text), **Download and
+  install**, **Later** and **Skip this version**. Skip hides the chip until a newer release, and
+  **Check now** brings it back.
+
+**Download and install**
+
+1. The `RingsideBooker-Setup-*.exe` asset downloads to `%TEMP%\RingsideBooker-Update\` with a
+   progress bar (Cancel works). Older downloads there are deleted first.
+2. The file's size must match the asset's size from the API. If it doesn't, the file is deleted
+   and the sheet offers **Open the download page** (the release page) and **Try again**.
+3. **Save and install** (when a game is open) saves through the game's normal save: a manual save
+   (`GameSession.SaveNowAsync`), the same path as the "Saved" chip, with its backups. If the save
+   fails, nothing is installed. Without a game the button says **Install now**.
+4. The game starts the installer with `Process.Start` and quits (`Application.Quit`, through the
+   normal quit, which finds nothing left to save).
+
+**Installer flags:** `/SILENT /CLOSEAPPLICATIONS /NORESTART /RBUPDATE`.
+
+- `/SILENT` shows Inno's progress window but no wizard pages. The licence, the folder and the "for
+  me / all users" choice were made at the first install, and Inno reuses the folder
+  (`UsePreviousAppDir`) and the install mode. An all-users install still gets Windows' admin
+  prompt. Not `/VERYSILENT`: the player should see that something is installing.
+- `/CLOSEAPPLICATIONS`: if the game hasn't closed yet, Inno's Restart Manager closes it. The save is
+  already on disk by then.
+- `/RBUPDATE` is our own switch. A `[Run]` entry in `RingsideBooker.iss` (`skipifnotsilent`,
+  `runasoriginaluser`) starts the updated game when the install is done. Installers built before
+  POL9-11 (`v0.1.0-alpha.1`) don't have that entry, so after updating _to_ one of them the game
+  doesn't start again by itself.
+- If the installer doesn't start (for example, the admin prompt is refused), the sheet offers
+  **Open the download page**.
+
+**Dev and smoke test (no network, no installer):**
+
+```bash
+# Screenshot tour: writes a fake release list and a dummy installer to <dir>/fake-feed, then
+# captures the chip, the sheet, the download, a size-check failure, About, Skip, and in a new game
+# Save and install. It ends by pressing Save and install: it saves, logs the installer it would
+# start, and quits. Exit 0 = every check passed.
+RingsideBooker.exe -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -rbUpdateShots "<win dir>"
+
+# By hand: any release list file (the tour's <dir>\fake-feed\releases.json works). Asset URLs that
+# are not absolute are read next to the file. A fake run never starts an installer or opens the
+# browser; it only logs "[Update] (fake) would start ...".
+RingsideBooker.exe -rbFakeUpdate "<win path>\releases.json"
+```
 
 ## Silent install (testers and scripts)
 
