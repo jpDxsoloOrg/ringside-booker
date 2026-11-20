@@ -217,15 +217,16 @@ without touching the formula (see [Integrations](#integrations)).
 date of five shows on a new default-world game (no recent form or streak yet,
 so those lines are 1). If a band fails, tune the defaults, not the bands.
 Before EVT6-11 lowered the base crowd the forecasts were 16,812, 34,123,
-9,983, 186 and 233.
+9,983, 186 and 233. SLW's league shows replaced Altura Mainstage and the Altitude stadium show
+(a major league PPV now has its own band).
 
-| Show             | Promotion, region popularity, marketing   | Size     | Forecast | Band          |
-| ---------------- | ----------------------------------------- | -------- | -------- | ------------- |
-| Altura Mainstage | Altura, 75, marketing 8                   | Regular  | 14,398   | 10,000–18,000 |
-| Altitude         | Altura, 73, marketing 8 (1 free big show) | Flagship | 29,243   | 25,000–55,000 |
-| Tessen Iron Hour | Tessen, 65, marketing 5                   | Regular  | 8,584    | 6,000–14,000  |
-| Wattle Saturday  | Wattle, 18, marketing 1                   | Minor    | 217      | 100–400       |
-| Hardpan Friday   | Hardpan, 20, marketing 1                  | Minor    | 258      | 100–500       |
+| Show             | Promotion, region popularity, marketing | Size    | Forecast | Band          |
+| ---------------- | --------------------------------------- | ------- | -------- | ------------- |
+| Mayhem Monday    | SLW, 75, marketing 8                    | Regular | 14,398   | 10,000–18,000 |
+| SZN Unleashed    | SLW, 73, marketing 8                    | Major   | 19,938   | 15,000–30,000 |
+| Tessen Iron Hour | Tessen, 65, marketing 5                 | Regular | 8,584    | 6,000–14,000  |
+| Wattle Saturday  | Wattle, 18, marketing 1                 | Minor   | 217      | 100–400       |
+| Hardpan Friday   | Hardpan, 20, marketing 1                | Minor   | 258      | 100–500       |
 
 ### Year-one calibration
 

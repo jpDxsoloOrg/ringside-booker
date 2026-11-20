@@ -105,7 +105,7 @@ describe("Altura's shipped deals", () => {
   it('collides with itself when the deal being renegotiated is not left out', () => {
     const { read } = altura;
     const promotionId = promotionNamed(read, 'Szn League');
-    const mainstage = showNamed(read, 'Altura Mainstage');
+    const mainstage = showNamed(read, 'Mayhem Monday');
     const valuation = dealValuation(read, TUNABLES, {
       promotionId,
       networkId: networkNamed(read, 'National Signal Network'),
@@ -122,7 +122,7 @@ describe("Altura's shipped deals", () => {
     const request = {
       promotionId: promotionNamed(read, 'Szn League'),
       networkId: networkNamed(read, 'Kestrel Sports'),
-      eventDefinitionId: showNamed(read, 'Altura Mainstage'),
+      eventDefinitionId: showNamed(read, 'Mayhem Monday'),
       timeslot: 'evening',
       live: false,
       months: 12,

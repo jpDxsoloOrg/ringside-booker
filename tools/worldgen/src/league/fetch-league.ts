@@ -467,7 +467,8 @@ async function main(): Promise<void> {
     }
     const since = (show.createdAt ?? '').slice(0, 10);
     if (show.schedule === 'ppv') {
-      const when = (show.ppvDate ?? '').slice(0, 10) || firstPpvDate.get(show.showId) || since;
+      const ppvDate = (show.ppvDate ?? '').slice(0, 10);
+      const when = ppvDate.length === 10 ? ppvDate : (firstPpvDate.get(show.showId) ?? since);
       ppvs.push({ name, when, since });
       continue;
     }

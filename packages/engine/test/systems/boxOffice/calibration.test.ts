@@ -27,8 +27,8 @@ import { startDefaultGame } from '../calendar/default-game';
 
 /** The documented band for each show: the forecast for its first scheduled date. */
 const BANDS: readonly { readonly show: string; readonly low: number; readonly high: number }[] = [
-  { show: 'Altura Mainstage', low: 10_000, high: 18_000 },
-  { show: 'Altitude', low: 25_000, high: 55_000 },
+  { show: 'Mayhem Monday', low: 10_000, high: 18_000 },
+  { show: 'SZN Unleashed', low: 15_000, high: 30_000 },
   { show: 'Tessen Iron Hour', low: 6_000, high: 14_000 },
   { show: 'Wattle Saturday', low: 100, high: 400 },
   { show: 'Hardpan Friday', low: 100, high: 500 },
@@ -144,11 +144,11 @@ describe('show-day money calibration on the default world', () => {
   }
 
   it('Altura Mainstage at Harrowmere Arena nets a clear profit', () => {
-    expect(netAt('Altura Mainstage', 'Harrowmere Arena')).toBeGreaterThan(40_000_000);
+    expect(netAt('Mayhem Monday', 'Harrowmere Arena')).toBeGreaterThan(40_000_000);
   });
 
   it('the same show at Kestlewood Stadium loses money on rent', () => {
-    expect(netAt('Altura Mainstage', 'Kestlewood Stadium')).toBeLessThan(0);
+    expect(netAt('Mayhem Monday', 'Kestlewood Stadium')).toBeLessThan(0);
   });
 
   it('Wattle Saturday at The Gumleaf Room nets a small positive amount', () => {

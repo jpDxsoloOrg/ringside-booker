@@ -13,6 +13,7 @@ import {
   rateLeagueWrestler,
   SLW_PROMOTION,
 } from '../src/league/roster';
+import { leagueEventDefinitions } from '../src/league/shows';
 import type { LeagueWrestler } from '../src/league/snapshot';
 
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
@@ -166,5 +167,48 @@ describe('the league roster in the default world', () => {
         expect(blocklist.blocksText(text), text).toBe(false);
       }
     }
+  });
+});
+
+describe("SLW's league shows", () => {
+  it('puts each weekly show on its weekday and keeps the TV-deal keys on Monday and Wednesday', () => {
+    const snapshot = inputs.league?.snapshot;
+    if (snapshot === undefined) {
+      throw new Error('The default world has a league snapshot');
+    }
+    const definitions = leagueEventDefinitions(snapshot);
+    const weekly = definitions.filter((row) => row.recurrence.kind === 'weekly');
+    expect(weekly.map((row) => row.recurrence)).toEqual(
+      snapshot.shows
+        .filter((show) => show.kind === 'weekly')
+        .map((show) => ({ kind: 'weekly', weekdays: [show.weekday] })),
+    );
+    expect(definitions.find((row) => row.key === 'flagship-mainstage-weekly')?.recurrence).toEqual({
+      kind: 'weekly',
+      weekdays: [0],
+    });
+    expect(definitions.find((row) => row.key === 'flagship-overclock-weekly')?.recurrence).toEqual({
+      kind: 'weekly',
+      weekdays: [2],
+    });
+    expect(
+      weekly
+        .filter((row) => row.televised)
+        .map((row) => row.key)
+        .sort(),
+    ).toEqual(['flagship-mainstage-weekly', 'flagship-overclock-weekly']);
+  });
+
+  it('runs the PPVs in league order, every other month from February', () => {
+    const snapshot = inputs.league?.snapshot;
+    if (snapshot === undefined) {
+      throw new Error('The default world has a league snapshot');
+    }
+    const ppvs = leagueEventDefinitions(snapshot).filter((row) => row.importance === 'major');
+    const order = snapshot.shows.filter((show) => show.kind === 'ppv');
+    expect(ppvs.map((row) => row.name)).toEqual(order.map((show) => show.name));
+    expect(
+      ppvs.map((row) => (row.recurrence.kind === 'annual' ? row.recurrence.month : 0)),
+    ).toEqual(order.map((_, index) => 2 + index * 2));
   });
 });
