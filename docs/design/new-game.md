@@ -24,18 +24,19 @@ host then builds the save with `createSaveDocument` + `encodeSave`, passing
 
 `newGameInputSchema` (`input.ts`):
 
-| Field              | Shape                                                            | Notes                                                                    |
-| ------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `rootPackId`       | string                                                           | The world pack to start from. Its dependencies load with it.             |
-| `seed`             | string, 1–64                                                     | Every random stream and every ID comes from it.                          |
-| `startDate`        | `GameDate`, optional                                             | Defaults to the world pack's start date. May not be before it.           |
-| `playerId`         | string, 1–64                                                     | The human controller's player ID (the wizard passes the local player's). |
-| `playerName`       | string, 1–40                                                     | Stored in `WorldMeta.players` next to the player ID.                     |
-| `saveName`         | string, 1–60                                                     | Becomes `WorldMeta.worldName`.                                           |
-| `seasonLength`     | `{ preset: '1m' \| '3m' \| '6m' \| '12m' }` or `{ customWeeks }` | See [Season length](#season-length-and-season-1).                        |
-| `player`           | `existing` or `found`, see below                                 | Which promotion you run.                                                 |
-| `settings`         | `Record<string, boolean \| string>`                              | Registered setting keys only. Anything left out takes its default.       |
-| `tunableOverrides` | `Record<string, number>`, optional                               | Checked against each tunable's range and saved with the game.            |
+| Field                 | Shape                                                            | Notes                                                                                                                |
+| --------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `rootPackId`          | string                                                           | The world pack to start from. Its dependencies load with it.                                                         |
+| `seed`                | string, 1–64                                                     | Every random stream and every ID comes from it.                                                                      |
+| `startDate`           | `GameDate`, optional                                             | Defaults to the world pack's start date. May not be before it.                                                       |
+| `playerId`            | string, 1–64                                                     | The human controller's player ID (the wizard passes the local player's).                                             |
+| `playerName`          | string, 1–40                                                     | Stored in `WorldMeta.players` next to the player ID.                                                                 |
+| `saveName`            | string, 1–60                                                     | Becomes `WorldMeta.worldName`.                                                                                       |
+| `seasonLength`        | `{ preset: '1m' \| '3m' \| '6m' \| '12m' }` or `{ customWeeks }` | See [Season length](#season-length-and-season-1).                                                                    |
+| `player`              | `existing` or `found`, see below                                 | Which promotion you run.                                                                                             |
+| `settings`            | `Record<string, boolean \| string>`                              | Registered setting keys only. Anything left out takes its default.                                                   |
+| `tunableOverrides`    | `Record<string, number>`, optional                               | Checked against each tunable's range and saved with the game.                                                        |
+| `activePromotionKeys` | `string[]`, optional                                             | DRF-06: the promotions that stay active; left out, all. Yours always is. See [draft.md](draft.md#active-promotions). |
 
 `player` is either `{ mode: 'existing', promotionKey }` (the pack key of a
 promotion to take over) or a promotion to found:
@@ -88,7 +89,8 @@ interface NewGameSettingDef {
   default: boolean | string;
   label: string;
   description: string; // says exactly what it does, nothing more
-  group: 'world' | 'difficulty' | 'advanced';
+  group: 'world' | 'difficulty' | 'draft' | 'advanced';
+  requires?: string; // a boolean setting this one only matters under (shown only while it is on)
 }
 ```
 
@@ -104,6 +106,7 @@ Built-in settings:
 | `randomiseContractLengths` | boolean | false   | advanced   | `settings.extra.randomiseContractLengths` | New random end dates for running contracts (step 500).                                                                                   |
 | `rerollPotential`          | boolean | false   | advanced   | `settings.extra.rerollPotential`          | Fresh potential rolls for everyone (step 700).                                                                                           |
 | `randomWinners`            | boolean | false   | difficulty | `settings.extra.randomWinners`            | Every result on your shows is decided on the night (MTCH2-03, registered by `match`).                                                    |
+| `draftStart` and six more  | mixed   | off     | draft      | `settings.extra.draft*` (when changed)    | Start with a draft (DRF-01, registered by `draft`): see [draft.md](draft.md#settings).                                                   |
 
 The four settings `WorldMeta.settings` names have typed fields; every other
 registered setting is stored by key in `WorldMeta.settings.extra`. Systems
@@ -174,9 +177,11 @@ reasons plus that step's report, never a world.
 | 100   | `wld.applyTunableOverrides`    | WLD   | always                     | Applies `tunableOverrides`; every later step reads them, and they are saved with the game.                                                                  |
 | 200   | `wld.foundPromotion`           | WLD   | `player.mode` is `found`   | Founds your promotion (below).                                                                                                                              |
 | 300   | `wld.assignControllers`        | WLD   | always                     | Controllers, players and world name (above).                                                                                                                |
+| 350   | `wld.activePromotions`         | DRF   | `activePromotionKeys` set  | Closes every promotion not chosen (not yours): contracts, titles, shows, deals and stables go ([draft.md](draft.md#active-promotions)).                     |
 | 400   | `wld.contractExpiryFixup`      | WLD   | always                     | A running contract ending on or before the start date gets a new end date 30–180 days after it (stream `newgame.contracts`).                                |
 | 500   | `wld.randomiseContractLengths` | WLD   | `randomiseContractLengths` | Every running contract with an end date ends `startDate + 30–720` days (stream `newgame.contract-lengths`).                                                 |
 | 600   | `wld.equalStart`               | WLD   | `equalStart`               | Every promotion: cash 1,000,000, prestige 50, popularity 35 in every region of its home country and none elsewhere; all deals removed.                      |
+| 660   | `draft.setup`                  | DRF   | `draftStart`               | The draft start: free-agent pool, vacant titles, the median level, no deals, one weekly show each, the draft ([draft.md](draft.md#world-setup)).            |
 | 700   | `wld.rerollPotential`          | WLD   | `rerollPotential`          | WLD-07's `reseedPotential` for everyone (stream `newgame.potential`).                                                                                       |
 | 800   | `wld.storeSettings`            | WLD   | always                     | Stores every setting and the season length in `WorldMeta.settings`.                                                                                         |
 | 810   | `calendar.scheduleOpening`     | EVT   | always                     | Schedules every show from the start date through start + `calendar.scheduleHorizonDays` (see [calendar.md](calendar.md#horizon)).                           |

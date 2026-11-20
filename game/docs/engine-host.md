@@ -121,6 +121,22 @@ The new-game wizard's preview of a world pack: `{ "ok": true, "value": WorldPrev
 (promotions you can take over, regions, settings, start date) or `{ "ok": false, "issues": [...] }`.
 Same shape as the web app's wizard uses (`previewWorld` in the engine).
 
+### `previewPromotions(rootPackId, argsJson?)` → JSON
+
+DRF-06's active-promotion picker: `{ "ok": true, "value": PromotionPage, "issues": [...] }`. Args
+`{ search?, countryKey?, size?, sort?: "wrestlers"|"reach"|"prestige"|"name", descending?, offset?,
+limit? (≤ 500, default 50) }`. `value` = `{ rows: [{ key, name, shortName, color, logoRef, country,
+region, size, reach, prestige, wrestlers, staff }], total, offset, limit, countries: [{ key, name,
+count }], sizes: [{ label, count }], biggestFirst: [key...] }`. See docs/design/draft.md#wizard-previews.
+
+### `previewSetup(rootPackId, argsJson?)` → JSON
+
+Counts for the wizard (DRF-06/07): args `{ activePromotionKeys?, playerPromotionKey?, founding?,
+settings? }` → `{ "ok": true, "value": { promotions: { total, active, inactive }, alwaysActive,
+wrestlers: { onActiveRosters, freeAgents, total }, unknownKeys, draft: null | { options, settings,
+promotions, wrestlersAvailable, poolWrestlers, sittingOut, poolStaff, mix, level, equalised,
+notEqualised } } }`. Bad args come back `{ ok: false, reasons }`.
+
 ### `newGame(optionsJson)` → JSON
 
 Builds a new world from the bundled packs and makes it the running game. Input is the engine's
