@@ -51,6 +51,14 @@ namespace RingsideBooker.Tests.Draft
         }
 
         [Test]
+        public void TheReserveHintOnlyShowsWhenAPickLeavesLittle()
+        {
+            Assert.That(DraftText.ReserveHint(10_000_000, 2_000_000, 3), Is.Null, "five months left");
+            Assert.That(DraftText.ReserveHint(5_000_000, 2_000_000, 3), Is.EqualTo("Leaves you $50,000: under 3 months of running costs ($20,000 a month for shows, venues and medical)."));
+            Assert.That(DraftText.ReserveHint(5_000_000, 0, 3), Is.Null, "no running costs known");
+        }
+
+        [Test]
         public void FitIsWhatTheRosterNeedsAddToTheValue()
         {
             Assert.That(DraftText.Fit(50, 62).word, Is.EqualTo("Big need"));

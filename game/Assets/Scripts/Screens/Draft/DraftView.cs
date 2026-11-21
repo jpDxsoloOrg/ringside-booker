@@ -61,6 +61,8 @@ namespace RingsideBooker.Screens.Draft
         private double lowNeeds;
         private double highNeeds;
         private double? poolCash;
+        private double poolRunning;
+        private double reserveMonths;
         private Vector2? restoreScroll;
 
         /// <summary>The pool's filters, sort, page and scroll, kept while a profile opened from the board is shown.</summary>
@@ -527,8 +529,17 @@ namespace RingsideBooker.Screens.Draft
             cell.name = "draft-cost-" + Kit.Str(row, "personId");
             string detail = DraftText.CostDetail(Kit.Num(row, "costParts.wages") ?? 0, Kit.Num(row, "costParts.appearances") ?? 0,
                 Kit.Num(row, "costParts.fees") ?? 0, !NegotiateAfter);
-            DsTooltip.Attach(cell, Affordable(row) ? detail : DraftText.CannotAfford(cost.Value, poolCash ?? 0) + " " + detail);
+            string tight = ReserveHint(row);
+            cell.EnableInClassList("dr-cost--tight", tight != null);
+            DsTooltip.Attach(cell, Affordable(row) ? (tight != null ? tight + " " : string.Empty) + detail : DraftText.CannotAfford(cost.Value, poolCash ?? 0) + " " + detail);
             return Muted(row, cell);
+        }
+
+        /// <summary>DRF-11: the quiet hint when drafting them leaves under a few months of running costs.</summary>
+        private string ReserveHint(JToken row)
+        {
+            if (NegotiateAfter || !Affordable(row) || poolCash == null || Kit.Num(row, "cost") is not double cost) return null;
+            return DraftText.ReserveHint(poolCash.Value - cost, poolRunning, reserveMonths);
         }
 
         private static string Detail(JToken row)
@@ -677,6 +688,8 @@ namespace RingsideBooker.Screens.Draft
             }
             PoolRows = Kit.Arr(pool.Data, "rows").ToList();
             poolCash = Kit.Num(pool.Data, "cash");
+            poolRunning = Kit.Num(pool.Data, "runningCostMonthly") ?? 0;
+            reserveMonths = Kit.Num(pool.Data, "reserveMonths") ?? 0;
             int total = (int)(Kit.Num(pool.Data, "total") ?? PoolRows.Count);
             List<double> needs = PoolRows.Where(row => Kit.Num(row, "fit") != null).Select(row => (Kit.Num(row, "fit") ?? 0) - (Kit.Num(row, "value") ?? 0)).ToList();
             lowNeeds = needs.Count > 0 ? needs.Min() : 0;
@@ -741,6 +754,7 @@ namespace RingsideBooker.Screens.Draft
                 : Kit.Num(row, "cost") is double cost
                     ? $"They sign a one-season contract at their asking price. Their whole season, {TextFormat.Money((long)Math.Round(cost))}, comes off your cash now."
                     : "They sign a one-season contract at their asking price.", "dr-confirm__note"));
+            if (ReserveHint(row) is string tightNote) content.Add(Ds.Text(tightNote, "dr-quiet", "t-wrap").Named("draft-confirm-reserve"));
             confirm = DsOverlay.Modal(Root, $"Draft {name}?", content,
                 ("Cancel", DsButtonKind.Ghost, null),
                 ("Draft", DsButtonKind.Primary, () => _ = Pick(personId, name)));

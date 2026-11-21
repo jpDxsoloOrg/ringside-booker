@@ -661,3 +661,9 @@
     flex-shrink: 1;
     margin-right: 12px;
 }
+
+/* DRF-11: a pick that leaves under a few months of running costs: the cost turns amber, quietly. */
+.dr-cost--tight .ds-type-number,
+.dr-cost--tight Label {
+    color: var(--ds-warn);
+}
