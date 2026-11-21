@@ -121,6 +121,11 @@ export const DraftSchema = z.strictObject({
   poolMix: z.array(DraftPoolLevelSchema),
   /** Each pool wrestler's card level when the draft began, sorted by person (DRF-08). */
   cardLevels: z.array(z.strictObject({ personId: zId('person'), level: DraftCardLevelSchema })),
+  /**
+   * Promotions whose turns ended because they cannot afford anyone left in the pool (DRF-10):
+   * picks are paid up front and cash never goes below zero in the draft.
+   */
+  outOfMoney: z.array(zId('promotion')).default([]),
 });
 export type Draft = z.infer<typeof DraftSchema>;
 
@@ -154,6 +159,8 @@ export const DraftPickSchema = z.strictObject({
   /** The last day the rights are held, for an unsigned pick. */
   reservedUntil: zGameDate.nullable(),
   pickedOn: zGameDate,
+  /** The season contract's cost paid at the pick, in cents (DRF-10); null when nothing was paid. */
+  cost: zNonNegativeCents.nullable().default(null),
 });
 export type DraftPick = z.infer<typeof DraftPickSchema>;
 
@@ -165,6 +172,7 @@ export const draftsTable = defineTable({
     { path: 'order[]', target: 'promotion', nullable: false },
     { path: 'sitOut[]', target: 'person', nullable: false },
     { path: 'cardLevels[].personId', target: 'person', nullable: false },
+    { path: 'outOfMoney[]', target: 'promotion', nullable: false },
   ],
   indexes: [{ name: 'byStatus', key: (row) => row.status }],
 });

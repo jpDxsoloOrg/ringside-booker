@@ -75,7 +75,7 @@ namespace RingsideBooker.Screens
             footer.Add(sheetSlot);
             WorkerProfileScreen.FillContractAction(sheetSlot, personId, DsButtonKind.Secondary, () => handle?.Close(), showReason: false);
             // TRD-02: trade them (yours) or for them (a rival's).
-            if (Trades.TradeSheet.OfferButton(personId, header, () => handle?.Close()) is Button trade) footer.Add(trade);
+            if (!Draft.DraftScreen.InProgress && Trades.TradeSheet.OfferButton(personId, header, () => handle?.Close()) is Button trade) footer.Add(trade);
             footer.Add(Ds.Spacer());
             Button full = Ds.Button("Full profile", () =>
             {
@@ -147,7 +147,7 @@ namespace RingsideBooker.Screens
             Button back = Ds.Button("Back", () => context.Navigator.Back(), DsButtonKind.Ghost, "chevron-left");
             back.name = "worker-back";
             crumbs.Add(back);
-            if (Trades.TradeSheet.OfferButton(personId, header) is Button trade)
+            if (!Draft.DraftScreen.InProgress && Trades.TradeSheet.OfferButton(personId, header) is Button trade)
             {
                 crumbs.Add(Ds.Spacer());
                 crumbs.Add(trade);
@@ -202,6 +202,13 @@ namespace RingsideBooker.Screens
         public static async void FillContractAction(VisualElement slot, string personId, DsButtonKind kind = DsButtonKind.Secondary, Action before = null, bool showReason = true)
         {
             if (slot == null || personId == null) return;
+            if (Draft.DraftScreen.InProgress)
+            {
+                // DRF-10: mid-draft, people are picked in the draft room, not offered contracts.
+                slot.Clear();
+                if (showReason) slot.Add(Ds.Text("The draft is on: pick people in the draft room.", "ds-type-caption", "wl-wrap", "wl-contract-reason").Named("worker-contract-draft"));
+                return;
+            }
             try
             {
                 Contracts.ContractAction action = await Contracts.ContractsScreen.ActionFor(personId);

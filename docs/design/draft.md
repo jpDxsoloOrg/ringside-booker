@@ -6,7 +6,8 @@ them before day 1. Every promotion starts level: the same money and popularity,
 no TV deal and every title vacant, so the draft decides who is strong. The
 same new game can also **choose which promotions are active** (DRF-06), in any
 game, with or without a draft, and the draft pool is **cut to size with a
-balanced mix** of card levels (DRF-07).
+balanced mix** of card levels (DRF-07). A pick's **whole season contract is
+paid up front** and nobody may go below zero in the draft (DRF-10).
 
 The code is in `packages/engine/src/systems/draft/`. The draft value, the
 candidates, the board and the pick order are written to be reused by the
@@ -14,7 +15,7 @@ brand drafts (BRW1, #560): see [Reuse](#reuse).
 
 ## Settings
 
-Seven new-game settings in the wizard's `draft` group. Settings are booleans
+Eight new-game settings in the wizard's `draft` group. Settings are booleans
 or enums, so the draft's options are flat keys; `draftSettingsOf(world)` reads
 them back as one object (`DraftOptions`). Every key except `draftStart` has
 `requires: "draftStart"` (a new optional field on `NewGameSettingDef`): the
@@ -31,6 +32,7 @@ before.
 | `draftStaff`          | boolean | false    |                                            | `draftStaff`         |
 | `draftNegotiateAfter` | boolean | false    |                                            | `negotiateAfter`     |
 | `draftSchedule`       | enum    | `weekly` | `weekly`, `open`                           | `schedule`           |
+| `draftStartingCash`   | enum    | `median` | `median`, `250k`, `500k`, `1m`, `2m`       | `startingCash`       |
 
 - **Roster size.** Wrestlers each promotion drafts. `auto` is
   `draft.rosterTarget` (20), capped at `wrestlers ÷ (promotions ×
@@ -40,6 +42,13 @@ draft.pool.ratio.auto)` so the auto pool fits the world, and never below
   presenters and producers are drafted too: `draft.staffTarget` (6) each,
   capped at `staff ÷ promotions`. Off, staff keep their contracts. Bookers are
   never drafted.
+- **Starting cash** (DRF-10). The cash every active promotion starts with:
+  `median` (World median, the [level playing field](#level-playing-field)'s
+  median) or a preset amount ($250k, $500k, $1M, $2M). A setting holds a
+  boolean or an enum, so presets stand in for free number entry. The wizard
+  shows them as chips under "Start with a draft"; `previewSetup` answers the
+  resulting `level.cash`, the world's `medianCash` and the `startingCash`
+  choice, and the plan line says "(the world median)" for the default.
 - The resolved numbers are stored on the draft row as `DraftSettings`:
   `{ order, rosterTarget, staffTarget, draftStaff, negotiateAfter, schedule }`.
 
@@ -70,7 +79,8 @@ Two new-game steps (see [new-game.md](new-game.md#setup-steps)):
 ### Level playing field
 
 Every active promotion gets the **median** of the active promotions' cash,
-prestige and home popularity. Home popularity is a promotion's mean
+prestige and home popularity (cash from the Starting cash setting instead,
+when it is not `median`). Home popularity is a promotion's mean
 popularity over the regions of its home country; every promotion then gets
 that median in every region of its own home country and none elsewhere (the
 same shape as Equal start). The level is stored on the draft row (`level`)
@@ -201,7 +211,7 @@ roster (`fit`, `fitWhy`).
 
 ## Contracts
 
-DRF-03, owner decision 2026-11-20:
+DRF-03 and DRF-10, owner decisions 2026-11-20:
 
 - **Default: a season contract at the pick.** The existing contract code
   prices it for the drafting promotion (`askingTermsWith`: kind, exclusivity,
@@ -209,6 +219,34 @@ DRF-03, owner decision 2026-11-20:
   to the day after the active season ends. No signing bonus (cash stays level).
   Written directly, like new-game setup (`session.ts` is a creation path in
   the door-ownership test). Released later at the usual cost.
+- **Paid up front** (DRF-10). The whole [season cost](#season-cost) comes
+  off the promotion's cash at the pick: one `wages` ledger row through
+  `postMoney`, memo "Season contract: <name>", with the cost's Why?. The pick
+  row keeps it (`cost`). The contract is marked `prepaidUntil` its end:
+  payroll lists it as `prepaid` (no daily wage) and show costs charge no
+  appearance fee for it until then (`finance/payroll.ts` `isPrepaid`,
+  `finance/showWorkers.ts`). The terms stay as signed, so morale, pay
+  expectations, renewals and trades see the real deal. A traded prepaid
+  worker's new contract is paid as usual: the prepayment stays with the
+  promotion that paid it.
+- **Never below zero in the draft** (DRF-10). A pick whose season cost is
+  more than the promotion's cash is refused (`draft.cantAfford`: "Their
+  season contract costs $X; you have $Y."). Rivals, `simToMyPick`,
+  `autoPickRest` and `finish` only pick affordable candidates. When a
+  promotion cannot afford anyone it still wants, its turns end like a full
+  roster's and it is listed on the draft row (`outOfMoney`), so the draft
+  still completes. Staff picks follow the same rule. This holds only in the
+  draft: per-appearance fees and the rest are charged normally afterwards and
+  cash may go negative in play.
+- **Short rosters** (DRF-10). When the draft finishes, every rival below its
+  targets (out of money, or it released picks under negotiate-after) signs
+  free agents left in the pool on per-appearance deals (no wage, no bonus,
+  not prepaid), cheapest fee first, round by round in draft order, until it
+  is full or the pool runs out (`fillShortRosters` in `flow.ts`; the finish
+  result counts them as `filled`). Cash never blocks these. A player short of
+  wrestlers is told so in the draft room and on the Contracts free-agent
+  list, and offers per-appearance deals through the normal negotiation (any
+  promotion may offer that kind).
 - **"Negotiate contracts after the draft".** Picks join unsigned
   (`reserved`): the drafting promotion holds their rights for
   `draft.reserveDays` (30). Negotiation eligibility answers `underContract`
@@ -221,7 +259,42 @@ DRF-03, owner decision 2026-11-20:
   at their ask, in pick order, while their monthly cost (wage plus four
   appearances' fees) stays under `draft.ai.payrollShare` (0.15) of its cash,
   and release the rest to the pool. In the default world every rival signs all
-  of its picks.
+  of its picks. Nothing is paid at the pick under negotiate-after: the board
+  still shows each candidate's estimated season cost.
+
+### Season cost
+
+`seasonCost.ts` (pure, with a unit test) prices the contract a pick signs
+(`pricing.ts`: the same asking terms `signAtAsk` signs) from the pick date to
+the contract's end (`seasonContractEnd`):
+
+- **Wages** = monthly wage × `finance.wages.multiplier` × 12 × days ÷ 365.25,
+  the daily accrual payroll would have charged.
+- **Appearances** = days ÷ 7 × `draft.cost.appearancesPerWeek` (1: one per
+  weekly show, the schedule every draft game starts on), rounded, at most the
+  contract's appearance cap; only when the deal has a fee.
+- **Fees** = per-appearance fee × appearances. **Total** = wages + fees.
+
+Asks depend on the promotion (reach, image, allowed kinds), so prices are
+worked out per promotion, lazily, and kept for the command.
+
+**Balance on the default world** (all 12 promotions, median cash $825,000,
+production 0, roster 20): every ask there is a per-appearance deal (reach is
+below the exclusive-deal line), so the cost is the fee × one appearance a
+week. With the wizard's default **12-month season** (52 appearances), the
+average season cost by card level is: main event $89,100 ($15,600–$187,200),
+upper card $55,000 ($18,700–$110,800), midcard $33,000 ($9,400–$104,500),
+lower card $22,300 ($7,800–$106,100), enhancement $10,900 ($6,200–$53,000).
+A sensible mix (2 main event, 4 upper, 6 mid, 5 lower, 3 enhancement) is
+about $740,000, nearly all of the median. With `autoPickRest`, 8 of 12
+promotions run out of money (rosters of 10 to 20, average 17) and every
+promotion ends the draft with $1,300–$95,000: rivals take the best value they
+can still afford, so they spend down to almost nothing. A 6-month season
+halves every cost (average roster $453,000, nobody runs out, $259,000–$460,000
+left). Asks also grow with a promotion's reach, so with only the six biggest
+promotions active the biggest pays about a third more than the others for
+the same wrestler. These are owner decisions (starting cash, a rival spending
+reserve, the appearance estimate); the defaults are unchanged.
 
 ## Commands
 
@@ -229,13 +302,13 @@ All take JSON args and are issued by a player in the game. Picking commands
 answer `DraftAdvanceResult`:
 `{ picksMade, picks: DraftPickView[] (the last 50), status, onTheClock: DraftClockView | null }`.
 
-| Command              | Args            | What it does                                                                                                                                                                           |
-| -------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `draft.pick`         | `{ personId }`  | The player on the clock drafts someone from the pool. Refusals: `draft.notYourTurn`, `draft.alreadyDrafted`, `draft.sittingOut`, `draft.notInPool`, `draft.rosterFull`.                |
-| `draft.simToMyPick`  | `{ maxPicks? }` | The computer picks for rivals until a player is on the clock, or after `maxPicks` picks (a draft room can show picks a few at a time).                                                 |
-| `draft.autoPickRest` | `{}`            | The computer makes every remaining pick, players' too (source `auto`). The draft becomes `complete`.                                                                                   |
-| `draft.finish`       | `{}`            | Closes the draft: rivals' remaining picks made, players' remaining turns passed, rivals' unsigned picks signed or released. Answers `{ picksMade, passed, signed, released, status }`. |
-| `draft.release`      | `{ personId }`  | Gives an unsigned pick of yours back to the pool (`draft.notReserved` otherwise). Answers `{ personId }`.                                                                              |
+| Command              | Args            | What it does                                                                                                                                                                                   |
+| -------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `draft.pick`         | `{ personId }`  | The player on the clock drafts someone from the pool. Refusals: `draft.notYourTurn`, `draft.alreadyDrafted`, `draft.sittingOut`, `draft.notInPool`, `draft.rosterFull`, `draft.cantAfford`.    |
+| `draft.simToMyPick`  | `{ maxPicks? }` | The computer picks for rivals until a player is on the clock, or after `maxPicks` picks (a draft room can show picks a few at a time).                                                         |
+| `draft.autoPickRest` | `{}`            | The computer makes every remaining pick, players' too (source `auto`). The draft becomes `complete`.                                                                                           |
+| `draft.finish`       | `{}`            | Closes the draft: rivals' remaining picks made, players' remaining turns passed, rivals' unsigned picks signed or released. Answers `{ picksMade, passed, signed, released, filled, status }`. |
+| `draft.release`      | `{ personId }`  | Gives an unsigned pick of yours back to the pool (`draft.notReserved` otherwise). Answers `{ personId }`.                                                                                      |
 
 `draft.pick`, `simToMyPick` and `autoPickRest` are refused once the draft is
 `complete` (`draft.notRunning`); `draft.finish` works on a running or complete
@@ -244,20 +317,24 @@ draft. Events: `draft.advanced`, `draft.completed`, `draft.finished`,
 
 ## Queries
 
-Public: a draft is a public event. Money is never shown.
+Public: a draft is a public event. Money is the viewer's own only (DRF-10):
+their cash and what each candidate would cost them.
 
 - **`draft.state { recent?, rosterOf? }`** → `{ draft: DraftStateView | null }`:
   status, settings, level, pool mix, picks made, pool left, who is on the
   clock (`{ promotionId, name, shortName, isYou, round, pick }`), your next
   turn (`{ round, picksAway }`), the newest `recent` picks (default 12),
-  every roster's counts (`rosters`) and one roster's picks (`roster`, default
-  yours). `null` in a game without a draft.
+  every roster's counts (`rosters`, with `outOfMoney`) and one roster's picks
+  (`roster`, default yours; your picks carry the `cost` paid). `you` is
+  `{ promotionId, cash, paysUpFront, outOfMoney, wrestlersShort }` (null for a
+  spectator). `null` in a game without a draft.
 - **`draft.pool { offset?, limit?, sort?, descending?, category?, gender?, role?, weightClass?, style?, level?, search? }`**
-  → `{ rows: DraftPoolRow[], total, offset, limit, poolLeft }`. Sorts:
+  → `{ rows: DraftPoolRow[], total, offset, limit, poolLeft, cash, paysUpFront }`. Sorts:
   `value` (default), `fit`, `rating`, `popularity`, `age`, `name`, `level`
-  (main event first). Each row has its card level (`level`, null for staff),
-  the draft value with a short Why? (`why`) and your pick score (`fit`,
-  `fitWhy`).
+  (main event first), `cost` (prices every match). Each row has its card level (`level`, null for staff),
+  the draft value with a short Why? (`why`), your pick score (`fit`,
+  `fitWhy`), and its season cost to you (`cost`, `costParts { wages, appearances, fees, days }`,
+  `affordable`; only the page is priced unless sorting by cost).
 - **`draft.preview {}`** → `{ options, draft, equalised, notEqualised }`: the
   settings summary, with the level and the pool mix.
 
@@ -293,14 +370,16 @@ with the preview seed and the facts memoised.
   `{ activePromotionKeys?, playerPromotionKey?, founding?, settings? }` →
   `{ promotions: { total, active, inactive }, alwaysActive, wrestlers: { onActiveRosters, freeAgents, total }, unknownKeys, draft }`.
   `draft` (when `settings.draftStart`) has the resolved settings, the pool
-  size, sitting-out count, staff, the mix, the level and the equalised lists,
-  worked out by the same code the new game runs.
+  size, sitting-out count, staff, the mix, the level (with `medianCash` and
+  `startingCash`) and the equalised lists, worked out by the same code the new
+  game runs.
 
 ## Save and resume
 
 The draft lives in two tables (see [data-model.md](data-model.md#drafts)):
 `drafts` (one row per draft: settings, round-one order, turn, picks, pool
-left, level, sit-out list, pool mix) and `draftPicks` (one row per pick).
+left, level, sit-out list, pool mix, out-of-money list) and `draftPicks` (one
+row per pick, with the season cost paid).
 Every command loads the board fresh from these rows, so a save made
 mid-draft resumes exactly; a test checks a reloaded draft drafts the same
 picks as one that never stopped.
@@ -312,7 +391,11 @@ A world copied from the default one 25 times (300 promotions, 13,725 people,
 new game about 3 s; `draft.pool` page 156 ms; `simToMyPick` 289 picks in
 0.5 s; `draft.pick` 140-300 ms; `autoPickRest` 6,910 picks in 1.6 s;
 `finish` under 1 ms. The test is `test/systems/draft/bigWorld.test.ts`
-(`RB_SLOW_TESTS=1`).
+(`RB_SLOW_TESTS=1`). With picks paid up front (DRF-10) a rival prices only the
+candidate it would take, and looks further down a bucket only when that one is
+out of reach (after 8 misses it prices every bucket's top at once); in WSL the
+same test runs `autoPickRest` in about 3.4 s of CPU time and a pool page in
+230 ms.
 
 ## Reuse
 

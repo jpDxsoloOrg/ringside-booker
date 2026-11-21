@@ -37,6 +37,20 @@ namespace RingsideBooker.Tests.Draft
         }
 
         [Test]
+        public void MoneyInTheDraftReadsPlainly()
+        {
+            Assert.That(DraftText.OptionLabel(DraftText.StartingCashKey, "median"), Is.EqualTo("World median"));
+            Assert.That(DraftText.OptionLabel(DraftText.StartingCashKey, "1m"), Is.EqualTo("$1M"));
+            Assert.That(DraftText.CannotAfford(12_000_000, 8_000_050), Is.EqualTo("Costs $120,000; you have $80,001."));
+            Assert.That(DraftText.LevelLine(82_500_000, 13, 51, "median"), Does.StartWith("Every promotion starts with $825,000 (the world median), "));
+            Assert.That(DraftText.LevelLine(100_000_000, 13, 51, "1m"), Does.StartWith("Every promotion starts with $1,000,000, "));
+            Assert.That(DraftText.CostDetail(0, 26, 1_014_000, true), Is.EqualTo("Their whole season contract (26 appearances for $10,140), paid when you draft them."));
+            Assert.That(DraftText.ShortRosterLine(0, true), Is.Null);
+            Assert.That(DraftText.ShortRosterLine(3, true), Does.StartWith("You ran out of money 3 wrestlers short."));
+            Assert.That(DraftText.ShortRosterLine(1, false), Does.Contain("per-appearance deals in Contracts"));
+        }
+
+        [Test]
         public void FitIsWhatTheRosterNeedsAddToTheValue()
         {
             Assert.That(DraftText.Fit(50, 62).word, Is.EqualTo("Big need"));

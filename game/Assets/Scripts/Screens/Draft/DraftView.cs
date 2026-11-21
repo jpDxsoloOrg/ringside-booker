@@ -60,10 +60,44 @@ namespace RingsideBooker.Screens.Draft
         private bool skipAnimation;
         private double lowNeeds;
         private double highNeeds;
+        private double? poolCash;
+        private Vector2? restoreScroll;
+
+        /// <summary>The pool's filters, sort, page and scroll, kept while a profile opened from the board is shown.</summary>
+        private sealed class Memory
+        {
+            public string Search;
+            public string Gender;
+            public string WeightClass;
+            public string Style;
+            public string CardLevel;
+            public string Category;
+            public string Sort;
+            public bool Descending;
+            public int Page;
+            public Vector2 Scroll;
+        }
+
+        /// <summary>Set when a profile opens from the board; the next draft room picks it up once.</summary>
+        private static Memory remembered;
 
         public DraftView(ScreenContext context)
         {
             this.context = context;
+            if (remembered != null)
+            {
+                search = remembered.Search ?? string.Empty;
+                gender = remembered.Gender;
+                weightClass = remembered.WeightClass;
+                style = remembered.Style;
+                cardLevel = remembered.CardLevel;
+                category = remembered.Category;
+                sort = remembered.Sort ?? sort;
+                descending = remembered.Descending;
+                page = remembered.Page;
+                restoreScroll = remembered.Scroll;
+                remembered = null;
+            }
             Root = Ds.Column("dr-page").Named("screen-draft");
             DraftScreen.Style(Root);
 
@@ -103,6 +137,8 @@ namespace RingsideBooker.Screens.Draft
                 page = 0;
                 _ = RenderPool();
             };
+            // DRF-10: a row opens that person's profile; Back comes here with the board as it was.
+            table.RowClicked += OpenProfile;
             tableHost = Ds.Column("dr-table-host");
             tableHost.Add(table);
             poolColumn.Add(tableHost);
@@ -156,6 +192,7 @@ namespace RingsideBooker.Screens.Draft
             QueryResult<JToken> state = await game.Client.Query("draft.state", new JObject { ["recent"] = RecentPicks });
             if (Root.panel == null) return;
             draft = state.Ok ? state.Data?["draft"] : null;
+            DraftScreen.Saw(draft == null || draft.Type == JTokenType.Null ? null : Kit.Str(draft, "status"));
             if (draft == null || draft.Type == JTokenType.Null)
             {
                 draft = null;
@@ -197,6 +234,17 @@ namespace RingsideBooker.Screens.Draft
         private void DrawHeadActions(string status)
         {
             headActions.Clear();
+            if (Kit.Num(draft, "you.cash") is double cash)
+            {
+                bool upFront = Kit.Bool(draft, "you.paysUpFront");
+                VisualElement money = Ds.Column("dr-cash").Named("draft-cash");
+                money.Add(Ds.Text(upFront ? "CASH LEFT" : "CASH", "ds-type-micro", "dr-cash__label"));
+                money.Add(Ds.Text(TextFormat.Money((long)Math.Round(cash)), "dr-cash__value"));
+                DsTooltip.Attach(money, upFront
+                    ? "Each pick's whole season contract is paid when you draft them. You can't go below zero in the draft."
+                    : "Nothing is paid at the pick: you agree contracts after the draft.");
+                headActions.Add(money);
+            }
             if (status != "running") return;
             Button auto = Ds.Button("Auto-pick the rest", ConfirmAutoPick, DsButtonKind.Ghost, "fast-forward");
             auto.name = "draft-auto-pick";
@@ -232,8 +280,9 @@ namespace RingsideBooker.Screens.Draft
             bool hasNext = next != null && next.Type == JTokenType.Object;
             string nextLine = status switch
             {
+                "running" when Kit.Bool(draft, "you.outOfMoney") => "You can't afford anyone left in the pool, so your picks are over. The rivals are still picking.",
                 "running" => DraftText.NextTurnLine(isYou, hasNext ? (int?)(Kit.Num(next, "picksAway") ?? 0) : null, hasNext ? (int?)(Kit.Num(next, "round") ?? 0) : null),
-                "complete" => "Every roster is full or the pool is empty. Finish the draft to start the season.",
+                "complete" => "Every roster is full, out of money or the pool is empty. Finish the draft to start the season.",
                 _ => NegotiateAfter ? "Sign your draftees: they joined unsigned." : "Your draftees are signed for the season.",
             };
             words.Add(Ds.Text(nextLine, "dr-clock__next").Named("draft-next-turn"));
@@ -362,7 +411,8 @@ namespace RingsideBooker.Screens.Draft
             VisualElement words = Ds.Column("dr-roster-row__words");
             words.Add(Ds.Text(Kit.Str(pick, "name"), "dr-roster-row__name"));
             string what = Kit.Str(pick, "category") == "staff" ? W.RoleWord(Kit.Str(pick, "role")) : DraftText.GenderWord(Kit.Str(pick, "gender"));
-            words.Add(Ds.Text($"#{Kit.Num(pick, "number")} · {what} · value {Kit.Decimal1(Kit.Num(pick, "value"))}", "dr-roster-row__detail"));
+            string paid = Kit.Num(pick, "cost") is double cost ? $" · {TextFormat.Money((long)Math.Round(cost))}" : string.Empty;
+            words.Add(Ds.Text($"#{Kit.Num(pick, "number")} · {what} · value {Kit.Decimal1(Kit.Num(pick, "value"))}{paid}", "dr-roster-row__detail"));
             row.Add(words);
             if (NegotiateAfter || Kit.Str(pick, "contract") != "signed")
             {
@@ -390,6 +440,30 @@ namespace RingsideBooker.Screens.Draft
             return row;
         }
 
+        /// <summary>
+        /// Opens a pool candidate's profile (the usual worker screen). The board's filters, sort,
+        /// page and scroll are kept, so Back returns to it as it was.
+        /// </summary>
+        public void OpenProfile(JToken row)
+        {
+            string personId = Kit.Str(row, "personId");
+            if (personId == null || !ScreenRegistry.IsLive(ScreenIds.Worker)) return;
+            remembered = new Memory
+            {
+                Search = search,
+                Gender = gender,
+                WeightClass = weightClass,
+                Style = style,
+                CardLevel = cardLevel,
+                Category = category,
+                Sort = sort,
+                Descending = descending,
+                Page = page,
+                Scroll = Root.GetFirstAncestorOfType<ScrollView>()?.scrollOffset ?? Vector2.zero,
+            };
+            context.Navigator.Go(ShellRoute.With(ScreenIds.Worker, "id", personId));
+        }
+
         /// <summary>A promotion's picks in a side sheet (<c>draft.state {rosterOf}</c>).</summary>
         public async void OpenRoster(JToken roster)
         {
@@ -407,15 +481,16 @@ namespace RingsideBooker.Screens.Draft
 
         private IEnumerable<DsColumn<JToken>> Columns()
         {
-            yield return new DsColumn<JToken>("name", "Name", row =>
-                    W.NameCell(Kit.Str(row, "name"), DraftPictures.ImageRef(Kit.Str(row, "personId")), Kit.Str(row, "alignment"), false, Detail(row)))
+            yield return new DsColumn<JToken>("name", "Name", NameCell)
                 { Grow = 3f, MinWidth = 200f, SortKey = row => Kit.Str(row, "name"), Pinned = true };
             yield return new DsColumn<JToken>("value", "Value", ValueCell)
                 { Width = 120f, Grow = 0f, SortKey = row => Kit.Num(row, "value") ?? 0, Help = "Draft value, 0 to 100: skill in the job, popularity, and a little for youth." };
             yield return new DsColumn<JToken>("fit", "Fit", FitCell)
                 { Width = 130f, Grow = 0f, SortKey = row => Kit.Num(row, "fit") ?? 0, Help = "How well they fill your roster's needs: gender, divisions, style and faces against heels." };
-            yield return new DsColumn<JToken>("level", "Card level", row => LevelCell(row))
+            yield return new DsColumn<JToken>("level", "Card level", row => Muted(row, LevelCell(row)))
                 { Width = 130f, Grow = 0f, SortKey = row => Kit.Str(row, "level"), Help = "Where they were on the card before the draft, from main event down to enhancement." };
+            yield return new DsColumn<JToken>("cost", "Season cost", CostCell)
+                { Width = 110f, Grow = 0f, Align = DsAlign.Right, SortKey = row => Kit.Num(row, "cost") ?? 0, Help = "What their contract costs you for the whole season, paid when you draft them." };
             yield return DsColumn<JToken>.Text("style", "Style", row => Kit.Str(row, "category") == "staff" ? W.RoleWord(Kit.Str(row, "role")) : W.StyleWord(Kit.Str(row, "style")));
             yield return new DsColumn<JToken>("age", "Age", row => W.Cell(W.Int(Kit.Num(row, "age")), number: true))
                 { Width = 60f, Grow = 0f, Align = DsAlign.Right, SortKey = row => Kit.Num(row, "age") ?? 0 };
@@ -424,6 +499,36 @@ namespace RingsideBooker.Screens.Draft
             yield return new DsColumn<JToken>("popularity", "Popularity", row => W.Cell(Kit.Decimal1(Kit.Num(row, "popularity.best")), number: true))
                 { Width = 90f, Grow = 0f, Align = DsAlign.Right, SortKey = row => Kit.Num(row, "popularity.best") ?? 0, Default = false, Help = "Popularity in their best country." };
             yield return new DsColumn<JToken>("pick", string.Empty, PickCell) { Width = 96f, Grow = 0f, Pinned = true };
+        }
+
+        private VisualElement NameCell(JToken row)
+        {
+            VisualElement cell = W.NameCell(Kit.Str(row, "name"), DraftPictures.ImageRef(Kit.Str(row, "personId")), Kit.Str(row, "alignment"), false, Detail(row));
+            cell.AddToClassList("dr-name-link");
+            DsTooltip.Attach(cell, $"Open {Kit.Str(row, "name")}'s profile.");
+            return Muted(row, cell);
+        }
+
+        /// <summary>True unless the viewer can't pay for this pick now (DRF-10).</summary>
+        private static bool Affordable(JToken row) => row?["affordable"] == null || Kit.Bool(row, "affordable");
+
+        /// <summary>Greys a cell of a pick you can't afford.</summary>
+        private static VisualElement Muted(JToken row, VisualElement cell)
+        {
+            cell?.EnableInClassList("dr-muted", !Affordable(row));
+            return cell;
+        }
+
+        private VisualElement CostCell(JToken row)
+        {
+            double? cost = Kit.Num(row, "cost");
+            if (cost == null) return W.Cell(Kit.NoValue);
+            VisualElement cell = W.Cell(TextFormat.Money((long)Math.Round(cost.Value)), number: true);
+            cell.name = "draft-cost-" + Kit.Str(row, "personId");
+            string detail = DraftText.CostDetail(Kit.Num(row, "costParts.wages") ?? 0, Kit.Num(row, "costParts.appearances") ?? 0,
+                Kit.Num(row, "costParts.fees") ?? 0, !NegotiateAfter);
+            DsTooltip.Attach(cell, Affordable(row) ? detail : DraftText.CannotAfford(cost.Value, poolCash ?? 0) + " " + detail);
+            return Muted(row, cell);
         }
 
         private static string Detail(JToken row)
@@ -444,6 +549,7 @@ namespace RingsideBooker.Screens.Draft
             double value = Kit.Num(row, "value") ?? 0;
             (DsState state, string word) = DraftText.Value(value);
             VisualElement cell = Ds.Row("dr-value");
+            Muted(row, cell);
             cell.Add(Ds.Text(Kit.Decimal1(value), "dr-value__number"));
             cell.Add(Ds.Dot(state, word));
             Ds.Why(cell, new WhyBreakdown("Draft value", Kit.Decimal1(value), $"{Kit.Str(row, "name")}'s draft value, from public facts only.",
@@ -469,11 +575,14 @@ namespace RingsideBooker.Screens.Draft
 
         private VisualElement PickCell(JToken row)
         {
-            bool can = Status == "running" && YourTurn && !animating;
+            bool turn = Status == "running" && YourTurn && !animating;
+            bool affordable = Affordable(row);
+            bool can = turn && affordable;
             Button button = Ds.Button("Draft", () => ConfirmPick(row), can ? DsButtonKind.Primary : DsButtonKind.Ghost);
             button.name = "draft-pick-" + Kit.Str(row, "personId");
             button.SetEnabled(can);
-            if (!can) DsTooltip.Attach(button, Status == "running" ? "Not your pick yet: Sim to my pick." : "The picks are over.");
+            if (!affordable) DsTooltip.Attach(button, DraftText.CannotAfford(Kit.Num(row, "cost") ?? 0, poolCash ?? 0));
+            else if (!can) DsTooltip.Attach(button, Status == "running" ? "Not your pick yet: Sim to my pick." : "The picks are over.");
             return button;
         }
 
@@ -567,12 +676,22 @@ namespace RingsideBooker.Screens.Draft
                 return;
             }
             PoolRows = Kit.Arr(pool.Data, "rows").ToList();
+            poolCash = Kit.Num(pool.Data, "cash");
             int total = (int)(Kit.Num(pool.Data, "total") ?? PoolRows.Count);
             List<double> needs = PoolRows.Where(row => Kit.Num(row, "fit") != null).Select(row => (Kit.Num(row, "fit") ?? 0) - (Kit.Num(row, "value") ?? 0)).ToList();
             lowNeeds = needs.Count > 0 ? needs.Min() : 0;
             highNeeds = needs.Count > 0 ? needs.Max() : 0;
             table.ShowSort(sort, descending);
             table.SetRows(PoolRows);
+            if (restoreScroll is Vector2 scroll)
+            {
+                restoreScroll = null;
+                Root.schedule.Execute(() =>
+                {
+                    ScrollView scroller = Root.GetFirstAncestorOfType<ScrollView>();
+                    if (scroller != null) scroller.scrollOffset = scroll;
+                }).StartingIn(50);
+            }
             int from = total == 0 ? 0 : page * PageSize + 1;
             int to = page * PageSize + PoolRows.Count;
             poolCount.text = total == 0 ? "Nobody matches" : $"{TextFormat.Number(from)}–{TextFormat.Number(to)} of {TextFormat.Number(total)}";
@@ -619,7 +738,9 @@ namespace RingsideBooker.Screens.Draft
             content.Add(who);
             content.Add(Ds.Text(NegotiateAfter
                 ? "They join unsigned: you hold their rights for a while and negotiate their contract after the draft."
-                : "They sign a one-season contract at their asking price.", "dr-confirm__note"));
+                : Kit.Num(row, "cost") is double cost
+                    ? $"They sign a one-season contract at their asking price. Their whole season, {TextFormat.Money((long)Math.Round(cost))}, comes off your cash now."
+                    : "They sign a one-season contract at their asking price.", "dr-confirm__note"));
             confirm = DsOverlay.Modal(Root, $"Draft {name}?", content,
                 ("Cancel", DsButtonKind.Ghost, null),
                 ("Draft", DsButtonKind.Primary, () => _ = Pick(personId, name)));
@@ -718,6 +839,17 @@ namespace RingsideBooker.Screens.Draft
             summary.Add(Ds.StatTile("Signed", TextFormat.Number(picks.Count(pick => Kit.Str(pick, "contract") == "signed")), null, DsState.Good));
             if (NegotiateAfter) summary.Add(Ds.StatTile("Unsigned", TextFormat.Number(unsigned.Count), unsigned.Count > 0 ? "Sign them" : null, unsigned.Count > 0 ? DsState.Warn : DsState.Neutral));
             finishedHost.Add(summary);
+
+            string shortLine = DraftText.ShortRosterLine((int)(Kit.Num(draft, "you.wrestlersShort") ?? 0), Kit.Bool(draft, "you.outOfMoney"));
+            if (shortLine != null)
+            {
+                VisualElement fill = Ds.Row("dr-short").Named("draft-short");
+                fill.Add(Ds.Text(shortLine, "dr-quiet", "t-wrap"));
+                Button agents = Ds.Button("Free agents", () => context.Navigator.Go(ShellRoute.With(ContractsScreen.ScreenId, "tab", ContractsScreen.TabFreeAgents)), DsButtonKind.Ghost, "contracts");
+                agents.name = "draft-free-agents";
+                fill.Add(agents);
+                finishedHost.Add(fill);
+            }
 
             if (NegotiateAfter && unsigned.Count > 0)
             {

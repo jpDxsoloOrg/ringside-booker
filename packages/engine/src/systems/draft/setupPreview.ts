@@ -29,9 +29,9 @@ import { resolveNewGameSettings } from '../newgame/settings';
 import { createEngineTunables, type EngineTunables } from '../tunables';
 import { geographyOf } from '../world/geography';
 import { draftCandidates, type DraftCandidate } from './candidates';
-import { EQUALISED, medianLevel, NOT_EQUALISED } from './level';
+import { EQUALISED, medianLevel, NOT_EQUALISED, withStartingCash } from './level';
 import type { PoolMixLevel } from './pool';
-import { draftOptionsFrom, type DraftOptions } from './settings';
+import { draftOptionsFrom, startingCashOf, type DraftOptions } from './settings';
 import { planDraft } from './setup';
 
 /** One promotion in the picker. */
@@ -320,8 +320,12 @@ export interface DraftSetupPreview {
   /** Staff in the pool (0 unless staff are drafted). */
   poolStaff: number;
   mix: PoolMixLevel[];
-  /** The level every promotion starts at. Cash in cents. */
+  /** The level every promotion starts at. Cash in cents: the Starting cash setting's (DRF-10). */
   level: DraftLevel;
+  /** The world median cash of the active promotions, in cents, whatever the setting says. */
+  medianCash: number;
+  /** The Starting cash setting: `median`, or the preset that set `level.cash`. */
+  startingCash: DraftOptions['startingCash'];
   equalised: string[];
   notEqualised: string[];
 }
@@ -374,10 +378,11 @@ export function previewSetup(
     );
     const plan = planDraft(options, pool, drafting, tunables);
     const activeIds = new Set(active.map((row) => idByKey.get(row.key)));
-    const level = medianLevel(
+    const median = medianLevel(
       world.tables.promotions.values().filter((promotion) => activeIds.has(promotion.id)),
       geographyOf(world),
     );
+    const level = withStartingCash(median, startingCashOf(options.startingCash));
     draft = {
       options,
       settings: plan.settings,
@@ -388,6 +393,8 @@ export function previewSetup(
       poolStaff: plan.staff.length,
       mix: plan.pool.mix,
       level,
+      medianCash: median.cash,
+      startingCash: options.startingCash,
       equalised: [...EQUALISED],
       notEqualised: [...NOT_EQUALISED],
     };

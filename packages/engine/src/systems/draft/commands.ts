@@ -24,7 +24,9 @@ import { zId } from '../../model/primitives';
 import type { Draft } from '../../model/entities/draft';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
+import { moneyText } from '../production/formulas/shared';
 import { draftCandidates } from './candidates';
+import { DraftPricer } from './pricing';
 import {
   finishDraft,
   releasePick,
@@ -48,6 +50,7 @@ export const DRAFT_REASON_CODES = {
   rosterFull: 'draft.rosterFull',
   notAllowed: 'notAllowed',
   notReserved: 'draft.notReserved',
+  cantAfford: 'draft.cantAfford',
 } as const;
 
 /** What a picking command did. */
@@ -258,6 +261,23 @@ function pickRefusals(
         field: 'personId',
       },
     ];
+  }
+  if (!draft.settings.negotiateAfter) {
+    // DRF-10: the season is paid at the pick, and cash may not go below zero in the draft.
+    const price = new DraftPricer(read, tunables, read.meta.currentDate).price(
+      turn.promotionId,
+      personId,
+    );
+    if (price.cost.total > onClock.cash) {
+      return [
+        {
+          code: DRAFT_REASON_CODES.cantAfford,
+          message: `Their season contract costs ${moneyText(price.cost.total)}; you have ${moneyText(onClock.cash)}.`,
+          subject,
+          field: 'personId',
+        },
+      ];
+    }
   }
   return [];
 }

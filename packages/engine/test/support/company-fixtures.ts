@@ -161,6 +161,7 @@ export function makeEmployment(
     appearancesThisYear: 0,
     lastAppearanceOn: null,
     leave: null,
+    prepaidUntil: null,
     ...overrides,
   };
 }

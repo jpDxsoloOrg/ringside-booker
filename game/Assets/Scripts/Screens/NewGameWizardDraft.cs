@@ -163,7 +163,7 @@ namespace RingsideBooker.Screens
             int roster = (int)(Kit.Num(draft, "settings.rosterTarget") ?? 0);
             planHost.Add(Ui.Text($"{promotions} promotions draft {roster} wrestlers each{(Kit.Bool(draft, "settings.draftStaff") ? $" and {Kit.Num(draft, "settings.staffTarget")} staff" : string.Empty)}.",
                 "rb-draft-plan__line", "t-wrap").Named("wizard-draft-plan-roster"));
-            planHost.Add(Ui.Text(DraftText.LevelLine(Kit.Num(draft, "level.cash") ?? 0, Kit.Num(draft, "level.homePopularity") ?? 0, Kit.Num(draft, "level.prestige") ?? 0),
+            planHost.Add(Ui.Text(DraftText.LevelLine(Kit.Num(draft, "level.cash") ?? 0, Kit.Num(draft, "level.homePopularity") ?? 0, Kit.Num(draft, "level.prestige") ?? 0, Kit.Str(draft, "startingCash")),
                 "rb-draft-plan__line", "t-wrap").Named("wizard-draft-plan-level"));
             planHost.Add(Ui.Text(DraftText.PoolLine((int)(Kit.Num(draft, "poolWrestlers") ?? 0), (int)(Kit.Num(draft, "sittingOut") ?? 0), (int)(Kit.Num(draft, "poolStaff") ?? 0)),
                 "rb-draft-plan__line", "t-wrap").Named("wizard-draft-plan-pool"));

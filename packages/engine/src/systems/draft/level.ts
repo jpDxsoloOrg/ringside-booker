@@ -83,6 +83,11 @@ export function medianLevel(
   };
 }
 
+/** `level` with its cash set to `cash` (the Starting cash setting, DRF-10); null keeps the median. */
+export function withStartingCash(level: DraftLevel, cash: Cents | null): DraftLevel {
+  return cash === null ? level : { ...level, cash };
+}
+
 /** The `regionalPop` a promotion gets under `level`. */
 export function levelledPopularity(
   homeRegionId: RegionId,

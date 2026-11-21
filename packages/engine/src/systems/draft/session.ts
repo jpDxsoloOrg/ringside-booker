@@ -14,15 +14,19 @@ import { cents } from '../../core/money';
 import type { EmploymentId, PersonId, PromotionId } from '../../core/ids';
 import type { PhaseContext } from '../../core/pipeline/context';
 import type { Draft, DraftPick, DraftPickSource } from '../../model/entities/draft';
+import type { ContractTerms, Push } from '../../model/entities/employment';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
-import { askingContext, askingTermsWith, type AskingContext } from '../negotiation/asking';
-import { negotiationEligibility } from '../negotiation/eligibility';
-import { askTermsOf } from '../negotiation/evaluate';
+import { asCost } from '../finance/phases';
+import { postMoney } from '../finance/post';
 import type { EngineTunables } from '../tunables';
-import { boardWeights, DraftBoard, emptyRoster, countOnRoster } from './board';
+import { boardWeights, DraftBoard, emptyRoster, countOnRoster, type PickChoice } from './board';
 import { draftCandidates, type DraftCandidate } from './candidates';
 import { nextTurn, type Turn } from './order';
+import { DraftPricer, seasonContractEnd, type PickPrice } from './pricing';
+import { seasonCostTrace } from './seasonCost';
+
+export { seasonContractEnd } from './pricing';
 
 /** The draft that is not finished yet (there is at most one), or null. */
 export function openDraft(read: GameWorldView): DeepReadonly<Draft> | null {
@@ -87,6 +91,9 @@ export function loadDraft(
   for (const promotionId of draft.order) {
     board.addRoster(emptyRoster(read, promotionId));
   }
+  for (const promotionId of draft.outOfMoney) {
+    board.close(promotionId);
+  }
   const heldPicks = picks.filter(isHeld);
   const drafted = new Map<PersonId, DraftCandidate>();
   if (heldPicks.length > 0) {
@@ -120,37 +127,28 @@ export function currentTurn(
   return nextTurn(loaded.draft, loaded.draft.turn, seed, (id) => loaded.board.needs(id), orders);
 }
 
-/** The first day after the season the draft starts in: when a contract signed at the pick ends. */
-export function seasonContractEnd(read: GameWorldView, date: GameDate): GameDate {
-  const season = read.tables.seasons.lookup('activeSeason', 'active')[0];
-  if (season !== undefined && season.endDate >= date) {
-    return addDays(season.endDate, 1);
-  }
-  return addDays(date, read.meta.settings.season.lengthDays);
+/** The contract a pick signs: its terms and push, and whether its season is paid up front. */
+export interface PickTerms {
+  readonly terms: ContractTerms;
+  readonly expectedPush: Push;
+  /** True when the season was paid at the pick: payroll and show costs skip it until it ends. */
+  readonly prepaid: boolean;
 }
 
 /**
- * Signs a pick to a contract at their ask: the existing contract code prices it for this promotion
- * (kind, exclusivity, wage, fee, perks), for one season, with no signing bonus. Written directly,
- * like new-game setup, because nobody has worked a day yet.
+ * Signs a pick to a one-season contract on `contract`'s terms (the existing contract code priced
+ * them for this promotion: kind, exclusivity, wage, fee, perks; no signing bonus). Written
+ * directly, like new-game setup, because nobody has worked a day yet.
  */
 export function signAtAsk(
   ctx: Pick<PhaseContext, 'tx' | 'read' | 'date'>,
-  tunables: EngineTunables,
-  contexts: Map<PromotionId, AskingContext>,
   promotionId: PromotionId,
   candidate: Pick<DraftCandidate, 'personId' | 'role' | 'heel'>,
+  contract: PickTerms,
 ): EmploymentId {
   const { read, date } = ctx;
-  let context = contexts.get(promotionId);
-  if (context === undefined) {
-    context = askingContext(read, tunables, promotionId, date);
-    contexts.set(promotionId, context);
-  }
-  const eligibility = negotiationEligibility(read, tunables, candidate.personId, promotionId, date);
-  const ask = askingTermsWith(context, { personId: candidate.personId }, eligibility);
-  const terms = { ...askTermsOf(ask), signingBonus: cents(0) };
   const person = read.tables.people.require(candidate.personId);
+  const endsOn = seasonContractEnd(read, date);
   const employment = ctx.tx.create('employments', {
     personId: candidate.personId,
     promotionId,
@@ -159,58 +157,145 @@ export function signAtAsk(
     status: 'active',
     offeredOn: date,
     startsOn: date,
-    endsOn: seasonContractEnd(read, date),
+    endsOn,
     endedOn: null,
     role: candidate.role,
     ringName: person.defaultRingName,
     gimmickKey: null,
     alignment: candidate.heel ? 'heel' : 'face',
-    push: candidate.role === 'wrestler' ? ask.expectedPush.value : 'none',
-    terms,
+    push: candidate.role === 'wrestler' ? contract.expectedPush : 'none',
+    terms: { ...contract.terms },
     morale: 0,
     momentum: null,
     appearancesThisYear: 0,
     lastAppearanceOn: null,
     leave: null,
+    prepaidUntil: contract.prepaid ? endsOn : null,
   });
   return employment.id;
+}
+
+/**
+ * Pays a pick's season up front (DRF-10): one Wages row through `postMoney`, with the season
+ * cost's Why?. Nothing is posted for a free contract.
+ */
+export function paySeason(
+  ctx: PhaseContext,
+  promotionId: PromotionId,
+  personId: PersonId,
+  price: PickPrice,
+): void {
+  if (price.cost.total <= 0) {
+    return;
+  }
+  const name = ctx.read.tables.people.require(personId).defaultRingName;
+  const memo = `Season contract: ${name}`.slice(0, 120);
+  const trace = asCost(memo, seasonCostTrace('Season contract cost', price.inputs, price.cost));
+  postMoney(ctx, {
+    promotionId,
+    category: 'wages',
+    amount: cents(trace.value),
+    memo,
+    refs: { personId },
+    trace,
+  });
 }
 
 /** A draft being worked on by one command. */
 export class DraftRun {
   readonly #ctx: PhaseContext;
-  readonly #tunables: EngineTunables;
   readonly #loaded: LoadedDraft;
   readonly #seed: string;
   readonly #orders = new Map<number, readonly PromotionId[]>();
-  readonly #askContexts = new Map<PromotionId, AskingContext>();
+  readonly #pricer: DraftPricer;
+  /** Picks are paid up front (the default): nobody may pick what they cannot pay for. */
+  readonly #payUpFront: boolean;
+  readonly #cash = new Map<PromotionId, number>();
+  readonly #outOfMoney: Set<PromotionId>;
   #turn: number;
   #picks: number;
+  /** The last affordable choice worked out, for whoever was on the clock at `#version`. */
+  #choice: { promotionId: PromotionId; version: number; choice: PickChoice | null } | null = null;
+  #version = 0;
   /** Picks made by this run, in order. */
   readonly made: DeepReadonly<DraftPick>[] = [];
 
   constructor(ctx: PhaseContext, loaded: LoadedDraft) {
     this.#ctx = ctx;
-    this.#tunables = ctx.tunables;
     this.#loaded = loaded;
     this.#seed = ctx.read.meta.seed;
     this.#turn = loaded.draft.turn;
     this.#picks = loaded.draft.picks;
+    this.#pricer = new DraftPricer(ctx.read, ctx.tunables, ctx.date);
+    this.#payUpFront = !loaded.draft.settings.negotiateAfter;
+    this.#outOfMoney = new Set(loaded.draft.outOfMoney);
   }
 
   get board(): DraftBoard {
     return this.#loaded.board;
   }
 
-  /** Who is on the clock, or null when the draft is complete. */
-  turn(): Turn | null {
-    return nextTurn(
-      this.#loaded.draft,
-      this.#turn,
-      this.#seed,
-      (id) => this.#loaded.board.needs(id),
-      this.#orders,
+  get pricer(): DraftPricer {
+    return this.#pricer;
+  }
+
+  /** The promotion's cash as this run has spent it. */
+  cashOf(promotionId: PromotionId): number {
+    let cash = this.#cash.get(promotionId);
+    if (cash === undefined) {
+      cash = this.#ctx.read.tables.promotions.require(promotionId).cash;
+      this.#cash.set(promotionId, cash);
+    }
+    return cash;
+  }
+
+  /** True when the promotion can pay for this pick now (always, when nothing is paid up front). */
+  canAfford(promotionId: PromotionId, candidate: Pick<DraftCandidate, 'personId'>): boolean {
+    return (
+      !this.#payUpFront ||
+      this.#pricer.price(promotionId, candidate.personId).cost.total <= this.cashOf(promotionId)
     );
+  }
+
+  /** The best pick the promotion can afford, or null when there is none. */
+  #choiceFor(promotionId: PromotionId): PickChoice | null {
+    const known = this.#choice;
+    if (known !== null && known.promotionId === promotionId && known.version === this.#version) {
+      return known.choice;
+    }
+    const choice = this.#payUpFront
+      ? this.board.bestFor(promotionId, (candidate) => this.canAfford(promotionId, candidate))
+      : this.board.bestFor(promotionId);
+    this.#choice = { promotionId, version: this.#version, choice };
+    return choice;
+  }
+
+  /** Ends a promotion's turns: it cannot afford anyone left in the pool. */
+  #markOutOfMoney(promotionId: PromotionId): void {
+    this.board.close(promotionId);
+    this.#outOfMoney.add(promotionId);
+    this.#version += 1;
+    this.#ctx.log(`Draft: ${promotionId} cannot afford anyone left, its turns end`);
+  }
+
+  /**
+   * Who is on the clock, or null when the draft is complete. A promotion that cannot afford
+   * anyone it still wants is passed over for good.
+   */
+  turn(): Turn | null {
+    for (;;) {
+      const turn = nextTurn(
+        this.#loaded.draft,
+        this.#turn,
+        this.#seed,
+        (id) => this.#loaded.board.needs(id),
+        this.#orders,
+      );
+      if (turn === null || !this.#payUpFront || this.#choiceFor(turn.promotionId) !== null) {
+        return turn;
+      }
+      this.#markOutOfMoney(turn.promotionId);
+    }
   }
 
   /** Makes the pick for the promotion on the clock. The caller checked the choice. */
@@ -218,9 +303,20 @@ export class DraftRun {
     const ctx = this.#ctx;
     const { draft } = this.#loaded;
     const signNow = !draft.settings.negotiateAfter;
-    const employmentId = signNow
-      ? signAtAsk(ctx, this.#tunables, this.#askContexts, turn.promotionId, candidate)
-      : null;
+    let employmentId: EmploymentId | null = null;
+    let paid: number | null = null;
+    if (signNow) {
+      const price = this.#pricer.price(turn.promotionId, candidate.personId);
+      const cashBefore = this.cashOf(turn.promotionId);
+      employmentId = signAtAsk(ctx, turn.promotionId, candidate, {
+        terms: price.terms,
+        expectedPush: price.expectedPush,
+        prepaid: true,
+      });
+      paySeason(ctx, turn.promotionId, candidate.personId, price);
+      paid = price.cost.total;
+      this.#cash.set(turn.promotionId, cashBefore - price.cost.total);
+    }
     this.#picks += 1;
     const row = ctx.tx.create('draftPicks', {
       draftId: draft.id,
@@ -234,10 +330,12 @@ export class DraftRun {
       value: Math.round(candidate.value * 10) / 10,
       status: signNow ? 'signed' : 'reserved',
       employmentId,
-      reservedUntil: signNow ? null : addDays(ctx.date, this.#tunables.get('draft.reserveDays')),
+      reservedUntil: signNow ? null : addDays(ctx.date, ctx.tunables.get('draft.reserveDays')),
       pickedOn: ctx.date,
+      cost: paid === null ? null : cents(paid),
     });
     this.#loaded.board.take(turn.promotionId, candidate);
+    this.#version += 1;
     this.#turn = turn.turn + 1;
     this.made.push(row);
     return row;
@@ -248,9 +346,9 @@ export class DraftRun {
     this.#turn = turn.turn + 1;
   }
 
-  /** The computer's pick for whoever is on the clock. */
+  /** The computer's pick for whoever is on the clock: the best they can afford. */
   autoPick(turn: Turn, source: DraftPickSource): DeepReadonly<DraftPick> | null {
-    const choice = this.#loaded.board.bestFor(turn.promotionId);
+    const choice = this.#choiceFor(turn.promotionId);
     if (choice === null) {
       return null;
     }
@@ -278,8 +376,29 @@ export class DraftRun {
     }
   }
 
+  /**
+   * Ends the turns of every player's promotion that can no longer afford anyone it wants, so the
+   * draft room shows them done at once (a rival's are ended when its turn comes round).
+   */
+  #closeBrokePlayers(): void {
+    if (!this.#payUpFront) {
+      return;
+    }
+    for (const promotionId of this.#loaded.draft.order) {
+      if (
+        !this.#outOfMoney.has(promotionId) &&
+        isHumanPromotion(this.#ctx.read, promotionId) &&
+        this.board.needs(promotionId) &&
+        this.#choiceFor(promotionId) === null
+      ) {
+        this.#markOutOfMoney(promotionId);
+      }
+    }
+  }
+
   /** Writes the turn and pick count back, and the status when the draft is complete. */
   save(): DeepReadonly<Draft> {
+    this.#closeBrokePlayers();
     const complete = this.turn() === null;
     const { draft } = this.#loaded;
     return this.#ctx.tx.update('drafts', draft.id, {
@@ -287,6 +406,7 @@ export class DraftRun {
       picks: this.#picks,
       poolLeft: { wrestlers: this.board.wrestlersLeft, staff: this.board.staffLeft },
       status: complete ? 'complete' : 'running',
+      outOfMoney: draft.order.filter((id) => this.#outOfMoney.has(id)),
     });
   }
 }

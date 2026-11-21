@@ -1867,7 +1867,8 @@
         "status": "signed",
         "employmentId": "emp_0000000001",
         "reservedUntil": null,
-        "pickedOn": "2026-01-05"
+        "pickedOn": "2026-01-05",
+        "cost": null
       }
     ],
     "drafts": [
@@ -1911,7 +1912,8 @@
             "other": 0
           }
         ],
-        "cardLevels": []
+        "cardLevels": [],
+        "outOfMoney": []
       }
     ],
     "employments": [
@@ -1954,7 +1956,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_0000000002",
@@ -1995,7 +1998,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_0000000003",
@@ -2036,7 +2040,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_0000000004",
@@ -2077,7 +2082,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_0000000005",
@@ -2118,7 +2124,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_0000000006",
@@ -2159,7 +2166,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_0000000007",
@@ -2200,7 +2208,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_0000000008",
@@ -2241,7 +2250,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_0000000009",
@@ -2282,7 +2292,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_000000000a",
@@ -2323,7 +2334,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_000000000b",
@@ -2364,7 +2376,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_000000000c",
@@ -2405,7 +2418,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_000000000d",
@@ -2446,7 +2460,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_000000000e",
@@ -2487,7 +2502,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_000000000f",
@@ -2528,7 +2544,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_000000000g",
@@ -2569,7 +2586,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       },
       {
         "id": "emp_000000000h",
@@ -2610,7 +2628,8 @@
         "momentum": null,
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
-        "leave": null
+        "leave": null,
+        "prepaidUntil": null
       }
     ],
     "eventDefinitions": [

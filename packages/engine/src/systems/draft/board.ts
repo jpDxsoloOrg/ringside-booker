@@ -19,6 +19,9 @@
  * so its cost depends on the number of buckets (a few hundred at most), not the pool size.
  * Deterministic: ties go to the lower person id.
  *
+ * Picks paid up front (DRF-10): a promotion only takes someone it can afford; see
+ * {@link DraftBoard.bestFor}.
+ *
  * Design: docs/design/draft.md#rival-picks.
  */
 
@@ -104,6 +107,17 @@ interface Bucket {
   next: number;
 }
 
+/** Misses before {@link DraftBoard.bestFor} prices every bucket's top at once. */
+export const LAZY_AFFORD_TRIES = 8;
+
+/** A bucket's top as {@link DraftBoard.bestFor} weighs it. */
+interface Top {
+  readonly candidate: DraftCandidate;
+  readonly score: number;
+  readonly bucket: number;
+  readonly at: number;
+}
+
 /** A scored choice and the parts of its score, for the Why? of a rival's pick. */
 export interface PickChoice {
   readonly candidate: DraftCandidate;
@@ -118,6 +132,8 @@ export class DraftBoard {
   readonly #rosters = new Map<PromotionId, RosterCount>();
   readonly #genderShare = new Map<Gender, number>();
   readonly #closed = new Set<PromotionId>();
+  /** Per promotion and bucket: members above this index are taken or unaffordable to it. */
+  readonly #looked = new Map<PromotionId, number[]>();
   #wrestlersLeft = 0;
   #staffLeft = 0;
 
@@ -227,16 +243,69 @@ export class DraftBoard {
     }
   }
 
-  /** The best pick for this promotion, or null when it wants nobody the board has. */
-  bestFor(promotionId: PromotionId): PickChoice | null {
+  /**
+   * The best pick for this promotion, or null when it wants nobody the board has. With `afford`,
+   * only candidates it can pay for count (DRF-10). `afford` must only ever turn false for a
+   * candidate (cash only goes down in a draft), so the board remembers, per promotion and bucket,
+   * whom it has already turned down.
+   *
+   * Cheap when money is not tight: the best candidate is found as usual and only that one is
+   * priced. Each one it cannot afford is passed over in its bucket and the search runs again; after
+   * {@link LAZY_AFFORD_TRIES} misses it prices every bucket's top instead, to find the best
+   * affordable one in a single pass.
+   */
+  bestFor(
+    promotionId: PromotionId,
+    afford?: (candidate: DraftCandidate) => boolean,
+  ): PickChoice | null {
     const roster = this.#rosters.get(promotionId);
     if (roster === undefined) {
       return null;
     }
+    let found: Top | null;
+    if (afford === undefined) {
+      found = this.#bestTop(roster, null, null);
+    } else {
+      const marks = this.#marksOf(promotionId);
+      for (let tries = 0; ; tries += 1) {
+        found = this.#bestTop(roster, marks, tries >= LAZY_AFFORD_TRIES ? afford : null);
+        if (found === null || afford(found.candidate)) {
+          break;
+        }
+        marks[found.bucket] = found.at + 1;
+      }
+    }
+    if (found === null) {
+      return null;
+    }
+    const reasons: string[] = [];
+    this.score(roster, found.candidate, reasons);
+    return { candidate: found.candidate, score: found.score, reasons };
+  }
+
+  #marksOf(promotionId: PromotionId): number[] {
+    let marks = this.#looked.get(promotionId);
+    if (marks === undefined) {
+      marks = new Array<number>(this.#buckets.length).fill(0);
+      this.#looked.set(promotionId, marks);
+    }
+    return marks;
+  }
+
+  /**
+   * The best-scoring top of every bucket the roster wants. With `marks`, a bucket's top is its
+   * first untaken member at or after the promotion's mark; with `afford` too, its first one the
+   * promotion can pay for (the mark moves past the rest).
+   */
+  #bestTop(
+    roster: RosterCount,
+    marks: number[] | null,
+    afford: ((candidate: DraftCandidate) => boolean) | null,
+  ): Top | null {
     const wantsWrestler = this.wants(roster, 'wrestler');
     const wantsStaff = this.wants(roster, 'staff');
-    let best: { candidate: DraftCandidate; score: number } | null = null;
-    for (const bucket of this.#buckets) {
+    let best: Top | null = null;
+    for (const [index, bucket] of this.#buckets.entries()) {
       if (bucket.category === 'wrestler' ? !wantsWrestler : !wantsStaff) {
         continue;
       }
@@ -247,7 +316,25 @@ export class DraftBoard {
         }
         bucket.next += 1;
       }
-      const top = bucket.members[bucket.next];
+      let at = bucket.next;
+      if (marks !== null) {
+        at = Math.max(at, marks[index] ?? 0);
+        while (at < bucket.members.length) {
+          const member = bucket.members[at];
+          if (
+            member !== undefined &&
+            !this.#taken.has(member.personId) &&
+            (afford === null || afford(member))
+          ) {
+            break;
+          }
+          at += 1;
+        }
+        if (afford !== null) {
+          marks[index] = at;
+        }
+      }
+      const top = bucket.members[at];
       if (top === undefined) {
         continue;
       }
@@ -257,15 +344,10 @@ export class DraftBoard {
         score > best.score ||
         (score === best.score && compareIds(top.personId, best.candidate.personId) < 0)
       ) {
-        best = { candidate: top, score };
+        best = { candidate: top, score, bucket: index, at };
       }
     }
-    if (best === null) {
-      return null;
-    }
-    const reasons: string[] = [];
-    this.score(roster, best.candidate, reasons);
-    return { candidate: best.candidate, score: best.score, reasons };
+    return best;
   }
 
   /** The pick score of `candidate` for `roster`; with `reasons`, each part in words. */

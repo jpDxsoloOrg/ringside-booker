@@ -764,6 +764,7 @@ function addTinyDraft(context: BuildContext): void {
     sitOut: [],
     poolMix: [{ level: 'mainEvent', inPool: 1, available: 1, female: 0, male: 1, other: 0 }],
     cardLevels: [],
+    outOfMoney: [],
   });
   context.insert('draftPicks', {
     id: sequence.id('draftPick'),
@@ -780,6 +781,7 @@ function addTinyDraft(context: BuildContext): void {
     employmentId: contract.id,
     reservedUntil: null,
     pickedOn: TINY_WORLD_START,
+    cost: null,
   });
 }
 

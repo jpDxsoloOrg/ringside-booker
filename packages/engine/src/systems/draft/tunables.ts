@@ -89,6 +89,17 @@ export const draftTunables = defineTunables({
       'Days after the start date before any show runs in a draft game, so negotiate-after picks can answer first',
     docRef: `${DOC}#schedule`,
   },
+  'draft.cost.appearancesPerWeek': {
+    kind: 'number',
+    default: 1,
+    min: 0,
+    max: 7,
+    unit: 'count',
+    category: CATEGORY,
+    description:
+      "Appearances a week a pick's season cost expects, to price per-appearance fees up front (one per weekly show)",
+    docRef: `${DOC}#season-cost`,
+  },
   'draft.pool.ratio.auto': {
     kind: 'number',
     default: 1.25,

@@ -1,8 +1,9 @@
 /**
- * The draft-start new-game settings (DRF-01, DRF-03, DRF-07), in the wizard's `draft` group.
+ * The draft-start new-game settings (DRF-01, DRF-03, DRF-07, DRF-10), in the wizard's `draft`
+ * group.
  *
- * Settings are flat booleans and enums (the registry's two kinds), so the draft's options are seven
- * keys; {@link draftSettingsOf} reads them back as one object. Every one is stored only when it
+ * Settings are flat booleans and enums (the registry's two kinds), so the draft's options are eight
+ * keys (the starting cash is a choice of presets, as a setting cannot hold a free amount); {@link draftSettingsOf} reads them back as one object. Every one is stored only when it
  * differs from its default, so a game without a draft stores exactly what it stored before.
  *
  * | Key                   | Kind    | Default | Options                                   |
@@ -14,10 +15,12 @@
  * | `draftStaff`          | boolean | false   |                                           |
  * | `draftNegotiateAfter` | boolean | false   |                                           |
  * | `draftSchedule`       | enum    | `weekly`| `weekly`, `open`                          |
+ * | `draftStartingCash`   | enum    | `median`| `median`, `250k`, `500k`, `1m`, `2m`      |
  *
  * Design: docs/design/draft.md#settings.
  */
 
+import { cents, type Cents } from '../../core/money';
 import type { GameWorldView } from '../../model/tables';
 import type { DraftOrder, DraftSchedule } from '../../model/entities/draft';
 import {
@@ -33,6 +36,24 @@ export type DraftRosterSize = (typeof DRAFT_ROSTER_SIZES)[number];
 export const DRAFT_POOL_SIZES = ['auto', 'small', 'large', 'all'] as const;
 export type DraftPoolSize = (typeof DRAFT_POOL_SIZES)[number];
 
+export const DRAFT_STARTING_CASH = ['median', '250k', '500k', '1m', '2m'] as const;
+export type DraftStartingCash = (typeof DRAFT_STARTING_CASH)[number];
+
+/** Each starting-cash preset in cents; `median` (null) keeps the world median. */
+const STARTING_CASH_CENTS: Readonly<Record<DraftStartingCash, number | null>> = {
+  median: null,
+  '250k': 25_000_000,
+  '500k': 50_000_000,
+  '1m': 100_000_000,
+  '2m': 200_000_000,
+};
+
+/** The starting cash a preset sets, or null for the world median. */
+export function startingCashOf(option: DraftStartingCash): Cents | null {
+  const amount = STARTING_CASH_CENTS[option];
+  return amount === null ? null : cents(amount);
+}
+
 declare module '../newgame/settings' {
   interface NewGameSettingMap {
     draftStart: boolean;
@@ -42,6 +63,7 @@ declare module '../newgame/settings' {
     draftStaff: boolean;
     draftNegotiateAfter: boolean;
     draftSchedule: DraftSchedule;
+    draftStartingCash: DraftStartingCash;
   }
 }
 
@@ -120,6 +142,17 @@ export const DRAFT_SETTINGS: readonly NewGameSettingDef[] = [
     group: 'draft',
     requires: 'draftStart',
   },
+  {
+    key: 'draftStartingCash',
+    kind: 'enum',
+    options: [...DRAFT_STARTING_CASH],
+    default: 'median',
+    label: 'Starting cash',
+    description:
+      "The money every promotion starts with. World median: the middle of the active promotions' cash. A pick's whole season contract is paid from it at the pick.",
+    group: 'draft',
+    requires: 'draftStart',
+  },
 ];
 
 for (const def of DRAFT_SETTINGS) {
@@ -135,6 +168,7 @@ export interface DraftOptions {
   draftStaff: boolean;
   negotiateAfter: boolean;
   schedule: DraftSchedule;
+  startingCash: DraftStartingCash;
 }
 
 /** The world's draft settings. */
@@ -147,6 +181,7 @@ export function draftSettingsOf(read: Pick<GameWorldView, 'meta'>): DraftOptions
     draftStaff: getSetting(read, 'draftStaff'),
     negotiateAfter: getSetting(read, 'draftNegotiateAfter'),
     schedule: getSetting(read, 'draftSchedule'),
+    startingCash: getSetting(read, 'draftStartingCash'),
   };
 }
 
@@ -164,5 +199,6 @@ export function draftOptionsFrom(settings: ResolvedNewGameSettings): DraftOption
     draftStaff: settings['draftStaff'] === true,
     negotiateAfter: settings['draftNegotiateAfter'] === true,
     schedule: enumOf<DraftSchedule>(settings['draftSchedule'], ['weekly', 'open'], 'weekly'),
+    startingCash: enumOf(settings['draftStartingCash'], DRAFT_STARTING_CASH, 'median'),
   };
 }

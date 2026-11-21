@@ -194,7 +194,7 @@ Windows machine" section of [installer.md](installer.md):
    is gone.
 9. Close the Sandbox (everything in it is thrown away).
 
-## 10. Draft start (Beta 01, DRF-02/03/06/07)
+## 10. Draft start (Beta 01, DRF-02/03/06/07/10)
 
 Start the game, **New game**, the default world, take over any promotion, then **Options**.
 
@@ -240,6 +240,24 @@ Start the game, **New game**, the default world, take over any promotion, then *
       the first time the day button opens it. The first show is a week after the start, so it
       comes after they sign. (If too few sign, Booking says "Sign some wrestlers first" with
       **Call off this show**.)
+
+**Picks paid up front** (DRF-10, a new game with the draft on):
+
+- [ ] Options › Draft › **Starting cash** offers World median, $250k, $500k, $1M and $2M. The
+      plan line says "(the world median)" for the default and shows the amount you pick.
+- [ ] In the draft room the header shows **Cash left**, and the pool has a **Season cost**
+      column (hover it: wages or appearances for the season). Drafting someone takes their cost off
+      Cash left at once; the confirm says how much.
+- [ ] Click a name in the pool: their profile opens, with no Offer contract or trade button and
+      a quiet "The draft is on" line on the Contract tab. **Back** returns to the board with your
+      filters and page as they were.
+- [ ] Start a game with **Starting cash: $250k**. Wrestlers you can't afford are greyed with
+      Draft off ("Costs $X; you have $Y"). When you can't afford anyone, the banner says your picks
+      are over; nobody's cash goes below zero. After Finish, the draft room says how many wrestlers
+      you are short, and **Free agents** opens Contracts, which suggests per-appearance deals.
+      Rivals that ran out are full again with per-appearance signings.
+- [ ] Play two weeks: Finances shows one "Season contract" Wages row per pick and no wages or
+      appearance fees for your draftees afterwards.
 
 Quick look without playing (PNGs in the folder; add `-rbDraftNegotiate` for the second mode):
 

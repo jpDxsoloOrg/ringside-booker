@@ -278,6 +278,9 @@ function newContract(
     appearancesThisYear: old.appearancesThisYear,
     lastAppearanceOn: old.lastAppearanceOn,
     leave: old.leave === null ? null : { ...old.leave },
+    // A draft pick's prepaid season (DRF-10) stays with the promotion that paid it: the new
+    // contract is paid as usual.
+    prepaidUntil: null,
   });
 }
 
