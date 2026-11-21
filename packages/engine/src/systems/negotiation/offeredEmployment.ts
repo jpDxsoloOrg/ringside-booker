@@ -78,6 +78,7 @@ export function createOfferedEmployment(
     appearancesThisYear: 0,
     lastAppearanceOn: null,
     leave: null,
+    prepaidUntil: null,
     ...mirroredFields(ctx, personId, promotionId, offer),
   });
 }

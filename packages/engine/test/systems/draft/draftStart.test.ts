@@ -31,6 +31,7 @@ describe('draft settings', () => {
       'draftStaff',
       'draftNegotiateAfter',
       'draftSchedule',
+      'draftStartingCash',
     ]);
     expect(settings.slice(1).every((setting) => setting.requires === 'draftStart')).toBe(true);
   });

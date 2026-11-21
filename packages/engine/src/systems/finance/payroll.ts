@@ -5,7 +5,8 @@
  * contracts waiting to start, and contracts that have ended are never paid. Among the active ones a
  * line is left unpaid when the contract has not started yet, the person is on unpaid leave, the
  * person is the owner or the booker (unless `finance.payOwnerAndBooker` is on), or the deal has no
- * monthly wage (per-appearance deals are paid per show). See docs/design/finances.md#payroll.
+ * monthly wage (per-appearance deals are paid per show), or the season was paid up front at a draft
+ * pick (`prepaidUntil`, DRF-10). See docs/design/finances.md#payroll.
  */
 
 import { compareDates, type GameDate } from '../../core/date';
@@ -21,7 +22,8 @@ import type { GameWorldView } from '../../model/tables';
 import type { EngineTunables } from '../tunables';
 
 /** Why a payroll line is, or is not, paid. */
-export type PayrollReason = 'paid' | 'notStarted' | 'unpaidLeave' | 'ownerOrBooker' | 'noWage';
+export type PayrollReason =
+  'paid' | 'notStarted' | 'unpaidLeave' | 'ownerOrBooker' | 'noWage' | 'prepaid';
 
 /** One active contract on a promotion's payroll. */
 export interface PayrollLine {
@@ -45,6 +47,14 @@ export function hasStarted(employment: Pick<Employment, 'startsOn'>, date: GameD
 function onUnpaidLeave(employment: Pick<Employment, 'leave'>, date: GameDate): boolean {
   const { leave } = employment;
   return leave !== null && !leave.paid && compareDates(leave.until, date) >= 0;
+}
+
+/**
+ * True when the contract's pay was settled up front for `date` (a draft pick's season, DRF-10):
+ * payroll and show costs charge nothing for it until `prepaidUntil`.
+ */
+export function isPrepaid(employment: Pick<Employment, 'prepaidUntil'>, date: GameDate): boolean {
+  return employment.prepaidUntil !== null && compareDates(date, employment.prepaidUntil) < 0;
 }
 
 /** True when the person runs the promotion: its owner or booker, or on a booker's contract. */
@@ -76,6 +86,9 @@ function reasonFor(
   }
   if (employment.terms.monthlyWage === 0) {
     return 'noWage';
+  }
+  if (isPrepaid(employment, date)) {
+    return 'prepaid';
   }
   return 'paid';
 }

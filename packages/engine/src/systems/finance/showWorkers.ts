@@ -14,6 +14,7 @@
  * Design: docs/design/finances.md#show-costs.
  */
 
+import type { GameDate } from '../../core/date';
 import type { EmploymentId, PersonId, PromotionId } from '../../core/ids';
 import { ZERO_CENTS, type Cents } from '../../core/money';
 import { promotionStatusKey, PUSH_LEVELS, type Employment } from '../../model/entities/employment';
@@ -24,7 +25,7 @@ import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
 import { distinctWorkersOf } from '../shows/appearances';
 import type { EngineTunables } from '../tunables';
-import { isOwnerOrBooker } from './payroll';
+import { isOwnerOrBooker, isPrepaid } from './payroll';
 
 /** Why a worker on the card costs the promotion nothing. */
 export type ShowWorkerExclusion = 'guest' | 'ownerOrBooker';
@@ -55,12 +56,14 @@ function workerOf(
   employment: DeepReadonly<Employment>,
   promotion: Pick<Promotion, 'ownerPersonId' | 'bookerPersonId'>,
   payOwnerAndBooker: boolean,
+  date: GameDate,
 ): ShowWorker {
   return {
     personId: employment.personId,
     name: employment.ringName,
     employmentId: employment.id,
-    perAppearanceFee: employment.terms.perAppearanceFee,
+    // A draft pick's season was paid up front (DRF-10): no fee until it ends.
+    perAppearanceFee: isPrepaid(employment, date) ? ZERO_CENTS : employment.terms.perAppearanceFee,
     travelCovered: employment.terms.perks.travelCovered,
     excluded: !payOwnerAndBooker && isOwnerOrBooker(employment, promotion) ? 'ownerOrBooker' : null,
   };
@@ -96,7 +99,7 @@ function estimatedCard(
 /** Everyone who worked `instance`, or the estimated card when it has none. */
 export function showWorkersOf(
   read: GameWorldView,
-  instance: Pick<DeepReadonly<EventInstance>, 'id' | 'promotionId' | 'format'>,
+  instance: Pick<DeepReadonly<EventInstance>, 'id' | 'promotionId' | 'format' | 'date'>,
   tunables: EngineTunables,
 ): ShowWorkers {
   const promotion = read.tables.promotions.require(instance.promotionId);
@@ -107,7 +110,7 @@ export function showWorkersOf(
     const count = instance.format.slots * tunables.get('finance.show.offscreenWorkersPerSlot');
     return {
       workers: estimatedCard(read, instance.promotionId, count)
-        .map((employment) => workerOf(employment, promotion, payOwnerAndBooker))
+        .map((employment) => workerOf(employment, promotion, payOwnerAndBooker, instance.date))
         .sort((left, right) => compareIds(left.personId, right.personId)),
       estimated: true,
     };
@@ -116,7 +119,7 @@ export function showWorkersOf(
   const workers = distinctWorkersOf(read, segments).map((personId): ShowWorker => {
     const employment = activeContractOf(read, personId, instance.promotionId);
     if (employment !== undefined) {
-      return workerOf(employment, promotion, payOwnerAndBooker);
+      return workerOf(employment, promotion, payOwnerAndBooker, instance.date);
     }
     const person = read.tables.people.get(personId);
     return {

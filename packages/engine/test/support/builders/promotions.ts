@@ -155,6 +155,7 @@ export function anEmployment(
     appearancesThisYear: 0,
     lastAppearanceOn: null,
     leave: null,
+    prepaidUntil: null,
   };
   return buildRow(EmploymentSchema, 'anEmployment', defaults, overrides);
 }

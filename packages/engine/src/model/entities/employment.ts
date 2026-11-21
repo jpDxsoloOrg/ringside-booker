@@ -204,6 +204,12 @@ export const EmploymentSchema = z
     appearancesThisYear: zNonNegativeInt,
     lastAppearanceOn: zGameDate.nullable(),
     leave: LeaveSchema.nullable(),
+    /**
+     * Paid up front until this day (exclusive): a draft pick's season contract (DRF-10). Payroll
+     * and show costs charge nothing for it before then; the terms stay as signed. Null: paid as
+     * usual.
+     */
+    prepaidUntil: zGameDate.nullable().default(null),
   })
   .superRefine((employment, context) => {
     const issue = (path: (string | number)[], message: string): void => {

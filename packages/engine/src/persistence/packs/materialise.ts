@@ -507,6 +507,7 @@ function toEmployment(
     appearancesThisYear: 0,
     lastAppearanceOn: null,
     leave: null,
+    prepaidUntil: null,
   };
 }
 

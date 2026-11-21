@@ -1,6 +1,7 @@
 /**
  * The draft's queries (DRF-01): `draft.state`, `draft.pool` and `draft.preview`. Public: a draft
- * is a public event, and every pick is seen by everyone. Money is never shown.
+ * is a public event, and every pick is seen by everyone. Money (DRF-10) is the viewer's own only:
+ * their cash, and what each pool candidate's season contract would cost them.
  *
  * Design: docs/design/draft.md#queries.
  */
@@ -34,11 +35,12 @@ import {
   type DraftWeightClass,
 } from './candidates';
 import { draftValueParts, draftValueWeights } from './draftValue';
-import { rosterCounts, turnOf, wantsCategory } from './flow';
+import { needsFrom, rosterCounts, turnOf } from './flow';
 import { EQUALISED, NOT_EQUALISED } from './level';
 import { roundOrder } from './order';
 import { CARD_LEVEL_LABELS } from './pool';
 import { draftSettingsOf, type DraftOptions } from './settings';
+import { DraftPricer } from './pricing';
 import { latestDraft, loadDraft, openDraft, picksOf } from './session';
 
 /** How a pick's contract stands now. `lapsed`: unsigned and the rights ran out. */
@@ -60,6 +62,8 @@ export interface DraftPickView {
   contract: PickContract;
   /** The last day the rights are held, for an unsigned pick. */
   reservedUntil: GameDate | null;
+  /** The season contract paid at the pick, in cents, for the viewer's own picks; else null. */
+  cost: number | null;
 }
 
 export interface DraftClockView {
@@ -84,6 +88,21 @@ export interface DraftRosterSummary {
   staff: number;
   /** True when it wants nobody more the pool has. */
   done: boolean;
+  /** True when its turns ended because it could not afford anyone left (DRF-10). */
+  outOfMoney: boolean;
+}
+
+/** The viewer's own money in the draft (DRF-10). */
+export interface DraftYouView {
+  promotionId: PromotionId;
+  /** Cash now, in cents. */
+  cash: number;
+  /** Picks are paid up front (off under "Negotiate contracts after the draft"). */
+  paysUpFront: boolean;
+  /** True when your turns ended because you cannot afford anyone left in the pool. */
+  outOfMoney: boolean;
+  /** Wrestlers short of the roster target. */
+  wrestlersShort: number;
 }
 
 export interface DraftStateView {
@@ -108,9 +127,20 @@ export interface DraftStateView {
   rosters: DraftRosterSummary[];
   /** The picks of one roster (`rosterOf`, default the viewer's), in pick order. */
   roster: { promotionId: PromotionId; picks: DraftPickView[] } | null;
+  /** The viewer's cash and whether they can still pay (DRF-10); null for a spectator. */
+  you: DraftYouView | null;
 }
 
-export const POOL_SORTS = ['value', 'fit', 'rating', 'popularity', 'age', 'name', 'level'] as const;
+export const POOL_SORTS = [
+  'value',
+  'fit',
+  'rating',
+  'popularity',
+  'age',
+  'name',
+  'level',
+  'cost',
+] as const;
 
 /** Card levels top down, for sorting: main event first. */
 const LEVEL_RANK: Readonly<Record<DraftCardLevel, number>> = {
@@ -147,6 +177,16 @@ export interface DraftPoolRow {
   fit: number | null;
   /** The fit's Why?, one line per part. */
   fitWhy: string[];
+  /**
+   * What their season contract at the pick would cost the viewer, in cents (DRF-10): taken off
+   * cash at the pick by default, an estimate under "Negotiate contracts after the draft". Null for
+   * a spectator.
+   */
+  cost: number | null;
+  /** The cost's parts: wages, expected appearances and their fees, in cents. Null with `cost`. */
+  costParts: { wages: number; appearances: number; fees: number; days: number } | null;
+  /** False when the viewer cannot pay for them now (only when picks are paid up front). */
+  affordable: boolean;
 }
 
 export interface DraftPoolView {
@@ -156,6 +196,10 @@ export interface DraftPoolView {
   offset: number;
   limit: number;
   poolLeft: { wrestlers: number; staff: number };
+  /** The viewer's cash in cents, or null for a spectator (DRF-10). */
+  cash: number | null;
+  /** Picks are paid up front; false under "Negotiate contracts after the draft". */
+  paysUpFront: boolean;
 }
 
 export interface DraftPreviewView {
@@ -250,6 +294,7 @@ export function pickView(
   read: GameWorldView,
   pick: DeepReadonly<DraftPick>,
   date: GameDate,
+  yours: ReadonlySet<PromotionId> = new Set(),
 ): DraftPickView {
   const promotion = read.tables.promotions.get(pick.promotionId);
   return {
@@ -267,6 +312,7 @@ export function pickView(
     source: pick.source,
     contract: contractOf(read, pick, date),
     reservedUntil: pick.reservedUntil,
+    cost: yours.has(pick.promotionId) ? pick.cost : null,
   };
 }
 
@@ -296,6 +342,28 @@ function yourNextTurn(
   return null;
 }
 
+function youView(
+  read: GameWorldView,
+  draft: DeepReadonly<Draft>,
+  counts: ReadonlyMap<PromotionId, Record<DraftCategory, number>>,
+  yours: ReadonlySet<PromotionId>,
+): DraftYouView | null {
+  const promotionId = draft.order.find((id) => yours.has(id));
+  if (promotionId === undefined) {
+    return null;
+  }
+  return {
+    promotionId,
+    cash: read.tables.promotions.require(promotionId).cash,
+    paysUpFront: !draft.settings.negotiateAfter,
+    outOfMoney: draft.outOfMoney.includes(promotionId),
+    wrestlersShort: Math.max(
+      0,
+      draft.settings.rosterTarget - (counts.get(promotionId)?.wrestler ?? 0),
+    ),
+  };
+}
+
 export const draftStateQuery = defineQuery('draft.state', {
   args: z.strictObject({
     recent: z.number().int().min(0).max(200).optional(),
@@ -310,10 +378,8 @@ export const draftStateQuery = defineQuery('draft.state', {
     const yours = new Set(viewerPromotionIds(read, ctx.viewer));
     const picks = picksOf(read, draft.id);
     const counts = rosterCounts(picks);
-    const needs = (promotionId: PromotionId): boolean => {
-      const count = counts.get(promotionId);
-      return wantsCategory(draft, count, 'wrestler') || wantsCategory(draft, count, 'staff');
-    };
+    const needs = needsFrom(draft, counts);
+    const broke = new Set<string>(draft.outOfMoney);
     const turn = turnOf(read, draft);
     const clockPromotion = turn === null ? undefined : read.tables.promotions.get(turn.promotionId);
     const recent = args.recent ?? 12;
@@ -345,7 +411,7 @@ export const draftStateQuery = defineQuery('draft.state', {
       recentPicks: picks
         .slice(Math.max(0, picks.length - recent))
         .reverse()
-        .map((pick) => pickView(read, pick, date)),
+        .map((pick) => pickView(read, pick, date, yours)),
       rosters: draft.order.map((promotionId) => {
         const promotion = read.tables.promotions.require(promotionId);
         const count = counts.get(promotionId);
@@ -358,6 +424,7 @@ export const draftStateQuery = defineQuery('draft.state', {
           wrestlers: count?.wrestler ?? 0,
           staff: count?.staff ?? 0,
           done: draft.status !== 'running' || !needs(promotionId),
+          outOfMoney: broke.has(promotionId),
         };
       }),
       roster:
@@ -367,8 +434,9 @@ export const draftStateQuery = defineQuery('draft.state', {
               promotionId: rosterOf,
               picks: picks
                 .filter((pick) => pick.promotionId === rosterOf && pick.status !== 'released')
-                .map((pick) => pickView(read, pick, date)),
+                .map((pick) => pickView(read, pick, date, yours)),
             },
+      you: youView(read, draft, counts, yours),
     };
     return { draft: view };
   },
@@ -390,6 +458,8 @@ function sortValue(row: DraftPoolRow, sort: PoolSort): number | string {
       return row.name.toLowerCase();
     case 'level':
       return row.level === null ? 0 : LEVEL_RANK[row.level];
+    case 'cost':
+      return row.cost ?? 0;
   }
 }
 
@@ -438,7 +508,15 @@ export const draftPoolQuery = defineQuery('draft.pool', {
     const limit = args.limit ?? 50;
     const draft = openDraft(read);
     if (draft === null) {
-      return { rows: [], total: 0, offset, limit, poolLeft: { wrestlers: 0, staff: 0 } };
+      return {
+        rows: [],
+        total: 0,
+        offset,
+        limit,
+        poolLeft: { wrestlers: 0, staff: 0 },
+        cash: null,
+        paysUpFront: false,
+      };
     }
     const loaded = loadDraft(read, tunables, draft, date);
     const yours = viewerPromotionIds(read, ctx.viewer).find((id) => draft.order.includes(id));
@@ -484,8 +562,33 @@ export const draftPoolQuery = defineQuery('draft.pool', {
         why: [],
         fit: fit === null ? null : one(fit),
         fitWhy: roster === undefined ? [] : fitWhy,
+        cost: null,
+        costParts: null,
+        affordable: true,
       };
     });
+    // DRF-10: what each would cost the viewer. Priced for the page only, or every match when
+    // sorting by cost (about 0.2 ms a person).
+    const paysUpFront = !draft.settings.negotiateAfter;
+    const cash = yours === undefined ? null : read.tables.promotions.require(yours).cash;
+    const pricer = yours === undefined ? null : new DraftPricer(read, tunables, date);
+    const priceRow = (row: DraftPoolRow): void => {
+      if (pricer === null || yours === undefined || cash === null) {
+        return;
+      }
+      const { cost } = pricer.price(yours, row.personId);
+      row.cost = cost.total;
+      row.costParts = {
+        wages: cost.wages,
+        appearances: cost.appearances,
+        fees: cost.fees,
+        days: cost.days,
+      };
+      row.affordable = !paysUpFront || cost.total <= cash;
+    };
+    if (sort === 'cost') {
+      rows.forEach(priceRow);
+    }
     const direction = descending ? -1 : 1;
     rows.sort((left, right) => {
       const leftValue = sortValue(left, sort);
@@ -496,6 +599,9 @@ export const draftPoolQuery = defineQuery('draft.pool', {
       return left.personId < right.personId ? -1 : left.personId > right.personId ? 1 : 0;
     });
     const page = rows.slice(offset, offset + limit);
+    if (sort !== 'cost') {
+      page.forEach(priceRow);
+    }
     for (const row of page) {
       const candidate = loaded.board.candidate(row.personId);
       if (candidate !== undefined) {
@@ -508,6 +614,8 @@ export const draftPoolQuery = defineQuery('draft.pool', {
       offset,
       limit,
       poolLeft: { wrestlers: loaded.board.wrestlersLeft, staff: loaded.board.staffLeft },
+      cash,
+      paysUpFront,
     };
   },
 });

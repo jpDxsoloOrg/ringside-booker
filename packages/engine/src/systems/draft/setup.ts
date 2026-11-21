@@ -44,10 +44,10 @@ import { registerSetupStep, type SetupContext } from '../newgame/steps';
 import type { EngineTunables } from '../tunables';
 import { geographyOf } from '../world/geography';
 import { draftCandidates, DRAFT_STAFF_ROLES, type DraftCandidate } from './candidates';
-import { levelledFields, medianLevel } from './level';
+import { levelledFields, medianLevel, withStartingCash } from './level';
 import { seededOrder } from './order';
 import { choosePool, poolSizeFor, type PoolChoice } from './pool';
-import { draftOptionsFrom, type DraftOptions } from './settings';
+import { draftOptionsFrom, startingCashOf, type DraftOptions } from './settings';
 import {
   disbandStables,
   isLiveEmployment,
@@ -324,11 +324,15 @@ export function setUpDraftStart(
   vacateTitles(tx, activeSet, date);
   disbandStables(tx, activeSet, date);
 
-  // 5. The level playing field: medians of the active promotions, no TV deals anywhere.
+  // 5. The level playing field: medians of the active promotions (cash from the Starting cash
+  // setting when it is not the median), no TV deals anywhere.
   const geography = geographyOf(read);
-  const level = medianLevel(
-    active.map((id) => read.tables.promotions.require(id)),
-    geography,
+  const level = withStartingCash(
+    medianLevel(
+      active.map((id) => read.tables.promotions.require(id)),
+      geography,
+    ),
+    startingCashOf(options.startingCash),
   );
   for (const promotionId of active) {
     const promotion = read.tables.promotions.require(promotionId);
@@ -359,6 +363,7 @@ export function setUpDraftStart(
     cardLevels: [...plan.pool.levels.entries()]
       .sort(([left], [right]) => compareIds(left, right))
       .map(([personId, cardLevel]) => ({ personId, level: cardLevel })),
+    outOfMoney: [],
     poolMix: plan.pool.mix.map((entry) => ({
       level: entry.level,
       inPool: entry.inPool,

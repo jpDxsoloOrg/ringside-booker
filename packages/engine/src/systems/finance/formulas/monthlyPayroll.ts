@@ -68,6 +68,12 @@ function addExclusionNotes(
       `${plural(noWage, 'deal has', 'deals have')} no monthly wage: paid per appearance instead`,
     );
   }
+  const prepaid = countOf(lines, 'prepaid');
+  if (prepaid > 0) {
+    calc.note(
+      `${plural(prepaid, 'contract was', 'contracts were')} paid up front for the season at the draft`,
+    );
+  }
   // Recorded as a tunable read, so the reader sees the setting and whether it was changed.
   const payOwnerAndBooker = calc.tunable(
     tunables,
