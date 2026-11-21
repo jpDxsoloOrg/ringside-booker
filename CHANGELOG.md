@@ -16,6 +16,12 @@ How I write an entry:
 
 ## Unreleased
 
+### Changed
+
+- I made a draft start begin every promotion with all production at level 0, so nobody burns
+  through the shared starting cash on day one. Raise each area in Production when you can afford
+  it; rivals raise theirs as their money allows.
+
 ## [0.1.0-alpha.4] - 2026-11-20
 
 ### Added

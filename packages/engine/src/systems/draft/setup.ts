@@ -13,7 +13,8 @@
  * 3. **Pool size and mix** (DRF-07, `pool.ts`): the rest sit out.
  * 4. **Titles vacant, stables disbanded.**
  * 5. **Level playing field**: every active promotion gets the median cash, prestige and home
- *    popularity (`level.ts`), and every TV deal in the world is removed.
+ *    popularity and every production area at level 0 (`level.ts`), and every TV deal in the
+ *    world is removed.
  * 6. **Schedule**: each active promotion keeps exactly one weekly show (below).
  * 7. **The draft row**: round one's order and the targets. The draft starts at turn 0.
  *
@@ -324,7 +325,7 @@ export function setUpDraftStart(
   vacateTitles(tx, activeSet, date);
   disbandStables(tx, activeSet, date);
 
-  // 5. The level playing field: medians of the active promotions, no TV deals anywhere.
+  // 5. The level playing field: medians of the active promotions, production at 0, no TV deals.
   const geography = geographyOf(read);
   const level = medianLevel(
     active.map((id) => read.tables.promotions.require(id)),
