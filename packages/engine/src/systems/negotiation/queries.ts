@@ -16,6 +16,7 @@
  * Design: docs/design/negotiation.md#asking-terms and #free-agents.
  */
 
+import { draftForcesExclusive } from '../draft/rights';
 import { z } from 'zod';
 import { viewerPromotionIds } from '../../core/api/controller';
 import { defineQuery, type QueryContext } from '../../core/api/query';
@@ -508,6 +509,7 @@ export const freeAgentsQuery = defineQuery('contracts.freeAgents', {
         continue;
       }
       const basis = askBasisWith(context, person, undefined, eligibility);
+      const forced = draftForcesExclusive(read, basis.role);
       const allowed = (kind: ContractKind): boolean =>
         basis.allowedKinds.some((entry) => entry.kind === kind && entry.allowed);
       const elsewhere = read.tables.employments
@@ -555,11 +557,11 @@ export const freeAgentsQuery = defineQuery('contracts.freeAgents', {
               : (read.tables.promotions.get(other.promotionId)?.name ?? null),
           endsOn: other?.endsOn ?? null,
           askMonthly: allowed('written')
-            ? askedPay(context, basis, 'written', context.exclusiveReasons.length === 0).monthlyWage
-                .value
+            ? askedPay(context, basis, 'written', forced || context.exclusiveReasons.length === 0)
+                .monthlyWage.value
             : null,
           askPerAppearance: allowed('perAppearance')
-            ? askedPay(context, basis, 'perAppearance', false).perAppearanceFee.value
+            ? askedPay(context, basis, 'perAppearance', forced).perAppearanceFee.value
             : null,
           bestKind: basis.bestKind,
           cooldownUntil,

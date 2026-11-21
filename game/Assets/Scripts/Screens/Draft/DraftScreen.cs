@@ -32,8 +32,28 @@ namespace RingsideBooker.Screens.Draft
         /// </summary>
         public static bool InProgress { get; private set; }
 
-        /// <summary>Records the draft's status as a screen last read it.</summary>
-        internal static void Saw(string status) => InProgress = status == "running" || status == "complete";
+        /// <summary>True when the open game started with a draft (DRF-12: drafted jobs sign exclusive).</summary>
+        public static bool DraftGame { get; private set; }
+
+        /// <summary>True when that draft took staff too, so staff jobs are exclusive as well.</summary>
+        public static bool DraftedStaff { get; private set; }
+
+        /// <summary>Records the draft (<c>draft.state</c>'s <c>draft</c>, or null) as a screen last read it.</summary>
+        internal static void Saw(JToken draft)
+        {
+            bool has = draft != null && draft.Type == JTokenType.Object;
+            string status = has ? Kit.Str(draft, "status") : null;
+            InProgress = status == "running" || status == "complete";
+            DraftGame = has && Kit.Str(draft, "kind") == "start";
+            DraftedStaff = DraftGame && Kit.Bool(draft, "settings.draftStaff");
+        }
+
+        /// <summary>
+        /// "Yes", "No", or "Yes (draft)" where the draft game's rule made a contract in this job
+        /// exclusive (DRF-12).
+        /// </summary>
+        public static string ExclusiveWord(bool exclusive, string role) =>
+            !exclusive ? "No" : DraftText.ForcesExclusive(DraftGame, DraftedStaff, role) ? "Yes (draft)" : "Yes";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Register()
@@ -59,7 +79,7 @@ namespace RingsideBooker.Screens.Draft
             {
                 QueryResult<JToken> state = await game.Client.Query("draft.state", new JObject { ["recent"] = 1 });
                 string status = state.Ok ? Kit.Str(state.Data, "draft.status") : null;
-                Saw(status);
+                Saw(state.Ok ? state.Data?["draft"] : null);
                 if ((status == "running" || status == "complete") && ShellController.Current == shell && shell.Navigator.Current?.ScreenId != ScreenId)
                 {
                     shell.Navigator.Go(ScreenId);

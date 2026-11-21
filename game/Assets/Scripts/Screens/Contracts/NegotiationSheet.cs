@@ -765,7 +765,12 @@ namespace RingsideBooker.Screens.Contracts
         {
             VisualElement more = Ds.Column("ct-offer__more").Named("offer-more");
             bool exclusiveAllowed = Kit.Bool(ask, "exclusiveAllowed");
-            string exclusiveHint = !exclusiveAllowed
+            // DRF-12: in a draft game drafted jobs are always exclusive; the switch stays on, locked.
+            bool forced = Kit.Bool(ask, "exclusiveForced");
+            if (forced && !draft.Exclusive) draft.SetExclusive(true);
+            string exclusiveHint = forced
+                ? "Exclusive (draft): drafted jobs work for one promotion only, per appearance too"
+                : !exclusiveAllowed
                 ? string.Join(" ", Kit.Arr(ask, "exclusiveReasons").Select(reason => Kit.Str(reason, "message")))
                 : draft.PerAppearance ? "Per-appearance deals are never exclusive" : "They work for nobody else while it runs";
             more.Add(ContractUi.Switch("Exclusive", draft.Exclusive, on =>
@@ -773,7 +778,7 @@ namespace RingsideBooker.Screens.Contracts
                 draft.SetExclusive(on);
                 _ = ReloadAsk();
                 SchedulePreview(PreviewDelayMs);
-            }, exclusiveHint, !disabled && !draft.PerAppearance && exclusiveAllowed, "offer-exclusive"));
+            }, exclusiveHint, !disabled && !forced && !draft.PerAppearance && exclusiveAllowed, "offer-exclusive"));
             AddError(more, "offer.terms.exclusive");
 
             // A renewal's job is the Job choice above (UNITY-38).

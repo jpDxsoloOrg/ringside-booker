@@ -141,6 +141,7 @@ function anAsk(overrides: Partial<AskingTerms> = {}): AskingTerms {
     bestKind: 'written',
     exclusiveAllowed: true,
     exclusiveReasons: [],
+    exclusiveForced: false,
     startPatience: inputOf('Patience', 3),
     refusal: null,
     renewalDecision: null,

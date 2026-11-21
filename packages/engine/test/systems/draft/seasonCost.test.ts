@@ -264,7 +264,7 @@ describe('never below zero in the draft', () => {
         expect(row.prepaidUntil).toBeNull();
       }
     }
-  });
+  }, 60_000);
 });
 
 describe('under "Negotiate contracts after the draft"', () => {

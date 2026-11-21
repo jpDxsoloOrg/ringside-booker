@@ -57,7 +57,7 @@ namespace RingsideBooker.Screens
                 var pairs = new List<(string, string)> { ("With", Kit.Str(contract, "promotionName")) };
                 if (Kit.Num(contract, "terms.monthlyWage") is double wage) pairs.Add(("Wage", $"{W.Money(wage)} a month"));
                 pairs.Add(("Ends", Kit.Str(contract, "endsOn") is string ends ? Kit.Date(ends) : "Open-ended"));
-                if (Kit.Obj(contract, "terms") is JToken terms) pairs.Add(("Exclusive", Kit.Bool(terms, "exclusive") ? "Yes" : "No"));
+                if (Kit.Obj(contract, "terms") is JToken terms) pairs.Add(("Exclusive", Draft.DraftScreen.ExclusiveWord(Kit.Bool(terms, "exclusive"), Kit.Str(contract, "role"))));
                 body.Add(Ds.KeyValues(pairs.ToArray()));
             }
 
@@ -568,7 +568,7 @@ namespace RingsideBooker.Screens
             if (source != null)
             {
                 pairs.Add(("Kind", W.Words(Kit.Str(source, "kind")) ?? Kit.NoValue));
-                pairs.Add(("Exclusive", Kit.Bool(source, "exclusive") ? "Yes" : "No"));
+                pairs.Add(("Exclusive", Draft.DraftScreen.ExclusiveWord(Kit.Bool(source, "exclusive"), Kit.Str(contract, "role"))));
                 if (Kit.Num(source, "monthlyWage") is double wage) pairs.Add(("Wage", $"{W.Money(wage)} a month"));
                 if (Kit.Num(source, "perAppearanceFee") is double fee && fee > 0) pairs.Add(("Per appearance", W.Money(fee)));
                 if (Kit.Num(source, "signingBonus") is double bonus && bonus > 0) pairs.Add(("Signing bonus", W.Money(bonus)));

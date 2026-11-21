@@ -194,7 +194,7 @@ namespace RingsideBooker.Screens.Draft
             QueryResult<JToken> state = await game.Client.Query("draft.state", new JObject { ["recent"] = RecentPicks });
             if (Root.panel == null) return;
             draft = state.Ok ? state.Data?["draft"] : null;
-            DraftScreen.Saw(draft == null || draft.Type == JTokenType.Null ? null : Kit.Str(draft, "status"));
+            DraftScreen.Saw(draft);
             if (draft == null || draft.Type == JTokenType.Null)
             {
                 draft = null;
@@ -528,7 +528,7 @@ namespace RingsideBooker.Screens.Draft
             VisualElement cell = W.Cell(TextFormat.Money((long)Math.Round(cost.Value)), number: true);
             cell.name = "draft-cost-" + Kit.Str(row, "personId");
             string detail = DraftText.CostDetail(Kit.Num(row, "costParts.wages") ?? 0, Kit.Num(row, "costParts.appearances") ?? 0,
-                Kit.Num(row, "costParts.fees") ?? 0, !NegotiateAfter);
+                Kit.Num(row, "costParts.fees") ?? 0, !NegotiateAfter) + " " + DraftText.ExclusiveNote;
             string tight = ReserveHint(row);
             cell.EnableInClassList("dr-cost--tight", tight != null);
             DsTooltip.Attach(cell, Affordable(row) ? (tight != null ? tight + " " : string.Empty) + detail : DraftText.CannotAfford(cost.Value, poolCash ?? 0) + " " + detail);

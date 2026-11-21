@@ -59,6 +59,7 @@ export function anAsk(overrides: Partial<AskingTermsView> = {}): AskingTermsView
         message: 'Exclusive contracts need a reach of 35; yours is 12',
       },
     ],
+    exclusiveForced: false,
     startPatience: { value: 3, trace: input('Patience', 3, 'count') },
     refusal: null,
     renewalDecision: null,
