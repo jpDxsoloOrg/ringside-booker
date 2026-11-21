@@ -1495,7 +1495,7 @@ numbers under the same `Broadcast` category.
 
 ## Draft tunables
 
-DRF-01, DRF-03, DRF-07, DRF-08 and DRF-10, in `systems/draft/tunables.ts`, category `Draft`. See
+DRF-01, DRF-03, DRF-07, DRF-08, DRF-10 and DRF-11, in `systems/draft/tunables.ts`, category `Draft`. See
 [draft.md](draft.md).
 
 | Key                             | Kind    | Default | Range | Unit       | What it does                                                                                                                                                   |
@@ -1530,6 +1530,7 @@ DRF-01, DRF-03, DRF-07, DRF-08 and DRF-10, in `systems/draft/tunables.ts`, categ
 | `draft.ai.divisionNeedWeight`   | number  | 8       | 0–100 | points     | Points a rival adds for a wrestler who fills a division it is still short of                                                                                   |
 | `draft.ai.alignmentWeight`      | number  | 3       | 0–50  | points     | Points a rival adds for a natural heel or face when its roster leans the other way                                                                             |
 | `draft.ai.payrollShare`         | number  | 0.15    | 0–1   | ratio      | Under "Negotiate contracts after the draft", a rival signs its picks while their monthly wages stay under this share of its cash; the rest go back to the pool |
+| `draft.ai.reserveMonths`        | number  | 3       | 0–60  | months     | Months of running costs (overhead, medical, venue rent, travel, catering, show production) a rival keeps while drafting; 0 turns the reserve off               |
 
 ## Trade tunables
 

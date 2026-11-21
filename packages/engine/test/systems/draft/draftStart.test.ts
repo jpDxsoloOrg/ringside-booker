@@ -70,8 +70,8 @@ describe('draft start setup', () => {
         expect(popularity).toBe(draft?.level.homePopularity);
       }
     }
-    // The median of the world's promotions (the default world: cash 825,000.00).
-    expect(draft?.level).toEqual({ cash: 82_500_000, prestige: 51, homePopularity: 13 });
+    // The medians of the world's promotions, and the default Starting cash of $1M (DRF-11).
+    expect(draft?.level).toEqual({ cash: 100_000_000, prestige: 51, homePopularity: 13 });
     expect(world.tables.deals).toHaveLength(0);
   });
 

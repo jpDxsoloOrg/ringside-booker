@@ -194,7 +194,7 @@ Windows machine" section of [installer.md](installer.md):
    is gone.
 9. Close the Sandbox (everything in it is thrown away).
 
-## 10. Draft start (Beta 01, DRF-02/03/06/07/10)
+## 10. Draft start (Beta 01, DRF-02/03/06/07/10/11)
 
 Start the game, **New game**, the default world, take over any promotion, then **Options**.
 
@@ -244,7 +244,7 @@ Start the game, **New game**, the default world, take over any promotion, then *
 **Picks paid up front** (DRF-10, a new game with the draft on):
 
 - [ ] Options › Draft › **Starting cash** offers World median, $250k, $500k, $1M and $2M. The
-      plan line says "(the world median)" for the default and shows the amount you pick.
+      plan line shows the amount, with "(the world median)" when you pick World median.
 - [ ] In the draft room the header shows **Cash left**, and the pool has a **Season cost**
       column (hover it: wages or appearances for the season). Drafting someone takes their cost off
       Cash left at once; the confirm says how much.
@@ -258,6 +258,18 @@ Start the game, **New game**, the default world, take over any promotion, then *
       Rivals that ran out are full again with per-appearance signings.
 - [ ] Play two weeks: Finances shows one "Season contract" Wages row per pick and no wages or
       appearance fees for your draftees afterwards.
+
+**Draft money balance** (DRF-11, a new game with the draft on):
+
+- [ ] Starting cash is **$1M** by default; World median is still one of the choices.
+- [ ] In the draft room, hover a Season cost that would leave you short: it turns amber and says
+      how many months of running costs you'd have left. The confirm says it too. You can still
+      draft them.
+- [ ] Open a pool wrestler's profile mid-draft: no Offer contract. (After Finish, Contracts lets
+      you offer to anyone left.)
+- [ ] **Auto-pick the rest**, Finish, then play two months. Rivals' cash (Promotions) stays above
+      zero; the ones that ran out of money have full rosters with per-appearance signings. Your
+      weekly show is in a small venue, not an arena.
 
 Quick look without playing (PNGs in the folder; add `-rbDraftNegotiate` for the second mode):
 

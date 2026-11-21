@@ -28,6 +28,10 @@ How I write an entry:
   deals. Rivals do the same.
 - I added a Starting cash choice to the draft options (the world median, or $250k up to $2M), and
   you can click a name on the draft board to open their profile.
+- I made a draft start begin with $1M each instead of the world median, and rivals now keep three
+  months of running costs while they draft. The draft board quietly warns you when a pick would
+  leave you less than that. Nobody can make contract offers to the draft pool until the draft is
+  finished, and each promotion's weekly show now runs in a venue its crowd fits.
 
 ## [0.1.0-alpha.4] - 2026-11-20
 

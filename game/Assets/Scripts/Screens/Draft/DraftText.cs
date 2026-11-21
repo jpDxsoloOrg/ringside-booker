@@ -146,6 +146,16 @@ namespace RingsideBooker.Screens.Draft
         }
 
         /// <summary>
+        /// The quiet hint when a pick leaves less than <paramref name="months"/> months of running
+        /// costs (DRF-11), or null when it leaves enough (or running costs are unknown).
+        /// </summary>
+        public static string ReserveHint(double cashAfterCents, double runningMonthlyCents, double months)
+        {
+            if (runningMonthlyCents <= 0 || months <= 0 || cashAfterCents >= runningMonthlyCents * months) return null;
+            return $"Leaves you {TextFormat.Money((long)Math.Round(cashAfterCents))}: under {Whole(months)} months of running costs ({TextFormat.Money((long)Math.Round(runningMonthlyCents))} a month for shows, venues and medical).";
+        }
+
+        /// <summary>
         /// The finish line for a roster you could not fill: null when it is full. Points at
         /// per-appearance deals, which cost nothing up front.
         /// </summary>

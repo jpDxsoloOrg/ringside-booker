@@ -89,6 +89,17 @@ export const draftTunables = defineTunables({
       'Days after the start date before any show runs in a draft game, so negotiate-after picks can answer first',
     docRef: `${DOC}#schedule`,
   },
+  'draft.ai.reserveMonths': {
+    kind: 'number',
+    default: 3,
+    min: 0,
+    max: 60,
+    unit: 'months',
+    category: CATEGORY,
+    description:
+      'Months of running costs (overhead, medical, venue rent, travel, catering, show production) a rival keeps while drafting; 0 turns the reserve off',
+    docRef: `${DOC}#rival-reserve`,
+  },
   'draft.cost.appearancesPerWeek': {
     kind: 'number',
     default: 1,

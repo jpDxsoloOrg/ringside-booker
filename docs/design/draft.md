@@ -32,7 +32,7 @@ before.
 | `draftStaff`          | boolean | false    |                                            | `draftStaff`         |
 | `draftNegotiateAfter` | boolean | false    |                                            | `negotiateAfter`     |
 | `draftSchedule`       | enum    | `weekly` | `weekly`, `open`                           | `schedule`           |
-| `draftStartingCash`   | enum    | `median` | `median`, `250k`, `500k`, `1m`, `2m`       | `startingCash`       |
+| `draftStartingCash`   | enum    | `1m`     | `median`, `250k`, `500k`, `1m`, `2m`       | `startingCash`       |
 
 - **Roster size.** Wrestlers each promotion drafts. `auto` is
   `draft.rosterTarget` (20), capped at `wrestlers ÷ (promotions ×
@@ -43,12 +43,14 @@ draft.pool.ratio.auto)` so the auto pool fits the world, and never below
   capped at `staff ÷ promotions`. Off, staff keep their contracts. Bookers are
   never drafted.
 - **Starting cash** (DRF-10). The cash every active promotion starts with:
-  `median` (World median, the [level playing field](#level-playing-field)'s
-  median) or a preset amount ($250k, $500k, $1M, $2M). A setting holds a
+  $1M by default (DRF-11), `median` (World median, the
+  [level playing field](#level-playing-field)'s median) or another preset
+  amount ($250k, $500k, $2M). A setting holds a
   boolean or an enum, so presets stand in for free number entry. The wizard
   shows them as chips under "Start with a draft"; `previewSetup` answers the
   resulting `level.cash`, the world's `medianCash` and the `startingCash`
-  choice, and the plan line says "(the world median)" for the default.
+  choice, and the plan line says "(the world median)" when World median is
+  chosen.
 - The resolved numbers are stored on the draft row as `DraftSettings`:
   `{ order, rosterTarget, staffTarget, draftStaff, negotiateAfter, schedule }`.
 
@@ -78,9 +80,9 @@ Two new-game steps (see [new-game.md](new-game.md#setup-steps)):
 
 ### Level playing field
 
-Every active promotion gets the **median** of the active promotions' cash,
-prestige and home popularity (cash from the Starting cash setting instead,
-when it is not `median`). Home popularity is a promotion's mean
+Every active promotion gets the **median** of the active promotions'
+prestige and home popularity, and the cash the Starting cash setting gives
+($1M by default; the median cash when it is World median). Home popularity is a promotion's mean
 popularity over the regions of its home country; every promotion then gets
 that median in every region of its own home country and none elsewhere (the
 same shape as Equal start). The level is stored on the draft row (`level`)
@@ -278,23 +280,86 @@ the contract's end (`seasonContractEnd`):
 Asks depend on the promotion (reach, image, allowed kinds), so prices are
 worked out per promotion, lazily, and kept for the command.
 
-**Balance on the default world** (all 12 promotions, median cash $825,000,
-production 0, roster 20): every ask there is a per-appearance deal (reach is
-below the exclusive-deal line), so the cost is the fee × one appearance a
-week. With the wizard's default **12-month season** (52 appearances), the
-average season cost by card level is: main event $89,100 ($15,600–$187,200),
-upper card $55,000 ($18,700–$110,800), midcard $33,000 ($9,400–$104,500),
-lower card $22,300 ($7,800–$106,100), enhancement $10,900 ($6,200–$53,000).
-A sensible mix (2 main event, 4 upper, 6 mid, 5 lower, 3 enhancement) is
-about $740,000, nearly all of the median. With `autoPickRest`, 8 of 12
-promotions run out of money (rosters of 10 to 20, average 17) and every
-promotion ends the draft with $1,300–$95,000: rivals take the best value they
-can still afford, so they spend down to almost nothing. A 6-month season
-halves every cost (average roster $453,000, nobody runs out, $259,000–$460,000
-left). Asks also grow with a promotion's reach, so with only the six biggest
-promotions active the biggest pays about a third more than the others for
-the same wrestler. These are owner decisions (starting cash, a rival spending
-reserve, the appearance estimate); the defaults are unchanged.
+**Season costs on the default world** (all 12 promotions, roster 20): every
+ask there is a per-appearance deal (reach is below the exclusive-deal line),
+so the cost is the fee × one appearance a week. With the wizard's default
+**12-month season** (52 appearances), the average season cost by card level
+is: main event $89,100 ($15,600–$187,200), upper card $55,000
+($18,700–$110,800), midcard $33,000 ($9,400–$104,500), lower card $22,300
+($7,800–$106,100), enhancement $10,900 ($6,200–$53,000). A sensible mix (2
+main event, 4 upper, 6 mid, 5 lower, 3 enhancement) is about $740,000. A
+6-month season halves every cost.
+
+DRF-10 found the old default ($825,000, the median) left rivals spending down
+to almost nothing (8 of 12 short, $1,300–$95,000 left). DRF-11 made the
+default $1M and added the [rival reserve](#rival-reserve).
+
+### Rival reserve
+
+DRF-11, owner decision 2026-11-20. `reserve.ts`. A rival only takes a pick
+that leaves it `draft.ai.reserveMonths` (3) months of **running costs**:
+
+- **overhead**: production, marketing and back office at its levels (nothing
+  at level 0);
+- **medical**: its medical policy for a full roster (what it keeps plus the
+  draft's targets);
+- **shows**: its shows in the next 56 days, turned into a month: venue rent
+  where the box office's automatic pick would hold each one, travel and
+  catering at its policies for the card's headcount, and per-show production.
+  Appearance fees are left out (picks are prepaid), and so is income: the
+  reserve is what the cash must cover if nobody comes.
+
+When nothing it wants is affordable above the reserve, its turns end
+(`outOfMoney`) and it fills the rest per appearance at finish, as before.
+Under negotiate-after, `settleRivalPicks` signs a pick only while its wages
+stay under `draft.ai.payrollShare` of cash **and** the cash covers
+`reserveMonths` × (running costs + those wages a month). The player is not
+held to the reserve, only to never going below zero; the draft room turns a
+pick's cost amber, with a line in its tooltip and the confirm, when it would
+leave less than `reserveMonths` of the player's running costs (`draft.pool`
+answers `runningCostMonthly` and `reserveMonths`).
+
+**Venue for the weekly show.** The draft clears the weekly show's preferred
+venue, so it is held where its crowd fits instead of the arena the world gave
+it (CIELO's 13,500-seat arena cost about $59,000 a show against a few
+thousand dollars of tickets). This changes venues only for draft starts.
+
+**No offers to the pool.** While a draft is running or complete, a contract
+offer (`contracts.makeOffer`, the player's or a rival's) to someone in its
+pool is refused with `draft.inPool` ("In the draft pool: draft them, or wait
+until the draft is finished"; `rights.ts` `inOpenDraftPool`). The rivals'
+per-appearance signings at finish write contracts directly, so they are not
+affected.
+
+**Balance with the new defaults** ($1M, 12-month season, production 0, a 3-
+month reserve, `autoPickRest`, then 90 days played with the player not
+booking; seed `draft-start`):
+
+- **All 12 promotions:** 4 rivals and the player end their picks for lack of
+  money (picks 15 to 18 of 20); the rivals fill up with 12 per-appearance
+  signings. Rivals keep $20,000–$270,000 after the draft; after 90 days the
+  lowest have $2,500 (WATTLE) and $25,000 (HARDPN), most still have
+  $40,000–$180,000, and none is below zero. The player's auto-picks spent down
+  to $6,300 (15 wrestlers); the player's own staff wages and medical then put
+  it below zero within the first month.
+- **The six biggest only:** their reach is 22–32 (7–10 with all 12), so asks
+  are about three times higher and their shows are picked into 2,000–13,500
+  seat venues, putting running costs at $41,000–$274,000 a month. Every rival
+  stops after 2 to 4 picks and fills the rest per appearance (86 signings);
+  two of them still go below zero within 90 days. $1M is far too little
+  there: the World median ($3.25M) suits a small, big-promotion draft better.
+
+What a draft-start promotion pays at level 0 (DRF-11 audit, first month):
+production (per-show areas and the monthly overhead) is $0 at level 0, and
+nothing about stipulation matches costs money yet. Everything else is outside
+production: venue rent ($250 + $3.50 a seat × the venue kind, per show:
+$1,300–$11,000 a show, $5,000–$43,000 a month), travel and catering by policy
+level ($0 at level 0; travel up to $9,000 a month at level 3), medical by
+policy level ($0–$33,000 a month for a full roster) and the staff wages of
+promotions that keep their staff. Income is tickets and merchandise, about
+$8,000–$13,000 a month. Policies are not equalised by the draft start yet,
+and the venue pick prefers a real venue even when it is ten times the crowd;
+both are owner decisions (see the DRF-11 report).
 
 ## Commands
 

@@ -8,12 +8,14 @@
 import type { PersonId, PromotionId } from '../../core/ids';
 import type { PhaseContext } from '../../core/pipeline/context';
 import type { Draft, DraftCategory, DraftPick } from '../../model/entities/draft';
+import { promotionStatusKey } from '../../model/entities/employment';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
 import { compareIds } from '../../model/table';
 import { compareCandidates, type DraftCandidate } from './candidates';
 import { nextTurn, type Turn } from './order';
 import { DraftPricer } from './pricing';
+import { runningCostsOf } from './reserve';
 import { DraftRun, isHumanPromotion, loadDraft, picksOf, signAtAsk } from './session';
 
 /** Roster counts by category from a draft's held picks. */
@@ -138,6 +140,22 @@ function settleRivalPicks(
       pick.status === 'reserved' &&
       read.tables.promotions.get(pick.promotionId)?.controller.kind === 'computer',
   );
+  // DRF-11: and the cash must still cover `draft.ai.reserveMonths` of running costs plus wages.
+  const months = tunables.get('draft.ai.reserveMonths');
+  const running = new Map<PromotionId, number>();
+  const runningOf = (promotionId: PromotionId): number => {
+    let cost = running.get(promotionId);
+    if (cost === undefined) {
+      const headcount =
+        read.tables.employments.lookup(
+          'byPromotionStatus',
+          promotionStatusKey(promotionId, 'active'),
+        ).length + reserved.filter((pick) => pick.promotionId === promotionId).length;
+      cost = runningCostsOf(read, tunables, promotionId, ctx.date, headcount).total;
+      running.set(promotionId, cost);
+    }
+    return cost;
+  };
   // Best pick first within each promotion: the pick order is the order they wanted them.
   for (const pick of reserved) {
     const promotion = read.tables.promotions.require(pick.promotionId);
@@ -145,7 +163,8 @@ function settleRivalPicks(
     const price = pricer.price(pick.promotionId, pick.personId);
     const cost = monthlyCost(price.terms);
     const total = (spent.get(pick.promotionId) ?? 0) + cost;
-    if (total <= budget) {
+    const keeps = months <= 0 || months * (runningOf(pick.promotionId) + total) <= promotion.cash;
+    if (total <= budget && keeps) {
       const person = read.tables.people.require(pick.personId);
       const candidate: Pick<DraftCandidate, 'personId' | 'role' | 'heel'> = {
         personId: pick.personId,

@@ -679,7 +679,7 @@ describe('createNewGame: summary', () => {
       draftStaff: false,
       draftNegotiateAfter: false,
       draftSchedule: 'weekly',
-      draftStartingCash: 'median',
+      draftStartingCash: '1m',
     });
     expect(weekday(summary.startDate)).toBe(weekday(PACK_START));
   });
