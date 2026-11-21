@@ -503,35 +503,36 @@ tables later.
 
 ### Employment (`employments`, `emp_`)
 
-| Group     | Field                    | Type                                                                             | Range / rule                                     |
-| --------- | ------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------ |
-| Links     | `personId`               | `PersonId`                                                                       | ref → person                                     |
-|           | `promotionId`            | `PromotionId`                                                                    | ref → promotion                                  |
-|           | `brandId`                | `BrandId \| null`                                                                | ref → brand of the same promotion                |
-|           | `managerPersonId`        | `PersonId \| null`                                                               | ref → person; never the employee                 |
-| Lifecycle | `status`                 | `EmploymentStatus`                                                               | see the lifecycle below                          |
-|           | `offeredOn`              | `GameDate`                                                                       |                                                  |
-|           | `startsOn`               | `GameDate`                                                                       | ≥ `offeredOn`                                    |
-|           | `endsOn`                 | `GameDate \| null`                                                               | > `startsOn`; null = open-ended                  |
-|           | `endedOn`                | `GameDate \| null`                                                               | set exactly when the status is an ended one      |
-| Role      | `role`                   | `wrestler \| manager \| presenter \| announcer \| referee \| producer \| booker` |                                                  |
-| Character | `ringName`               | string                                                                           | 1–60 chars                                       |
-|           | `gimmickKey`             | `ContentKey \| null`                                                             |                                                  |
-|           | `alignment`              | `face \| heel \| tweener`                                                        |                                                  |
-|           | `push`                   | `mainEvent \| upperCard \| midCard \| lowerCard \| enhancement \| none`          |                                                  |
-| Terms     | `terms.kind`             | `written \| perAppearance \| development \| tour`                                |                                                  |
-|           | `terms.exclusive`        | boolean                                                                          |                                                  |
-|           | `terms.monthlyWage`      | `Cents`                                                                          | ≥ 0; must be 0 for `perAppearance`               |
-|           | `terms.perAppearanceFee` | `Cents`                                                                          | ≥ 0                                              |
-|           | `terms.signingBonus`     | `Cents`                                                                          | ≥ 0                                              |
-|           | `terms.shares`           | `{ gateBp, merchBp, broadcastBp }`                                               | basis points, 0–10000 each                       |
-|           | `terms.appearanceCap`    | number \| null                                                                   | whole number ≥ 1 per game year; null = no cap    |
-|           | `terms.perks`            | `{ creativeControl, noHouseShows, ironClad, travelCovered }`                     | booleans                                         |
-| State     | `morale`                 | number                                                                           | −100..100 (WRK/SOC)                              |
-|           | `momentum`               | number \| null                                                                   | −100..100; null until the first appearance (WRK) |
-|           | `appearancesThisYear`    | number                                                                           | whole number ≥ 0                                 |
-|           | `lastAppearanceOn`       | `GameDate \| null`                                                               |                                                  |
-|           | `leave`                  | `null \| { kind: suspension \| timeOff; until; paid }`                           | suspensions and time off belong to the contract  |
+| Group     | Field                    | Type                                                                             | Range / rule                                                                                                         |
+| --------- | ------------------------ | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Links     | `personId`               | `PersonId`                                                                       | ref → person                                                                                                         |
+|           | `promotionId`            | `PromotionId`                                                                    | ref → promotion                                                                                                      |
+|           | `brandId`                | `BrandId \| null`                                                                | ref → brand of the same promotion                                                                                    |
+|           | `managerPersonId`        | `PersonId \| null`                                                               | ref → person; never the employee                                                                                     |
+| Lifecycle | `status`                 | `EmploymentStatus`                                                               | see the lifecycle below                                                                                              |
+|           | `offeredOn`              | `GameDate`                                                                       |                                                                                                                      |
+|           | `startsOn`               | `GameDate`                                                                       | ≥ `offeredOn`                                                                                                        |
+|           | `endsOn`                 | `GameDate \| null`                                                               | > `startsOn`; null = open-ended                                                                                      |
+|           | `endedOn`                | `GameDate \| null`                                                               | set exactly when the status is an ended one                                                                          |
+| Role      | `role`                   | `wrestler \| manager \| presenter \| announcer \| referee \| producer \| booker` |                                                                                                                      |
+| Character | `ringName`               | string                                                                           | 1–60 chars                                                                                                           |
+|           | `gimmickKey`             | `ContentKey \| null`                                                             |                                                                                                                      |
+|           | `alignment`              | `face \| heel \| tweener`                                                        |                                                                                                                      |
+|           | `push`                   | `mainEvent \| upperCard \| midCard \| lowerCard \| enhancement \| none`          |                                                                                                                      |
+| Terms     | `terms.kind`             | `written \| perAppearance \| development \| tour`                                |                                                                                                                      |
+|           | `terms.exclusive`        | boolean                                                                          |                                                                                                                      |
+|           | `terms.monthlyWage`      | `Cents`                                                                          | ≥ 0; must be 0 for `perAppearance`                                                                                   |
+|           | `terms.perAppearanceFee` | `Cents`                                                                          | ≥ 0                                                                                                                  |
+|           | `terms.signingBonus`     | `Cents`                                                                          | ≥ 0                                                                                                                  |
+|           | `terms.shares`           | `{ gateBp, merchBp, broadcastBp }`                                               | basis points, 0–10000 each                                                                                           |
+|           | `terms.appearanceCap`    | number \| null                                                                   | whole number ≥ 1 per game year; null = no cap                                                                        |
+|           | `terms.perks`            | `{ creativeControl, noHouseShows, ironClad, travelCovered }`                     | booleans                                                                                                             |
+| State     | `morale`                 | number                                                                           | −100..100 (WRK/SOC)                                                                                                  |
+|           | `momentum`               | number \| null                                                                   | −100..100; null until the first appearance (WRK)                                                                     |
+|           | `appearancesThisYear`    | number                                                                           | whole number ≥ 0                                                                                                     |
+|           | `lastAppearanceOn`       | `GameDate \| null`                                                               |                                                                                                                      |
+|           | `leave`                  | `null \| { kind: suspension \| timeOff; until; paid }`                           | suspensions and time off belong to the contract                                                                      |
+|           | `prepaidUntil`           | `GameDate \| null`                                                               | paid up front until this day, exclusive (a draft pick's season, DRF-10); payroll and show fees skip it; default null |
 
 Indexes: `byPerson`, `byPromotion`, `byStatus`, and `byPromotionStatus` with
 the key `` `${promotionId}|${status}` `` (`promotionStatusKey`), which serves
@@ -1562,45 +1563,47 @@ DRF-01: the draft start's draft and its picks. See [draft.md](draft.md).
 One row per draft. Everything the next pick needs is here, so a save made
 mid-draft resumes exactly.
 
-| Field        | Type                                 | Notes                                                                              |
-| ------------ | ------------------------------------ | ---------------------------------------------------------------------------------- |
-| `id`         | `DraftId`                            |                                                                                    |
-| `kind`       | `start`                              | what the draft is for (brand drafts add their own)                                 |
-| `status`     | `running \| complete \| finished`    | `complete`: every pick made, waiting for `draft.finish`                            |
-| `createdOn`  | `GameDate`                           |                                                                                    |
-| `finishedOn` | `GameDate \| null`                   | set when finished                                                                  |
-| `settings`   | `DraftSettings`                      | `order`, `rosterTarget`, `staffTarget`, `draftStaff`, `negotiateAfter`, `schedule` |
-| `order`      | `PromotionId[]`                      | the promotions drafting, in round one's order                                      |
-| `turn`       | int ≥ 0                              | the next turn; full promotions' turns are skipped                                  |
-| `picks`      | int ≥ 0                              | picks made                                                                         |
-| `poolLeft`   | `{ wrestlers, staff }`               | who is left in the pool, rewritten after every command                             |
-| `level`      | `{ cash, prestige, homePopularity }` | the level every promotion started at                                               |
-| `sitOut`     | `PersonId[]`                         | wrestlers left out of the pool (DRF-07), sorted                                    |
-| `poolMix`    | per card level                       | `level`, `inPool`, `available`, `female`, `male`, `other`                          |
-| `cardLevels` | `{ personId, level }[]`              | each pool wrestler's card level when the draft began (DRF-08), sorted by person    |
+| Field        | Type                                 | Notes                                                                                      |
+| ------------ | ------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `id`         | `DraftId`                            |                                                                                            |
+| `kind`       | `start`                              | what the draft is for (brand drafts add their own)                                         |
+| `status`     | `running \| complete \| finished`    | `complete`: every pick made, waiting for `draft.finish`                                    |
+| `createdOn`  | `GameDate`                           |                                                                                            |
+| `finishedOn` | `GameDate \| null`                   | set when finished                                                                          |
+| `settings`   | `DraftSettings`                      | `order`, `rosterTarget`, `staffTarget`, `draftStaff`, `negotiateAfter`, `schedule`         |
+| `order`      | `PromotionId[]`                      | the promotions drafting, in round one's order                                              |
+| `turn`       | int ≥ 0                              | the next turn; full promotions' turns are skipped                                          |
+| `picks`      | int ≥ 0                              | picks made                                                                                 |
+| `poolLeft`   | `{ wrestlers, staff }`               | who is left in the pool, rewritten after every command                                     |
+| `level`      | `{ cash, prestige, homePopularity }` | the level every promotion started at                                                       |
+| `sitOut`     | `PersonId[]`                         | wrestlers left out of the pool (DRF-07), sorted                                            |
+| `poolMix`    | per card level                       | `level`, `inPool`, `available`, `female`, `male`, `other`                                  |
+| `cardLevels` | `{ personId, level }[]`              | each pool wrestler's card level when the draft began (DRF-08), sorted by person            |
+| `outOfMoney` | `PromotionId[]`                      | promotions whose turns ended because they cannot afford anyone left (DRF-10); default `[]` |
 
-Refs: `order[]`, `sitOut[]`, `cardLevels[].personId`. Index: `byStatus`.
+Refs: `order[]`, `sitOut[]`, `cardLevels[].personId`, `outOfMoney[]`. Index: `byStatus`.
 
 ### Draft picks (`draftPicks`, `dpk_`)
 
 One row per pick.
 
-| Field           | Type                             | Notes                                              |
-| --------------- | -------------------------------- | -------------------------------------------------- |
-| `id`            | `DraftPickId`                    |                                                    |
-| `draftId`       | `DraftId`                        |                                                    |
-| `number`        | int ≥ 1                          | across the whole draft                             |
-| `round`         | int ≥ 1                          |                                                    |
-| `promotionId`   | `PromotionId`                    |                                                    |
-| `personId`      | `PersonId`                       |                                                    |
-| `category`      | `wrestler \| staff`              |                                                    |
-| `role`          | `EmploymentRole`                 | the job drafted for                                |
-| `source`        | `player \| computer \| auto`     | who chose it                                       |
-| `value`         | 0–100                            | draft value at the pick, one decimal               |
-| `status`        | `signed \| reserved \| released` | `reserved`: unsigned, rights held                  |
-| `employmentId`  | `EmploymentId \| null`           | the contract signed at the pick                    |
-| `reservedUntil` | `GameDate \| null`               | last day the rights are held, for an unsigned pick |
-| `pickedOn`      | `GameDate`                       |                                                    |
+| Field           | Type                             | Notes                                                                     |
+| --------------- | -------------------------------- | ------------------------------------------------------------------------- |
+| `id`            | `DraftPickId`                    |                                                                           |
+| `draftId`       | `DraftId`                        |                                                                           |
+| `number`        | int ≥ 1                          | across the whole draft                                                    |
+| `round`         | int ≥ 1                          |                                                                           |
+| `promotionId`   | `PromotionId`                    |                                                                           |
+| `personId`      | `PersonId`                       |                                                                           |
+| `category`      | `wrestler \| staff`              |                                                                           |
+| `role`          | `EmploymentRole`                 | the job drafted for                                                       |
+| `source`        | `player \| computer \| auto`     | who chose it                                                              |
+| `value`         | 0–100                            | draft value at the pick, one decimal                                      |
+| `status`        | `signed \| reserved \| released` | `reserved`: unsigned, rights held                                         |
+| `employmentId`  | `EmploymentId \| null`           | the contract signed at the pick                                           |
+| `reservedUntil` | `GameDate \| null`               | last day the rights are held, for an unsigned pick                        |
+| `pickedOn`      | `GameDate`                       |                                                                           |
+| `cost`          | `Cents \| null`                  | the season contract paid at the pick (DRF-10); null when nothing was paid |
 
 Refs: `draftId`, `promotionId`, `personId`, `employmentId` (nullable).
 Indexes: `byDraft`, `byPerson`, `byDraftPromotion`. Saves list both tables

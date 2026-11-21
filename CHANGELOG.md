@@ -16,6 +16,16 @@ How I write an entry:
 
 ## Unreleased
 
+### Changed
+
+- I changed how a draft start pays for picks. The draft board shows what each wrestler costs for
+  the whole season, and you pay it all when you draft them, so their wages and fees don't come
+  out of your money during the season. You can't go below zero in the draft: if you can't afford
+  anyone left, your picks end, and you can fill the roster with free agents on per-appearance
+  deals. Rivals do the same.
+- I added a Starting cash choice to the draft options (the world median, or $250k up to $2M), and
+  you can click a name on the draft board to open their profile.
+
 ## [0.1.0-alpha.4] - 2026-11-20
 
 ### Added
