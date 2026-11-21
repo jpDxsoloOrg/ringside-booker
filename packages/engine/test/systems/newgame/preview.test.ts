@@ -145,6 +145,7 @@ describe('previewWorld', () => {
       'draftStaff',
       'draftNegotiateAfter',
       'draftSchedule',
+      'draftStartingCash',
     ]);
     const keys = preview()
       .settings.map((setting) => setting.key)
