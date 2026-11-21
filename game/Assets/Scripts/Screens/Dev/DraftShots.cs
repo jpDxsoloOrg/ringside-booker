@@ -11,6 +11,7 @@ using RingsideBooker.Screens.Draft;
 using RingsideBooker.UI;
 using RingsideBooker.UI.Bridge;
 using RingsideBooker.UI.Day;
+using RingsideBooker.UI.Navigation;
 using RingsideBooker.UI.Shell;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -120,6 +121,26 @@ namespace RingsideBooker.Screens.Dev
             yield return WaitIdle(1f);
             Check(view.PoolRows.Count > 0 && view.PoolRows.All(row => Kit.Str(row, "level") == "mainEvent"), $"the card level filter shows {view.PoolRows.Count} main eventers");
             yield return Capture("draft-main-eventers");
+
+            // ---- DRF-10: costs, cash left, and a profile from the board (Back keeps the filter) ----
+            Check(view.PoolRows.All(row => Kit.Num(row, "cost") > 0), "every pool row shows a season cost");
+            Check(view.Root.Q("draft-cash") != null, $"the header shows cash left ({Kit.Num(view.State, "you.cash")})");
+            JToken star = view.PoolRows.First();
+            view.OpenProfile(star);
+            until = Time.realtimeSinceStartup + 10f;
+            while (ShellController.Current.Navigator.Current?.ScreenId != ScreenIds.Worker && Time.realtimeSinceStartup < until) yield return null;
+            yield return WaitIdle(1.5f);
+            VisualElement screen = ShellController.Current.Navigator.Current?.ScreenId == ScreenIds.Worker ? ShellController.Current.GetComponent<UIDocument>().rootVisualElement : null;
+            Check(screen != null, $"the board opens {Kit.Str(star, "name")}'s profile");
+            Check(screen?.Q("worker-contract-action") == null && screen?.Q("worker-trade-action") == null, "the profile offers no contract or trade mid-draft");
+            yield return Capture("draft-profile");
+            ShellController.Current.Navigator.Back();
+            until = Time.realtimeSinceStartup + 15f;
+            while ((DraftScreen.Current == view || DraftScreen.Current?.Root.panel == null || DraftScreen.Current.PoolRows.Count == 0) && Time.realtimeSinceStartup < until) yield return null;
+            yield return WaitIdle(1f);
+            view = DraftScreen.Current;
+            Check(ShellController.Current.Navigator.Current?.ScreenId == DraftScreen.ScreenId && view.PoolRows.All(row => Kit.Str(row, "level") == "mainEvent"),
+                "Back returns to the draft room with the filter kept");
             view.FilterLevel(null);
             yield return WaitIdle(0.5f);
             view.SortPool("value", true);
@@ -135,7 +156,13 @@ namespace RingsideBooker.Screens.Dev
             Task<string> picked = view.Pick(firstId, Kit.Str(first, "name"));
             yield return Await(picked);
             Check(picked.Result == null, $"you drafted {Kit.Str(first, "name")} ({picked.Result ?? "ok"})");
+            double cashBefore = Kit.Num(view.State, "you.cash") ?? 0;
             yield return WaitIdle(1.2f);
+            if (!negotiate)
+            {
+                double cashAfter = Kit.Num(view.State, "you.cash") ?? 0;
+                Check(Math.Abs(cashBefore - cashAfter - (Kit.Num(first, "cost") ?? -1)) < 1, $"the pick's season cost came off your cash ({cashBefore} to {cashAfter})");
+            }
             yield return Capture("draft-after-pick");
 
             // ---- Sim to the next pick ----

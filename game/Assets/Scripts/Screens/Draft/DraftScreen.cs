@@ -25,6 +25,16 @@ namespace RingsideBooker.Screens.Draft
         /// <summary>The screen built last (the tour reads it).</summary>
         public static DraftView Current { get; private set; }
 
+        /// <summary>
+        /// True while the open game's draft is running or waiting to be finished, as last read
+        /// (DRF-10). A worker profile opened from the draft board hides contract and trade actions
+        /// then: picks are made in the draft room.
+        /// </summary>
+        public static bool InProgress { get; private set; }
+
+        /// <summary>Records the draft's status as a screen last read it.</summary>
+        internal static void Saw(string status) => InProgress = status == "running" || status == "complete";
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Register()
         {
@@ -49,6 +59,7 @@ namespace RingsideBooker.Screens.Draft
             {
                 QueryResult<JToken> state = await game.Client.Query("draft.state", new JObject { ["recent"] = 1 });
                 string status = state.Ok ? Kit.Str(state.Data, "draft.status") : null;
+                Saw(status);
                 if ((status == "running" || status == "complete") && ShellController.Current == shell && shell.Navigator.Current?.ScreenId != ScreenId)
                 {
                     shell.Navigator.Go(ScreenId);

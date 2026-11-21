@@ -626,3 +626,38 @@
     justify-content: center;
     margin-top: 8px;
 }
+
+/* DRF-10: cash left in the header, picks you can't afford greyed, the short-roster line. */
+.dr-cash {
+    align-items: flex-end;
+    margin-right: 12px;
+}
+
+.dr-cash__label {
+    color: var(--ds-text-3);
+}
+
+.dr-cash__value {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: var(--ds-text);
+}
+
+.dr-muted {
+    opacity: 0.45;
+}
+
+.dr-short {
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-left-width: 3px;
+    border-left-color: var(--ds-warn);
+    background-color: var(--ds-elev-1);
+}
+
+.dr-short > .dr-quiet {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-right: 12px;
+}

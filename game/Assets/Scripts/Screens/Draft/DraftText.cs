@@ -21,6 +21,10 @@ namespace RingsideBooker.Screens.Draft
         public const string StaffKey = "draftStaff";
         public const string NegotiateAfterKey = "draftNegotiateAfter";
         public const string ScheduleKey = "draftSchedule";
+        public const string StartingCashKey = "draftStartingCash";
+
+        /// <summary>The Contracts free-agent list's line for anyone short of money (DRF-10).</summary>
+        public const string PerAppearanceHint = "Short of money? Offer a per-appearance deal: no wage, just a fee each time they work.";
 
         /// <summary>The draft settings shown under "More draft options" (the rest show with the toggle).</summary>
         public static readonly IReadOnlyList<string> MoreOptionKeys = new[] { PoolSizeKey, OrderKey, StaffKey };
@@ -67,6 +71,11 @@ namespace RingsideBooker.Screens.Draft
             (OrderKey, "bySize") => "Smallest first",
             (ScheduleKey, "weekly") => "One show a week",
             (ScheduleKey, "open") => "Open",
+            (StartingCashKey, "median") => "World median",
+            (StartingCashKey, "250k") => "$250k",
+            (StartingCashKey, "500k") => "$500k",
+            (StartingCashKey, "1m") => "$1M",
+            (StartingCashKey, "2m") => "$2M",
             _ => null,
         };
 
@@ -109,8 +118,45 @@ namespace RingsideBooker.Screens.Draft
         };
 
         /// <summary>"The level playing field" in one line: cash and home popularity every promotion starts with.</summary>
-        public static string LevelLine(double cashCents, double homePopularity, double prestige) =>
-            $"Every promotion starts with {TextFormat.Money((long)Math.Round(cashCents))}, prestige {Whole(prestige)} and popularity {Whole(homePopularity)} at home. No TV deals, every title vacant.";
+        public static string LevelLine(double cashCents, double homePopularity, double prestige) => LevelLine(cashCents, homePopularity, prestige, null);
+
+        /// <summary>
+        /// The level line with where the cash comes from (DRF-10): "(the world median)" for the
+        /// default Starting cash, nothing extra for a chosen amount.
+        /// </summary>
+        public static string LevelLine(double cashCents, double homePopularity, double prestige, string startingCash) =>
+            $"Every promotion starts with {TextFormat.Money((long)Math.Round(cashCents))}{(startingCash == "median" ? " (the world median)" : string.Empty)}, prestige {Whole(prestige)} and popularity {Whole(homePopularity)} at home. No TV deals, every title vacant.";
+
+        // ---- Money (DRF-10) ---------------------------------------------------------------------
+
+        /// <summary>Why a pick is out of reach: "Costs $120,000; you have $80,000."</summary>
+        public static string CannotAfford(double costCents, double cashCents) =>
+            $"Costs {TextFormat.Money((long)Math.Round(costCents))}; you have {TextFormat.Money((long)Math.Round(cashCents))}.";
+
+        /// <summary>What a pick's season cost is made of, for its tooltip.</summary>
+        public static string CostDetail(double wagesCents, double appearances, double feesCents, bool paysUpFront)
+        {
+            var parts = new List<string>();
+            if (wagesCents > 0) parts.Add($"{TextFormat.Money((long)Math.Round(wagesCents))} in wages");
+            if (feesCents > 0) parts.Add($"{Whole(appearances)} appearances for {TextFormat.Money((long)Math.Round(feesCents))}");
+            string made = parts.Count == 0 ? string.Empty : " (" + string.Join(", ", parts) + ")";
+            return paysUpFront
+                ? $"Their whole season contract{made}, paid when you draft them."
+                : $"Their season contract at their ask{made}. You agree the real terms after the draft.";
+        }
+
+        /// <summary>
+        /// The finish line for a roster you could not fill: null when it is full. Points at
+        /// per-appearance deals, which cost nothing up front.
+        /// </summary>
+        public static string ShortRosterLine(int wrestlersShort, bool outOfMoney)
+        {
+            if (wrestlersShort <= 0) return null;
+            string who = $"{wrestlersShort} {(wrestlersShort == 1 ? "wrestler" : "wrestlers")}";
+            return outOfMoney
+                ? $"You ran out of money {who} short. Sign free agents on per-appearance deals in Contracts: no wage, just a fee each time they work."
+                : $"You are {who} short. Sign free agents on per-appearance deals in Contracts: no wage, just a fee each time they work.";
+        }
 
         /// <summary>"300 wrestlers in the pool, 191 sit out" (staff added when they are drafted).</summary>
         public static string PoolLine(int poolWrestlers, int sittingOut, int poolStaff)

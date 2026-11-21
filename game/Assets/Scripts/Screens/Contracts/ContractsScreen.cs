@@ -657,6 +657,7 @@ namespace RingsideBooker.Screens.Contracts
 
             if (tab == ContractsScreen.TabExpiring) listHost.Add(ExpiringIntro());
             if (tab == ContractsScreen.TabOffers) AddNewAnswers();
+            if (tab == ContractsScreen.TabFreeAgents) listHost.Add(Ds.Text(Draft.DraftText.PerAppearanceHint, "ct-quiet").Named("contracts-per-appearance-hint"));
 
             List<JToken> all = RowsFor(tab, out bool loading);
             if (loading)
