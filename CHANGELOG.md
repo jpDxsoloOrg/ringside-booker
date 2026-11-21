@@ -18,6 +18,9 @@ How I write an entry:
 
 ### Changed
 
+- I made a draft start begin every promotion with all production at level 0, so nobody burns
+  through the shared starting cash on day one. Raise each area in Production when you can afford
+  it; rivals raise theirs as their money allows.
 - I changed how a draft start pays for picks. The draft board shows what each wrestler costs for
   the whole season, and you pay it all when you draft them, so their wages and fees don't come
   out of your money during the season. You can't go below zero in the draft: if you can't afford
