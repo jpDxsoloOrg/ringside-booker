@@ -25,6 +25,7 @@ import { draftCandidates, type DraftCandidate } from './candidates';
 import { nextTurn, type Turn } from './order';
 import { DraftPricer, seasonContractEnd, type PickPrice } from './pricing';
 import { draftReserve } from './reserve';
+import { draftForcesExclusive } from './rights';
 import { seasonCostTrace } from './seasonCost';
 
 export { seasonContractEnd } from './pricing';
@@ -165,7 +166,11 @@ export function signAtAsk(
     gimmickKey: null,
     alignment: candidate.heel ? 'heel' : 'face',
     push: candidate.role === 'wrestler' ? contract.expectedPush : 'none',
-    terms: { ...contract.terms },
+    // DRF-12: drafted jobs are exclusive in a draft game (the pricer's asks already are).
+    terms: {
+      ...contract.terms,
+      exclusive: contract.terms.exclusive || draftForcesExclusive(read, candidate.role),
+    },
     morale: 0,
     momentum: null,
     appearancesThisYear: 0,

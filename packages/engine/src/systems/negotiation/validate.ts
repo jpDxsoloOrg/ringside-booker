@@ -10,7 +10,13 @@
  * Design: docs/design/negotiation.md#commands.
  */
 
-import { IN_DRAFT_POOL_MESSAGE, IN_DRAFT_POOL_REASON_CODE, inOpenDraftPool } from '../draft/rights';
+import {
+  DRAFT_EXCLUSIVE_ONLY_CODE,
+  DRAFT_EXCLUSIVE_ONLY_MESSAGE,
+  IN_DRAFT_POOL_MESSAGE,
+  IN_DRAFT_POOL_REASON_CODE,
+  inOpenDraftPool,
+} from '../draft/rights';
 import { controlsPromotion, type Controller } from '../../core/api/controller';
 import type { Reason } from '../../core/api/result';
 import { addDays, compareDates, diffDays, type GameDate } from '../../core/date';
@@ -208,6 +214,13 @@ function kindReasons(input: OfferInput, evaluation: OfferEvaluation): Reason[] {
       reason(KIND_NOT_ALLOWED_CODE, first?.message ?? `${kind.label}s are not open to you`, {
         field: 'offer.terms.kind',
         ...(first?.subject === undefined ? {} : { subject: first.subject }),
+      }),
+    );
+  }
+  if (!terms.exclusive && ask.exclusiveForced) {
+    reasons.push(
+      reason(DRAFT_EXCLUSIVE_ONLY_CODE, DRAFT_EXCLUSIVE_ONLY_MESSAGE, {
+        field: 'offer.terms.exclusive',
       }),
     );
   }

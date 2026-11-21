@@ -48,6 +48,7 @@ import { marketValue } from './formulas/marketValue';
 import { exclusiveContractShortfall } from './formulas/reachGate';
 import { ASKING_TERMS_DOC_REF, RENEWALS_DOC_REF, signedText, wholeText } from './formulas/shared';
 import { startPatience } from './formulas/startPatience';
+import { draftForcesExclusive } from '../draft/rights';
 import { isJobChange } from './jobChange';
 import {
   isTermEnforced,
@@ -130,6 +131,11 @@ export interface AskingTerms {
   readonly exclusiveAllowed: boolean;
   /** Why an exclusive deal may not be offered, else empty. */
   readonly exclusiveReasons: Reason[];
+  /**
+   * True when the deal must be exclusive (DRF-12: a drafted job in a draft game). The reach gate on
+   * exclusive deals does not apply then.
+   */
+  readonly exclusiveForced: boolean;
   readonly startPatience: Traced<number>;
   /** Why the worker will not negotiate at all (an unhappy renewal), or null. */
   readonly refusal: Reason | null;
@@ -516,10 +522,12 @@ export function askedKind(
   request: { readonly kind?: ContractKind | undefined; readonly exclusive?: boolean | undefined },
 ): { kind: ContractKind; exclusive: boolean } {
   const kind = request.kind ?? basis.renewing?.terms.kind ?? basis.bestKind ?? 'perAppearance';
+  // DRF-12: in a draft game a drafted job is always exclusive, whatever was asked.
   const exclusive =
-    request.exclusive ??
-    basis.renewing?.terms.exclusive ??
-    (kind === 'written' && context.exclusiveReasons.length === 0);
+    draftForcesExclusive(context.read, basis.role) ||
+    (request.exclusive ??
+      basis.renewing?.terms.exclusive ??
+      (kind === 'written' && context.exclusiveReasons.length === 0));
   return { kind, exclusive };
 }
 
@@ -541,6 +549,7 @@ export function askingTermsWith(
   const basis = askBasisWith(context, person, request.renewalOf, eligibility, jobRole);
   const { renewing } = basis;
   const { kind, exclusive } = askedKind(context, basis, request);
+  const forcedExclusive = draftForcesExclusive(read, basis.role);
   const { monthlyWage, perAppearanceFee } = askedPay(context, basis, kind, exclusive);
   const patienceModifiers = listPatienceModifiers()
     .map((modifier) => modifier.compute(read, person.id, promotion.id, date, tunables))
@@ -565,8 +574,9 @@ export function askingTermsWith(
     expectedPush: expectedPushAt(read, person.id, promotion.id, tunables, jobRole ?? undefined),
     allowedKinds: basis.allowedKinds,
     bestKind: basis.bestKind,
-    exclusiveAllowed: context.exclusiveReasons.length === 0,
-    exclusiveReasons: context.exclusiveReasons,
+    exclusiveAllowed: forcedExclusive || context.exclusiveReasons.length === 0,
+    exclusiveReasons: forcedExclusive ? [] : context.exclusiveReasons,
+    exclusiveForced: forcedExclusive,
     startPatience: startPatience(
       {
         traits: person.traits,

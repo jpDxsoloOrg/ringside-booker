@@ -13,12 +13,16 @@
 import { compareDates, type GameDate } from '../../core/date';
 import type { PersonId, PromotionId } from '../../core/ids';
 import type { Draft, DraftPick } from '../../model/entities/draft';
+import type { EmploymentRole } from '../../model/entities/employment';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
 
 export const SITTING_OUT_REASON_CODE = 'draft.sittingOut';
 export const DRAFT_RIGHTS_REASON_CODE = 'draft.rightsHeld';
 export const IN_DRAFT_POOL_REASON_CODE = 'draft.inPool';
+export const DRAFT_EXCLUSIVE_ONLY_CODE = 'draft.exclusiveOnly';
+export const DRAFT_EXCLUSIVE_ONLY_MESSAGE =
+  'In a draft game, drafted jobs are exclusive: they only work for the promotion that signs them';
 export const IN_DRAFT_POOL_MESSAGE =
   'In the draft pool: draft them, or wait until the draft is finished';
 
@@ -98,4 +102,23 @@ export function inOpenDraftPool(read: GameWorldView, personId: PersonId): boolea
     return false;
   }
   return open.settings.draftStaff || person.roles.includes('wrestler');
+}
+
+/**
+ * True when contracts for this job must be exclusive (DRF-12): the game started with a draft, and
+ * the job is one the draft took (wrestlers; every staff job but booker when staff were drafted).
+ * Per-appearance deals are allowed, but exclusive. Games without a draft never force it.
+ *
+ * The one place the rule lives: the asking terms (and so every term builder that starts from
+ * them), the draft's signings and the offer validation all ask here.
+ */
+export function draftForcesExclusive(read: GameWorldView, role: EmploymentRole): boolean {
+  if (role === 'booker') {
+    return false;
+  }
+  // Every draft is a draft start today (DRAFT_KINDS); a brand draft (BRW1) will check its kind.
+  for (const draft of read.tables.drafts.values()) {
+    return role === 'wrestler' || draft.settings.draftStaff;
+  }
+  return false;
 }
