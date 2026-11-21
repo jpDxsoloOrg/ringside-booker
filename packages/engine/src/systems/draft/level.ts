@@ -15,7 +15,6 @@ import { cents, type Cents } from '../../core/money';
 import type { RegionId } from '../../core/ids';
 import type { DraftLevel } from '../../model/entities/draft';
 import {
-  PRODUCTION_AREAS,
   PRODUCTION_LEVEL_MIN,
   type Production,
   type Promotion,
@@ -120,9 +119,15 @@ export function levelledFields(
 
 /** Every production area at the lowest level: where a draft start begins (DRF-09). */
 export function lowestProduction(): Production {
-  const production = {} as Record<(typeof PRODUCTION_AREAS)[number], number>;
-  for (const area of PRODUCTION_AREAS) {
-    production[area] = PRODUCTION_LEVEL_MIN;
-  }
-  return production;
+  const level = PRODUCTION_LEVEL_MIN;
+  return {
+    stage: level,
+    camera: level,
+    editing: level,
+    pyro: level,
+    music: level,
+    writing: level,
+    marketing: level,
+    backOffice: level,
+  };
 }
