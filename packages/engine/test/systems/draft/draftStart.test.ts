@@ -1,4 +1,4 @@
-// Draft start (DRF-01, DRF-03, DRF-07) on the shipped default world: the setup, the picks, the
+// Draft start (DRF-01, DRF-03, DRF-07, DRF-09) on the shipped default world: the setup, the picks, the
 // contracts, the gate and saving mid-draft. Design: docs/design/draft.md
 import { describe, expect, it } from 'vitest';
 import type { EngineState } from '../../../src/core/api';
@@ -72,6 +72,15 @@ describe('draft start setup', () => {
     // The median of the world's promotions (the default world: cash 825,000.00).
     expect(draft?.level).toEqual({ cash: 82_500_000, prestige: 51, homePopularity: 13 });
     expect(world.tables.deals).toHaveLength(0);
+  });
+
+  it('starts every production area at level 0 (DRF-09)', () => {
+    for (const promotion of active) {
+      expect(
+        Object.values(promotion.production).every((level) => level === 0),
+        promotion.name,
+      ).toBe(true);
+    }
   });
 
   it('leaves each promotion one weekly show', () => {

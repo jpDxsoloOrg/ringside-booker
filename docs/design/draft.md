@@ -78,10 +78,15 @@ and shown by `draft.preview` and the wizard's `previewSetup`, together with
 what was equalised and what was not:
 
 - **Equalised**: cash, prestige, home popularity, TV deals (none), titles
-  (vacant), rosters (drafted).
+  (vacant), rosters (drafted), production (every area at level 0, DRF-09).
 - **Not equalised** (listed for the owner to decide): home region and
-  country, production levels and policies, brands, venues and show sizes, and
-  the rival rules shortcuts (the separate Level playing field setting, D-01).
+  country, staff policies, brands, venues and show sizes, and the rival rules
+  shortcuts (the separate Level playing field setting, D-01).
+
+Production starts at 0 so the shared cash is not eaten by production the
+old world paid for. The player raises levels in Production; rivals raise
+them through the rival production budget (one level a month, when they can
+afford it and a ceiling is holding them back).
 
 The default world's level is cash 825,000.00, prestige 51 and home popularity 13.
 
