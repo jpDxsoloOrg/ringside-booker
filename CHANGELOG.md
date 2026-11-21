@@ -32,6 +32,8 @@ How I write an entry:
   months of running costs while they draft. The draft board quietly warns you when a pick would
   leave you less than that. Nobody can make contract offers to the draft pool until the draft is
   finished, and each promotion's weekly show now runs in a venue its crowd fits.
+- I made every contract in a draft game exclusive, per-appearance deals too: a wrestler you
+  draft or sign only works for you. Games without a draft work as before.
 
 ## [0.1.0-alpha.4] - 2026-11-20
 

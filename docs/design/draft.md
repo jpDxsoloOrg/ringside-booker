@@ -231,6 +231,23 @@ DRF-03 and DRF-10, owner decisions 2026-11-20:
   expectations, renewals and trades see the real deal. A traded prepaid
   worker's new contract is paid as usual: the prepayment stays with the
   promotion that paid it.
+- **Exclusive** (DRF-12, owner decision 2026-11-20). In a game that started
+  with a draft, every contract for a drafted job is exclusive: wrestlers, and
+  every staff job but booker when staff were drafted. Per-appearance deals are
+  allowed, but exclusive too: the worker only works for the promotion that
+  signed them. The rule lives in one place, `draftForcesExclusive(read, role)`
+  (`rights.ts`): the asking terms use it (`AskingTerms.exclusiveForced`; the
+  exclusive ask is priced, and the reach gate on exclusive deals does not
+  apply), so the board's season cost, the picks, the rivals' negotiate-after
+  signings and the per-appearance fills at finish all sign the same exclusive
+  terms; `signAtAsk` sets it too. A non-exclusive offer for a drafted job is
+  refused with `draft.exclusiveOnly`, for the player and for rivals alike, and
+  the negotiation sheet locks the Exclusive switch on with "Exclusive (draft)".
+  Enforcement is the existing exclusivity: another promotion's talks with the
+  worker answer `underContract` ("Under an exclusive contract with …") until
+  the approach window before it ends, an exclusive signing cuts any other deal
+  short, and only the show's own roster can be booked. Games without a draft
+  are unchanged.
 - **Never below zero in the draft** (DRF-10). A pick whose season cost is
   more than the promotion's cash is refused (`draft.cantAfford`: "Their
   season contract costs $X; you have $Y."). Rivals, `simToMyPick`,
