@@ -285,30 +285,37 @@ describe('under "Negotiate contracts after the draft"', () => {
 });
 
 describe('the Starting cash setting', () => {
-  it('defaults to the world median', () => {
+  it('defaults to $1M, with the world median still on offer (DRF-11)', () => {
     const preview = previewSetup(DEFAULT_PACKS, 'default-world', {
       playerPromotionKey: FLAGSHIP,
       settings: { draftStart: true },
     });
     expect(preview.ok).toBe(true);
     if (preview.ok) {
-      expect(preview.value.draft?.startingCash).toBe('median');
-      expect(preview.value.draft?.level.cash).toBe(preview.value.draft?.medianCash);
+      expect(preview.value.draft?.startingCash).toBe('1m');
+      expect(preview.value.draft?.level.cash).toBe(100_000_000);
     }
+    const median = previewSetup(DEFAULT_PACKS, 'default-world', {
+      playerPromotionKey: FLAGSHIP,
+      settings: { draftStart: true, draftStartingCash: 'median' },
+    });
+    expect(median.ok && median.value.draft?.level.cash).toBe(
+      median.ok ? median.value.draft?.medianCash : -1,
+    );
   });
 
   it('sets every active promotion cash in the game and the preview', () => {
-    const state = startDraftGame({ settings: { draftStartingCash: '1m' } });
+    const state = startDraftGame({ settings: { draftStartingCash: '2m' } });
     const draft = state.world.tables.drafts[0]!;
-    expect(draft.level.cash).toBe(100_000_000);
+    expect(draft.level.cash).toBe(200_000_000);
     for (const promotionId of draft.order) {
-      expect(cashOf(state, promotionId)).toBe(100_000_000);
+      expect(cashOf(state, promotionId)).toBe(200_000_000);
     }
     const preview = previewSetup(DEFAULT_PACKS, 'default-world', {
       playerPromotionKey: FLAGSHIP,
-      settings: { draftStart: true, draftStartingCash: '1m' },
+      settings: { draftStart: true, draftStartingCash: '2m' },
     });
-    expect(preview.ok && preview.value.draft?.level.cash).toBe(100_000_000);
-    expect(preview.ok && preview.value.draft?.medianCash).not.toBe(100_000_000);
+    expect(preview.ok && preview.value.draft?.level.cash).toBe(200_000_000);
+    expect(preview.ok && preview.value.draft?.medianCash).not.toBe(200_000_000);
   });
 });

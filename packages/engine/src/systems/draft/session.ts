@@ -14,7 +14,7 @@ import { cents } from '../../core/money';
 import type { EmploymentId, PersonId, PromotionId } from '../../core/ids';
 import type { PhaseContext } from '../../core/pipeline/context';
 import type { Draft, DraftPick, DraftPickSource } from '../../model/entities/draft';
-import type { ContractTerms, Push } from '../../model/entities/employment';
+import { promotionStatusKey, type ContractTerms, type Push } from '../../model/entities/employment';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
 import { asCost } from '../finance/phases';
@@ -24,6 +24,7 @@ import { boardWeights, DraftBoard, emptyRoster, countOnRoster, type PickChoice }
 import { draftCandidates, type DraftCandidate } from './candidates';
 import { nextTurn, type Turn } from './order';
 import { DraftPricer, seasonContractEnd, type PickPrice } from './pricing';
+import { draftReserve } from './reserve';
 import { seasonCostTrace } from './seasonCost';
 
 export { seasonContractEnd } from './pricing';
@@ -211,6 +212,7 @@ export class DraftRun {
   /** Picks are paid up front (the default): nobody may pick what they cannot pay for. */
   readonly #payUpFront: boolean;
   readonly #cash = new Map<PromotionId, number>();
+  readonly #reserves = new Map<PromotionId, number>();
   readonly #outOfMoney: Set<PromotionId>;
   #turn: number;
   #picks: number;
@@ -249,11 +251,48 @@ export class DraftRun {
     return cash;
   }
 
-  /** True when the promotion can pay for this pick now (always, when nothing is paid up front). */
+  /**
+   * The cash a rival keeps while drafting (DRF-11): `draft.ai.reserveMonths` of its running costs
+   * for a full roster. 0 for a player, who is only kept from going below zero.
+   */
+  reserveOf(promotionId: PromotionId): number {
+    let reserve = this.#reserves.get(promotionId);
+    if (reserve === undefined) {
+      const read = this.#ctx.read;
+      if (isHumanPromotion(read, promotionId)) {
+        reserve = 0;
+      } else {
+        const { settings } = this.#loaded.draft;
+        const roster = this.board.roster(promotionId);
+        const kept = read.tables.employments.lookup(
+          'byPromotionStatus',
+          promotionStatusKey(promotionId, 'active'),
+        ).length;
+        const toCome =
+          Math.max(0, settings.rosterTarget - (roster?.wrestlers ?? 0)) +
+          Math.max(0, settings.staffTarget - (roster?.staff ?? 0));
+        reserve = draftReserve(
+          read,
+          this.#ctx.tunables,
+          promotionId,
+          this.#ctx.date,
+          kept + toCome,
+        );
+      }
+      this.#reserves.set(promotionId, reserve);
+    }
+    return reserve;
+  }
+
+  /**
+   * True when the promotion can pay for this pick now: always when nothing is paid up front; else
+   * a player while it leaves them at zero or more, a rival while it leaves its reserve.
+   */
   canAfford(promotionId: PromotionId, candidate: Pick<DraftCandidate, 'personId'>): boolean {
     return (
       !this.#payUpFront ||
-      this.#pricer.price(promotionId, candidate.personId).cost.total <= this.cashOf(promotionId)
+      this.#pricer.price(promotionId, candidate.personId).cost.total <=
+        this.cashOf(promotionId) - this.reserveOf(promotionId)
     );
   }
 

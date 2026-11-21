@@ -15,7 +15,7 @@
  * | `draftStaff`          | boolean | false   |                                           |
  * | `draftNegotiateAfter` | boolean | false   |                                           |
  * | `draftSchedule`       | enum    | `weekly`| `weekly`, `open`                          |
- * | `draftStartingCash`   | enum    | `median`| `median`, `250k`, `500k`, `1m`, `2m`      |
+ * | `draftStartingCash`   | enum    | `1m`    | `median`, `250k`, `500k`, `1m`, `2m`      |
  *
  * Design: docs/design/draft.md#settings.
  */
@@ -146,10 +146,10 @@ export const DRAFT_SETTINGS: readonly NewGameSettingDef[] = [
     key: 'draftStartingCash',
     kind: 'enum',
     options: [...DRAFT_STARTING_CASH],
-    default: 'median',
+    default: '1m',
     label: 'Starting cash',
     description:
-      "The money every promotion starts with. World median: the middle of the active promotions' cash. A pick's whole season contract is paid from it at the pick.",
+      "The money every promotion starts with: $1M unless you choose otherwise. World median: the middle of the active promotions' cash. A pick's whole season contract is paid from it at the pick.",
     group: 'draft',
     requires: 'draftStart',
   },
@@ -199,6 +199,6 @@ export function draftOptionsFrom(settings: ResolvedNewGameSettings): DraftOption
     draftStaff: settings['draftStaff'] === true,
     negotiateAfter: settings['draftNegotiateAfter'] === true,
     schedule: enumOf<DraftSchedule>(settings['draftSchedule'], ['weekly', 'open'], 'weekly'),
-    startingCash: enumOf(settings['draftStartingCash'], DRAFT_STARTING_CASH, 'median'),
+    startingCash: enumOf(settings['draftStartingCash'], DRAFT_STARTING_CASH, '1m'),
   };
 }

@@ -10,6 +10,7 @@
  * Design: docs/design/negotiation.md#commands.
  */
 
+import { IN_DRAFT_POOL_MESSAGE, IN_DRAFT_POOL_REASON_CODE, inOpenDraftPool } from '../draft/rights';
 import { controlsPromotion, type Controller } from '../../core/api/controller';
 import type { Reason } from '../../core/api/result';
 import { addDays, compareDates, diffDays, type GameDate } from '../../core/date';
@@ -358,6 +359,10 @@ export function checkOffer(
   );
   for (const blocked of eligibility.reasons) {
     reasons.push(reason(UNAVAILABLE_CODE, blocked.message, { subject }));
+  }
+  // DRF-11: while a draft runs, people in its pool are drafted, not offered contracts.
+  if (!renewing && inOpenDraftPool(read, input.personId)) {
+    reasons.push(reason(IN_DRAFT_POOL_REASON_CODE, IN_DRAFT_POOL_MESSAGE, { subject }));
   }
   if (!renewing && eligibility.reasons.length === 0) {
     if (eligibility.situation === 'yours') {

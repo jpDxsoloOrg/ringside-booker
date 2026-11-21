@@ -18,6 +18,9 @@ import type { DeepReadonly } from '../../model/world';
 
 export const SITTING_OUT_REASON_CODE = 'draft.sittingOut';
 export const DRAFT_RIGHTS_REASON_CODE = 'draft.rightsHeld';
+export const IN_DRAFT_POOL_REASON_CODE = 'draft.inPool';
+export const IN_DRAFT_POOL_MESSAGE =
+  'In the draft pool: draft them, or wait until the draft is finished';
 
 const sitOutSets = new WeakMap<object, ReadonlySet<string>>();
 
@@ -65,4 +68,34 @@ export function rightsHolder(
   date: GameDate,
 ): PromotionId | null {
   return heldRights(read, personId, date)?.promotionId ?? null;
+}
+
+/**
+ * True while a draft is running (or waiting to be finished) and this person is in its pool: not
+ * sitting out, with no signed, offered or active contract, in a category the draft takes
+ * (wrestlers; staff too when staff are drafted). Nobody may offer them a contract then (DRF-11):
+ * they are picked in the draft, or signed once it is finished.
+ */
+export function inOpenDraftPool(read: GameWorldView, personId: PersonId): boolean {
+  let open: DeepReadonly<Draft> | undefined;
+  for (const draft of read.tables.drafts.values()) {
+    if (draft.status === 'running' || draft.status === 'complete') {
+      open = draft;
+      break;
+    }
+  }
+  if (open === undefined || sitOutSetOf(open).has(personId)) {
+    return false;
+  }
+  const person = read.tables.people.get(personId);
+  if (person === undefined) {
+    return false;
+  }
+  const live = read.tables.employments
+    .lookup('byPerson', personId)
+    .some((row) => row.status === 'active' || row.status === 'signed' || row.status === 'offered');
+  if (live) {
+    return false;
+  }
+  return open.settings.draftStaff || person.roles.includes('wrestler');
 }

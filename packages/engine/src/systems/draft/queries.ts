@@ -23,7 +23,7 @@ import {
   type DraftPoolLevel,
   type DraftSettings,
 } from '../../model/entities/draft';
-import type { EmploymentRole } from '../../model/entities/employment';
+import { promotionStatusKey, type EmploymentRole } from '../../model/entities/employment';
 import type { Gender, RingStyle } from '../../model/entities/person';
 import { GENDERS, RING_STYLES } from '../../model/entities/person';
 import type { GameWorldView } from '../../model/tables';
@@ -41,6 +41,7 @@ import { roundOrder } from './order';
 import { CARD_LEVEL_LABELS } from './pool';
 import { draftSettingsOf, type DraftOptions } from './settings';
 import { DraftPricer } from './pricing';
+import { runningCostsOf } from './reserve';
 import { latestDraft, loadDraft, openDraft, picksOf } from './session';
 
 /** How a pick's contract stands now. `lapsed`: unsigned and the rights ran out. */
@@ -200,6 +201,14 @@ export interface DraftPoolView {
   cash: number | null;
   /** Picks are paid up front; false under "Negotiate contracts after the draft". */
   paysUpFront: boolean;
+  /**
+   * The viewer's running costs a month in cents (DRF-11: overhead, medical, venue rent, travel,
+   * catering and show production for a full roster), or null for a spectator. The draft room hints
+   * when a pick would leave less than `reserveMonths` of it.
+   */
+  runningCostMonthly: number | null;
+  /** `draft.ai.reserveMonths`: the months of running costs rivals keep. */
+  reserveMonths: number;
 }
 
 export interface DraftPreviewView {
@@ -516,6 +525,8 @@ export const draftPoolQuery = defineQuery('draft.pool', {
         poolLeft: { wrestlers: 0, staff: 0 },
         cash: null,
         paysUpFront: false,
+        runningCostMonthly: null,
+        reserveMonths: tunables.get('draft.ai.reserveMonths'),
       };
     }
     const loaded = loadDraft(read, tunables, draft, date);
@@ -616,6 +627,22 @@ export const draftPoolQuery = defineQuery('draft.pool', {
       poolLeft: { wrestlers: loaded.board.wrestlersLeft, staff: loaded.board.staffLeft },
       cash,
       paysUpFront,
+      runningCostMonthly:
+        yours === undefined || roster === undefined
+          ? null
+          : runningCostsOf(
+              read,
+              tunables,
+              yours,
+              date,
+              read.tables.employments.lookup(
+                'byPromotionStatus',
+                promotionStatusKey(yours, 'active'),
+              ).length +
+                Math.max(0, draft.settings.rosterTarget - roster.wrestlers) +
+                Math.max(0, draft.settings.staffTarget - roster.staff),
+            ).total,
+      reserveMonths: tunables.get('draft.ai.reserveMonths'),
     };
   },
 });

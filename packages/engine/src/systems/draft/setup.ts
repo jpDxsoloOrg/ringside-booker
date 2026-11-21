@@ -245,6 +245,12 @@ export function oneWeeklyShow(
   if (compareDates(main.activeFrom, firstShow) !== 0) {
     tx.update('eventDefinitions', main.id, { activeFrom: firstShow });
   }
+  // DRF-11: no preferred venue, so the weekly show is held where its crowd fits (the box office's
+  // automatic pick) instead of the arena the world gave it: level promotions with a home crowd of a
+  // few hundred would otherwise pay arena rent every week.
+  if (main.preferredVenueId !== null) {
+    tx.update('eventDefinitions', main.id, { preferredVenueId: null });
+  }
 }
 
 /** Active promotions, by id. */
