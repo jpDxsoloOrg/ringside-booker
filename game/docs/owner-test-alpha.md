@@ -194,7 +194,7 @@ Windows machine" section of [installer.md](installer.md):
    is gone.
 9. Close the Sandbox (everything in it is thrown away).
 
-## 10. Draft start (Beta 01, DRF-02/03/06/07/10/11)
+## 10. Draft start (Beta 01, DRF-02/03/06/07/10/11/12)
 
 Start the game, **New game**, the default world, take over any promotion, then **Options**.
 
@@ -270,6 +270,14 @@ Start the game, **New game**, the default world, take over any promotion, then *
 - [ ] **Auto-pick the rest**, Finish, then play two months. Rivals' cash (Promotions) stays above
       zero; the ones that ran out of money have full rosters with per-appearance signings. Your
       weekly show is in a small venue, not an arena.
+
+**Exclusive contracts** (DRF-12, a draft game):
+
+- [ ] Hover a Season cost: it says the pick is exclusive. After the draft, a draftee's profile
+      shows **Exclusive: Yes (draft)**, per-appearance deals too.
+- [ ] Try to offer a rival's draftee a contract: it's refused, "Under an exclusive contract".
+- [ ] Offer a free agent a contract: the Exclusive switch is on and locked, "Exclusive (draft)".
+      In a game without a draft it works as before.
 
 Quick look without playing (PNGs in the folder; add `-rbDraftNegotiate` for the second mode):
 

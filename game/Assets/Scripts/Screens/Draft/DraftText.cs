@@ -155,6 +155,16 @@ namespace RingsideBooker.Screens.Draft
             return $"Leaves you {TextFormat.Money((long)Math.Round(cashAfterCents))}: under {Whole(months)} months of running costs ({TextFormat.Money((long)Math.Round(runningMonthlyCents))} a month for shows, venues and medical).";
         }
 
+        /// <summary>DRF-12: the draft room's quiet word on contracts: every pick signs exclusive.</summary>
+        public const string ExclusiveNote = "Exclusive (draft): they work only for the promotion that signs them.";
+
+        /// <summary>
+        /// True when a draft game forces this job's contracts exclusive: wrestlers, and staff (not
+        /// bookers) when staff were drafted. The engine's rule is <c>draftForcesExclusive</c>.
+        /// </summary>
+        public static bool ForcesExclusive(bool draftGame, bool draftedStaff, string role) =>
+            draftGame && role != "booker" && (role == "wrestler" || draftedStaff);
+
         /// <summary>
         /// The finish line for a roster you could not fill: null when it is full. Points at
         /// per-appearance deals, which cost nothing up front.

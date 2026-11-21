@@ -59,6 +59,16 @@ namespace RingsideBooker.Tests.Draft
         }
 
         [Test]
+        public void DraftGamesForceExclusiveOnDraftedJobsOnly()
+        {
+            Assert.That(DraftText.ForcesExclusive(true, false, "wrestler"), Is.True);
+            Assert.That(DraftText.ForcesExclusive(true, false, "referee"), Is.False);
+            Assert.That(DraftText.ForcesExclusive(true, true, "referee"), Is.True);
+            Assert.That(DraftText.ForcesExclusive(true, true, "booker"), Is.False);
+            Assert.That(DraftText.ForcesExclusive(false, true, "wrestler"), Is.False, "no draft, no rule");
+        }
+
+        [Test]
         public void FitIsWhatTheRosterNeedsAddToTheValue()
         {
             Assert.That(DraftText.Fit(50, 62).word, Is.EqualTo("Big need"));

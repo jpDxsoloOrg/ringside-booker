@@ -94,12 +94,13 @@ namespace RingsideBooker.Screens.Contracts
             FieldErrors.Clear();
         }
 
-        /// <summary>The kind, with their ask's money for it; a per-appearance deal is never exclusive.</summary>
+        /// <summary>The kind, with their ask's money for it; a per-appearance deal is not exclusive unless a draft game forces it.</summary>
         public void SetKind(string kind, JToken ask)
         {
             bool written = kind != "perAppearance";
             Terms["kind"] = kind;
-            Terms["exclusive"] = written && Exclusive;
+            // DRF-12: a draft game's drafted jobs stay exclusive, per appearance too.
+            Terms["exclusive"] = Kit.Bool(ask, "exclusiveForced") || (written && Exclusive);
             Terms["monthlyWage"] = written ? Cents(Kit.Num(ask, "monthlyWage.value")) : 0;
             Terms["perAppearanceFee"] = written ? 0 : Cents(Kit.Num(ask, "perAppearanceFee.value"));
             FieldErrors.Remove("offer.terms.kind");
