@@ -16,6 +16,8 @@ How I write an entry:
 
 ## Unreleased
 
+## [0.1.0-alpha.5] - 2026-11-22
+
 ### Changed
 
 - I made the game pick venues that fit the expected crowd, in every game. When a show has no venue
@@ -41,6 +43,10 @@ How I write an entry:
 - I made a draft start turn every promotion into a brand-new company with no frills: one brand,
   only the booker on staff (the rest become free agents), catering, travel and medical at the
   lowest level, and no storylines, own venues or partner companies carried over.
+
+### Heads up
+
+- Saves from alpha.4 don't open in this version. Start a new game.
 
 ## [0.1.0-alpha.4] - 2026-11-20
 
