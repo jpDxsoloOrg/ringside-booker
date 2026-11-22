@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@types/node": "20.19.43",
-    "prettier": "3.9.10",
+    "prettier": "3.10.1",
     "tsx": "4.23.15"
   }
 }
