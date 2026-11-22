@@ -1,6 +1,8 @@
 /**
  * Gathers what the venue pick needs for one show from the world and runs it (EVT6-02). The
- * automatic pick (EVT6-03), the rival calendars (AIP7) and tours (EVT8) all call this one function.
+ * automatic pick (EVT6-03), the rival calendars (AIP7), tours (EVT8) and the draft's cost estimate
+ * all call this one function, so the player's shows and rivals' shows are sized the same way
+ * (EVT6-14).
  * Design: docs/design/box-office.md#pick.
  */
 
@@ -26,7 +28,9 @@ function candidateOf(
     venueId: venue.id,
     name: venue.name,
     capacity: venue.capacity,
+    venueKind: venue.kind,
     regionId: venue.regionId,
+    ownVenue: venue.exclusivePromotionId === booking.promotionId,
     availability: venueAvailability(read, venue, booking),
   };
 }

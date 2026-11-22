@@ -10,6 +10,7 @@ import {
   PICK_ON_SHOW_NIGHT_HOOK_ID,
   assignVenuesPhase,
   pickOnShowNightHook,
+  pickVenueFor,
   venueAvailability,
   venuePickTraceRef,
 } from '../../../src/systems/boxOffice';
@@ -57,8 +58,8 @@ function phaseWorld(tunables?: TunableOverrides) {
 
 describe('boxOffice.assignVenues', () => {
   it('gives rival shows inside the lead window a venue and leaves the player’s later shows alone', () => {
-    const { built, runtime } = phaseWorld();
-    // Its promotion's own exclusive venue is the smallest that fits 1,000 × 1.1.
+    // 900 + 25% = 1,125: its promotion's own exclusive venue is the smallest that fits.
+    const { built, runtime } = phaseWorld({ 'boxOffice.draw.walkUp': 900 });
     expect(venueOf(built, 'rival')).toBe(built.venues.rivalDojo);
     // Already at a venue: kept.
     expect(venueOf(built, 'rivalAtArena')).toBe(built.venues.bigArena);
@@ -85,8 +86,8 @@ describe('boxOffice.assignVenues', () => {
   });
 
   it('a rival’s pick takes its venue for that night', () => {
-    // 1,300 × 1.1 is too many for Rival Dojo: the rival show goes to Civic Hall.
-    const { built } = phaseWorld({ 'boxOffice.draw.walkUp': 1300 });
+    // 1,000 + 25% = 1,250 is too many for Rival Dojo: the rival show goes to Civic Hall.
+    const { built } = phaseWorld();
     expect(venueOf(built, 'rival')).toBe(built.venues.civicHall);
     const civicHall = built.world.tables.venues.require(built.venues.civicHall);
     const mine = built.world.tables.eventInstances.require(built.shows.mine);
@@ -118,6 +119,27 @@ describe('boxOffice.assignVenues', () => {
 
   it('is deterministic: the same world gets the same picks', () => {
     expect(picks(phaseWorld().built)).toEqual(picks(phaseWorld().built));
+  });
+});
+
+describe('the automatic pick is the same for rivals and the player (EVT6-14)', () => {
+  it('gives a rival show exactly what pickVenueFor answers', () => {
+    const built = venueCommandWorld({ tunables: { 'boxOffice.draw.walkUp': 150 } });
+    const rival = built.world.tables.eventInstances.require(built.shows.rival);
+    const expected = pickVenueFor(built.world, built.tunables, rival).value;
+    // 150 + 25% = 188: the 300-seat Small Club, not Civic Hall or a bigger local size.
+    expect(expected).toBe(built.venues.smallClub);
+    runPhase(runtimeOn(built));
+    expect(venueOf(built, 'rival')).toBe(expected);
+    // The player's show tomorrow, in the same region with the same crowd, gets the same answer.
+    expect(venueOf(built, 'myTomorrow')).toBe(built.venues.smallClub);
+  });
+
+  it('never replaces a venue that is already set, however badly it fits', () => {
+    const built = venueCommandWorld({ tunables: { 'boxOffice.draw.walkUp': 150 } });
+    runPhase(runtimeOn(built));
+    // Big Arena holds 15,000 for a 150 crowd, but it was set on the show, so it stays.
+    expect(venueOf(built, 'rivalAtArena')).toBe(built.venues.bigArena);
   });
 });
 

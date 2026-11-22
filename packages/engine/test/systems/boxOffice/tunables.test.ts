@@ -72,7 +72,9 @@ const EXPECTED_DEFAULTS: Readonly<Record<string, number | boolean>> = {
   'boxOffice.generic.stadium.capacity': 45000,
   'boxOffice.fit.sellOutAt': 1,
   'boxOffice.fit.emptyAt': 3,
-  'boxOffice.pick.headroom': 1.1,
+  // Venue pick sized to the crowd (EVT6-14).
+  'boxOffice.venueHeadroom': 0.25,
+  'boxOffice.venueTieBand': 0.1,
   // Automatic venue picks (EVT6-03).
   'boxOffice.rivalVenueLeadDays': 14,
 };
