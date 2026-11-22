@@ -16,6 +16,8 @@ How I write an entry:
 
 ## Unreleased
 
+## [0.1.0-alpha.5] - 2026-11-22
+
 ### Changed
 
 - I made the game pick venues that fit the expected crowd, in every game. When a show has no venue
