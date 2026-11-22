@@ -18,6 +18,10 @@ How I write an entry:
 
 ### Changed
 
+- I made the game pick venues that fit the expected crowd, in every game. When a show has no venue
+  set, it now gets the smallest place that seats the crowd with some room to spare, a local hall
+  if that fits better than the area's real venues, and the cheaper one when two are close in size.
+  Rivals pick the same way. Venues you or the world chose are kept.
 - I made a draft start begin every promotion with all production at level 0, so nobody burns
   through the shared starting cash on day one. Raise each area in Production when you can afford
   it; rivals raise theirs as their money allows.

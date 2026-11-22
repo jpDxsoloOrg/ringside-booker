@@ -388,24 +388,45 @@ country (through the `venues.byRegion` index and the geography), each with its
 [availability](#venues), the preferred venue from the show's definition, and
 the generic sizes.
 
-The rules, in order; the first that passes picks:
+The rules, in order; the first that passes picks (sized to the crowd since
+EVT6-14):
 
 1. **Preferred venue <name> is open and can be booked**: the preferred venue,
-   whatever its size.
-2. **Smallest venue in <region> that fits <expected> × headroom**: the
-   smallest available venue in the show's region whose capacity is at least
-   the expected crowd × `boxOffice.pick.headroom` (1.1, "Room left for a good
-   night when sizing a venue"), rounded up.
-3. **Smallest venue elsewhere in <country> that fits**: the same, in the rest
-   of the country.
-4. **Generic venue: smallest size that fits**, or, when even the biggest size
-   is too small, the biggest ("Bigger than any venue size: Local stadium").
+   whatever its size. A venue the world data set on the definition, or one the
+   player chose for the show, is always kept.
+2. **Best fit in <region> for <expected> + <headroom>%**: among the available
+   real venues in the show's region **and** the generic local sizes, the
+   smallest whose capacity is at least the expected crowd ×
+   (1 + `boxOffice.venueHeadroom`) (0.25, "Room left for a good night"),
+   rounded up. A real venue no longer wins just for being real: a 150 crowd
+   goes to the 500-seat local small hall, not the region's 3,000-seat hall.
+   **Close sizes go to the lower rent**: any other option that also fits and
+   is at most `boxOffice.venueTieBand` (0.1) bigger than the smallest fit is
+   compared on its [rent](#venue-rent) for the show (kind of venue, and the
+   own-venue discount), and the cheapest wins.
+3. **Best fit elsewhere in <country>**: the same, among the real venues in
+   the rest of the country. Only reached for a crowd bigger than every local
+   size.
+4. **Nothing is big enough**: the largest venue that can be booked, real or
+   generic, the cheaper on an equal size ("Bigger than any venue: Local
+   stadium").
 
 The pick never chooses a venue that is closed, exclusive to another promotion
 or used by another promotion that night. Every venue it looked at is listed in
 the Why? with its capacity and why it was or was not used ("Too small",
-"Exclusive to …"), and the expected crowd and the headroom are lines of their
-own. Ties go to the smaller venue, then the lower id. The pick has no rolls.
+"Smallest that fits (holds 1,300, rent $4,800)", "Close in size and cheaper",
+"Bigger than needed", "Exclusive to …"), and the expected crowd, the headroom
+and the tie band are lines of their own. Remaining ties go to the smaller
+venue, then the lower key. The pick has no rolls. The player's shows, rival
+shows and the draft's running-cost estimate all use this one pick.
+
+**Income.** Rent is charged on capacity, so a venue sized to the crowd cuts
+the rent without cutting ticket money: the crowd roll swings at most
+`boxOffice.crowd.spread` (±10%) around the forecast, inside the 25% headroom,
+so a show sells out only when its crowd grows between the pick and the night
+(rival picks are made up to two weeks ahead). The crowd is still capped at the
+capacity, and the "Likely sell-out" label still warns the player on the
+booking screen.
 
 A show that already has a venue keeps it; EVT6-03 runs the pick for shows that
 have none ([automatic picks](#automatic-picks)).
