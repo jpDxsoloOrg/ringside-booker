@@ -42,6 +42,10 @@ How I write an entry:
   only the booker on staff (the rest become free agents), catering, travel and medical at the
   lowest level, and no storylines, own venues or partner companies carried over.
 
+### Heads up
+
+- Saves from alpha.4 don't open in this version. Start a new game.
+
 ## [0.1.0-alpha.4] - 2026-11-20
 
 ### Added
