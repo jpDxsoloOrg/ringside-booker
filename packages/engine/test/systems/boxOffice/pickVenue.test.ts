@@ -1,4 +1,5 @@
-// The venue pick: preferred → region → country → generic. Design: docs/design/box-office.md#pick
+// The venue pick: preferred → best fit in the region (real or generic) → country → largest.
+// Design: docs/design/box-office.md#pick
 import { describe, expect, it } from 'vitest';
 import { findTraceNodes } from '../../../src/core/trace';
 import type { DecisionNode, Traced } from '../../../src/core/trace/types';
@@ -13,6 +14,14 @@ import { createEngineTunables } from '../../../src/systems/tunables';
 import { testId } from '../../support';
 import { expectSerialisable } from '../../support/trace';
 import { SHOW_DATE, venueWorld, type VenueWorldOptions } from './venueWorld';
+
+/** Every generic size shrunk below a 5,000 crowd (the walk-up crowd tops out at 5,000). */
+const SHRUNK_SIZES = {
+  'boxOffice.generic.smallArena.capacity': 3500,
+  'boxOffice.generic.arena.capacity': 3600,
+  'boxOffice.generic.largeArena.capacity': 3700,
+  'boxOffice.generic.stadium.capacity': 4000,
+} as const;
 
 function pick(options: VenueWorldOptions) {
   const built = venueWorld(options);
@@ -114,71 +123,145 @@ describe('pickVenue', () => {
       crowd: 1000,
       venues: [
         { name: 'Big Arena', capacity: 8000 },
-        { name: 'Just Too Small', capacity: 1050 },
-        { name: 'Civic Hall', capacity: 1200 },
-        { name: 'Elsewhere Hall', capacity: 1100, region: 1 },
+        { name: 'Just Too Small', capacity: 1240 },
+        { name: 'Civic Hall', capacity: 1300 },
+        { name: 'Elsewhere Hall', capacity: 1260, region: 1 },
       ],
     });
-    // 1,000 × 1.1 = 1,100: the 1,050 room is too small, the 1,200 hall is the smallest that fits.
+    // 1,000 + 25% = 1,250: the 1,240 room is too small, the 1,300 hall is the smallest that fits.
     expect(result.value).toBe(venueId('Civic Hall'));
     expect(rulesOf(result)).toEqual([
-      'Smallest venue in Test Region North 1 that fits 1,000 × 1.1 (1,100): true',
+      'Best fit in Test Region North 1 for 1,000 + 25% (1,250): true',
     ]);
     expect(reasonFor(result, venueId('Just Too Small'))).toBe(
-      'Just Too Small: Too small (holds 1,050)',
+      'Just Too Small: Too small (holds 1,240)',
+    );
+    expect(reasonFor(result, venueId('Civic Hall'))).toBe(
+      'Civic Hall: Smallest that fits (holds 1,300, rent $4,800)',
+    );
+    expect(reasonFor(result, venueId('Big Arena'))).toBe(
+      'Big Arena: Bigger than needed (holds 8,000)',
     );
   });
 
-  it('looks elsewhere in the country when nothing in the region fits', () => {
+  it('takes a generic local size over a real venue far bigger than the crowd', () => {
+    // The audit case: a 150 crowd was put in a 3,000-seat hall because it was the only real venue.
+    const { result, venueId } = pick({
+      crowd: 150,
+      venues: [{ name: 'Big Hall', capacity: 3000 }],
+    });
+    // 150 + 25% = 188: the 150 room is too small, the 500 small hall fits.
+    expect(result.value).toBe('generic:smallHall');
+    expect(reasonFor(result, venueId('Big Hall'))).toBe(
+      'Big Hall: Bigger than needed (holds 3,000)',
+    );
+  });
+
+  it('leaves boxOffice.venueHeadroom of room above the expected crowd', () => {
+    const venues = [
+      { name: 'Snug Hall', capacity: 1100 },
+      { name: 'Roomy Hall', capacity: 1300 },
+    ];
+    const tight = pick({ crowd: 1000, venues, tunables: { 'boxOffice.venueHeadroom': 0 } });
+    expect(tight.result.value).toBe(tight.venueId('Snug Hall'));
+    const roomy = pick({ crowd: 1000, venues });
+    expect(roomy.result.value).toBe(roomy.venueId('Roomy Hall'));
+    const wide = pick({ crowd: 1000, venues, tunables: { 'boxOffice.venueHeadroom': 0.5 } });
+    // 1,500 needed: the 3,000 local large hall.
+    expect(wide.result.value).toBe('generic:largeHall');
+  });
+
+  it('breaks close sizes on the lower rent, but never past the tie band', () => {
+    const close = pick({
+      crowd: 1000,
+      venues: [
+        { name: 'Arena Annex', capacity: 1300, kind: 'arena' },
+        { name: 'Cheap Studio', capacity: 1350, kind: 'studio' },
+      ],
+    });
+    // 1,350 is within 10% of 1,300, and a studio rents for less than an arena.
+    expect(close.result.value).toBe(close.venueId('Cheap Studio'));
+    expect(reasonFor(close.result, close.venueId('Cheap Studio'))).toBe(
+      'Cheap Studio: Close in size and cheaper (holds 1,350, rent $3,085)',
+    );
+    expect(reasonFor(close.result, close.venueId('Arena Annex'))).toBe(
+      'Arena Annex: Close in size but dearer (holds 1,300, rent $5,938)',
+    );
+
+    const far = pick({
+      crowd: 1000,
+      venues: [
+        { name: 'Arena Annex', capacity: 1300, kind: 'arena' },
+        { name: 'Big Studio', capacity: 1500, kind: 'studio' },
+      ],
+    });
+    // 1,500 is more than 10% bigger: the smallest that fits wins, however cheap the other is.
+    expect(far.result.value).toBe(far.venueId('Arena Annex'));
+    const wideBand = pick({
+      crowd: 1000,
+      venues: [
+        { name: 'Arena Annex', capacity: 1300, kind: 'arena' },
+        { name: 'Big Studio', capacity: 1500, kind: 'studio' },
+      ],
+      tunables: { 'boxOffice.venueTieBand': 0.2 },
+    });
+    expect(wideBand.result.value).toBe(wideBand.venueId('Big Studio'));
+  });
+
+  it('counts the discount on the promotion’s own venue in a close tie', () => {
     const { result, venueId } = pick({
       crowd: 1000,
       venues: [
-        { name: 'Local Room', capacity: 300 },
-        { name: 'North Two Hall', capacity: 1500, region: 1 },
-        { name: 'South Hall', capacity: 1200, region: 2 },
+        { name: 'Civic Hall', capacity: 1300 },
+        { name: 'Our Hall', capacity: 1400, exclusiveTo: 'A' },
       ],
     });
+    expect(result.value).toBe(venueId('Our Hall'));
+  });
+
+  it('looks elsewhere in the country only when nothing in the region fits', () => {
+    const { result, venueId } = pick({
+      crowd: 5000,
+      tunables: SHRUNK_SIZES,
+      venues: [
+        { name: 'Local Room', capacity: 300 },
+        { name: 'North Two Hall', capacity: 7000, region: 1 },
+        { name: 'South Hall', capacity: 6500, region: 2 },
+      ],
+    });
+    // 6,250 needed: bigger than every local size, so North Two Hall in the same country.
     expect(result.value).toBe(venueId('North Two Hall'));
     expect(rulesOf(result)).toEqual([
-      'Smallest venue in Test Region North 1 that fits 1,000 × 1.1 (1,100): false',
-      'Smallest venue elsewhere in Test Country North that fits 1,100: true',
+      'Best fit in Test Region North 1 for 5,000 + 25% (6,250): false',
+      'Best fit elsewhere in Test Country North for 6,250: true',
     ]);
   });
 
-  it('falls back to the smallest generic size that fits when the country has nothing', () => {
-    const { result } = pick({
-      crowd: 1000,
+  it('takes the largest venue it can book when none is big enough', () => {
+    const real = pick({
+      crowd: 5000,
+      tunables: SHRUNK_SIZES,
       venues: [
-        { name: 'Local Room', capacity: 300 },
-        { name: 'South Hall', capacity: 5000, region: 2 },
+        { name: 'Region Hall', capacity: 4500 },
+        { name: 'Bigger But Closed', capacity: 6000, closedOn: '2026-05-01' },
       ],
     });
-    // 1,100 needed: the 1,200 local hall.
-    expect(result.value).toBe('generic:hall');
-    expect(rulesOf(result).at(-1)).toBe('Generic venue: smallest size that fits: true');
-    expect(reasonFor(result, 'generic:smallHall')).toBe('Local small hall: Too small (holds 500)');
-  });
+    expect(real.result.value).toBe(real.venueId('Region Hall'));
+    expect(decisionOf(real.result).reason).toBe('Bigger than any venue: Region Hall');
 
-  it('chooses the stadium size when the crowd is bigger than every size', () => {
-    // The walk-up crowd tops out at 5,000, so the big sizes are shrunk below it instead.
-    const { result } = pick({
-      crowd: 5000,
-      tunables: {
-        'boxOffice.generic.smallArena.capacity': 3500,
-        'boxOffice.generic.arena.capacity': 3600,
-        'boxOffice.generic.largeArena.capacity': 3700,
-        'boxOffice.generic.stadium.capacity': 4000,
-      },
-    });
-    expect(result.value).toBe('generic:stadium');
-    expect(decisionOf(result).reason).toBe('Bigger than any venue size: Local stadium');
-    expect(rulesOf(result).at(-1)).toBe('Generic venue: smallest size that fits: false');
+    const generic = pick({ crowd: 5000, tunables: SHRUNK_SIZES });
+    expect(generic.result.value).toBe('generic:stadium');
+    expect(decisionOf(generic.result).reason).toBe('Bigger than any venue: Local stadium');
+    expect(rulesOf(generic.result)).toEqual([
+      'Best fit in Test Region North 1 for 5,000 + 25% (6,250): false',
+      'Best fit elsewhere in Test Country North for 6,250: false',
+    ]);
   });
 
   it('picks the smallest fitting size even when an override reorders the sizes', () => {
     const { result } = pick({
       crowd: 1000,
-      tunables: { 'boxOffice.generic.room.capacity': 1150 },
+      tunables: { 'boxOffice.generic.room.capacity': 1260 },
     });
     expect(result.value).toBe('generic:room');
     const sizes = genericVenueSizes(
@@ -187,7 +270,7 @@ describe('pickVenue', () => {
     expect(sizes[0]).toEqual({ tier: 'stadium', capacity: 100 });
   });
 
-  it('breaks ties by capacity, then by id', () => {
+  it('breaks exact ties by capacity, then by id', () => {
     const { result, venue } = pick({
       crowd: 1000,
       venues: [
@@ -209,17 +292,19 @@ describe('pickVenue', () => {
       preferred: 'Their Studio',
     });
     expectSerialisable(result);
-    expect(result.value).toBe('generic:hall');
+    // 1,250 needed: the 3,000 local large hall.
+    expect(result.value).toBe('generic:largeHall');
     expect(rulesOf(result)).toEqual([
       'Preferred venue Their Studio is open and can be booked: false',
-      'Smallest venue in Test Region North 1 that fits 1,000 × 1.1 (1,100): false',
-      'Smallest venue elsewhere in Test Country North that fits 1,100: false',
-      'Generic venue: smallest size that fits: true',
+      'Best fit in Test Region North 1 for 1,000 + 25% (1,250): true',
     ]);
     const notes = findTraceNodes(decisionOf(result), 'note').map((node) => node.label);
     expect(notes).toContain('Expected crowd in Test Region North 1: 1,000');
     const tunables = findTraceNodes(decisionOf(result), 'tunable').map((node) => node.label);
-    expect(tunables).toEqual(['Room left for a good night']);
+    expect(tunables).toEqual([
+      'Room left for a good night',
+      'How much bigger a cheaper venue may be',
+    ]);
     expect(reasonFor(result, venueId('Their Studio'))).toBe(
       'Their Studio: Exclusive to Test Promotion B',
     );

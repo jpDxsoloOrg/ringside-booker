@@ -5,7 +5,7 @@ import { parseGameDate } from '../../../src/core/date';
 import type { EventInstanceId, PromotionId, RegionId, VenueId } from '../../../src/core/ids';
 import type { TunableOverrides } from '../../../src/core/tunables/overrides';
 import type { EventInstance } from '../../../src/model/entities/event-instance';
-import type { Venue } from '../../../src/model/entities/venue';
+import type { Venue, VenueKind } from '../../../src/model/entities/venue';
 import type { GameWorld } from '../../../src/model/tables';
 import { createEngineTunables, type EngineTunables } from '../../../src/systems/tunables';
 import { worldBuilder, type DeepPartial } from '../../support';
@@ -24,6 +24,8 @@ export interface PlannedVenue {
   /** 'A' or 'B': the promotion the venue is exclusive to. */
   readonly exclusiveTo?: 'A' | 'B';
   readonly closedOn?: string;
+  /** The kind of building, for its rent. Defaults to a hall. */
+  readonly kind?: VenueKind;
 }
 
 export interface VenueWorldOptions {
@@ -85,6 +87,7 @@ export function venueWorld(options: VenueWorldOptions): VenueWorld {
             {
               name: planned.name,
               capacity: planned.capacity,
+              kind: planned.kind ?? 'hall',
               regionId: required(context.ids.regions[planned.region ?? 0], 'region'),
               exclusivePromotionId: exclusive,
               closedOn: planned.closedOn === undefined ? null : parseGameDate(planned.closedOn),
