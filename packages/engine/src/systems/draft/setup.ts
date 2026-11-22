@@ -15,7 +15,9 @@
  * 5. **Level playing field**: every active promotion gets the median cash, prestige and home
  *    popularity and every production area at level 0 (`level.ts`), and every TV deal in the
  *    world is removed.
- * 6. **Schedule**: each active promotion keeps exactly one weekly show (below).
+ * 6. **Schedule**: each active promotion keeps exactly one weekly show (below). Then every active
+ *    promotion becomes a brand-new company (DRF-13, `brandNew.ts`): staff policies at 0, only its
+ *    booker on staff unless staff are drafted, one brand, no storylines, held venues or partners.
  * 7. **The draft row**: round one's order and the targets. The draft starts at turn 0.
  *
  * Design: docs/design/draft.md#world-setup.
@@ -48,6 +50,7 @@ import { draftCandidates, DRAFT_STAFF_ROLES, type DraftCandidate } from './candi
 import { levelledFields, medianLevel, withStartingCash } from './level';
 import { seededOrder } from './order';
 import { choosePool, poolSizeFor, type PoolChoice } from './pool';
+import { makeBrandNew } from './brandNew';
 import { draftOptionsFrom, startingCashOf, type DraftOptions } from './settings';
 import {
   disbandStables,
@@ -353,6 +356,10 @@ export function setUpDraftStart(
   for (const promotionId of active) {
     oneWeeklyShow(tx, promotionId, date, tunables);
   }
+
+  // 6b. Brand-new companies (DRF-13): staff policies at 0, only the booker kept (unless staff are
+  // drafted), one brand, no carried-over storylines, held venues or partner links.
+  makeBrandNew(tx, active, options.draftStaff, date);
 
   // 7. The draft.
   return tx.create('drafts', {

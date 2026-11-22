@@ -75,7 +75,8 @@ Two new-game steps (see [new-game.md](new-game.md#setup-steps)):
    disbanded**.
 5. **Level playing field** ([below](#level-playing-field)), and **every TV
    deal in the world is removed**.
-6. **Schedule** ([below](#schedule)).
+6. **Schedule** ([below](#schedule)), then **brand-new companies**
+   ([below](#brand-new-companies)).
 7. **The draft row**: round one's order and the targets, at turn 0.
 
 ### Level playing field
@@ -89,11 +90,15 @@ same shape as Equal start). The level is stored on the draft row (`level`)
 and shown by `draft.preview` and the wizard's `previewSetup`, together with
 what was equalised and what was not:
 
-- **Equalised**: cash, prestige, home popularity, TV deals (none), titles
-  (vacant), rosters (drafted), production (every area at level 0, DRF-09).
-- **Not equalised** (listed for the owner to decide): home region and
-  country, staff policies, brands, venues and show sizes, and the rival rules
-  shortcuts (the separate Level playing field setting, D-01).
+- **Equalised**: first, "Every promotion starts as a brand-new company: no
+  frills" (DRF-13); then cash, prestige, home popularity, TV deals (none),
+  production (every area at level 0, DRF-09), staff policies (tier 0), staff
+  (only the booker unless staff are drafted), brands (one each; storylines,
+  held venues and partner links gone), titles (vacant), rosters (drafted).
+- **Not equalised**: identity (name, colours, style, home region and
+  country), the owner and the booker, the size of the venues their crowds
+  fill, and the rival rules shortcuts (the separate Level playing field
+  setting, D-01).
 
 Production starts at 0 so the shared cash is not eaten by production the
 old world paid for. The player raises levels in Production; rivals raise
@@ -101,6 +106,40 @@ them through the rival production budget (one level a month, when they can
 afford it and a ceiling is holding them back).
 
 The default world's level is cash 825,000.00, prestige 51 and home popularity 13.
+
+### Brand-new companies
+
+DRF-13, owner decision 2026-11-21: "Draft start should basically turn it into
+all companies are brand new companies with no frills." `brandNew.ts`, run in
+`draft.setup` right after the schedule, for every active promotion:
+
+- **Staff policies**: catering, travel and medical at tier 0 (nothing paid
+  for them; a contract's travel perk is still paid at
+  `finance.travel.coveredLevel`).
+- **Staff**: without "Draft staff too", every staff contract but the
+  booker's is removed the way the free-agent pool removes contracts (no
+  history, no severance; concerns, talks, mail, news and managed-by links that
+  point at them are cleared). Those people are free agents to hire after the
+  draft. With it on, the draft already takes them. No crew is needed to run a
+  show: a segment's referee, producer and announcers are optional, and a
+  booker-only promotion runs its shows (tested). The rival desk will want to
+  hire crew later, as any promotion short of crew does.
+- **One brand**: the brand of its weekly show, else its flagship (lowest
+  priority, then id). Other brands are retired (`active: false`, kept so
+  history still points at a real row); contracts, shows, upcoming instances
+  and storylines on them move to the kept brand, their titles are retired, and
+  the rival desk's profile for a retired brand is removed.
+- **No carried-over edges**: active storylines end; venues it held
+  exclusively are released and rent like any other; a parent or partner link
+  (`parentPromotionId`) is cut; the month's popularity gains and the books'
+  monthly history start empty.
+
+Left alone: identity (name, short name, colours, logo, home region, style),
+the owner and the booker, people's own tag teams, relationships and
+popularity (they belong to the people), the rival desk's profile of a
+promotion (its taste is worked out again on its first turn) and the
+promotion snapshots history. There are no sponsor, merchandise, development or
+scouting deals in the game to reset; TV deals were already removed.
 
 ### Schedule
 
@@ -349,34 +388,29 @@ per-appearance signings at finish write contracts directly, so they are not
 affected.
 
 **Balance with the new defaults** ($1M, 12-month season, production 0, a 3-
-month reserve, `autoPickRest`, then 90 days played with the player not
-booking; seed `draft-start`):
+month reserve, brand-new companies (DRF-13), `autoPickRest`, then 90 days
+played with the player not booking; seed `draft-start`):
 
 - **All 12 promotions:** 4 rivals and the player end their picks for lack of
-  money (picks 15 to 18 of 20); the rivals fill up with 12 per-appearance
-  signings. Rivals keep $20,000–$270,000 after the draft; after 90 days the
-  lowest have $2,500 (WATTLE) and $25,000 (HARDPN), most still have
-  $40,000–$180,000, and none is below zero. The player's auto-picks spent down
-  to $6,300 (15 wrestlers); the player's own staff wages and medical then put
-  it below zero within the first month.
-- **The six biggest only:** their reach is 22–32 (7–10 with all 12), so asks
-  are about three times higher and their shows are picked into 2,000–13,500
-  seat venues, putting running costs at $41,000–$274,000 a month. Every rival
-  stops after 2 to 4 picks and fills the rest per appearance (86 signings);
-  two of them still go below zero within 90 days. $1M is far too little
-  there: the World median ($3.25M) suits a small, big-promotion draft better.
+  money (rivals at 14 to 16 picks of 20, the player at 12); the rivals fill up
+  with 21 per-appearance signings. With no medical or staff to pay, their
+  reserves are smaller, so they draft more and keep $9,000–$225,000. After 90
+  days every rival still has $3,000–$151,000 and none is below zero. The
+  player's auto-picks spent down to $3,200; with no staff wages or medical it
+  stays at $3,200 through 90 days (it ran no shows), where before DRF-13 it
+  fell to −$210,000.
+- **The six biggest only** (DRF-11, before DRF-13): their reach is 22–32 (7–10
+  with all 12), so asks are about three times higher and their shows are
+  picked into 2,000–13,500 seat venues. Every rival stopped after 2 to 4 picks
+  and filled the rest per appearance; $1M stays the default by the owner's
+  decision.
 
-What a draft-start promotion pays at level 0 (DRF-11 audit, first month):
-production (per-show areas and the monthly overhead) is $0 at level 0, and
-nothing about stipulation matches costs money yet. Everything else is outside
-production: venue rent ($250 + $3.50 a seat × the venue kind, per show:
-$1,300–$11,000 a show, $5,000–$43,000 a month), travel and catering by policy
-level ($0 at level 0; travel up to $9,000 a month at level 3), medical by
-policy level ($0–$33,000 a month for a full roster) and the staff wages of
-promotions that keep their staff. Income is tickets and merchandise, about
-$8,000–$13,000 a month. Policies are not equalised by the draft start yet,
-and the venue pick prefers a real venue even when it is ten times the crowd;
-both are owner decisions (see the DRF-11 report).
+What a brand-new promotion pays now, per month: production $0 (rivals raise
+back office or a show area by one level now and then, $100–$1,000), medical
+and catering $0, travel only for contracts with the travel perk
+($2,000–$12,000), venue rent $2,000–$21,000 (venue sizing is EVT6-14), against
+tickets and merchandise of about $8,000–$13,000. Nothing about stipulation
+matches costs money yet.
 
 ## Commands
 

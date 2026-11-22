@@ -34,6 +34,9 @@ How I write an entry:
   finished, and each promotion's weekly show now runs in a venue its crowd fits.
 - I made every contract in a draft game exclusive, per-appearance deals too: a wrestler you
   draft or sign only works for you. Games without a draft work as before.
+- I made a draft start turn every promotion into a brand-new company with no frills: one brand,
+  only the booker on staff (the rest become free agents), catering, travel and medical at the
+  lowest level, and no storylines, own venues or partner companies carried over.
 
 ## [0.1.0-alpha.4] - 2026-11-20
 

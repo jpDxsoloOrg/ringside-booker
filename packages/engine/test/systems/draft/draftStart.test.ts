@@ -50,10 +50,10 @@ describe('draft start setup', () => {
   const world = state.world;
   const active = world.tables.promotions.filter((row) => row.status === 'active');
 
-  it('puts every wrestler in the pool and leaves staff where they are', () => {
+  it('puts every wrestler in the pool and keeps only bookers on staff (DRF-13)', () => {
     const live = liveContracts(state);
     expect(live.filter((row) => row.role === 'wrestler')).toHaveLength(0);
-    expect(live.length).toBeGreaterThan(0);
+    expect(live.filter((row) => row.role !== 'booker')).toHaveLength(0);
   });
 
   it('vacates every title', () => {
