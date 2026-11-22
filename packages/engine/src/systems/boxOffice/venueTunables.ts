@@ -1,7 +1,7 @@
 /**
  * The box office's venue numbers (EVT6-02): the capacity of each generic local venue size, the
- * thresholds of the venue fit labels, the headroom the venue pick leaves and how far ahead rival
- * shows get a venue (EVT6-03). Spread into `boxOfficeTunables`. Design:
+ * thresholds of the venue fit labels, the headroom and rent tie band of the venue pick (EVT6-14)
+ * and how far ahead rival shows get a venue (EVT6-03). Spread into `boxOfficeTunables`. Design:
  * docs/design/box-office.md#venues, #generic-venues and #pick.
  */
 
@@ -84,15 +84,28 @@ export const venueTunables = defineTunables({
     description: 'Capacity, as a multiple of the expected crowd, at which a venue will look empty',
     docRef: VENUES_DOC,
   },
-  'boxOffice.pick.headroom': {
+  'boxOffice.venueHeadroom': {
     kind: 'number',
-    default: 1.1,
-    min: 1,
-    max: 3,
+    default: 0.25,
+    min: 0,
+    max: 2,
     step: 0.05,
-    unit: 'multiplier',
+    unit: 'ratio',
     category: BOX_OFFICE_CATEGORY,
-    description: 'Room left for a good night when sizing a venue',
+    description:
+      'Room left for a good night when sizing a venue: the pick seats the expected crowd plus this share',
+    docRef: PICK_DOC,
+  },
+  'boxOffice.venueTieBand': {
+    kind: 'number',
+    default: 0.1,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: BOX_OFFICE_CATEGORY,
+    description:
+      'How much bigger than the smallest fitting venue a cheaper one may be and still be picked',
     docRef: PICK_DOC,
   },
   'boxOffice.rivalVenueLeadDays': {

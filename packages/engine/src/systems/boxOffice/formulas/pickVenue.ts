@@ -1,14 +1,18 @@
 /**
- * The venue pick (EVT6-02): where a show without a venue is held. Rules, in order:
+ * The venue pick (EVT6-02, sized to the crowd by EVT6-14): where a show without a venue is held.
+ * Rules, in order:
  *
  * 1. The show's preferred venue, when it is open and can be booked, whatever its size.
- * 2. The smallest venue in the show's region that fits the expected crowd × headroom.
- * 3. The smallest venue elsewhere in the show's country that fits.
- * 4. A generic local venue: the smallest size that fits, or the largest size when none does.
+ * 2. The best fit in the show's region, among its real venues and the generic local sizes: the
+ *    smallest that seats the expected crowd × (1 + `boxOffice.venueHeadroom`). When another that
+ *    also fits is at most `boxOffice.venueTieBand` bigger and cheaper to rent, the cheapest wins.
+ * 3. The best fit elsewhere in the show's country, the same way (only reached for a crowd bigger
+ *    than every local size).
+ * 4. Nothing is big enough: the largest venue that can be booked.
  *
  * Venues that are closed, exclusive to another promotion or used that night by another promotion
- * are never picked; they are listed in the Why? with their reason. Ties go to the smaller venue,
- * then the lower id. Deterministic: no rolls. Design: docs/design/box-office.md#pick.
+ * are never picked; they are listed in the Why? with their reason. Remaining ties go to the smaller
+ * venue, then the lower key. Deterministic: no rolls. Design: docs/design/box-office.md#pick.
  */
 
 import type { GameDate } from '../../../core/date';
@@ -16,14 +20,17 @@ import type { CountryId, PromotionId, RegionId, VenueId } from '../../../core/id
 import { InvariantError } from '../../../core/errors';
 import { startDecision, type Decision } from '../../../core/trace/decision';
 import type { Traced } from '../../../core/trace/types';
+import type { VenueKind } from '../../../model/entities/venue';
 import type { EngineTunables } from '../../tunables';
 import {
+  GENERIC_VENUE_KINDS,
   GENERIC_VENUE_TIERS,
   genericVenueLabel,
   type GenericVenueSize,
   type GenericVenueTier,
 } from '../genericVenues';
 import type { VenueAvailability } from '../showVenue';
+import { computeVenueRent } from './venueRent';
 
 export const PICK_VENUE_DOC_REF = 'box-office.md#pick';
 
@@ -50,7 +57,10 @@ export interface VenueCandidate {
   readonly venueId: VenueId;
   readonly name: string;
   readonly capacity: number;
+  readonly venueKind: VenueKind;
   readonly regionId: RegionId;
+  /** True when the venue is exclusive to the show's own promotion, so it rents at a discount. */
+  readonly ownVenue: boolean;
   readonly availability: VenueAvailability;
 }
 
@@ -80,43 +90,120 @@ function formatCount(value: number): string {
   return String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-function byCapacityThenId(left: VenueCandidate, right: VenueCandidate): number {
-  if (left.capacity !== right.capacity) {
-    return left.capacity - right.capacity;
-  }
-  return left.venueId < right.venueId ? -1 : left.venueId > right.venueId ? 1 : 0;
+/** "$4,480": whole cents as whole dollars. */
+function formatRent(rentCents: number): string {
+  return `$${formatCount(rentCents / 100)}`;
+}
+
+/** One place the pick can hold the show: a real venue or a generic size, with its rent. */
+interface PickOption {
+  readonly key: VenueOptionKey;
+  readonly name: string;
+  readonly capacity: number;
+  /** The rent for the show in whole cents, as `computeVenueRent` charges it. */
+  readonly rent: number;
+  /** Null when the venue can be booked, else why not. */
+  readonly unavailable: string | null;
+}
+
+function rentOf(
+  capacity: number,
+  venueKind: VenueKind,
+  venueName: string,
+  ownVenue: boolean,
+  tunables: EngineTunables,
+): number {
+  return computeVenueRent({ capacity, venueKind, venueName, ownVenue }, { tunables }).value;
+}
+
+function realOption(candidate: VenueCandidate, tunables: EngineTunables): PickOption {
+  return {
+    key: candidate.venueId,
+    name: candidate.name,
+    capacity: candidate.capacity,
+    rent: rentOf(
+      candidate.capacity,
+      candidate.venueKind,
+      candidate.name,
+      candidate.ownVenue,
+      tunables,
+    ),
+    unavailable: candidate.availability.available ? null : candidate.availability.message,
+  };
+}
+
+function genericOption(size: GenericVenueSize, tunables: EngineTunables): PickOption {
+  const name = genericVenueLabel(size.tier);
+  return {
+    key: genericOptionKey(size.tier),
+    name,
+    capacity: size.capacity,
+    rent: rentOf(size.capacity, GENERIC_VENUE_KINDS[size.tier], name, false, tunables),
+    unavailable: null,
+  };
+}
+
+function compareKeys(left: VenueOptionKey, right: VenueOptionKey): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
+/** Smallest first, then cheaper, then the lower key: the order options are listed in. */
+function bySize(left: PickOption, right: PickOption): number {
+  return (
+    left.capacity - right.capacity || left.rent - right.rent || compareKeys(left.key, right.key)
+  );
+}
+
+/** Cheaper first, then smaller, then the lower key: how close sizes are settled. */
+function byRent(left: PickOption, right: PickOption): number {
+  return (
+    left.rent - right.rent || left.capacity - right.capacity || compareKeys(left.key, right.key)
+  );
 }
 
 /**
- * Lists `candidates` in the Why? (smallest first, each with why it can or cannot be used) and
- * returns the smallest available one that holds `needed`, or null.
+ * The best fit among `options`: the smallest available one that holds `needed`, unless another
+ * that also holds it, at most `tieBand` bigger, is cheaper to rent; then the cheapest of those.
+ * Null when none holds `needed`. Every option is listed in the Why? (smallest first) with why it
+ * was or was not used.
  */
-function smallestFitting(
+function bestFit(
   decision: Decision<VenueOptionKey>,
-  considered: Set<VenueOptionKey>,
-  candidates: readonly VenueCandidate[],
+  options: readonly PickOption[],
   needed: number,
-): VenueCandidate | null {
-  let found: VenueCandidate | null = null;
-  for (const candidate of [...candidates].sort(byCapacityThenId)) {
-    if (considered.has(candidate.venueId)) {
-      continue;
-    }
-    considered.add(candidate.venueId);
+  tieBand: number,
+): PickOption | null {
+  const sorted = [...options].sort(bySize);
+  const fitting = sorted.filter(
+    (option) => option.unavailable === null && option.capacity >= needed,
+  );
+  const smallest = fitting[0];
+  const close =
+    smallest === undefined
+      ? []
+      : fitting.filter((option) => option.capacity <= smallest.capacity * (1 + tieBand));
+  const best = [...close].sort(byRent)[0] ?? null;
+  for (const option of sorted) {
+    const holds = `holds ${formatCount(option.capacity)}`;
+    const rent = `rent ${formatRent(option.rent)}`;
     let reason: string;
-    if (!candidate.availability.available) {
-      reason = `${candidate.name}: ${candidate.availability.message}`;
-    } else if (candidate.capacity < needed) {
-      reason = `${candidate.name}: Too small (holds ${formatCount(candidate.capacity)})`;
-    } else if (found === null) {
-      reason = `${candidate.name}: Smallest that fits (holds ${formatCount(candidate.capacity)})`;
-      found = candidate;
+    if (option.unavailable !== null) {
+      reason = `${option.name}: ${option.unavailable}`;
+    } else if (option.capacity < needed) {
+      reason = `${option.name}: Too small (${holds})`;
+    } else if (option === best) {
+      reason =
+        option === smallest
+          ? `${option.name}: Smallest that fits (${holds}, ${rent})`
+          : `${option.name}: Close in size and cheaper (${holds}, ${rent})`;
+    } else if (close.includes(option)) {
+      reason = `${option.name}: Close in size but dearer (${holds}, ${rent})`;
     } else {
-      reason = `${candidate.name}: Bigger than needed (holds ${formatCount(candidate.capacity)})`;
+      reason = `${option.name}: Bigger than needed (${holds})`;
     }
-    decision.consider(candidate.venueId, candidate.capacity, reason);
+    decision.consider(option.key, option.capacity, reason);
   }
-  return found;
+  return best;
 }
 
 /** Where the show is held. The trace is the "Venue" decision with every rule it checked. */
@@ -125,8 +212,8 @@ export function pickVenue(
   deps: { readonly tunables: EngineTunables },
 ): Traced<VenueOptionKey> {
   const { show, expected } = inputs;
+  const { tunables } = deps;
   const decision = startDecision<VenueOptionKey>('Venue', { docRef: PICK_VENUE_DOC_REF });
-  const considered = new Set<VenueOptionKey>();
   decision.note(`Expected crowd in ${show.regionName}: ${formatCount(expected)}`);
 
   // 1. The preferred venue, whatever its size.
@@ -135,11 +222,10 @@ export function pickVenue(
     decision.note('No preferred venue');
   } else {
     const usable = preferred.availability.available;
-    considered.add(preferred.venueId);
     decision.consider(
       preferred.venueId,
       preferred.capacity,
-      preferred.availability.available
+      usable
         ? `${preferred.name}: Preferred venue (holds ${formatCount(preferred.capacity)})`
         : `${preferred.name}: ${preferred.availability.message}`,
     );
@@ -148,74 +234,73 @@ export function pickVenue(
       return decision.choose(preferred.venueId, `${preferred.name} is the preferred venue`);
     }
   }
+  const notPreferred = (candidate: VenueCandidate): boolean =>
+    candidate.venueId !== preferred?.venueId;
 
-  const headroom = decision.tunable(
-    deps.tunables,
-    'boxOffice.pick.headroom',
-    'Room left for a good night',
-  );
-  const needed = Math.ceil(expected * headroom);
-  const fitsText = `${formatCount(expected)} × ${String(headroom)} (${formatCount(needed)})`;
-
-  // 2. The smallest venue in the region that fits.
-  const inRegion = smallestFitting(decision, considered, inputs.inRegion, needed);
-  decision.rule(`Smallest venue in ${show.regionName} that fits ${fitsText}`, inRegion !== null);
-  if (inRegion !== null) {
-    return decision.choose(
-      inRegion.venueId,
-      `${inRegion.name} is the smallest venue in ${show.regionName} that fits`,
-    );
-  }
-
-  // 3. The smallest venue elsewhere in the country that fits.
-  const inCountry = smallestFitting(decision, considered, inputs.inCountry, needed);
-  decision.rule(
-    `Smallest venue elsewhere in ${show.countryName} that fits ${formatCount(needed)}`,
-    inCountry !== null,
-  );
-  if (inCountry !== null) {
-    return decision.choose(
-      inCountry.venueId,
-      `${inCountry.name} is the smallest venue in ${show.countryName} that fits`,
-    );
-  }
-
-  // 4. A generic local venue: the smallest size that fits, else the largest.
-  const sizes = [...inputs.genericSizes]
-    .map((size, order) => ({ ...size, order }))
-    .sort((left, right) => left.capacity - right.capacity || left.order - right.order);
-  const fitting = sizes.find((size) => size.capacity >= needed);
-  const largest = sizes.at(-1);
-  if (largest === undefined) {
+  if (inputs.genericSizes.length === 0) {
     throw new InvariantError('pickVenue was given no generic venue sizes');
   }
-  const chosen = fitting ?? largest;
-  for (const size of sizes) {
-    const key = genericOptionKey(size.tier);
-    const label = genericVenueLabel(size.tier);
-    const holds = `holds ${formatCount(size.capacity)}`;
-    let reason: string;
-    if (size.tier === chosen.tier) {
-      reason =
-        fitting === undefined
-          ? `${label}: Largest size (${holds})`
-          : `${label}: Smallest that fits (${holds})`;
-    } else if (size.capacity < needed) {
-      reason = `${label}: Too small (${holds})`;
-    } else {
-      reason = `${label}: Bigger than needed (${holds})`;
-    }
-    decision.consider(key, size.capacity, reason);
-  }
-  decision.rule('Generic venue: smallest size that fits', fitting !== undefined);
-  const chosenLabel = genericVenueLabel(chosen.tier);
-  if (fitting === undefined) {
-    const because = `Bigger than any venue size: ${chosenLabel}`;
-    decision.note(because);
-    return decision.choose(genericOptionKey(chosen.tier), because);
-  }
-  return decision.choose(
-    genericOptionKey(chosen.tier),
-    `${chosenLabel} is the smallest local venue that fits`,
+  const headroom = decision.tunable(
+    tunables,
+    'boxOffice.venueHeadroom',
+    'Room left for a good night',
   );
+  const tieBand = decision.tunable(
+    tunables,
+    'boxOffice.venueTieBand',
+    'How much bigger a cheaper venue may be',
+  );
+  const needed = Math.ceil(expected * (1 + headroom));
+  const fitsText = `${formatCount(expected)} + ${String(Math.round(headroom * 100))}% (${formatCount(needed)})`;
+
+  // 2. The best fit in the region: its real venues and the generic local sizes.
+  const inRegion = [
+    ...inputs.inRegion.filter(notPreferred).map((candidate) => realOption(candidate, tunables)),
+    ...inputs.genericSizes.map((size) => genericOption(size, tunables)),
+  ];
+  const regionBest = bestFit(decision, inRegion, needed, tieBand);
+  decision.rule(`Best fit in ${show.regionName} for ${fitsText}`, regionBest !== null);
+  if (regionBest !== null) {
+    return decision.choose(
+      regionBest.key,
+      `${regionBest.name} is the best fit in ${show.regionName}`,
+    );
+  }
+
+  // 3. The best fit elsewhere in the country, for a crowd bigger than every local size.
+  const inCountry = inputs.inCountry
+    .filter(notPreferred)
+    .map((candidate) => realOption(candidate, tunables));
+  const countryBest = bestFit(decision, inCountry, needed, tieBand);
+  decision.rule(
+    `Best fit elsewhere in ${show.countryName} for ${formatCount(needed)}`,
+    countryBest !== null,
+  );
+  if (countryBest !== null) {
+    return decision.choose(
+      countryBest.key,
+      `${countryBest.name} is the best fit in ${show.countryName}`,
+    );
+  }
+
+  // 4. Nothing is big enough: the largest that can be booked, the region's first, then the cheaper.
+  let largest: PickOption | null = null;
+  for (const option of [...inRegion, ...inCountry]) {
+    if (option.unavailable !== null) {
+      continue;
+    }
+    if (
+      largest === null ||
+      option.capacity > largest.capacity ||
+      (option.capacity === largest.capacity && option.rent < largest.rent)
+    ) {
+      largest = option;
+    }
+  }
+  if (largest === null) {
+    throw new InvariantError('pickVenue found no venue that can be booked');
+  }
+  const because = `Bigger than any venue: ${largest.name}`;
+  decision.note(because);
+  return decision.choose(largest.key, because);
 }
