@@ -194,7 +194,7 @@ Windows machine" section of [installer.md](installer.md):
    is gone.
 9. Close the Sandbox (everything in it is thrown away).
 
-## 10. Draft start (Beta 01, DRF-02/03/06/07/10/11/12)
+## 10. Draft start (Beta 01, DRF-02/03/06/07/10/11/12/13)
 
 Start the game, **New game**, the default world, take over any promotion, then **Options**.
 
@@ -278,6 +278,16 @@ Start the game, **New game**, the default world, take over any promotion, then *
 - [ ] Try to offer a rival's draftee a contract: it's refused, "Under an exclusive contract".
 - [ ] Offer a free agent a contract: the Exclusive switch is on and locked, "Exclusive (draft)".
       In a game without a draft it works as before.
+
+**Brand-new companies** (DRF-13, a draft game):
+
+- [ ] The draft plan's list starts with "Every promotion starts as a brand-new company: no
+      frills".
+- [ ] After the draft, Roster shows your wrestlers and no other staff; Finances › Policies shows
+      catering, travel and medical at the lowest level; Brands has one brand.
+- [ ] Contracts › Free agents lists the referees, announcers and producers who were let go; you
+      can hire them. Your weekly show runs without them.
+- [ ] Play two months: with no staff wages or medical, your cash only moves with your shows.
 
 Quick look without playing (PNGs in the folder; add `-rbDraftNegotiate` for the second mode):
 

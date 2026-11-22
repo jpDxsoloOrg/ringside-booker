@@ -25,6 +25,21 @@ function setReserveMonths(engine: Engine, value: number): void {
   run(engine.command('tunables.setOverride', { key: 'draft.ai.reserveMonths', value }, PLAYER));
 }
 
+/**
+ * Five years of running costs, with venue rent made dear: more than any rival has from $250k, now
+ * that brand-new companies (DRF-13) pay no medical or staff.
+ */
+function holdEveryRivalBack(engine: Engine): void {
+  setReserveMonths(engine, 60);
+  run(
+    engine.command(
+      'tunables.setOverride',
+      { key: 'boxOffice.rent.base', value: 5_000_000 },
+      PLAYER,
+    ),
+  );
+}
+
 describe('running costs', () => {
   it('prices a month of a promotion: nothing for production at level 0, its shows and medical', () => {
     const state = startDraftGame();
@@ -80,7 +95,7 @@ describe('the rival reserve', () => {
   it('holds rivals back but not the player, who may spend down to zero', () => {
     // Five years of running costs is more than any rival has from $250k: none of them picks.
     const engine = engineOf(startDraftGame({ settings: { draftStartingCash: '250k' } }));
-    setReserveMonths(engine, 60);
+    holdEveryRivalBack(engine);
     run(engine.command('draft.autoPickRest', {}, PLAYER));
     const state = engine.exportState();
     const draft = state.world.tables.drafts[0]!;
@@ -105,7 +120,7 @@ describe('the rival reserve', () => {
       startDraftGame({ settings: { draftNegotiateAfter: true, draftStartingCash: '250k' } }),
     );
     run(engine.command('draft.autoPickRest', {}, PLAYER));
-    setReserveMonths(engine, 60);
+    holdEveryRivalBack(engine);
     const finish = run(engine.command('draft.finish', {}, PLAYER));
     expect(finish.signed).toBe(0);
     expect(finish.released).toBeGreaterThan(0);

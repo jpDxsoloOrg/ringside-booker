@@ -24,19 +24,23 @@ import type { Geography } from '../world/geography';
 
 /** Things that still differ between promotions after the reset, for the settings preview. */
 export const NOT_EQUALISED = [
-  'Home region and country (who the local fans are)',
-  'Staff policies (catering, travel, medical)',
-  'Brands, venues and the size of the shows they keep',
+  'Name, colours, style and home region and country (who the local fans are)',
+  'The owner and the booker',
+  'The size of the venues their crowds fill',
   'Rival rules shortcuts: see the Level playing field setting',
 ] as const;
 
 /** What the reset makes equal, for the settings preview. */
 export const EQUALISED = [
+  'Every promotion starts as a brand-new company: no frills',
   'Cash',
   'Prestige',
   'Popularity in every region of the home country (none elsewhere)',
   'TV deals: nobody has one',
   'Production: every area starts at the lowest level',
+  'Staff policies: catering, travel and medical at the lowest tier',
+  'Staff: only the booker, unless staff are drafted too',
+  'Brands: one each; storylines, held venues and partner links are gone',
   'Titles: every title starts vacant',
   'Rosters: everyone is drafted',
 ] as const;
